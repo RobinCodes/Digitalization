@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Index</title>
+  <link rel="icon" href="Assets/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#07070a; --bg2:#0d0d11; --bg3:#13131a; --bg4:#1a1a23;
+      --border:rgba(255,255,255,0.055); --border-md:rgba(255,255,255,0.09);
+      --text:#e0dbd0; --text2:#7e7a72; --text3:#3e3c38;
+      --accent:#c4a13c; --accent2:#e8c96a;
+      --accent-glow:rgba(196,161,60,0.18); --accent-dim:rgba(196,161,60,0.08);
+      --red:#c45c5c; --blue:#5c8fc4; --teal:#5cbfb0; --green:#6cbf80; --purple:#a07bc4;
+      --font-display:'Cormorant Garamond',Georgia,serif;
+      --font-ui:'Syne',sans-serif;
+      --font-mono:'JetBrains Mono',monospace;
+      --radius:8px; --radius-lg:14px;
+      --tr:cubic-bezier(0.25,0.46,0.45,0.94);
+      --tr-spring:cubic-bezier(0.34,1.56,0.64,1);
+      --header-h:64px;
+    }
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:var(--bg2)}
+    ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:999px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+    *{scrollbar-width:thin;scrollbar-color:var(--bg4) var(--bg2)}
+    html{cursor:none}
+    body{font-family:var(--font-ui);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:none;-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none;cursor:none}
+    button{cursor:none;border:none;background:none;font-family:inherit;color:inherit}
+    ::selection{background:var(--accent-dim);color:var(--accent2)}
+
+    /* CURSOR */
+    #cursorDot{position:fixed;z-index:99999;width:6px;height:6px;border-radius:50%;background:var(--accent);pointer-events:none;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s,opacity .2s}
+    #cursorRing{position:fixed;z-index:99998;width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(196,161,60,.5);pointer-events:none;transform:translate(-50%,-50%);transition:width .25s var(--tr),height .25s var(--tr),border-color .2s,opacity .2s;will-change:transform}
+    body.cursor-hover #cursorDot{width:4px;height:4px;background:var(--accent2)}
+    body.cursor-hover #cursorRing{width:44px;height:44px;border-color:var(--accent)}
+    body.cursor-active #cursorDot{width:8px;height:8px}
+    body.cursor-active #cursorRing{width:22px;height:22px;border-color:var(--accent2)}
+    .ripple{position:fixed;z-index:99997;pointer-events:none;border-radius:50%;border:1.5px solid rgba(196,161,60,.6);transform:translate(-50%,-50%) scale(0);animation:rippleOut .6s var(--tr) forwards}
+    @keyframes rippleOut{from{transform:translate(-50%,-50%) scale(0);opacity:1;width:10px;height:10px}to{transform:translate(-50%,-50%) scale(1);opacity:0;width:80px;height:80px}}
+
+    /* HEADER */
+    #header{position:fixed;top:0;left:0;right:0;z-index:1000;height:var(--header-h);border-bottom:1px solid var(--border);background:rgba(7,7,10,.85);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4)}
+    .header-inner{display:flex;align-items:center;justify-content:space-between;height:100%;padding:0 40px;max-width:1600px;margin:0 auto}
+    .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:20px;font-weight:500;letter-spacing:.02em;transition:opacity .2s}
+    .logo:hover{opacity:.75}
+    .logo-sym{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid var(--border-md);border-radius:6px;font-size:16px;color:var(--accent)}
+    .nav{display:flex;align-items:center;gap:8px}
+    .nav-link{position:relative;padding:6px 16px;font-family:var(--font-ui);font-size:13px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);border-radius:6px;transition:color .2s,background .2s}
+    .nav-link::after{content:'';position:absolute;bottom:2px;left:16px;right:16px;height:1.5px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .3s var(--tr)}
+    .nav-link:hover{color:var(--text);background:rgba(255,255,255,.04)}
+    .nav-link.active{color:var(--accent)}
+    .nav-link.active::after{transform:scaleX(1)}
+
+    /* PAGES */
+    #main{padding-top:var(--header-h);min-height:100vh}
+    .page{display:none;opacity:0;transform:translateY(16px);transition:opacity .45s var(--tr),transform .45s var(--tr)}
+    .page.active{display:block;animation:pageEnter .5s var(--tr) forwards}
+    @keyframes pageEnter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+    /* HOME PAGE */
+    .page-hero{padding:72px 40px 48px;max-width:1600px;margin:0 auto;border-bottom:1px solid var(--border)}
+    .page-label{font-family:var(--font-mono);font-size:11px;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);opacity:.8;margin-bottom:16px;display:block}
+    .page-title{font-family:var(--font-display);font-size:clamp(40px,6vw,76px);font-weight:400;line-height:1.05;letter-spacing:-.01em;color:var(--text)}
+    .page-title em{font-style:italic;color:var(--accent)}
+    .page-subtitle{margin-top:16px;font-size:14px;color:var(--text2);line-height:1.7;max-width:480px}
+
+    /* BREADCRUMB */
+    .breadcrumb-bar{display:flex;align-items:center;gap:0;padding:0 40px;height:48px;border-bottom:1px solid var(--border);max-width:1600px;margin:0 auto;overflow-x:auto;white-space:nowrap}
+    .bc-item{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;color:var(--text2);padding:4px 10px;border-radius:5px;transition:color .2s,background .2s}
+    .bc-item:not(:last-child):hover{color:var(--text);background:var(--bg3)}
+    .bc-item:last-child{color:var(--accent)}
+    .bc-sep{color:var(--text3);font-size:12px;user-select:none}
+
+    /* FILE GRID */
+    .grid-container{padding:32px 40px 80px;max-width:1600px;margin:0 auto}
+    .grid-info{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .grid-count{font-family:var(--font-mono);font-size:11px;color:var(--text3);letter-spacing:.1em}
+    .file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+
+    /* CARDS */
+    .card{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 18px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;overflow:hidden;transition:border-color .25s,box-shadow .25s,transform .25s var(--tr-spring),background .25s;animation:cardIn .4s var(--tr) both}
+    @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,var(--accent-dim),transparent 60%);opacity:0;transition:opacity .3s}
+    .card:hover{border-color:rgba(196,161,60,.35);box-shadow:0 0 0 1px rgba(196,161,60,.12),0 8px 30px rgba(0,0,0,.4);transform:translateY(-4px);background:var(--bg3)}
+    .card:hover::before{opacity:1}
+    .card:active{transform:translateY(-2px) scale(0.99)}
+    .card-icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;transition:transform .3s var(--tr-spring)}
+    .card:hover .card-icon{transform:scale(1.1) rotate(-3deg)}
+    .card-icon svg{width:26px;height:26px}
+    .card-icon.folder{background:rgba(196,161,60,.12);color:var(--accent)}
+    .card-icon.back{background:rgba(196,161,60,.08);color:var(--accent)}
+    .card-icon.tex{background:rgba(92,143,196,.12);color:var(--blue)}
+    .card-icon.pdf{background:rgba(196,92,92,.12);color:var(--red)}
+    .card-icon.img{background:rgba(108,191,128,.12);color:var(--green)}
+    .card-icon.md{background:rgba(160,123,196,.12);color:var(--purple)}
+    .card-icon.generic{background:rgba(255,255,255,.05);color:var(--text2)}
+    .card-icon.bib{background:rgba(92,191,176,.12);color:var(--teal)}
+    .card-body{flex:1;min-width:0;width:100%}
+    .card-name{font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--text);line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;transition:color .2s}
+    .card.back-card .card-name{color:var(--text2)}
+    .card.back-card:hover .card-name{color:var(--accent2)}
+    .card-meta{display:flex;align-items:center;gap:6px;margin-top:5px}
+    .card-badge{font-family:var(--font-mono);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid currentColor;opacity:.6}
+    .card-count{font-family:var(--font-mono);font-size:10px;color:var(--text3)}
+    .card-arrow{position:absolute;top:16px;right:16px;font-size:14px;color:var(--text3);opacity:0;transition:opacity .2s,transform .25s var(--tr),color .2s}
+    .card:hover .card-arrow{opacity:1;transform:translate(2px,-2px);color:var(--accent)}
+    .back-card .card-arrow{transform:none !important}
+    .back-card:hover .card-arrow{transform:translate(-2px,-2px) !important}
+
+    /* STATES */
+    .state-box{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;gap:16px;color:var(--text3);font-size:14px}
+    .spinner{width:28px;height:28px;border:2px solid var(--bg4);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* STORY PAGE */
+    #page-story{}
+    .story-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+    .story-title{font-family:var(--font-display);font-size:clamp(44px,7vw,88px);font-weight:400;line-height:1;letter-spacing:-.02em;margin-bottom:56px}
+    .story-title em{font-style:italic;color:var(--accent)}
+    .story-section{margin-bottom:52px}
+    .story-section h2{font-family:var(--font-display);font-size:24px;font-weight:500;font-style:italic;color:var(--accent);margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+    .story-section p{font-family:var(--font-display);font-size:19px;line-height:1.85;color:var(--text);font-weight:400;letter-spacing:.01em;margin-bottom:18px}
+    .story-section p:last-child{margin-bottom:0}
+    .story-pull{border-left:2px solid var(--accent);padding:10px 0 10px 24px;margin:32px 0;font-family:var(--font-display);font-size:22px;font-style:italic;color:var(--text2);line-height:1.6}
+    .accent-line{width:40px;height:2px;background:var(--accent);margin-bottom:20px;border-radius:1px}
+
+    /* NOTES PAGE */
+    #page-notes{}
+    .notes-hero{padding:72px 40px 48px;max-width:1600px;margin:0 auto;border-bottom:1px solid var(--border)}
+    .articles-container{padding:40px 40px 80px;max-width:1600px;margin:0 auto}
+    .articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px}
+    .article-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 26px;display:flex;flex-direction:column;gap:14px;transition:border-color .25s,box-shadow .25s,transform .25s var(--tr-spring),background .25s;animation:cardIn .4s var(--tr) both;cursor:none}
+    .article-card:hover{border-color:rgba(196,161,60,.35);box-shadow:0 0 0 1px rgba(196,161,60,.1),0 10px 40px rgba(0,0,0,.5);transform:translateY(-4px);background:var(--bg3)}
+    .article-card:active{transform:translateY(-2px) scale(0.99)}
+    .article-date{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);opacity:.7}
+    .article-title{font-family:var(--font-display);font-size:22px;font-weight:500;line-height:1.25;color:var(--text);transition:color .2s}
+    .article-card:hover .article-title{color:var(--accent2)}
+    .article-desc{font-size:13px;color:var(--text2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .article-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px;border-top:1px solid var(--border)}
+    .article-tags{display:flex;gap:6px;flex-wrap:wrap}
+    .article-tag{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border-md);border-radius:4px;color:var(--text3)}
+    .article-read{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);opacity:0;transition:opacity .2s;white-space:nowrap}
+    .article-card:hover .article-read{opacity:1}
+
+    /* ────────────────────────────────────────────────────────────────
+       PDF VIEWER MODAL
+    ──────────────────────────────────────────────────────────────── */
+    #pdfModal{position:fixed;inset:0;z-index:6000;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s;background:var(--bg)}
+    #pdfModal.open{opacity:1;pointer-events:all}
+
+    .pdf-topbar{
+      flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+      height:52px;padding:0 16px;gap:12px;
+      background:var(--bg2);border-bottom:1px solid var(--border);
+      z-index:1;
+    }
+    .pdf-topbar-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+    .pdf-topbar-mid{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .pdf-topbar-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+    .pdf-filename{font-family:var(--font-mono);font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pdf-badge{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:2px 8px;border-radius:4px;border:1px solid rgba(196,161,60,.35);color:var(--accent);flex-shrink:0}
+
+    .pdf-page-info{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:12px;color:var(--text2)}
+    .pdf-page-input{width:40px;text-align:center;background:var(--bg3);border:1px solid var(--border-md);border-radius:5px;color:var(--text);font-family:var(--font-mono);font-size:12px;padding:3px 6px;outline:none;transition:border-color .2s;cursor:none}
+    .pdf-page-input:focus{border-color:var(--accent)}
+
+    .pdf-tbtn{
+      display:inline-flex;align-items:center;justify-content:center;gap:5px;
+      height:30px;padding:0 10px;border-radius:6px;
+      font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;
+      color:var(--text2);background:var(--bg3);border:1px solid var(--border);
+      transition:color .2s,background .2s,border-color .2s;white-space:nowrap;flex-shrink:0;
+    }
+    .pdf-tbtn:hover{color:var(--text);background:var(--bg4);border-color:var(--border-md)}
+    .pdf-tbtn.accent:hover{color:var(--accent);border-color:rgba(196,161,60,.35)}
+    .pdf-tbtn.danger:hover{color:var(--red);border-color:rgba(196,92,92,.3)}
+    .pdf-tbtn svg{width:13px;height:13px;flex-shrink:0}
+    .pdf-sep{width:1px;height:20px;background:var(--border);flex-shrink:0}
+    .pdf-zoom-pct{font-family:var(--font-mono);font-size:11px;color:var(--text3);min-width:38px;text-align:center}
+
+    .pdf-body{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:28px 20px;background:var(--bg)}
+    .pdf-canvas-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px}
+    #pdfCanvas{display:block;box-shadow:0 8px 40px rgba(0,0,0,.6);border-radius:2px;transition:opacity .3s}
+    #pdfCanvas.loading-page{opacity:.4}
+
+    /* Compiling overlay inside pdf-body */
+    .pdf-overlay{
+      position:absolute;inset:0;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:18px;
+      background:var(--bg);z-index:10;
+    }
+    .pdf-overlay.hidden{display:none}
+    .compile-spinner{width:36px;height:36px;border:2.5px solid var(--bg4);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+    .compile-label{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+    .compile-log{
+      font-family:var(--font-mono);font-size:11px;line-height:1.6;
+      color:var(--text2);max-width:min(640px,90vw);max-height:50vh;
+      overflow-y:auto;white-space:pre-wrap;word-break:break-all;
+      text-align:left;width:100%;display:none;
+    }
+
+    /* Fail popup */
+    #compileFailModal{
+      position:fixed;inset:0;z-index:7000;display:flex;align-items:center;justify-content:center;
+      padding:24px;opacity:0;pointer-events:none;transition:opacity .25s;
+    }
+    #compileFailModal.open{opacity:1;pointer-events:all}
+    .fail-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px)}
+    .fail-box{
+      position:relative;z-index:1;width:min(720px,100%);max-height:80vh;
+      background:var(--bg2);border:1px solid rgba(196,92,92,.3);
+      border-radius:var(--radius-lg);display:flex;flex-direction:column;
+      box-shadow:0 0 0 1px rgba(196,92,92,.1),0 32px 80px rgba(0,0,0,.7);
+      transform:scale(0.96) translateY(8px);transition:transform .3s var(--tr-spring);
+    }
+    #compileFailModal.open .fail-box{transform:scale(1) translateY(0)}
+    .fail-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .fail-title-row{display:flex;align-items:center;gap:10px}
+    .fail-icon{font-size:16px}
+    .fail-title{font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--red)}
+    .fail-subtitle{font-family:var(--font-mono);font-size:11px;color:var(--text3);margin-top:2px}
+    .fail-body{flex:1;overflow:auto;padding:18px 20px}
+    .fail-log{
+      font-family:var(--font-mono);font-size:11.5px;line-height:1.7;
+      color:var(--text2);white-space:pre-wrap;word-break:break-all;
+      background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+      padding:16px 18px;
+    }
+    .fail-log .log-error{color:var(--red)}
+    .fail-log .log-warning{color:var(--accent)}
+    .fail-footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--border)}
+
+    /* CODE VIEWER MODAL */
+    #codeModal{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
+    #codeModal.open{opacity:1;pointer-events:all}
+    .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    .modal-box{position:relative;z-index:1;width:min(900px,100%);max-height:85vh;background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.03);transform:scale(0.96) translateY(8px);transition:transform .3s var(--tr-spring)}
+    #codeModal.open .modal-box{transform:scale(1) translateY(0)}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .modal-title-row{display:flex;align-items:center;gap:10px}
+    .modal-icon{font-size:14px;color:var(--blue)}
+    #codeModalTitle{font-family:var(--font-mono);font-size:12px;color:var(--text2);letter-spacing:.05em}
+    .modal-btns{display:flex;gap:6px}
+    .modal-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:6px;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--text2);background:var(--bg3);border:1px solid var(--border);transition:color .2s,background .2s,border-color .2s}
+    .modal-btn:hover{color:var(--text);background:var(--bg4);border-color:var(--border-md)}
+    .modal-btn.danger:hover{color:var(--red);border-color:var(--red)}
+    .modal-body{flex:1;overflow:auto}
+    .modal-body pre{margin:0;padding:22px 24px;font-family:var(--font-mono);font-size:13px;line-height:1.7;background:transparent !important}
+    .modal-body pre code{background:transparent !important;font-size:13px}
+    .hljs{background:transparent !important}
+
+    /* CONTEXT MENU */
+    #contextMenu{position:fixed;z-index:9000;min-width:180px;background:var(--bg3);border:1px solid var(--border-md);border-radius:var(--radius);box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03);padding:4px;opacity:0;pointer-events:none;transform:scale(0.95) translateY(-6px);transition:opacity .15s,transform .2s var(--tr-spring);transform-origin:top left}
+    #contextMenu.open{opacity:1;pointer-events:all;transform:scale(1) translateY(0)}
+    .ctx-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:5px;font-size:12.5px;color:var(--text2);transition:background .15s,color .15s;white-space:nowrap}
+    .ctx-item:hover{background:var(--bg4);color:var(--text)}
+    .ctx-item svg{width:13px;height:13px;opacity:.6;flex-shrink:0}
+    .ctx-separator{height:1px;background:var(--border);margin:4px 0}
+    .ctx-label{padding:6px 12px 3px;font-family:var(--font-mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:28px;left:50%;z-index:9998;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border-md);border-radius:999px;padding:10px 20px;font-family:var(--font-mono);font-size:12px;color:var(--text2);box-shadow:0 8px 32px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s var(--tr-spring);white-space:nowrap}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* NOISE */
+    #noiseOverlay{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:200px 200px}
+
+    @media(max-width:768px){
+      .header-inner,.page-hero,.notes-hero,.breadcrumb-bar{padding-left:20px;padding-right:20px}
+      .grid-container,.articles-container{padding-left:20px;padding-right:20px}
+      .file-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+      .articles-grid{grid-template-columns:1fr}
+      .pdf-topbar{padding:0 10px;gap:6px}
+      .pdf-topbar-mid{display:none}
+    }
+    @media(max-width:480px){
+      .file-grid{grid-template-columns:repeat(2,1fr)}
+      #cursorDot,#cursorRing{display:none}
+      html,body{cursor:auto}
+      a,button,.card,.article-card{cursor:pointer}
+    }
+  </style>
+</head>
+<body>
+  <div id="cursorDot"></div>
+  <div id="cursorRing"></div>
+  <div id="noiseOverlay"></div>
+  <div class="toast" id="toast"></div>
+
+  <!-- HEADER -->
+  <header id="header">
+    <div class="header-inner">
+      <a class="logo" href="#" data-page="home">
+        <span class="logo-sym">∑</span>
+        <span class="logo-text">Knowledge&nbsp;Index</span>
+      </a>
+      <nav class="nav">
+        <a class="nav-link active" href="#" data-page="home">Home</a>
+        <a class="nav-link" href="#" data-page="story">Story</a>
+        <a class="nav-link" href="#" data-page="notes">Notes</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- HOME -->
+    <section class="page active" id="page-home">
+      <div class="page-hero">
+        <span class="page-label">/ index</span>
+        <h1 class="page-title">Knowledge<br><em>Archive</em></h1>
+        <p class="page-subtitle">Browse the complete collection of mathematical and scientific notes, organized by subject and topic.</p>
+      </div>
+      <div class="breadcrumb-bar" id="breadcrumbBar"></div>
+      <div class="grid-container">
+        <div class="grid-info"><span class="grid-count" id="gridCount">—</span></div>
+        <div class="file-grid" id="fileGrid">
+          <div class="state-box"><div class="spinner"></div><span>Loading index…</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STORY -->
+    <section class="page" id="page-story">
+      <div style="max-width:720px;margin:0 auto;padding:80px 40px 120px">
+        <span class="page-label">/ story</span>
+        <h1 class="story-title">The <em>Story</em></h1>
+        <div class="accent-line"></div>
+
+        <div class="story-section">
+          <h2>On the impulse to record</h2>
+          <p>There is a moment every student of mathematics knows — the moment a proof finally closes, when the last line follows inexorably from the first, and the whole argument stands before you like a cathedral: complete, load-bearing, impossible to improve. The instinct that follows is almost physical: write it down. Not because you fear forgetting — though you will forget — but because the thing deserves to exist somewhere outside your own head, in a form that will outlast the urgency of the afternoon.</p>
+          <p>This archive began as exactly that impulse, repeated across years and subjects. A note here, a derivation there. A proof that took three weeks to understand compressed into two careful pages. A theorem whose statement I had seen a hundred times but whose proof I had never truly seen — until I sat down and wrote it myself, line by line, in my own notation.</p>
+          <div class="story-pull">"Mathematics is the art of giving the same name to different things." — Henri Poincaré</div>
+          <p>What surprised me, over time, was how much the act of writing changed the act of understanding. To write a proof is to interrogate it. Every elision you allow yourself in reading becomes a gap you must close in writing. The argument that seemed clear at a glance reveals, on paper, that it was only familiar — which is a very different thing.</p>
+        </div>
+
+        <div class="story-section">
+          <h2>On the beauty of the thing</h2>
+          <p>I did not always believe that mathematics was beautiful. Early on it seemed merely difficult — a discipline of rules and exceptions, of techniques to memorise and procedures to execute. It was only later, when the techniques became fluent enough to recede into the background, that the actual structure of mathematics became visible, and that structure was startling.</p>
+          <div class="story-pull">"The mathematician does not study pure mathematics because it is useful; he studies it because he delights in it, and he delights in it because it is beautiful." — Henri Poincaré</div>
+          <p>There is the beauty of pure surprise: that the sum of the reciprocals of the perfect squares converges to exactly π²/6, a fact that connects the integers to the circle with no obvious reason why it should. There is the beauty of deep unity: that the same group-theoretic structures govern the symmetries of a crystal, the solutions of a polynomial, and the fundamental particles of matter. There is the beauty of compression: that a single line — Maxwell's equations, the Euler–Lagrange equation, the Riemann hypothesis — can contain more content than volumes of prose.</p>
+          <p>G. H. Hardy wrote that there is no permanent place in mathematics for ugly mathematics, and while one may argue with his examples, the underlying claim resonates: beauty and correctness in mathematics are not independent. An ugly proof is usually not a final proof. It still contains the shape of a better argument, waiting to be found.</p>
+          <div class="story-pull">"It is not knowledge, but the act of learning — not possession, but the act of getting there — which grants the greatest enjoyment." — Carl Friedrich Gauss</div>
+        </div>
+
+        <div class="story-section">
+          <h2>On the method of LaTeX</h2>
+          <p>Every document in this archive is written in LaTeX — not out of convention or inertia, but because the medium shapes the thought. To typeset a formula properly, you must understand its structure. The distinction between $f(x)$ and $f \colon X \to Y$ is not cosmetic; it is a distinction in meaning, and LaTeX enforces it. The discipline of the source file is a discipline of precision.</p>
+          <p>There is also something right about the permanence of plain text. A LaTeX source file written in 1990 compiles today, unchanged. The mathematics does not decay. The theorems that Euler, Gauss, and Riemann established remain as true now as the day they were proved — and a plain-text file encoding them has a lifespan that no proprietary format can match.</p>
+          <div class="story-pull">"Pure mathematics is, in its way, the poetry of logical ideas." — Albert Einstein</div>
+          <p>This archive, then, is not a database. It is a collection of documents — each one the record of an encounter with an idea, typeset with care, stored in a structure simple enough to understand in an afternoon and robust enough to last decades. The goal was never comprehensiveness. It was honesty: to write down only what I actually understand, in enough detail that I will understand it again when I return.</p>
+        </div>
+
+        <div class="story-section">
+          <h2>On what an archive is for</h2>
+          <p>Hermann Weyl described mathematics as the science of the infinite — the discipline through which the human mind, finite and mortal, reaches toward structures that transcend it. There is something quietly extraordinary about that. Every proof in this archive is an attempt, however small, to participate in that reaching.</p>
+          <div class="story-pull">"In mathematics you don't understand things. You just get used to them." — John von Neumann</div>
+          <p>Von Neumann's remark is usually read as deflationary — a warning against false confidence. But I have come to read it differently. To get used to something, in mathematics, means to have built so many correct intuitions around it that it no longer surprises you. That process of habituation is itself a form of understanding, earned slowly, through repetition and return. The archive is the record of that process. Not a monument to conclusions, but a map of a journey still in progress.</p>
+          <p>If someone else reads these notes and finds them useful, that is a gift I did not anticipate. But the primary reader was always a future version of myself — one who has forgotten the details, but not the conviction that the details are worth knowing.</p>
+          <div class="story-pull">"The essence of mathematics lies in its freedom." — Georg Cantor</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="page" id="page-notes">
+      <div class="notes-hero">
+        <span class="page-label">/ notes</span>
+        <h1 class="page-title">Notes &amp;<br><em>Articles</em></h1>
+        <p class="page-subtitle">Written explorations, proofs, and ideas from across the archive.</p>
+      </div>
+      <div class="articles-container">
+        <div class="articles-grid" id="articlesGrid">
+          <div class="state-box"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       PDF VIEWER MODAL
+  ══════════════════════════════════════════════════════════════════════════ -->
+  <div id="pdfModal">
+    <div class="pdf-topbar">
+      <div class="pdf-topbar-left">
+        <span class="pdf-badge">PDF</span>
+        <span class="pdf-filename" id="pdfFilename">document.pdf</span>
+      </div>
+      <div class="pdf-topbar-mid">
+        <!-- Page nav -->
+        <button class="pdf-tbtn" id="pdfPrevPage" title="Previous page (←)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="pdf-page-info">
+          <input class="pdf-page-input" id="pdfPageInput" type="number" min="1" value="1">
+          <span style="color:var(--text3)">/ <span id="pdfTotalPages">—</span></span>
+        </div>
+        <button class="pdf-tbtn" id="pdfNextPage" title="Next page (→)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <div class="pdf-sep"></div>
+        <!-- Zoom -->
+        <button class="pdf-tbtn" id="pdfZoomOut" title="Zoom out (-)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </button>
+        <span class="pdf-zoom-pct" id="pdfZoomPct">100%</span>
+        <button class="pdf-tbtn" id="pdfZoomIn" title="Zoom in (+)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </button>
+        <button class="pdf-tbtn" id="pdfZoomFit" title="Fit to width">Fit</button>
+        <div class="pdf-sep"></div>
+      </div>
+      <div class="pdf-topbar-right">
+        <button class="pdf-tbtn accent" id="pdfDownload" title="Download PDF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </button>
+        <button class="pdf-tbtn accent" id="pdfPrint" title="Print PDF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print
+        </button>
+        <button class="pdf-tbtn danger" id="pdfClose" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Close
+        </button>
+      </div>
+    </div>
+
+    <div class="pdf-body" id="pdfBody">
+      <!-- Loading / compiling overlay -->
+      <div class="pdf-overlay" id="pdfOverlay">
+        <div class="compile-spinner"></div>
+        <div class="compile-label" id="compileLabel">Compiling LaTeX…</div>
+        <pre class="compile-log" id="compileLogLive"></pre>
+      </div>
+      <!-- Canvas -->
+      <div class="pdf-canvas-wrap">
+        <canvas id="pdfCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compile fail popup -->
+  <div id="compileFailModal">
+    <div class="fail-backdrop" id="failBackdrop"></div>
+    <div class="fail-box">
+      <div class="fail-header">
+        <div class="fail-title-row">
+          <span class="fail-icon">⚠</span>
+          <div>
+            <div class="fail-title">Compilation Failed</div>
+            <div class="fail-subtitle">pdflatex returned an error — see log below</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="modal-btn" id="failCopyLog">Copy Log</button>
+          <button class="modal-btn danger" id="failClose">✕ Close</button>
+        </div>
+      </div>
+      <div class="fail-body">
+        <pre class="fail-log" id="failLogContent"></pre>
+      </div>
+      <div class="fail-footer">
+        <button class="modal-btn" id="failViewSource">View Source Instead</button>
+        <button class="modal-btn danger" id="failClose2">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CODE VIEWER MODAL -->
+  <div id="codeModal">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <span class="modal-icon">⟨⟩</span>
+          <span id="codeModalTitle">file.tex</span>
+        </div>
+        <div class="modal-btns">
+          <button class="modal-btn" id="codeModalDownload">↓ Download</button>
+          <button class="modal-btn danger" id="codeModalClose">✕ Close</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <pre><code id="codeContent" class="language-latex"></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEXT MENU -->
+  <div id="contextMenu"></div>
+
+  <!-- HIDDEN PRINT IFRAME -->
+  <iframe id="printFrame" style="display:none"></iframe>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+  (() => {
+    'use strict';
+
+    /* ── PDF.js worker ─────────────────────────────────────────────── */
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    /* ── Cursor ─────────────────────────────────────────────────────── */
+    const dot  = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    let mx = -200, my = -200, rx = -200, ry = -200;
+    const LERP = 0.14;
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    document.addEventListener('mousedown', e => { body.classList.add('cursor-active'); spawnRipple(e.clientX, e.clientY); });
+    document.addEventListener('mouseup',   () => body.classList.remove('cursor-active'));
+    document.addEventListener('mouseleave',() => { dot.style.opacity='0'; ring.style.opacity='0'; });
+    document.addEventListener('mouseenter',() => { dot.style.opacity='1'; ring.style.opacity='1'; });
+
+    const HOVER_SEL = 'a,button,.card,.article-card,.bc-item,.ctx-item,.modal-btn,.pdf-tbtn,.pdf-page-input,[data-hover]';
+    document.addEventListener('mouseover', e => { if (e.target.closest(HOVER_SEL)) body.classList.add('cursor-hover'); });
+    document.addEventListener('mouseout',  e => { if (e.target.closest(HOVER_SEL)) body.classList.remove('cursor-hover'); });
+
+    (function animCursor() {
+      dot.style.left  = mx + 'px'; dot.style.top  = my + 'px';
+      rx = lerp(rx, mx, LERP);     ry = lerp(ry, my, LERP);
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(animCursor);
+    })();
+
+    function spawnRipple(x, y) {
+      const r = document.createElement('div');
+      r.className = 'ripple';
+      r.style.left = x + 'px'; r.style.top = y + 'px';
+      document.body.appendChild(r);
+      r.addEventListener('animationend', () => r.remove());
+    }
+
+    const body = document.body;
+
+    /* ── Toast ──────────────────────────────────────────────────────── */
+    let toastT;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastT);
+      toastT = setTimeout(() => t.classList.remove('show'), 2400);
+    }
+
+    /* ── Navigation ─────────────────────────────────────────────────── */
+    document.querySelectorAll('[data-page]').forEach(el => {
+      el.addEventListener('click', e => { e.preventDefault(); navigateTo(el.dataset.page); });
+    });
+    function navigateTo(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
+      const t = document.getElementById('page-' + page);
+      if (t) t.classList.add('active');
+      if (page === 'notes') loadArticles();
+    }
+
+    /* ── SVG Icons ──────────────────────────────────────────────────── */
+    const I = {
+      folder: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+      back:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l-5-5 5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`,
+      tex:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>`,
+      pdf:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/></svg>`,
+      img:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+      md:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+      bib:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+      generic:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+      dl:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+      eye:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+      open:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,
+      code:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+      render: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+    };
+
+    function iconTypeOf(item) {
+      if (item.type === 'folder') return 'folder';
+      const e = (item.ext||'').toLowerCase();
+      if (['.tex','.sty','.cls'].includes(e)) return 'tex';
+      if (e==='.pdf') return 'pdf';
+      if (['.png','.jpg','.jpeg','.gif','.webp','.svg'].includes(e)) return 'img';
+      if (['.md','.markdown'].includes(e)) return 'md';
+      if (e==='.bib') return 'bib';
+      return 'generic';
+    }
+    const iconColorVar = { folder:'accent', tex:'blue', pdf:'red', img:'green', md:'purple', bib:'teal', generic:'text2', back:'accent' };
+
+    function fmtSize(b) {
+      if (b<1024) return b+'B';
+      if (b<1048576) return (b/1024).toFixed(1)+'KB';
+      return (b/1048576).toFixed(1)+'MB';
+    }
+
+    /* ── State ──────────────────────────────────────────────────────── */
+    let treeData    = null;
+    let pathStack   = [];
+    let currentNode = null;
+    let codeModalFile = '';
+    let lastFailPath  = '';
+    let lastFailName  = '';
+
+    /* ── Breadcrumb ─────────────────────────────────────────────────── */
+    function renderBreadcrumb() {
+      const bar = document.getElementById('breadcrumbBar');
+      bar.innerHTML = '';
+      appendBc(bar, '∎ root', -1, pathStack.length===0);
+      pathStack.forEach((node, i) => {
+        const sep = document.createElement('span');
+        sep.className='bc-sep'; sep.textContent=' / ';
+        bar.appendChild(sep);
+        appendBc(bar, node.name, i, i===pathStack.length-1);
+      });
+    }
+    function appendBc(bar, label, depth, isLast) {
+      const el = document.createElement('span');
+      el.className = 'bc-item' + (isLast?' active':'');
+      el.textContent = label;
+      if (!isLast) el.addEventListener('click', () => {
+        if (depth===-1) { pathStack=[]; currentNode=treeData; }
+        else { pathStack=pathStack.slice(0,depth+1); currentNode=pathStack[pathStack.length-1]; }
+        renderBreadcrumb(); renderGrid(currentNode);
+      });
+      bar.appendChild(el);
+    }
+
+    /* ── Grid ───────────────────────────────────────────────────────── */
+    function renderGrid(node) {
+      const grid  = document.getElementById('fileGrid');
+      const count = document.getElementById('gridCount');
+      const items = node ? (node.children||[]) : [];
+
+      const folders = items.filter(i=>i.type==='folder');
+      const files   = items.filter(i=>i.type==='file');
+      count.textContent = `${folders.length} folder${folders.length!==1?'s':''}, ${files.length} file${files.length!==1?'s':''}`;
+
+      grid.innerHTML = '';
+
+      // Back card (if not at root)
+      if (pathStack.length > 0) {
+        const backCard = buildBackCard();
+        grid.appendChild(backCard);
+      }
+
+      if (!items.length && pathStack.length===0) {
+        const empty = document.createElement('div');
+        empty.className='state-box'; empty.innerHTML='<span>This folder is empty.</span>';
+        grid.appendChild(empty); return;
+      }
+
+      items.forEach((item, idx) => {
+        const card = buildCard(item);
+        card.style.animationDelay = ((idx + (pathStack.length>0?1:0)) * 35) + 'ms';
+        grid.appendChild(card);
+      });
+    }
+
+    function buildBackCard() {
+      const card = document.createElement('div');
+      card.className = 'card back-card';
+      card.style.animationDelay = '0ms';
+      card.innerHTML = `
+        <div class="card-icon back">${I.back}</div>
+        <div class="card-body">
+          <div class="card-name">Back</div>
+          <div class="card-meta"><span class="card-badge" style="color:var(--accent)">UP</span></div>
+        </div>
+        <span class="card-arrow" style="font-size:16px">↩</span>
+      `;
+      card.addEventListener('click', () => {
+        pathStack.pop();
+        currentNode = pathStack.length ? pathStack[pathStack.length-1] : treeData;
+        renderBreadcrumb();
+        renderGrid(currentNode);
+        window.scrollTo({ top: document.getElementById('breadcrumbBar').offsetTop-70, behavior:'smooth' });
+      });
+      return card;
+    }
+
+    function buildCard(item) {
+      const it = iconTypeOf(item);
+      const cv = iconColorVar[it] || 'text2';
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.path = item.path; card.dataset.type = item.type; card.dataset.ext = item.ext||''; card.dataset.name = item.name;
+
+      const badge = item.type==='folder' ? 'DIR' : (item.ext||'FILE').replace('.','').toUpperCase();
+      const meta  = item.type==='folder' ? `${item.count} item${item.count!==1?'s':''}` : fmtSize(item.size||0);
+
+      card.innerHTML = `
+        <div class="card-icon ${it}">${I[it]||I.generic}</div>
+        <div class="card-body">
+          <div class="card-name">${esc(item.name)}</div>
+          <div class="card-meta">
+            <span class="card-badge" style="color:var(--${cv})">${badge}</span>
+            <span class="card-count">${meta}</span>
+          </div>
+        </div>
+        <span class="card-arrow">↗</span>
+      `;
+      card.addEventListener('contextmenu', e => { e.preventDefault(); openCtx(e, item); });
+      card.addEventListener('click', () => handleClick(item));
+      return card;
+    }
+
+    function handleClick(item) {
+      if (item.type==='folder') {
+        pathStack.push(item); currentNode = item;
+        renderBreadcrumb(); renderGrid(item);
+        window.scrollTo({ top: document.getElementById('breadcrumbBar').offsetTop-70, behavior:'smooth' });
+        return;
+      }
+      const ext = (item.ext||'').toLowerCase();
+      if (['.tex','.sty','.cls'].includes(ext)) { openPdfViewer(item.path, item.name); return; }
+      if (ext==='.pdf') { openPdfDirect('/data/'+encPath(item.path), item.name); return; }
+      if (['.bib','.md','.txt'].includes(ext)) { openCodeViewer(item.path, item.name); return; }
+      if (['.png','.jpg','.jpeg','.gif','.webp','.svg'].includes(ext)) { window.open('/data/'+encPath(item.path),'_blank'); return; }
+      window.open('/data/'+encPath(item.path),'_blank');
+    }
+
+    /* ── Load Tree ──────────────────────────────────────────────────── */
+    async function loadTree() {
+      try {
+        const res = await fetch('/api/tree');
+        if (!res.ok) throw new Error('HTTP '+res.status);
+        treeData = await res.json(); currentNode = treeData; pathStack = [];
+        renderBreadcrumb(); renderGrid(treeData);
+      } catch (err) {
+        document.getElementById('fileGrid').innerHTML =
+          `<div class="state-box"><span style="color:var(--red)">Failed to load. Is the server running?</span></div>`;
+      }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       PDF VIEWER
+    ═════════════════════════════════════════════════════════════════ */
+    const pdfModal    = document.getElementById('pdfModal');
+    const pdfCanvas   = document.getElementById('pdfCanvas');
+    const pdfOverlay  = document.getElementById('pdfOverlay');
+    const compLabel   = document.getElementById('compileLabel');
+    const compLog     = document.getElementById('compileLogLive');
+    let pdfDoc        = null;
+    let pdfPage       = 1;
+    let pdfZoom       = 1.0;
+    let pdfRendering  = false;
+    let pdfPendingPage= null;
+    let pdfBytes      = null;  // stored for download/print
+    let pdfCurrentName= '';
+    let pdfCurrentPath= '';    // tex path for re-compile / source view
+
+    function openPdfViewer(texPath, texName) {
+      pdfCurrentPath = texPath;
+      pdfCurrentName = texName;
+      lastFailPath   = texPath;
+      lastFailName   = texName;
+      document.getElementById('pdfFilename').textContent = texName;
+
+      // Reset viewer state
+      pdfDoc = null; pdfPage = 1; pdfZoom = 1.0; pdfBytes = null;
+      pdfCanvas.getContext('2d').clearRect(0,0,pdfCanvas.width,pdfCanvas.height);
+      document.getElementById('pdfTotalPages').textContent = '—';
+      document.getElementById('pdfPageInput').value = 1;
+      document.getElementById('pdfZoomPct').textContent = '100%';
+
+      // Show overlay with spinner
+      compLabel.textContent = 'Compiling LaTeX…';
+      compLog.style.display = 'none'; compLog.textContent = '';
+      pdfOverlay.classList.remove('hidden');
+      pdfModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+
+      compileTex(texPath);
+    }
+
+    function openPdfDirect(url, name) {
+      pdfCurrentPath = '';
+      pdfCurrentName = name;
+      document.getElementById('pdfFilename').textContent = name;
+      pdfDoc=null; pdfPage=1; pdfZoom=1.0; pdfBytes=null;
+      pdfCanvas.getContext('2d').clearRect(0,0,pdfCanvas.width,pdfCanvas.height);
+      document.getElementById('pdfTotalPages').textContent='—';
+      document.getElementById('pdfPageInput').value=1;
+      document.getElementById('pdfZoomPct').textContent='100%';
+
+      compLabel.textContent='Loading PDF…';
+      compLog.style.display='none';
+      pdfOverlay.classList.remove('hidden');
+      pdfModal.classList.add('open');
+      document.body.style.overflow='hidden';
+
+      fetch(url).then(r=>r.arrayBuffer()).then(buf => {
+        pdfBytes = new Uint8Array(buf);
+        loadPdfBytes(pdfBytes);
+      }).catch(e => showCompileFail('Failed to load PDF:\n'+e.message, ''));
+    }
+
+    async function compileTex(texPath) {
+      try {
+        const res = await fetch('/api/compile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: texPath }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Server error: HTTP ' + res.status);
+        }
+
+        const ct = res.headers.get('content-type') || '';
+
+        if (ct.includes('application/pdf')) {
+          const buf = await res.arrayBuffer();
+          pdfBytes = new Uint8Array(buf);
+          loadPdfBytes(pdfBytes);
+        } else {
+          // JSON error response
+          const data = await res.json();
+          showCompileFail(data.log || 'Unknown error.', texPath);
+        }
+      } catch (err) {
+        showCompileFail('Network or server error:\n' + err.message, texPath);
+      }
+    }
+
+    function showCompileFail(log, texPath) {
+      // Hide pdf modal overlay
+      pdfModal.classList.remove('open');
+      document.body.style.overflow = '';
+
+      // Format log with highlighted errors
+      const formatted = log.replace(/^(.*Error:.*|!.*)$/gm, '<span class="log-error">$1</span>')
+                           .replace(/^(.*Warning:.*)$/gm, '<span class="log-warning">$1</span>');
+      document.getElementById('failLogContent').innerHTML = formatted;
+
+      const modal = document.getElementById('compileFailModal');
+      modal.classList.add('open');
+
+      document.getElementById('failViewSource').onclick = () => {
+        modal.classList.remove('open');
+        if (texPath) openCodeViewer(texPath, pdfCurrentName);
+      };
+    }
+
+    function loadPdfBytes(bytes) {
+      pdfjsLib.getDocument({ data: bytes }).promise.then(doc => {
+        pdfDoc = doc;
+        document.getElementById('pdfTotalPages').textContent = doc.numPages;
+        document.getElementById('pdfPageInput').max = doc.numPages;
+        pdfOverlay.classList.add('hidden');
+        fitToWidth();
+        renderPage(pdfPage);
+      }).catch(e => {
+        showCompileFail('Failed to parse PDF:\n' + e.message, pdfCurrentPath);
+      });
+    }
+
+    function renderPage(num) {
+      if (!pdfDoc) return;
+      if (pdfRendering) { pdfPendingPage = num; return; }
+      pdfRendering = true;
+      pdfCanvas.classList.add('loading-page');
+
+      pdfDoc.getPage(num).then(page => {
+        const vp = page.getViewport({ scale: pdfZoom });
+        pdfCanvas.width  = vp.width;
+        pdfCanvas.height = vp.height;
+        const ctx = pdfCanvas.getContext('2d');
+        return page.render({ canvasContext: ctx, viewport: vp }).promise;
+      }).then(() => {
+        pdfRendering = false;
+        pdfCanvas.classList.remove('loading-page');
+        document.getElementById('pdfPageInput').value = num;
+        if (pdfPendingPage !== null) {
+          const p = pdfPendingPage; pdfPendingPage = null;
+          renderPage(p);
+        }
+      }).catch(e => { pdfRendering = false; pdfCanvas.classList.remove('loading-page'); });
+    }
+
+    function fitToWidth() {
+      if (!pdfDoc) return;
+      pdfDoc.getPage(1).then(page => {
+        const vp = page.getViewport({ scale: 1 });
+        const bodyW = document.getElementById('pdfBody').clientWidth - 56;
+        pdfZoom = Math.min(2.5, bodyW / vp.width);
+        document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom*100)+'%';
+        renderPage(pdfPage);
+      });
+    }
+
+    /* PDF toolbar controls */
+    document.getElementById('pdfPrevPage').addEventListener('click', () => {
+      if (!pdfDoc || pdfPage<=1) return;
+      pdfPage--; renderPage(pdfPage);
+    });
+    document.getElementById('pdfNextPage').addEventListener('click', () => {
+      if (!pdfDoc || pdfPage>=pdfDoc.numPages) return;
+      pdfPage++; renderPage(pdfPage);
+    });
+    document.getElementById('pdfPageInput').addEventListener('change', function() {
+      if (!pdfDoc) return;
+      let v = parseInt(this.value);
+      if (isNaN(v)) return;
+      v = Math.max(1, Math.min(pdfDoc.numPages, v));
+      pdfPage = v; renderPage(pdfPage);
+    });
+    document.getElementById('pdfZoomIn').addEventListener('click', () => {
+      pdfZoom = Math.min(3.5, pdfZoom + 0.15);
+      document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom*100)+'%';
+      renderPage(pdfPage);
+    });
+    document.getElementById('pdfZoomOut').addEventListener('click', () => {
+      pdfZoom = Math.max(0.25, pdfZoom - 0.15);
+      document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom*100)+'%';
+      renderPage(pdfPage);
+    });
+    document.getElementById('pdfZoomFit').addEventListener('click', fitToWidth);
+
+    document.getElementById('pdfDownload').addEventListener('click', () => {
+      if (!pdfBytes) return;
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = pdfCurrentName.replace(/\.tex$/i,'') + '.pdf';
+      a.click(); URL.revokeObjectURL(a.href);
+      showToast('↓ Downloading PDF');
+    });
+
+    document.getElementById('pdfPrint').addEventListener('click', () => {
+      if (!pdfBytes) return;
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+      const iframe  = document.getElementById('printFrame');
+      iframe.src    = blobUrl;
+      iframe.onload = () => {
+        try { iframe.contentWindow.print(); } catch {}
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+      };
+    });
+
+    document.getElementById('pdfClose').addEventListener('click', closePdfViewer);
+
+    function closePdfViewer() {
+      pdfModal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    /* Keyboard navigation for PDF */
+    document.addEventListener('keydown', e => {
+      if (pdfModal.classList.contains('open')) {
+        if (e.key==='ArrowRight'||e.key==='ArrowDown') {
+          if (pdfDoc && pdfPage<pdfDoc.numPages) { pdfPage++; renderPage(pdfPage); }
+        } else if (e.key==='ArrowLeft'||e.key==='ArrowUp') {
+          if (pdfDoc && pdfPage>1) { pdfPage--; renderPage(pdfPage); }
+        } else if (e.key==='+' || e.key==='=') {
+          pdfZoom=Math.min(3.5,pdfZoom+0.15);
+          document.getElementById('pdfZoomPct').textContent=Math.round(pdfZoom*100)+'%';
+          renderPage(pdfPage);
+        } else if (e.key==='-') {
+          pdfZoom=Math.max(0.25,pdfZoom-0.15);
+          document.getElementById('pdfZoomPct').textContent=Math.round(pdfZoom*100)+'%';
+          renderPage(pdfPage);
+        } else if (e.key==='Escape') {
+          closePdfViewer();
+        }
+        return;
+      }
+      if (e.key==='Escape') {
+        closeCodeViewer();
+        document.getElementById('compileFailModal').classList.remove('open');
+        closeCtx();
+      }
+    });
+
+    /* Compile fail modal */
+    document.getElementById('failClose').addEventListener('click',  () => document.getElementById('compileFailModal').classList.remove('open'));
+    document.getElementById('failClose2').addEventListener('click', () => document.getElementById('compileFailModal').classList.remove('open'));
+    document.getElementById('failBackdrop').addEventListener('click', () => document.getElementById('compileFailModal').classList.remove('open'));
+    document.getElementById('failCopyLog').addEventListener('click', () => {
+      const log = document.getElementById('failLogContent').textContent;
+      navigator.clipboard.writeText(log).then(() => showToast('Log copied'));
+    });
+
+    /* ════════════════════════════════════════════════════════════════
+       CODE VIEWER
+    ═════════════════════════════════════════════════════════════════ */
+    const codeModal = document.getElementById('codeModal');
+
+    async function openCodeViewer(filePath, fileName) {
+      document.getElementById('codeModalTitle').textContent = fileName;
+      codeModalFile = filePath;
+      const codeEl = document.getElementById('codeContent');
+      codeEl.textContent = 'Loading…';
+      codeModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      try {
+        const res = await fetch('/api/file?path=' + encodeURIComponent(filePath));
+        if (!res.ok) throw new Error('HTTP '+res.status);
+        const code = await res.text();
+        codeEl.textContent = code;
+        const ext = (filePath.split('.').pop()||'').toLowerCase();
+        const lm = {tex:'latex',sty:'latex',cls:'latex',bib:'bash',md:'markdown',txt:'plaintext',js:'javascript',py:'python'};
+        codeEl.className = 'language-' + (lm[ext]||'plaintext');
+        if (window.hljs) try { hljs.highlightElement(codeEl); } catch {}
+      } catch (err) { codeEl.textContent = 'Error: ' + err.message; }
+    }
+
+    function closeCodeViewer() {
+      codeModal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('codeModalClose').addEventListener('click', closeCodeViewer);
+    document.getElementById('modalBackdrop').addEventListener('click', closeCodeViewer);
+    document.getElementById('codeModalDownload').addEventListener('click', () => {
+      if (codeModalFile) window.open('/data/'+encPath(codeModalFile)+'?download=1','_blank');
+    });
+
+    /* ════════════════════════════════════════════════════════════════
+       CONTEXT MENU
+    ═════════════════════════════════════════════════════════════════ */
+    const ctxMenu = document.getElementById('contextMenu');
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    function openCtx(e, item) {
+      e.preventDefault(); e.stopPropagation();
+      const isFolder = item.type==='folder';
+      const ext = (item.ext||'').toLowerCase();
+      const isTex = ['.tex','.sty','.cls'].includes(ext);
+      const isPDF = ext==='.pdf';
+      const isImg = ['.png','.jpg','.jpeg','.gif','.webp','.svg'].includes(ext);
+      const isText= ['.md','.txt','.bib'].includes(ext);
+
+      let html = `<div class="ctx-label">${esc(item.name)}</div>`;
+      if (isFolder) {
+        html += `<div class="ctx-item" data-action="open">${I.open} Open Folder</div>
+                 <div class="ctx-separator"></div>
+                 <div class="ctx-item" data-action="download">${I.dl} Download</div>`;
+      } else {
+        if (isTex)  html += `<div class="ctx-item" data-action="compile">${I.render} Compile &amp; View PDF</div>
+                              <div class="ctx-item" data-action="view-code">${I.code} View Source</div>`;
+        if (isPDF)  html += `<div class="ctx-item" data-action="open-pdf">${I.open} Open PDF</div>`;
+        if (isImg)  html += `<div class="ctx-item" data-action="open-tab">${I.eye} View Image</div>`;
+        if (isText) html += `<div class="ctx-item" data-action="view-code">${I.code} View Source</div>`;
+        html += `<div class="ctx-separator"></div>
+                 <div class="ctx-item" data-action="download">${I.dl} Download</div>`;
+      }
+
+      ctxMenu.innerHTML = html;
+      const vw=window.innerWidth, vh=window.innerHeight, mx=e.clientX, my=e.clientY;
+      ctxMenu.style.left = (mx+200>vw ? mx-200 : mx)+'px';
+      ctxMenu.style.top  = (my+200>vh ? my-200 : my)+'px';
+      ctxMenu.classList.add('open');
+
+      ctxMenu.querySelectorAll('.ctx-item[data-action]').forEach(el => {
+        el.addEventListener('click', () => {
+          const a = el.dataset.action; closeCtx();
+          if (a==='open')       handleClick(item);
+          if (a==='compile')    openPdfViewer(item.path, item.name);
+          if (a==='open-pdf')   openPdfDirect('/data/'+encPath(item.path), item.name);
+          if (a==='open-tab')   window.open('/data/'+encPath(item.path),'_blank');
+          if (a==='view-code')  openCodeViewer(item.path, item.name);
+          if (a==='download') {
+            window.open('/data/'+encPath(item.path)+'?download=1','_blank');
+            showToast('↓ Downloading '+item.name);
+          }
+        });
+      });
+    }
+    function closeCtx() { ctxMenu.classList.remove('open'); }
+    document.addEventListener('click', e => { if (!ctxMenu.contains(e.target)) closeCtx(); });
+
+    /* ════════════════════════════════════════════════════════════════
+       ARTICLES
+    ═════════════════════════════════════════════════════════════════ */
+    let articlesLoaded = false;
+    async function loadArticles() {
+      if (articlesLoaded) return;
+      const grid = document.getElementById('articlesGrid');
+      try {
+        const res = await fetch('/api/articles');
+        const articles = await res.json();
+        articlesLoaded = true;
+        if (!articles.length) { grid.innerHTML='<div class="state-box"><span>No articles yet.</span></div>'; return; }
+        grid.innerHTML = '';
+        articles.forEach((art, i) => {
+          const card = document.createElement('div');
+          card.className = 'article-card';
+          card.style.animationDelay = (i*50)+'ms';
+          const tags = (art.tags||[]).map(t=>`<span class="article-tag">${esc(t)}</span>`).join('');
+          card.innerHTML = `
+            ${art.date?`<div class="article-date">${art.date}</div>`:''}
+            <div class="article-title">${esc(art.title)}</div>
+            ${art.description?`<div class="article-desc">${esc(art.description)}</div>`:''}
+            <div class="article-footer">
+              <div class="article-tags">${tags}</div>
+              <span class="article-read">Read →</span>
+            </div>
+          `;
+          // Same tab so browser back button works
+          card.addEventListener('click', () => { window.location.href = '/articles/' + art.file; });
+          grid.appendChild(card);
+        });
+      } catch {
+        grid.innerHTML='<div class="state-box"><span style="color:var(--red)">Failed to load articles.</span></div>';
+      }
+    }
+
+    /* ── Header scroll effect ───────────────────────────────────────── */
+    window.addEventListener('scroll', () => {
+      document.getElementById('header').style.borderBottomColor =
+        window.scrollY>10 ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.055)';
+    }, { passive:true });
+
+    /* ── Utils ──────────────────────────────────────────────────────── */
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function encPath(p) { return p.split('/').map(encodeURIComponent).join('/'); }
+
+    /* ── Init ───────────────────────────────────────────────────────── */
+    loadTree();
+  })();
+  </script>
+</body>
+</html>
