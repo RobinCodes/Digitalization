@@ -312,18 +312,24 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/compile' && req.method === 'POST') return handleCompile(req, res);
 
   if (pathname === '/api/tree') {
-    const children = buildTree(__DATA);
-    return sendJSON(res, { name: 'Data', type: 'folder', path: '', children, count: children.length });
+    const dataDir = (query.lang === 'hu')
+      ? path.resolve(__WEBSITE, '..', 'DataHU')
+      : __DATA;
+    const children = buildTree(dataDir);
+    return sendJSON(res, { name: dataDir, type: 'folder', path: '', children, count: children.length });
   }
 
   if (pathname === '/api/articles') {
+    const articlesDir = (query.lang === 'hu')
+      ? path.join(__WEBSITE, 'ArticlesHU')
+      : __ARTICLES;
     let files = [];
-    try { files = fs.readdirSync(__ARTICLES); } catch {}
+    try { files = fs.readdirSync(articlesDir); } catch {}
     const articles = files.filter(f => f.endsWith('.html')).map(f => {
       let title = f.replace('.html','').replace(/[-_]/g,' ');
       let date = null, description = '', tags = [];
       try {
-        const raw = fs.readFileSync(path.join(__ARTICLES, f), 'utf8');
+        const raw = fs.readFileSync(path.join(articlesDir, f), 'utf8');
         const t  = raw.match(/<title[^>]*>([^<]+)<\/title>/i);
         const d  = raw.match(/data-date="([^"]+)"/);
         const ds = raw.match(/data-description="([^"]+)"/);
@@ -351,16 +357,28 @@ const server = http.createServer((req, res) => {
   }
 
   if (pathname.startsWith('/data/')) {
+    // Support ?lang=hu to serve from DataHU
+    const dataDir = (query.lang === 'hu')
+      ? path.resolve(__WEBSITE, '..', 'DataHU')
+      : __DATA;
     let full;
-    try { full = safePath(__DATA, pathname.slice(6)); }
+    try { full = safePath(dataDir, pathname.slice(6)); }
     catch { res.writeHead(403); return res.end('Forbidden'); }
     return serveFile(res, full, !!query.download);
   }
 
   if (pathname.startsWith('/articles/')) {
+    const articleFile = pathname.slice(10);
+    // Try language-specific dir first
     let full;
-    try { full = safePath(__ARTICLES, pathname.slice(10)); }
-    catch { res.writeHead(403); return res.end('Forbidden'); }
+    if (query.lang === 'hu') {
+      const huDir = path.join(__WEBSITE, 'ArticlesHU');
+      try { full = safePath(huDir, articleFile); if (!fs.existsSync(full)) full = null; } catch { full = null; }
+    }
+    if (!full) {
+      try { full = safePath(__ARTICLES, articleFile); }
+      catch { res.writeHead(403); return res.end('Forbidden'); }
+    }
     return serveFile(res, full);
   }
 

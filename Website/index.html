@@ -4,11 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Index</title>
-  <link rel="icon" href="Assets/favicon.ico">
+  <link rel="icon" href="/Assets/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+  <style>html,body,a,button,*{cursor:none!important} /* pre-paint cursor kill */
+  </style>
+  <style id="hlTheme" rel="stylesheet"></style>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -25,6 +28,17 @@
       --tr:cubic-bezier(0.25,0.46,0.45,0.94);
       --tr-spring:cubic-bezier(0.34,1.56,0.64,1);
       --header-h:64px;
+      --hdr-bg:rgba(7,7,10,.88);
+    }
+    /* ── LIGHT THEME ─────────────────────────────────────────────────── */
+    body.light {
+      --bg:#f5f0e8; --bg2:#ece6da; --bg3:#e2dbd0; --bg4:#d4ccc0;
+      --border:rgba(80,60,20,0.12); --border-md:rgba(80,60,20,0.20);
+      --text:#1a160e; --text2:#6b6054; --text3:#a09585;
+      --accent:#8a6818; --accent2:#b88c2a;
+      --accent-glow:rgba(138,104,24,0.18); --accent-dim:rgba(138,104,24,0.10);
+      --red:#a03030; --blue:#2a5a96; --teal:#1a7a68; --green:#2a7040; --purple:#5a3898;
+      --hdr-bg:rgba(245,240,232,.92);
     }
     ::-webkit-scrollbar{width:5px;height:5px}
     ::-webkit-scrollbar-track{background:var(--bg2)}
@@ -32,7 +46,7 @@
     ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
     *{scrollbar-width:thin;scrollbar-color:var(--bg4) var(--bg2)}
     html{cursor:none}
-    body{font-family:var(--font-ui);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:none;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-ui);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:none;-webkit-font-smoothing:antialiased;transition:background .4s,color .4s}
     a{color:inherit;text-decoration:none;cursor:none}
     button{cursor:none;border:none;background:none;font-family:inherit;color:inherit}
     ::selection{background:var(--accent-dim);color:var(--accent2)}
@@ -48,7 +62,8 @@
     @keyframes rippleOut{from{transform:translate(-50%,-50%) scale(0);opacity:1;width:10px;height:10px}to{transform:translate(-50%,-50%) scale(1);opacity:0;width:80px;height:80px}}
 
     /* HEADER */
-    #header{position:fixed;top:0;left:0;right:0;z-index:1000;height:var(--header-h);border-bottom:1px solid var(--border);background:rgba(7,7,10,.85);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4)}
+    #header{position:fixed;top:0;left:0;right:0;z-index:1000;height:var(--header-h);border-bottom:1px solid var(--border);background:var(--hdr-bg);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);transition:background .4s,border-color .4s}
+    #header.scrolled{border-bottom-color:var(--border-md)}
     .header-inner{display:flex;align-items:center;justify-content:space-between;height:100%;padding:0 40px;max-width:1600px;margin:0 auto}
     .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:20px;font-weight:500;letter-spacing:.02em;transition:opacity .2s}
     .logo:hover{opacity:.75}
@@ -121,6 +136,189 @@
     .spinner{width:28px;height:28px;border:2px solid var(--bg4);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
 
+    /* ── CARD CHECKBOX ───────────────────────────────────────────────── */
+    .card-cb{
+      position:absolute;top:10px;left:10px;z-index:2;
+      width:20px;height:20px;border-radius:6px;
+      border:2px solid rgb(255, 255, 255);
+      background:rgba(40, 40, 52, 0.55);
+      backdrop-filter:blur(4px);
+      box-shadow:0 1px 4px rgba(255, 255, 255, 0.4),inset 0 1px 0 rgba(247, 247, 247, 0.438);
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;transition:opacity .2s,background .2s,border-color .2s,box-shadow .2s;flex-shrink:0;
+    }
+    body.light .card-cb{
+      background:rgba(240,234,224,0.7);
+      border-color:rgba(100,80,20,0.22);
+      box-shadow:0 1px 4px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    .card-cb svg{width:10px;height:10px;color:#fff;opacity:0;transition:opacity .15s}
+    .card:hover .card-cb{opacity:1;border-color:rgba(255,255,255,0.34)}
+    body.light .card:hover .card-cb{border-color:rgba(100,80,20,0.4)}
+    .card.selected .card-cb{opacity:1;background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim),0 2px 8px var(--accent-glow)}
+    .card.selected .card-cb svg{opacity:1}
+    .card.selected{border-color:rgba(196,161,60,.5)!important;background:rgba(196,161,60,.06)!important;box-shadow:0 0 0 1px rgba(196,161,60,.2)!important}
+    .card.selected::before{opacity:1!important}
+
+    /* ── COVERED STATE (child of a selected folder) ──────────────────── */
+    .card.covered{border-color:rgba(196,161,60,.25)!important;background:rgba(196,161,60,.03)!important}
+    .card.covered::before{opacity:.4!important}
+    .card.covered .card-cb{opacity:1;background:rgba(196,161,60,.18);border-color:rgba(196,161,60,.5)}
+    .card.covered .card-cb svg{opacity:1;color:var(--accent)}
+    /* Replace checkmark with minus sign for covered cards via clip */
+    .card.covered .card-cb-icon-minus{display:block}
+    .card.covered .card-cb-icon-check{display:none}
+    .card-cb-icon-minus{display:none;width:10px;height:10px;color:var(--accent)}
+    .card-cb-icon-check{display:block;width:10px;height:10px;color:var(--bg)}
+    .card.covered .card-name{color:var(--text2)}
+
+    /* ── LANGUAGE SWITCH + THEME TOGGLE ─────────────────────────────── */
+    .header-right{display:flex;align-items:center;gap:8px}
+    .lang-sw{display:flex;align-items:center;gap:3px}
+    .lang-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:28px;height:28px;border-radius:6px;
+      border:1px solid var(--border);background:transparent;
+      opacity:.45;transition:opacity .2s,border-color .2s,background .2s;
+    }
+    .lang-btn:hover{opacity:.85;background:var(--bg3);border-color:var(--border-md)}
+    .lang-btn.active{opacity:1;border-color:rgba(196,161,60,.5);background:var(--accent-dim)}
+    /* ── THEME TOGGLE ──────────────────────────────────────────────────── */
+    #themeToggle{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:32px;height:32px;border-radius:8px;
+      border:1px solid var(--border-md);background:var(--bg3);
+      color:var(--accent);position:relative;overflow:hidden;
+      transition:background .2s,border-color .2s,transform .3s var(--tr-spring);
+    }
+    #themeToggle:hover{background:var(--bg4);border-color:var(--accent);transform:scale(1.08) rotate(15deg)}
+    #themeToggle svg{width:15px;height:15px;position:absolute;
+      transition:opacity .3s,transform .35s var(--tr-spring)}
+    .ti-moon{opacity:1;transform:rotate(0)scale(1)}
+    .ti-sun {opacity:0;transform:rotate(90deg)scale(.5)}
+    body.light .ti-moon{opacity:0;transform:rotate(-90deg)scale(.5)}
+    body.light .ti-sun {opacity:1;transform:rotate(0)scale(1)}
+    /* sparkle ring */
+    #themeToggle::after{
+      content:'';position:absolute;inset:0;border-radius:8px;
+      background:conic-gradient(from 0deg,transparent,rgba(196,161,60,.35) 20%,transparent 40%);
+      opacity:0;animation:tRing 3s linear infinite paused;transition:opacity .25s;
+    }
+    #themeToggle:hover::after{opacity:1;animation-play-state:running}
+    @keyframes tRing{to{transform:rotate(360deg)}}
+
+    /* ── FOLDER INLINE EXPAND ────────────────────────────────────────── */
+    .sel-expand{
+      overflow:hidden;
+      max-height:0;
+      border-left:1.5px solid rgba(196,161,60,0.22);
+      margin:0 0 0 18px;
+      border-radius:0 0 4px 4px;
+      transition:max-height 0.38s var(--tr), margin .38s var(--tr);
+    }
+    .sel-expand.open{
+      max-height:600px;
+      margin:2px 0 2px 18px;
+    }
+    .sel-expand-item{
+      display:flex;align-items:center;gap:7px;
+      padding:4px 8px 4px 10px;
+      border-radius:4px;
+      font-size:11px;color:var(--text2);
+      opacity:0;transform:translateX(10px);
+      transition:background .2s,color .2s;
+      animation:selExpandIn 0.28s var(--tr) calc(var(--i,0)*40ms) both;
+    }
+    .sel-expand-item:hover{background:var(--bg4);color:var(--text)}
+    .sel-expand-item svg{width:11px;height:11px;flex-shrink:0;opacity:.6}
+    .sel-expand-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-family:var(--font-ui)}
+    .sel-expand-type{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;
+      color:var(--text3);flex-shrink:0;text-transform:uppercase}
+    .sel-expand-rm{
+      flex-shrink:0;width:14px;height:14px;border-radius:3px;
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;color:var(--text3);transition:opacity .15s,color .15s,background .15s;
+    }
+    .sel-expand-rm svg{width:8px;height:8px;opacity:1}
+    .sel-expand-item:hover .sel-expand-rm{opacity:1}
+    .sel-expand-rm:hover{color:var(--red);background:rgba(196,92,92,.12)}
+    @keyframes selExpandIn{
+      to{opacity:1;transform:translateX(0)}
+    }
+    .sel-expand-more{
+      padding:3px 8px 5px 10px;
+      font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:.08em;
+      opacity:0;animation:selExpandIn 0.22s var(--tr) forwards;
+    }
+
+    /* ── SELECTION PANEL ─────────────────────────────────────────────── */
+    #selPanel{
+      position:fixed;bottom:28px;right:28px;z-index:4000;width:316px;max-height:520px;
+      background:var(--bg2);
+      border:1px solid rgba(196,161,60,.35);
+      border-top:none;
+      border-radius:var(--radius-lg);
+      box-shadow:0 0 0 1px rgba(196,161,60,.1),0 24px 64px rgba(0,0,0,.65),0 0 48px rgba(196,161,60,.08);
+      display:flex;flex-direction:column;overflow:hidden;
+      transform:translateY(20px) scale(0.97);opacity:0;pointer-events:none;
+      transition:transform .3s var(--tr-spring),opacity .25s;
+    }
+    #selPanel::before{
+      content:'';display:block;height:2px;flex-shrink:0;
+      background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),var(--accent),transparent);
+    }
+    #selPanel.visible{transform:translateY(0) scale(1);opacity:1;pointer-events:all}
+    .sel-header{display:flex;align-items:center;justify-content:space-between;padding:9px 12px 8px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .sel-title{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:7px}
+    .sel-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;background:var(--accent);border-radius:99px;font-size:10px;font-weight:600;color:var(--bg);font-family:var(--font-mono);box-shadow:0 2px 8px var(--accent-glow)}
+    .sel-header-btns{display:flex;gap:5px}
+    .sel-hbtn{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:5px;font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;color:var(--text2);background:var(--bg3);border:1px solid var(--border);transition:color .2s,background .2s,border-color .2s,box-shadow .2s}
+    .sel-hbtn:hover{color:var(--text);background:var(--bg4);border-color:var(--border-md)}
+    .sel-hbtn.share:hover{color:var(--accent);border-color:rgba(196,161,60,.4);box-shadow:0 0 10px rgba(196,161,60,.15)}
+    .sel-hbtn.clear:hover{color:var(--red);border-color:rgba(196,92,92,.35)}
+    .sel-hbtn svg{width:11px;height:11px}
+    .sel-list{flex:1;overflow-y:auto;padding:5px;overflow-x:hidden}
+    .sel-item{position:relative;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;transition:background .22s,box-shadow .22s;cursor:none}
+    .sel-item:hover{background:var(--bg3);box-shadow:inset 0 0 0 1px var(--border)}
+    .sel-item-icon{flex-shrink:0;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:transform .22s var(--tr-spring)}
+    .sel-item:hover .sel-item-icon{transform:scale(1.1)}
+    .sel-item-icon svg{width:14px;height:14px}
+    .sel-item-body{flex:1;min-width:0}
+    .sel-item-name{font-family:var(--font-ui);font-size:12px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .22s}
+    .sel-item:hover .sel-item-name{color:var(--accent2)}
+    .sel-item-rm{flex-shrink:0;width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text3);opacity:0;transition:opacity .2s,color .18s,background .18s}
+    .sel-item-rm svg{width:10px;height:10px}
+    .sel-item:hover .sel-item-rm{opacity:1}
+    .sel-item-rm:hover{color:var(--red);background:rgba(196,92,92,.12)}
+    .sel-footer{padding:7px 10px;border-top:1px solid var(--border);flex-shrink:0;font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;color:var(--text3);text-align:center}
+
+    /* ── Fly-to-panel ghost ──────────────────────────────────────────── */
+    .sel-fly-ghost{
+      position:fixed;z-index:9990;pointer-events:none;
+      width:28px;height:28px;border-radius:8px;
+      display:flex;align-items:center;justify-content:center;
+      border:1.5px solid rgba(196,161,60,.6);
+      background:rgba(196,161,60,.15);
+      box-shadow:0 0 12px rgba(196,161,60,.4);
+      animation:flyGhost var(--fly-dur,480ms) cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+    .sel-fly-ghost svg{width:14px;height:14px;color:var(--accent)}
+    @keyframes flyGhost{
+      0%  {opacity:1;transform:translate(0,0) scale(1)}
+      60% {opacity:1;transform:translate(var(--fly-tx),var(--fly-ty)) scale(0.8)}
+      100%{opacity:0;transform:translate(var(--fly-tx),var(--fly-ty)) scale(0.3)}
+    }
+
+    /* ── Selection panel item enter ──────────────────────────────────── */
+    @keyframes selItemPop{
+      0%  {opacity:0;transform:scale(0.8) translateX(10px)}
+      60% {transform:scale(1.04) translateX(-1px)}
+      100%{opacity:1;transform:scale(1) translateX(0)}
+    }
+    .sel-item.entering{animation:selItemPop 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards}
+
+    /* ── Folder children popup ── handled by inline .sel-expand (JS-driven) ─── */
+
     /* STORY PAGE */
     #page-story{}
     .story-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
@@ -186,7 +384,19 @@
     .pdf-tbtn.danger:hover{color:var(--red);border-color:rgba(196,92,92,.3)}
     .pdf-tbtn svg{width:13px;height:13px;flex-shrink:0}
     .pdf-sep{width:1px;height:20px;background:var(--border);flex-shrink:0}
-    .pdf-zoom-pct{font-family:var(--font-mono);font-size:11px;color:var(--text3);min-width:38px;text-align:center}
+    .pdf-zoom-pct{font-family:var(--font-mono);font-size:11px;color:var(--text3);min-width:38px;text-align:center;
+      border-radius:5px;padding:2px 5px;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s}
+    .pdf-zoom-pct:hover{background:var(--bg4);border-color:var(--border);color:var(--text2)}
+    .pdf-zoom-input{
+      display:none;width:44px;text-align:center;
+      background:var(--bg3);border:1.5px solid var(--accent);
+      border-radius:5px;color:var(--text);
+      font-family:var(--font-mono);font-size:11px;padding:2px 5px;
+      outline:none;box-shadow:0 0 0 3px var(--accent-glow);
+    }
+    .pdf-zoom-wrap.editing .pdf-zoom-pct{display:none}
+    .pdf-zoom-wrap.editing .pdf-zoom-input{display:inline-block}
+    .pdf-zoom-wrap{display:inline-flex;align-items:center}
 
     .pdf-body{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:28px 20px;background:var(--bg)}
     .pdf-canvas-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -273,8 +483,9 @@
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
     /* NOISE */
-    #noiseOverlay{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:200px 200px}
+    #noiseOverlay{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.025;transition:opacity .4s;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:200px 200px}
 
+    body.light #noiseOverlay{opacity:.012}
     @media(max-width:768px){
       .header-inner,.page-hero,.notes-hero,.breadcrumb-bar{padding-left:20px;padding-right:20px}
       .grid-container,.articles-container{padding-left:20px;padding-right:20px}
@@ -282,12 +493,33 @@
       .articles-grid{grid-template-columns:1fr}
       .pdf-topbar{padding:0 10px;gap:6px}
       .pdf-topbar-mid{display:none}
+      /* Compact header at 768 */
+      .header-inner{padding:0 20px;gap:6px}
+      .nav-link{padding:5px 10px;font-size:12px;letter-spacing:.05em}
+    }
+    @media(max-width:540px){
+      /* Mobile header: logo left, controls right, nav becomes icon row below */
+      :root{--header-h:56px}
+      .header-inner{padding:0 14px;gap:0}
+      .logo-text{display:none}
+      /* Nav links shrink to minimal labels */
+      .nav{gap:2px}
+      .nav-link{padding:5px 8px;font-size:11px;letter-spacing:.03em}
+      /* Controls shrink */
+      .header-right{gap:4px}
+      .lang-btn{width:26px;height:26px}
+      #themeToggle{width:28px;height:28px;border-radius:6px}
+      #themeToggle svg{width:13px;height:13px}
+    }
+    @media(max-width:380px){
+      .nav-link span[data-i18n]{display:none}
+      .nav-link::before{font-size:14px}
+      .nav[data-page="home"]::before{content:"⌂"}
     }
     @media(max-width:480px){
       .file-grid{grid-template-columns:repeat(2,1fr)}
       #cursorDot,#cursorRing{display:none}
-      html,body{cursor:auto}
-      a,button,.card,.article-card{cursor:pointer}
+      html,body,a,button,.card,.article-card,*{cursor:auto!important}
     }
   </style>
 </head>
@@ -302,13 +534,23 @@
     <div class="header-inner">
       <a class="logo" href="#" data-page="home">
         <span class="logo-sym">∑</span>
-        <span class="logo-text">Knowledge&nbsp;Index</span>
+        <span class="logo-text" data-i18n="logoText">Knowledge&nbsp;Index</span>
       </a>
       <nav class="nav">
-        <a class="nav-link active" href="#" data-page="home">Home</a>
-        <a class="nav-link" href="#" data-page="story">Story</a>
-        <a class="nav-link" href="#" data-page="notes">Notes</a>
+        <a class="nav-link active" href="#" data-page="home" data-i18n="navHome">Home</a>
+        <a class="nav-link" href="#" data-page="story" data-i18n="navStory">Story</a>
+        <a class="nav-link" href="#" data-page="notes" data-i18n="navNotes">Notes</a>
       </nav>
+      <div class="header-right">
+        <div class="lang-sw">
+          <button id="langEN" class="lang-btn"><svg viewBox="0 0 60 40" width="21" height="14" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:1px"><rect width="60" height="40" fill="#012169"/><path d="M0,0 L60,40" stroke="#fff" stroke-width="10"/><path d="M60,0 L0,40" stroke="#fff" stroke-width="10"/><path d="M30,0 L60,20" stroke="#C8102E" stroke-width="6"/><path d="M60,20 L30,40" stroke="#C8102E" stroke-width="6"/><path d="M0,20 L30,0" stroke="#C8102E" stroke-width="6"/><path d="M30,40 L0,20" stroke="#C8102E" stroke-width="6"/><rect x="24" y="0" width="12" height="40" fill="#fff"/><rect x="0" y="14" width="60" height="12" fill="#fff"/><rect x="26" y="0" width="8" height="40" fill="#C8102E"/><rect x="0" y="16" width="60" height="8" fill="#C8102E"/></svg></button>
+          <button id="langHU" class="lang-btn"><svg viewBox="0 0 21 14" width="21" height="14" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:1px"><rect width="21" height="14" fill="#CE2939"/><rect y="4.67" width="21" height="4.66" fill="#fff"/><rect y="9.33" width="21" height="4.67" fill="#477050"/></svg></button>
+        </div>
+        <button id="themeToggle">
+          <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -318,9 +560,9 @@
     <!-- HOME -->
     <section class="page active" id="page-home">
       <div class="page-hero">
-        <span class="page-label">/ index</span>
-        <h1 class="page-title">Knowledge<br><em>Archive</em></h1>
-        <p class="page-subtitle">Browse the complete collection of mathematical and scientific notes, organized by subject and topic.</p>
+        <span class="page-label" data-i18n="homeLabel">/ index</span>
+        <h1 class="page-title" data-i18n="homeTitle">Knowledge<br><em>Archive</em></h1>
+        <p class="page-subtitle" data-i18n="homeSubtitle">Browse the complete collection of mathematical and scientific notes, organized by subject and topic.</p>
       </div>
       <div class="breadcrumb-bar" id="breadcrumbBar"></div>
       <div class="grid-container">
@@ -334,53 +576,19 @@
     <!-- STORY -->
     <section class="page" id="page-story">
       <div style="max-width:720px;margin:0 auto;padding:80px 40px 120px">
-        <span class="page-label">/ story</span>
-        <h1 class="story-title">The <em>Story</em></h1>
+        <span class="page-label" data-i18n="storyLabel">/ story</span>
+        <h1 class="story-title" id="storyTitleEl">The <em>Story</em></h1>
         <div class="accent-line"></div>
-
-        <div class="story-section">
-          <h2>On the impulse to record</h2>
-          <p>There is a moment every student of mathematics knows — the moment a proof finally closes, when the last line follows inexorably from the first, and the whole argument stands before you like a cathedral: complete, load-bearing, impossible to improve. The instinct that follows is almost physical: write it down. Not because you fear forgetting — though you will forget — but because the thing deserves to exist somewhere outside your own head, in a form that will outlast the urgency of the afternoon.</p>
-          <p>This archive began as exactly that impulse, repeated across years and subjects. A note here, a derivation there. A proof that took three weeks to understand compressed into two careful pages. A theorem whose statement I had seen a hundred times but whose proof I had never truly seen — until I sat down and wrote it myself, line by line, in my own notation.</p>
-          <div class="story-pull">"Mathematics is the art of giving the same name to different things." — Henri Poincaré</div>
-          <p>What surprised me, over time, was how much the act of writing changed the act of understanding. To write a proof is to interrogate it. Every elision you allow yourself in reading becomes a gap you must close in writing. The argument that seemed clear at a glance reveals, on paper, that it was only familiar — which is a very different thing.</p>
-        </div>
-
-        <div class="story-section">
-          <h2>On the beauty of the thing</h2>
-          <p>I did not always believe that mathematics was beautiful. Early on it seemed merely difficult — a discipline of rules and exceptions, of techniques to memorise and procedures to execute. It was only later, when the techniques became fluent enough to recede into the background, that the actual structure of mathematics became visible, and that structure was startling.</p>
-          <div class="story-pull">"The mathematician does not study pure mathematics because it is useful; he studies it because he delights in it, and he delights in it because it is beautiful." — Henri Poincaré</div>
-          <p>There is the beauty of pure surprise: that the sum of the reciprocals of the perfect squares converges to exactly π²/6, a fact that connects the integers to the circle with no obvious reason why it should. There is the beauty of deep unity: that the same group-theoretic structures govern the symmetries of a crystal, the solutions of a polynomial, and the fundamental particles of matter. There is the beauty of compression: that a single line — Maxwell's equations, the Euler–Lagrange equation, the Riemann hypothesis — can contain more content than volumes of prose.</p>
-          <p>G. H. Hardy wrote that there is no permanent place in mathematics for ugly mathematics, and while one may argue with his examples, the underlying claim resonates: beauty and correctness in mathematics are not independent. An ugly proof is usually not a final proof. It still contains the shape of a better argument, waiting to be found.</p>
-          <div class="story-pull">"It is not knowledge, but the act of learning — not possession, but the act of getting there — which grants the greatest enjoyment." — Carl Friedrich Gauss</div>
-        </div>
-
-        <div class="story-section">
-          <h2>On the method of LaTeX</h2>
-          <p>Every document in this archive is written in LaTeX — not out of convention or inertia, but because the medium shapes the thought. To typeset a formula properly, you must understand its structure. The distinction between $f(x)$ and $f \colon X \to Y$ is not cosmetic; it is a distinction in meaning, and LaTeX enforces it. The discipline of the source file is a discipline of precision.</p>
-          <p>There is also something right about the permanence of plain text. A LaTeX source file written in 1990 compiles today, unchanged. The mathematics does not decay. The theorems that Euler, Gauss, and Riemann established remain as true now as the day they were proved — and a plain-text file encoding them has a lifespan that no proprietary format can match.</p>
-          <div class="story-pull">"Pure mathematics is, in its way, the poetry of logical ideas." — Albert Einstein</div>
-          <p>This archive, then, is not a database. It is a collection of documents — each one the record of an encounter with an idea, typeset with care, stored in a structure simple enough to understand in an afternoon and robust enough to last decades. The goal was never comprehensiveness. It was honesty: to write down only what I actually understand, in enough detail that I will understand it again when I return.</p>
-        </div>
-
-        <div class="story-section">
-          <h2>On what an archive is for</h2>
-          <p>Hermann Weyl described mathematics as the science of the infinite — the discipline through which the human mind, finite and mortal, reaches toward structures that transcend it. There is something quietly extraordinary about that. Every proof in this archive is an attempt, however small, to participate in that reaching.</p>
-          <div class="story-pull">"In mathematics you don't understand things. You just get used to them." — John von Neumann</div>
-          <p>Von Neumann's remark is usually read as deflationary — a warning against false confidence. But I have come to read it differently. To get used to something, in mathematics, means to have built so many correct intuitions around it that it no longer surprises you. That process of habituation is itself a form of understanding, earned slowly, through repetition and return. The archive is the record of that process. Not a monument to conclusions, but a map of a journey still in progress.</p>
-          <p>If someone else reads these notes and finds them useful, that is a gift I did not anticipate. But the primary reader was always a future version of myself — one who has forgotten the details, but not the conviction that the details are worth knowing.</p>
-          <div class="story-pull">"The essence of mathematics lies in its freedom." — Georg Cantor</div>
-        </div>
-
+        <div id="story-content"></div>
       </div>
     </section>
 
-    <!-- NOTES -->
+        <!-- NOTES -->
     <section class="page" id="page-notes">
       <div class="notes-hero">
-        <span class="page-label">/ notes</span>
-        <h1 class="page-title">Notes &amp;<br><em>Articles</em></h1>
-        <p class="page-subtitle">Written explorations, proofs, and ideas from across the archive.</p>
+        <span class="page-label" data-i18n="notesLabel">/ notes</span>
+        <h1 class="page-title" data-i18n="notesTitle">Notes &amp;<br><em>Articles</em></h1>
+        <p class="page-subtitle" data-i18n="notesSubtitle">Written explorations, proofs, and ideas from across the archive.</p>
       </div>
       <div class="articles-container">
         <div class="articles-grid" id="articlesGrid">
@@ -417,7 +625,10 @@
         <button class="pdf-tbtn" id="pdfZoomOut" title="Zoom out (-)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         </button>
-        <span class="pdf-zoom-pct" id="pdfZoomPct">100%</span>
+        <span class="pdf-zoom-wrap" id="pdfZoomWrap">
+          <span class="pdf-zoom-pct" id="pdfZoomPct" title="Click to set zoom">100%</span>
+          <input class="pdf-zoom-input" id="pdfZoomInput" type="number" min="10" max="500" value="100">
+        </span>
         <button class="pdf-tbtn" id="pdfZoomIn" title="Zoom in (+)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         </button>
@@ -429,9 +640,17 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download
         </button>
-        <button class="pdf-tbtn accent" id="pdfPrint" title="Print PDF">
+        <button class="pdf-tbtn accent" id="pdfPrintPage" title="Print current page only">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+          <span data-i18n="printPage">Print Page</span>
+        </button>
+        <button class="pdf-tbtn accent" id="pdfPrintDoc" title="Print full document">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          Print
+          <span data-i18n="printDoc">Print Doc</span>
+        </button>
+        <button class="pdf-tbtn accent" id="pdfShare" title="Copy share link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
         </button>
         <button class="pdf-tbtn danger" id="pdfClose" title="Close (Esc)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -504,6 +723,28 @@
   <!-- CONTEXT MENU -->
   <div id="contextMenu"></div>
 
+  <!-- SELECTION PANEL -->
+  <div id="selPanel">
+    <div class="sel-header">
+      <span class="sel-title" style="display:flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)">
+        <span data-i18n="selTitle">Selection</span>
+        <span class="sel-count" id="selCount">0</span>
+      </span>
+      <div class="sel-header-btns">
+        <button class="sel-hbtn share" id="selShareBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+        <button class="sel-hbtn clear" id="selClearBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Clear
+        </button>
+      </div>
+    </div>
+    <div class="sel-list" id="selList"></div>
+    <div class="sel-footer" data-i18n="selFooter">Right-click items to add · click chips to remove</div>
+  </div>
+
   <!-- HIDDEN PRINT IFRAME -->
   <iframe id="printFrame" style="display:none"></iframe>
 
@@ -513,9 +754,213 @@
   (() => {
     'use strict';
 
+    /* ══════════════════════════════════════════════════════════════════
+       LANGUAGE DETECTION & i18n
+    ═══════════════════════════════════════════════════════════════════ */
+    const LANG_DEFAULT = ((navigator.language || navigator.userLanguage || 'en').toLowerCase().startsWith('hu')) ? 'hu' : 'en';
+    let LANG = localStorage.getItem('ki_lang') || LANG_DEFAULT;
+
+    const T = {
+      en: {
+        logoText:     'Knowledge\u00a0Index',
+        navHome:      'Home', navStory: 'Story', navNotes: 'Notes',
+        homeLabel:    '/ index',
+        homeTitle:    'Knowledge<br><em>Archive</em>',
+        homeSubtitle: 'Browse the complete collection of mathematical and scientific notes, organized by subject and topic.',
+        notesLabel:   '/ notes',
+        notesTitle:   'Notes &amp;<br><em>Articles</em>',
+        notesSubtitle:'Written explorations, proofs, and ideas from across the archive.',
+        storyLabel:   '/ story',
+        storyTitleHtml:'The <em>Story</em>',
+        selTitle:     'Selection',
+        selFooter:    'Right-click items to add · click chips to remove',
+        printPage:    'Print Page',
+        printDoc:     'Print Doc',
+        backCard:     'Back',
+        compilingLabel:'Compiling LaTeX\u2026',
+        loadingLabel: 'Loading PDF\u2026',
+        noArticles:   'No articles yet.',
+        failedLoad:   'Failed to load. Is the server running?',
+        failedArticles:'Failed to load articles.',
+        gridRoot:     '\u220e root',
+        compileWarning: 'pdflatex returned an error \u2014 see log below',
+        copyLog:      'Copy Log',
+        viewSource:   'View Source Instead',
+        dismiss:      'Dismiss',
+        compileFailed:'Compilation Failed',
+        download:     'Download',
+        close:        'Close',
+        share:        'Share',
+        clear:        'Clear',
+      },
+      hu: {
+        logoText:     'Tudás\u00a0Archívum',
+        navHome:      'Főoldal', navStory: 'Történet', navNotes: 'Jegyzetek',
+        homeLabel:    '/ index',
+        homeTitle:    'Tudás<br><em>Archívum</em>',
+        homeSubtitle: 'Böngésszen a matematikai és természettudományos jegyzetek teljes gyűjteményében, témák és tárgyak szerint rendezve.',
+        notesLabel:   '/ jegyzetek',
+        notesTitle:   'Jegyzetek és<br><em>Cikkek</em>',
+        notesSubtitle:'Írott gondolatok, bizonyítások és ötletek az archívumból.',
+        storyLabel:   '/ történet',
+        storyTitleHtml:'A <em>Történet</em>',
+        selTitle:     'Kijelölés',
+        selFooter:    'Jobb klikk elemekre a hozzáadáshoz · klikk a chipekre az eltávolításhoz',
+        printPage:    'Oldal nyomt.',
+        printDoc:     'Dok. nyomt.',
+        backCard:     'Vissza',
+        compilingLabel:'LaTeX fordítás\u2026',
+        loadingLabel: 'PDF betöltés\u2026',
+        noArticles:   'Még nincsenek cikkek.',
+        failedLoad:   'Sikertelen betöltés. Fut a szerver?',
+        failedArticles:'Sikertelen cikk-betöltés.',
+        gridRoot:     '\u220e gyökér',
+        compileWarning:'A pdflatex hibát adott \u2014 lásd a naplót',
+        copyLog:      'Napló másolása',
+        viewSource:   'Forráskód megtekintése',
+        dismiss:      'Bezárás',
+        compileFailed:'Fordítás sikertelen',
+        download:     'Letöltés',
+        close:        'Bezárás',
+        share:        'Megosztás',
+        clear:        'Törlés',
+      },
+    };
+
+    function t(key) { return (T[LANG] && T[LANG][key]) || T.en[key] || key; }
+
+    const STORY = {
+      en: `
+        <div class="story-section">
+          <h2>On the impulse to record</h2>
+          <p>There is a moment every student of mathematics knows — the moment a proof finally closes, when the last line follows inexorably from the first, and the whole argument stands before you like a cathedral: complete, load-bearing, impossible to improve. The instinct that follows is almost physical: write it down. Not because you fear forgetting — though you will forget — but because the thing deserves to exist somewhere outside your own head, in a form that will outlast the urgency of the afternoon.</p>
+          <p>This archive began as exactly that impulse, repeated across years and subjects. A note here, a derivation there. A proof that took three weeks to understand compressed into two careful pages. A theorem whose statement I had seen a hundred times but whose proof I had never truly seen — until I sat down and wrote it myself, line by line, in my own notation.</p>
+          <div class="story-pull">&ldquo;Mathematics is the art of giving the same name to different things.&rdquo; &mdash; Henri Poincar&eacute;</div>
+          <p>What surprised me, over time, was how much the act of writing changed the act of understanding. To write a proof is to interrogate it. Every elision you allow yourself in reading becomes a gap you must close in writing. The argument that seemed clear at a glance reveals, on paper, that it was only familiar — which is a very different thing.</p>
+        </div>
+        <div class="story-section">
+          <h2>On the beauty of the thing</h2>
+          <p>I did not always believe that mathematics was beautiful. Early on it seemed merely difficult — a discipline of rules and exceptions, of techniques to memorise and procedures to execute. It was only later, when the techniques became fluent enough to recede into the background, that the actual structure of mathematics became visible, and that structure was startling.</p>
+          <div class="story-pull">&ldquo;The mathematician does not study pure mathematics because it is useful; he studies it because he delights in it, and he delights in it because it is beautiful.&rdquo; &mdash; Henri Poincar&eacute;</div>
+          <p>There is the beauty of pure surprise: that the sum of the reciprocals of the perfect squares converges to exactly &pi;&sup2;/6, a fact that connects the integers to the circle with no obvious reason why it should. There is the beauty of deep unity: that the same group-theoretic structures govern the symmetries of a crystal, the solutions of a polynomial, and the fundamental particles of matter.</p>
+          <div class="story-pull">&ldquo;It is not knowledge, but the act of learning &mdash; not possession, but the act of getting there &mdash; which grants the greatest enjoyment.&rdquo; &mdash; Carl Friedrich Gauss</div>
+        </div>
+        <div class="story-section">
+          <h2>On the method of LaTeX</h2>
+          <p>Every document in this archive is written in LaTeX — not out of convention or inertia, but because the medium shapes the thought. To typeset a formula properly, you must understand its structure. The discipline of the source file is a discipline of precision.</p>
+          <p>There is also something right about the permanence of plain text. A LaTeX source file written in 1990 compiles today, unchanged. The mathematics does not decay. The theorems that Euler, Gauss, and Riemann established remain as true now as the day they were proved.</p>
+          <div class="story-pull">&ldquo;Pure mathematics is, in its way, the poetry of logical ideas.&rdquo; &mdash; Albert Einstein</div>
+        </div>
+        <div class="story-section">
+          <h2>On what an archive is for</h2>
+          <p>Hermann Weyl described mathematics as the science of the infinite — the discipline through which the human mind, finite and mortal, reaches toward structures that transcend it. Every proof in this archive is an attempt, however small, to participate in that reaching.</p>
+          <div class="story-pull">&ldquo;The essence of mathematics lies in its freedom.&rdquo; &mdash; Georg Cantor</div>
+          <p>The archive is the record of a process. Not a monument to conclusions, but a map of a journey still in progress. If someone else reads these notes and finds them useful, that is a gift I did not anticipate. But the primary reader was always a future version of myself — one who has forgotten the details, but not the conviction that the details are worth knowing.</p>
+        </div>`,
+      hu: `
+        <div class="story-section">
+          <h2>A feljegyzés ösztönéről</h2>
+          <p>Van egy pillanat, amelyet minden matematikával foglalkozó ember ismer — az a pillanat, amikor egy bizonyítás végre bezárul, amikor az utolsó sor elkerülhetetlenül következik az elsőből, és az egész érvelés úgy áll előtted, mint egy katedrális: teljes, teherhordó, javíthatatlan. Az ezt követő ösztön szinte testi: írd le. Nem azért, mert félsz elfelejteni — pedig el fogod felejteni —, hanem mert a dolog megérdemli, hogy a saját fejedtől függetlenül is létezzen, olyan formában, amely túléli a délután sürgősségét.</p>
+          <p>Ez az archívum pontosan abból az ösztönből született, amely éveken és tantárgyakon át ismétlődött. Egy lejegyzet itt, egy levezetés ott. Egy bizonyítás, amelynek megértéséhez három hét kellett, de két gondos oldalra sűrítve. Egy tétel, amelynek állítását százszor láttam, de amelynek bizonyítását sohasem láttam igazán.</p>
+          <div class="story-pull">&bdquo;A matematika művészete abban áll, hogy különböző dolgoknak ugyanazt a nevet adjuk.&rdquo; &mdash; Henri Poincaré</div>
+          <p>Ami meglepett, az volt, mennyire megváltoztatja az írás aktusa a megértés aktusát. Egy bizonyítást leírni annyi, mint vallatóra fogni. Minden kihagyás, amelyet olvasáskor megengedsz magadnak, olyan hézag, amelyet írásban be kell töltened.</p>
+        </div>
+        <div class="story-section">
+          <h2>A szépségről</h2>
+          <p>Nem mindig hittem abban, hogy a matematika szép. Eleinte csupán nehéznek tűnt — szabályok és kivételek tudománya, megjegyzendő technikák és végrehajtandó eljárások. Csak később, amikor a technikák annyira folyékonnyá váltak, hogy a háttérbe húzódhattak, vált láthatóvá a matematika valódi szerkezete — és az a szerkezet megdöbbentő volt.</p>
+          <div class="story-pull">&bdquo;A matematikus nem azért tanulmányozza a tiszta matematikát, mert hasznos; azért tanulmányozza, mert gyönyörűséget lel benne, és azért lel benne gyönyörűséget, mert szép.&rdquo; &mdash; Henri Poincaré</div>
+          <p>Ott van a tiszta meglepetés szépsége: hogy a négyzetszámok reciprokösszege pontosan &pi;&sup2;/6-hoz konvergál — egy tény, amely az egész számokat a körrel kapcsolja össze. Ott van a mély egység szépsége: hogy ugyanazok a csoportelméleti struktúrák irányítják egy kristály szimmetriáit, egy polinom megoldásait és az anyag alapvető részecskéit.</p>
+          <div class="story-pull">&bdquo;Nem a tudás, hanem a tanulás aktusa — nem a birtok, hanem az odaérés aktusa — nyújtja a legnagyobb örömöt.&rdquo; &mdash; Carl Friedrich Gauss</div>
+        </div>
+        <div class="story-section">
+          <h2>A LaTeX módszeréről</h2>
+          <p>Az archívum minden dokumentumát LaTeX-ben írtam — nem szokásból vagy tehetetlenségből, hanem mert a médium alakítja a gondolatot. Egy képletet helyesen szedni annyi, mint megérteni a szerkezetét. A forrásfájl fegyelme a pontosság fegyelme.</p>
+          <p>Van valami helyes a sima szöveg állandóságában is. Egy 1990-ben írt LaTeX forrásfájl ma, változatlanul, lefordul. A matematika nem bomlik el.</p>
+          <div class="story-pull">&bdquo;A tiszta matematika a maga módján a logikai eszmék költészete.&rdquo; &mdash; Albert Einstein</div>
+        </div>
+        <div class="story-section">
+          <h2>Mire való egy archívum</h2>
+          <p>Hermann Weyl a matematikát a végtelen tudományaként írta le — azt a diszciplínát, amelyen keresztül a véges és halandó emberi elme olyan struktúrák felé nyúl, amelyek meghaladják azt. Az archívumban szereplő minden bizonyítás kísérlet arra, hogy részt vegyen ebben a nyújtózásban.</p>
+          <div class="story-pull">&bdquo;A matematika lényege a szabadságában rejlik.&rdquo; &mdash; Georg Cantor</div>
+          <p>Az archívum egy folyamat leírata. Nem a következtetések emlékműve, hanem egy még folyamatban lévő utazás térképe. Az elsődleges olvasó mindig egy jövőbeli önmagam volt — olyan valaki, aki elfelejtette a részleteket, de nem azt a meggyőződést, hogy a részletek megismerése érdemes.</p>
+        </div>`,
+    };
+
+    function applyTranslations() {
+      // Static data-i18n elements
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        const val = t(key);
+        if (val) {
+          if (key === 'homeTitle' || key === 'notesTitle' || key === 'storyTitleHtml') {
+            el.innerHTML = val;
+          } else {
+            el.textContent = val;
+          }
+        }
+      });
+      // Story content
+      const sc = document.getElementById('story-content');
+      if (sc) sc.innerHTML = STORY[LANG] || STORY.en;
+      // Story title
+      const st = document.getElementById('storyTitleEl');
+      if (st) st.innerHTML = t('storyTitleHtml');
+      // html lang attr
+      document.documentElement.lang = LANG;
+      // Update language button active state
+      document.getElementById('langEN').classList.toggle('active', LANG === 'en');
+      document.getElementById('langHU').classList.toggle('active', LANG === 'hu');
+    }
+
+    function switchLang(lang) {
+      if (lang === LANG) return;
+      LANG = lang;
+      localStorage.setItem('ki_lang', lang);
+      applyTranslations();
+      // Reload tree for new language
+      selection.clear();
+      document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
+      renderSelPanel();
+      loadTree();
+      // Reload articles if on notes page
+      const notesPage = document.getElementById('page-notes');
+      if (notesPage && notesPage.classList.contains('active')) {
+        articlesLoaded = false;
+        loadArticles();
+      }
+    }
+
     /* ── PDF.js worker ─────────────────────────────────────────────── */
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // Apply language translations immediately
+    applyTranslations();
+
+    // Language switch buttons
+    document.getElementById('langEN').addEventListener('click', () => switchLang('en'));
+    document.getElementById('langHU').addEventListener('click', () => switchLang('hu'));
+
+    /* ── Theme toggle ─────────────────────────────────────────────── */
+    const THEME_KEY = 'ki_theme';
+    function applyTheme(theme) {
+      if (theme === 'light') document.body.classList.add('light');
+      else                   document.body.classList.remove('light');
+      localStorage.setItem(THEME_KEY, theme);
+    }
+    // Load persisted theme — fall back to OS preference
+    const osPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    applyTheme(savedTheme || (osPrefersDark ? 'dark' : 'light'));
+    // Listen for OS theme changes when no explicit preference is saved
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (!localStorage.getItem(THEME_KEY)) applyTheme(e.matches ? 'dark' : 'light');
+      });
+    }
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(document.body.classList.contains('light') ? 'dark' : 'light');
+    });
 
     /* ── Cursor ─────────────────────────────────────────────────────── */
     const dot  = document.getElementById('cursorDot');
@@ -570,6 +1015,14 @@
       const t = document.getElementById('page-' + page);
       if (t) t.classList.add('active');
       if (page === 'notes') loadArticles();
+
+      // Selection panel only lives on the Home page
+      const panel = document.getElementById('selPanel');
+      if (page === 'home') {
+        if (selection.size > 0) panel.classList.add('visible');
+      } else {
+        panel.classList.remove('visible');
+      }
     }
 
     /* ── SVG Icons ──────────────────────────────────────────────────── */
@@ -587,6 +1040,9 @@
       open:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,
       code:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
       render: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+      share:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
+      check:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+      sel:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
     };
 
     function iconTypeOf(item) {
@@ -615,11 +1071,34 @@
     let lastFailPath  = '';
     let lastFailName  = '';
 
+    /* ── Selection state ────────────────────────────────────────────── */
+    // Map from item.path → item object
+    const selection = new Map();
+    // Map from folderPath → Set<childPath>: children explicitly excluded from folder coverage
+    const folderExclusions = new Map();
+
+    function excludeChild(folderPath, childPath) {
+      if (!folderExclusions.has(folderPath)) folderExclusions.set(folderPath, new Set());
+      folderExclusions.get(folderPath).add(childPath);
+    }
+
+    /* Returns the selected folder that covers itemPath, respecting exclusions */
+    function getCoveringFolder(itemPath) {
+      for (const [selPath, selItem] of selection) {
+        if (selItem.type !== 'folder') continue;
+        if (!itemPath.startsWith(selPath + '/')) continue;
+        const excl = folderExclusions.get(selPath);
+        if (excl && excl.has(itemPath)) continue; // explicitly excluded
+        return selItem;
+      }
+      return null;
+    }
+
     /* ── Breadcrumb ─────────────────────────────────────────────────── */
     function renderBreadcrumb() {
       const bar = document.getElementById('breadcrumbBar');
       bar.innerHTML = '';
-      appendBc(bar, '∎ root', -1, pathStack.length===0);
+      appendBc(bar, t('gridRoot'), -1, pathStack.length===0);
       pathStack.forEach((node, i) => {
         const sep = document.createElement('span');
         sep.className='bc-sep'; sep.textContent=' / ';
@@ -677,7 +1156,7 @@
       card.innerHTML = `
         <div class="card-icon back">${I.back}</div>
         <div class="card-body">
-          <div class="card-name">Back</div>
+          <div class="card-name">${t('backCard')}</div>
           <div class="card-meta"><span class="card-badge" style="color:var(--accent)">UP</span></div>
         </div>
         <span class="card-arrow" style="font-size:16px">↩</span>
@@ -696,13 +1175,23 @@
       const it = iconTypeOf(item);
       const cv = iconColorVar[it] || 'text2';
       const card = document.createElement('div');
-      card.className = 'card';
+
+      const isSel = selection.has(item.path);
+      const coveringFolder = getCoveringFolder(item.path); // always check, folder wins
+      const isCovered = !!coveringFolder;
+
+      // If covered by a folder, show covered style (even if also individually selected)
+      card.className = 'card' + (isSel && !isCovered ? ' selected' : '') + (isCovered ? ' covered' : '');
       card.dataset.path = item.path; card.dataset.type = item.type; card.dataset.ext = item.ext||''; card.dataset.name = item.name;
 
       const badge = item.type==='folder' ? 'DIR' : (item.ext||'FILE').replace('.','').toUpperCase();
       const meta  = item.type==='folder' ? `${item.count} item${item.count!==1?'s':''}` : fmtSize(item.size||0);
 
       card.innerHTML = `
+        <div class="card-cb">
+          <svg class="card-cb-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg class="card-cb-icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
         <div class="card-icon ${it}">${I[it]||I.generic}</div>
         <div class="card-body">
           <div class="card-name">${esc(item.name)}</div>
@@ -713,6 +1202,18 @@
         </div>
         <span class="card-arrow">↗</span>
       `;
+
+      // Checkbox click — always look up current coverage state at click time
+      card.querySelector('.card-cb').addEventListener('click', e => {
+        e.stopPropagation();
+        const currentCovering = getCoveringFolder(item.path);
+        if (currentCovering) {
+          toggleSelectByPath(currentCovering);
+        } else {
+          toggleSelect(item, card);
+        }
+      });
+
       card.addEventListener('contextmenu', e => { e.preventDefault(); openCtx(e, item); });
       card.addEventListener('click', () => handleClick(item));
       return card;
@@ -736,13 +1237,13 @@
     /* ── Load Tree ──────────────────────────────────────────────────── */
     async function loadTree() {
       try {
-        const res = await fetch('/api/tree');
+        const res = await fetch('/api/tree?lang=' + LANG);
         if (!res.ok) throw new Error('HTTP '+res.status);
         treeData = await res.json(); currentNode = treeData; pathStack = [];
         renderBreadcrumb(); renderGrid(treeData);
       } catch (err) {
         document.getElementById('fileGrid').innerHTML =
-          `<div class="state-box"><span style="color:var(--red)">Failed to load. Is the server running?</span></div>`;
+          `<div class="state-box"><span style="color:var(--red)">${t('failedLoad')}</span></div>`;
       }
     }
 
@@ -778,7 +1279,7 @@
       document.getElementById('pdfZoomPct').textContent = '100%';
 
       // Show overlay with spinner
-      compLabel.textContent = 'Compiling LaTeX…';
+      compLabel.textContent = t('compilingLabel');
       compLog.style.display = 'none'; compLog.textContent = '';
       pdfOverlay.classList.remove('hidden');
       pdfModal.classList.add('open');
@@ -797,7 +1298,7 @@
       document.getElementById('pdfPageInput').value=1;
       document.getElementById('pdfZoomPct').textContent='100%';
 
-      compLabel.textContent='Loading PDF…';
+      compLabel.textContent=t('loadingLabel');
       compLog.style.display='none';
       pdfOverlay.classList.remove('hidden');
       pdfModal.classList.add('open');
@@ -931,6 +1432,33 @@
     });
     document.getElementById('pdfZoomFit').addEventListener('click', fitToWidth);
 
+    // Zoom percentage click-to-edit
+    (function() {
+      const wrap  = document.getElementById('pdfZoomWrap');
+      const pct   = document.getElementById('pdfZoomPct');
+      const input = document.getElementById('pdfZoomInput');
+      pct.addEventListener('click', () => {
+        if (!pdfDoc) return;
+        input.value = Math.round(pdfZoom * 100);
+        wrap.classList.add('editing');
+        input.focus(); input.select();
+      });
+      function commitZoom() {
+        wrap.classList.remove('editing');
+        let v = parseInt(input.value);
+        if (isNaN(v)) return;
+        v = Math.max(10, Math.min(500, v));
+        pdfZoom = v / 100;
+        document.getElementById('pdfZoomPct').textContent = v + '%';
+        renderPage(pdfPage);
+      }
+      input.addEventListener('blur', commitZoom);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); commitZoom(); }
+        if (e.key === 'Escape') { wrap.classList.remove('editing'); }
+      });
+    })();
+
     document.getElementById('pdfDownload').addEventListener('click', () => {
       if (!pdfBytes) return;
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -941,16 +1469,70 @@
       showToast('↓ Downloading PDF');
     });
 
-    document.getElementById('pdfPrint').addEventListener('click', () => {
-      if (!pdfBytes) return;
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(blob);
-      const iframe  = document.getElementById('printFrame');
-      iframe.src    = blobUrl;
-      iframe.onload = () => {
-        try { iframe.contentWindow.print(); } catch {}
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+    // Print current page only — renders canvas to a minimal HTML page and prints
+    document.getElementById('pdfPrintPage').addEventListener('click', () => {
+      if (!pdfDoc) return;
+      const dataUrl = pdfCanvas.toDataURL('image/png');
+      const win = window.open('', '_blank');
+      if (!win) { showToast('⚠ Popup blocked — allow popups and try again'); return; }
+      win.document.write(`<!DOCTYPE html><html><head><title>Print — Page ${pdfPage}</title>
+        <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff}
+        img{max-width:100%;display:block;margin:0 auto}
+        @media print{@page{margin:0}body{margin:0}}</style></head>
+        <body><img id="p" src="${dataUrl}"></body></html>`);
+      win.document.close();
+      // Wait for the image to fully decode, then print
+      const img = win.document.getElementById('p');
+      const doPrint = () => {
+        win.focus();
+        win.print();
+        win.addEventListener('afterprint', () => win.close(), { once: true });
       };
+      if (img && img.complete) { doPrint(); }
+      else if (img)            { img.onload = doPrint; }
+      else                     { win.onload = doPrint; }
+    });
+
+    // Print full document — render all pages via pdf.js → canvases → new window (avoids browser PDF viewer quirks)
+    document.getElementById('pdfPrintDoc').addEventListener('click', async () => {
+      if (!pdfDoc) return;
+      showToast('Rendering pages for print…');
+      const win = window.open('', '_blank');
+      if (!win) { showToast('⚠ Popup blocked — allow popups and try again'); return; }
+      try {
+        const offCanvas = document.createElement('canvas');
+        const offCtx = offCanvas.getContext('2d');
+        const pageImgs = [];
+        for (let n = 1; n <= pdfDoc.numPages; n++) {
+          const page = await pdfDoc.getPage(n);
+          const vp = page.getViewport({ scale: 1.8 }); // 1.8× for crisp print
+          offCanvas.width = vp.width; offCanvas.height = vp.height;
+          await page.render({ canvasContext: offCtx, viewport: vp }).promise;
+          pageImgs.push(offCanvas.toDataURL('image/jpeg', 0.94));
+        }
+        const imgs = pageImgs.map(src =>
+          `<img src="${src}" style="display:block;width:100%;page-break-after:always;">`
+        ).join('');
+        const docName = esc(pdfCurrentName.replace(/\.tex$/i, ''));
+        win.document.write(`<!DOCTYPE html><html><head>
+          <title>${docName} — Print</title>
+          <style>*{margin:0;padding:0;box-sizing:border-box}
+          body{background:#fff}
+          img{display:block;width:100%;max-width:100%}
+          @media print{@page{margin:0}body{margin:0}img{page-break-after:always}}</style>
+          </head><body>${imgs}</body></html>`);
+        win.document.close();
+        win.focus();
+        // Small delay so images decode before print dialog opens
+        setTimeout(() => {
+          win.print();
+          win.addEventListener('afterprint', () => win.close(), { once: true });
+        }, 600);
+        showToast('Printing…');
+      } catch(e) {
+        showToast('⚠ Print failed: ' + e.message);
+        win.close();
+      }
     });
 
     document.getElementById('pdfClose').addEventListener('click', closePdfViewer);
@@ -1045,36 +1627,47 @@
       const isPDF = ext==='.pdf';
       const isImg = ['.png','.jpg','.jpeg','.gif','.webp','.svg'].includes(ext);
       const isText= ['.md','.txt','.bib'].includes(ext);
+      const isSel = selection.has(item.path);
+      const coveringFolder = isSel ? null : getCoveringFolder(item.path);
+      const isCovered = !!coveringFolder;
 
       let html = `<div class="ctx-label">${esc(item.name)}</div>`;
       if (isFolder) {
-        html += `<div class="ctx-item" data-action="open">${I.open} Open Folder</div>
-                 <div class="ctx-separator"></div>
-                 <div class="ctx-item" data-action="download">${I.dl} Download</div>`;
+        html += `<div class="ctx-item" data-action="open">${I.open} Open Folder</div>`;
       } else {
         if (isTex)  html += `<div class="ctx-item" data-action="compile">${I.render} Compile &amp; View PDF</div>
                               <div class="ctx-item" data-action="view-code">${I.code} View Source</div>`;
         if (isPDF)  html += `<div class="ctx-item" data-action="open-pdf">${I.open} Open PDF</div>`;
         if (isImg)  html += `<div class="ctx-item" data-action="open-tab">${I.eye} View Image</div>`;
         if (isText) html += `<div class="ctx-item" data-action="view-code">${I.code} View Source</div>`;
-        html += `<div class="ctx-separator"></div>
-                 <div class="ctx-item" data-action="download">${I.dl} Download</div>`;
       }
+      html += `<div class="ctx-separator"></div>`;
+      if (isCovered) {
+        html += `<div class="ctx-item" data-action="deselect-parent">${I.sel} Deselect folder: ${esc(coveringFolder.name)}</div>`;
+      } else {
+        html += `<div class="ctx-item" data-action="select">${I.sel} ${isSel ? 'Deselect' : 'Select'}</div>`;
+      }
+      html += `<div class="ctx-item" data-action="share">${I.share} Copy Share Link</div>`;
+      html += `<div class="ctx-separator"></div>`;
+      html += `<div class="ctx-item" data-action="download">${I.dl} Download</div>`;
 
       ctxMenu.innerHTML = html;
       const vw=window.innerWidth, vh=window.innerHeight, mx=e.clientX, my=e.clientY;
-      ctxMenu.style.left = (mx+200>vw ? mx-200 : mx)+'px';
-      ctxMenu.style.top  = (my+200>vh ? my-200 : my)+'px';
+      ctxMenu.style.left = (mx+210>vw ? mx-210 : mx)+'px';
+      ctxMenu.style.top  = (my+260>vh ? my-260 : my)+'px';
       ctxMenu.classList.add('open');
 
       ctxMenu.querySelectorAll('.ctx-item[data-action]').forEach(el => {
         el.addEventListener('click', () => {
           const a = el.dataset.action; closeCtx();
-          if (a==='open')       handleClick(item);
-          if (a==='compile')    openPdfViewer(item.path, item.name);
-          if (a==='open-pdf')   openPdfDirect('/data/'+encPath(item.path), item.name);
-          if (a==='open-tab')   window.open('/data/'+encPath(item.path),'_blank');
-          if (a==='view-code')  openCodeViewer(item.path, item.name);
+          if (a==='open')             handleClick(item);
+          if (a==='compile')          openPdfViewer(item.path, item.name);
+          if (a==='open-pdf')         openPdfDirect('/data/'+encPath(item.path), item.name);
+          if (a==='open-tab')         window.open('/data/'+encPath(item.path),'_blank');
+          if (a==='view-code')        openCodeViewer(item.path, item.name);
+          if (a==='select')           toggleSelectByPath(item);
+          if (a==='deselect-parent')  toggleSelectByPath(coveringFolder);
+          if (a==='share')            shareItem(item);
           if (a==='download') {
             window.open('/data/'+encPath(item.path)+'?download=1','_blank');
             showToast('↓ Downloading '+item.name);
@@ -1093,10 +1686,10 @@
       if (articlesLoaded) return;
       const grid = document.getElementById('articlesGrid');
       try {
-        const res = await fetch('/api/articles');
+        const res = await fetch('/api/articles?lang=' + LANG);
         const articles = await res.json();
         articlesLoaded = true;
-        if (!articles.length) { grid.innerHTML='<div class="state-box"><span>No articles yet.</span></div>'; return; }
+        if (!articles.length) { grid.innerHTML=`<div class="state-box"><span>${t('noArticles')}</span></div>`; return; }
         grid.innerHTML = '';
         articles.forEach((art, i) => {
           const card = document.createElement('div');
@@ -1117,15 +1710,388 @@
           grid.appendChild(card);
         });
       } catch {
-        grid.innerHTML='<div class="state-box"><span style="color:var(--red)">Failed to load articles.</span></div>';
+        grid.innerHTML=`<div class="state-box"><span style="color:var(--red)">${t('failedArticles')}</span></div>`;
       }
     }
 
     /* ── Header scroll effect ───────────────────────────────────────── */
     window.addEventListener('scroll', () => {
-      document.getElementById('header').style.borderBottomColor =
-        window.scrollY>10 ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.055)';
+      // Use CSS class instead of hardcoded colors so light theme works
+      document.getElementById('header').classList.toggle('scrolled', window.scrollY > 10);
     }, { passive:true });
+
+    /* ════════════════════════════════════════════════════════════════
+       SELECTION SYSTEM
+    ═════════════════════════════════════════════════════════════════ */
+
+    /* ── Collect all descendants recursively (flat, deduped) ─────── */
+    function collectAllDescendants(item) {
+      const result = [];
+      const seen = new Set();
+      function walk(node) {
+        if (!node.children) return;
+        for (const child of node.children) {
+          if (!seen.has(child.path)) {
+            seen.add(child.path);
+            result.push(child);
+          }
+          if (child.type === 'folder') walk(child);
+        }
+      }
+      walk(item);
+      return result;
+    }
+
+    /* ── Inline folder expand ─────────────────────────────────────── */
+    let expandTimer   = null;
+    let expandedPath  = null;
+
+    function showFolderExpand(item, rowEl) {
+      clearTimeout(expandTimer);
+      if (expandedPath === item.path) return; // already open
+      collapseExpand(); // close any other
+
+      const descendants = collectAllDescendants(item);
+      // Filter out already-excluded children
+      const excl = folderExclusions.get(item.path) || new Set();
+      const visible = descendants.filter(d => !excl.has(d.path));
+      if (!visible.length) return; // nothing to show — don't expand
+      expandedPath = item.path;
+
+      const MAX = 40;
+      const shown = visible.slice(0, MAX);
+      const extra = visible.length - MAX;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'sel-expand';
+      wrap.dataset.forPath = item.path;
+
+      shown.forEach((child, i) => {
+        const cit = iconTypeOf(child);
+        const ext = child.type === 'folder' ? 'DIR' : (child.ext||'').replace('.','').toUpperCase()||'FILE';
+        const el = document.createElement('div');
+        el.className = 'sel-expand-item';
+        el.style.setProperty('--i', i);
+        const rmBtn = `<button class="sel-expand-rm" tabindex="-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>`;
+        el.innerHTML = `${I[cit]||I.generic}<span class="sel-expand-name">${esc(child.name)}</span><span class="sel-expand-type">${esc(ext)}</span>${rmBtn}`;
+        el.querySelector('.sel-expand-rm').addEventListener('click', e => {
+          e.stopPropagation();
+          excludeChild(item.path, child.path);
+          // Rebuild expand in place
+          collapseExpand();
+          showFolderExpand(item, rowEl);
+          updateCardStates();
+        });
+        wrap.appendChild(el);
+      });
+      if (extra > 0) {
+        const more = document.createElement('div');
+        more.className = 'sel-expand-more';
+        more.textContent = `+${extra} more…`;
+        wrap.appendChild(more);
+      }
+
+      wrap.addEventListener('mouseenter', () => clearTimeout(expandTimer));
+      wrap.addEventListener('mouseleave', () => scheduleCollapse());
+
+      rowEl.insertAdjacentElement('afterend', wrap);
+      requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add('open')));
+    }
+
+    function scheduleCollapse() {
+      clearTimeout(expandTimer);
+      expandTimer = setTimeout(collapseExpand, 180);
+    }
+
+    function collapseExpand() {
+      document.querySelectorAll('.sel-expand').forEach(el => el.remove());
+      expandedPath = null;
+    }
+
+    // Kept for compatibility with selClearBtn reference below
+    function hideFolderTooltip() { collapseExpand(); }
+
+    // Spawn a ghost element that flies from the card to the panel
+    function spawnFlyGhost(cardEl) {
+      const panel = document.getElementById('selPanel');
+      const cardRect  = cardEl.getBoundingClientRect();
+      const panelRect = panel.getBoundingClientRect();
+
+      const iconEl = cardEl.querySelector('.card-icon');
+      const iconRect = iconEl ? iconEl.getBoundingClientRect() : cardRect;
+
+      // Start position: center of the card icon
+      const sx = iconRect.left + iconRect.width  / 2;
+      const sy = iconRect.top  + iconRect.height / 2;
+
+      // End position: center-top of the panel
+      const ex = panelRect.left + panelRect.width  / 2;
+      const ey = panelRect.top  + 24;
+
+      const tx = ex - sx;
+      const ty = ey - sy;
+
+      const ghost = document.createElement('div');
+      ghost.className = 'sel-fly-ghost';
+      ghost.style.left = sx + 'px';
+      ghost.style.top  = sy + 'px';
+      ghost.style.setProperty('--fly-tx', tx + 'px');
+      ghost.style.setProperty('--fly-ty', ty + 'px');
+      ghost.style.setProperty('--fly-dur', '460ms');
+      // grab the svg from the card icon
+      const svgSrc = iconEl ? iconEl.innerHTML : '';
+      ghost.innerHTML = svgSrc;
+      document.body.appendChild(ghost);
+      ghost.addEventListener('animationend', () => ghost.remove());
+    }
+
+    /* Update CSS classes on visible cards without re-rendering the grid */
+    function updateCardStates() {
+      document.querySelectorAll('.card[data-path]').forEach(card => {
+        const path = card.dataset.path;
+        if (!path) return;
+        const isSel     = selection.has(path);
+        const covering  = getCoveringFolder(path);
+        const isCovered = !!covering;
+        card.classList.toggle('selected', isSel && !isCovered);
+        card.classList.toggle('covered',  isCovered);
+      });
+    }
+
+    function toggleSelect(item, cardEl) {
+      const wasSelected = selection.has(item.path);
+      if (wasSelected) {
+        selection.delete(item.path);
+        // Clean up exclusions when a folder is removed
+        if (item.type === 'folder') folderExclusions.delete(item.path);
+        if (cardEl) cardEl.classList.remove('selected');
+      } else {
+        selection.set(item.path, item);
+        // Auto-exclude descendants that are already individually selected
+        if (item.type === 'folder') {
+          for (const [existingPath] of selection) {
+            if (existingPath !== item.path && existingPath.startsWith(item.path + '/')) {
+              excludeChild(item.path, existingPath);
+            }
+          }
+        }
+        // If this item was previously excluded from a covering folder,
+        // it is now individually selected — that is handled by getCoveringFolder
+        // (individually-selected items are not checked against exclusions; selection.has() takes priority)
+        if (cardEl) {
+          cardEl.classList.add('selected');
+          spawnFlyGhost(cardEl);
+        }
+      }
+      // Update card states in place — no full re-render needed
+      updateCardStates();
+      renderSelPanel(wasSelected ? null : item.path);
+    }
+
+    function toggleSelectByPath(item) {
+      const cardEl = document.querySelector(`.card[data-path="${CSS.escape(item.path)}"]`);
+      toggleSelect(item, cardEl);
+    }
+
+    function renderSelPanel(newlyAddedPath = null) {
+      const panel = document.getElementById('selPanel');
+      const list  = document.getElementById('selList');
+      const count = document.getElementById('selCount');
+
+      count.textContent = selection.size;
+
+      if (selection.size === 0) {
+        panel.classList.remove('visible');
+        collapseExpand();
+        return;
+      }
+      panel.classList.add('visible');
+
+      list.innerHTML = '';
+      collapseExpand();
+
+      for (const item of selection.values()) {
+        const it = iconTypeOf(item);
+        const cv = iconColorVar[it] || 'text2';
+        const isNew = (item.path === newlyAddedPath);
+        const isFolder = (item.type === 'folder');
+
+        const row = document.createElement('div');
+        row.className = 'sel-item' + (isNew ? ' entering' : '');
+        row.dataset.selPath = item.path;
+
+        row.innerHTML = `
+          <div class="sel-item-icon" style="background:rgba(255,255,255,.05);color:var(--${cv})">${I[it]||I.generic}</div>
+          <div class="sel-item-body">
+            <div class="sel-item-name">${esc(item.name)}</div>
+          </div>
+          <button class="sel-item-rm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        `;
+
+        row.querySelector('.sel-item-rm').addEventListener('click', e => {
+          e.stopPropagation();
+          toggleSelectByPath(item);
+        });
+
+        // Inline folder expand on hover — only add hover class if folder has visible children
+        if (isFolder) {
+          row.addEventListener('mouseenter', () => {
+            const descendants = collectAllDescendants(item);
+            const excl = folderExclusions.get(item.path) || new Set();
+            const hasVisible = descendants.some(d => !excl.has(d.path));
+            if (hasVisible) showFolderExpand(item, row);
+          });
+          row.addEventListener('mouseleave', () => scheduleCollapse());
+        }
+
+        if (isNew) {
+          row.addEventListener('animationend', () => row.classList.remove('entering'), { once: true });
+        }
+
+        list.appendChild(row);
+      }
+    }
+
+    // Wire selection panel buttons
+    document.getElementById('selClearBtn').addEventListener('click', () => {
+      selection.clear();
+      folderExclusions.clear();
+      document.querySelectorAll('.card.selected,.card.covered').forEach(c => c.classList.remove('selected','covered'));
+      hideFolderTooltip();
+      renderSelPanel();
+    });
+
+    document.getElementById('selShareBtn').addEventListener('click', () => {
+      if (selection.size === 0) return;
+      shareSelection();
+    });
+
+    // Hide/show panel with page navigation — keep selection in memory
+    const _origNavigateTo = navigateTo;
+    // We patch navigateTo below, so we re-wire it after definition
+
+    /* ════════════════════════════════════════════════════════════════
+       SHARING
+    ═════════════════════════════════════════════════════════════════ */
+    function buildShareUrl(item) {
+      const base = window.location.origin + window.location.pathname;
+      if (item.type === 'folder') {
+        return base + '#open=' + encodeURIComponent(item.path);
+      } else {
+        return base + '#file=' + encodeURIComponent(item.path);
+      }
+    }
+
+    function shareItem(item) {
+      const url = buildShareUrl(item);
+      copyToClipboard(url, '🔗 Link copied — ' + item.name);
+    }
+
+    function shareSelection() {
+      if (selection.size === 1) {
+        const item = [...selection.values()][0];
+        shareItem(item);
+        return;
+      }
+      const paths = [...selection.values()].map(i => encodeURIComponent(i.path)).join('||');
+      const url = window.location.origin + window.location.pathname + '#select=' + paths;
+      copyToClipboard(url, `🔗 Link copied — ${selection.size} items`);
+    }
+
+    function copyToClipboard(text, toastMsg) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast(toastMsg)).catch(() => fallbackCopy(text, toastMsg));
+      } else {
+        fallbackCopy(text, toastMsg);
+      }
+    }
+
+    function fallbackCopy(text, toastMsg) {
+      const el = document.createElement('textarea');
+      el.value = text; el.style.position = 'fixed'; el.style.opacity = '0';
+      document.body.appendChild(el); el.select();
+      try { document.execCommand('copy'); showToast(toastMsg); } catch {}
+      document.body.removeChild(el);
+    }
+
+    // PDF viewer share button
+    document.getElementById('pdfShare').addEventListener('click', () => {
+      if (!pdfCurrentPath) return;
+      const url = window.location.origin + window.location.pathname + '#file=' + encodeURIComponent(pdfCurrentPath);
+      copyToClipboard(url, '🔗 Link copied — ' + pdfCurrentName);
+    });
+
+    /* ════════════════════════════════════════════════════════════════
+       HASH ROUTING — share link support
+    ═════════════════════════════════════════════════════════════════ */
+    async function handleHashOnLoad() {
+      const hash = decodeURIComponent(window.location.hash.slice(1));
+      if (!hash) return;
+
+      // Wait for tree to load
+      if (!treeData) return;
+
+      if (hash.startsWith('file=')) {
+        const filePath = decodeURIComponent(hash.slice(5));
+        // Navigate to the folder containing the file, then open it
+        const parts = filePath.split('/');
+        const fileName = parts[parts.length - 1];
+        const folderPath = parts.slice(0, -1).join('/');
+        if (folderPath) navigateToPath(folderPath);
+        // Find the item and open it
+        const item = findItemByPath(treeData, filePath);
+        if (item) { setTimeout(() => handleClick(item), 300); }
+
+      } else if (hash.startsWith('open=')) {
+        const folderPath = decodeURIComponent(hash.slice(5));
+        navigateToPath(folderPath);
+
+      } else if (hash.startsWith('select=')) {
+        const paths = hash.slice(7).split('||').map(p => decodeURIComponent(p));
+        for (const p of paths) {
+          const item = findItemByPath(treeData, p);
+          if (item) selection.set(p, item);
+        }
+        renderSelPanel();
+        // Refresh current grid to show checked state
+        renderGrid(currentNode);
+      }
+
+      // Clear the hash so it doesn't re-trigger on manual refresh
+      history.replaceState(null, '', window.location.pathname);
+    }
+
+    function findItemByPath(node, targetPath) {
+      if (!node || !node.children) return null;
+      for (const child of node.children) {
+        if (child.path === targetPath) return child;
+        if (child.type === 'folder') {
+          const found = findItemByPath(child, targetPath);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    function navigateToPath(folderPath) {
+      // Walk the tree to find and navigate to a folder by path
+      const parts = folderPath.split('/');
+      let node = treeData;
+      pathStack = [];
+      for (const part of parts) {
+        const child = (node.children||[]).find(c => c.name === part && c.type === 'folder');
+        if (!child) break;
+        pathStack.push(child);
+        node = child;
+      }
+      currentNode = pathStack.length ? pathStack[pathStack.length-1] : treeData;
+      renderBreadcrumb();
+      renderGrid(currentNode);
+    }
 
     /* ── Utils ──────────────────────────────────────────────────────── */
     function esc(s) {
@@ -1134,7 +2100,7 @@
     function encPath(p) { return p.split('/').map(encodeURIComponent).join('/'); }
 
     /* ── Init ───────────────────────────────────────────────────────── */
-    loadTree();
+    loadTree().then ? loadTree().then(handleHashOnLoad) : (() => { loadTree(); setTimeout(handleHashOnLoad, 800); })();
   })();
   </script>
 </body>
