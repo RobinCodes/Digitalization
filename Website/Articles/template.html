@@ -22,6 +22,15 @@
   <meta data-description="A short description of what this article covers.">
   <meta data-tags="mathematics, analysis">
 
+  <!-- Apply stored theme before first paint to prevent flash -->
+  <script>
+    (function(){
+      var t = localStorage.getItem('ki_theme');
+      if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      if (t === 'light') document.documentElement.classList.add('light');
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Syne:wght@400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
 
@@ -53,6 +62,30 @@
       --font-ui:      'Syne', sans-serif;
       --font-mono:    'JetBrains Mono', monospace;
     }
+    /* ── Light theme ──────────────────────────────────────────────── */
+    html.light {
+      --bg:      #f5f0e8;
+      --bg2:     #ece6da;
+      --bg3:     #e2dbd0;
+      --border:  rgba(80,60,20,0.13);
+      --text:    #1a160e;
+      --text2:   #6b6054;
+      --text3:   #a09585;
+      --accent:  #8a6818;
+      --accent2: #b88c2a;
+    }
+    html.light body { background: var(--bg); color: var(--text); }
+    html.light .top-bar {
+      background: rgba(245,240,232,0.92);
+      border-bottom-color: rgba(80,60,20,0.13);
+    }
+    html.light ::-webkit-scrollbar-track { background: var(--bg2); }
+    html.light ::-webkit-scrollbar-thumb { background: var(--bg3); }
+    html.light code { background: var(--bg3); border-color: var(--border); color: #5a7a9a; }
+    html.light pre  { background: var(--bg2) !important; border-color: var(--border); }
+    html.light .math-block { background: var(--bg2); border-color: var(--border); }
+    html.light .def-box     { background: var(--bg2); border-color: var(--border); }
+    html.light .theorem-box { background: var(--bg2); border-color: rgba(138,104,24,0.3); }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg2); }
