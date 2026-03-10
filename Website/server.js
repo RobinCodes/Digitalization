@@ -175,16 +175,19 @@ function handleCompile(req, res) {
   let body = '';
   req.on('data', chunk => { body += chunk; if (body.length > 65536) req.destroy(); });
   req.on('end', () => {
-    let filePath;
-    try { filePath = JSON.parse(body).path; }
+    let filePath, lang;
+    try { const parsed = JSON.parse(body); filePath = parsed.path; lang = parsed.lang; }
     catch { res.writeHead(400); return res.end('Bad JSON'); }
     if (!filePath || typeof filePath !== 'string') {
       res.writeHead(400); return res.end('Missing or invalid path');
     }
 
-    // Resolve and validate path
+    // Resolve and validate path — use DataHU when lang is 'hu'
+    const dataDir = (lang === 'hu')
+      ? path.resolve(__WEBSITE, '..', 'DataHU')
+      : __DATA;
     let fullTex;
-    try { fullTex = safePath(__DATA, filePath); }
+    try { fullTex = safePath(dataDir, filePath); }
     catch (e) { res.writeHead(403); return res.end('Forbidden: ' + e.message); }
 
     if (!fs.existsSync(fullTex)) {
@@ -346,8 +349,11 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/api/file') {
     if (!query.path) { res.writeHead(400); return res.end('Missing path'); }
+    const fileDataDir = (query.lang === 'hu')
+      ? path.resolve(__WEBSITE, '..', 'DataHU')
+      : __DATA;
     let full;
-    try { full = safePath(__DATA, query.path); }
+    try { full = safePath(fileDataDir, query.path); }
     catch { res.writeHead(403); return res.end('Forbidden'); }
     let content;
     try { content = fs.readFileSync(full, 'utf8'); }

@@ -1315,7 +1315,7 @@
         const res = await fetch('/api/compile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: texPath }),
+          body: JSON.stringify({ path: texPath, lang: LANG }),
         });
 
         if (!res.ok) {
@@ -1591,7 +1591,7 @@
       codeModal.classList.add('open');
       document.body.style.overflow = 'hidden';
       try {
-        const res = await fetch('/api/file?path=' + encodeURIComponent(filePath));
+        const res = await fetch('/api/file?path=' + encodeURIComponent(filePath) + '&lang=' + LANG);
         if (!res.ok) throw new Error('HTTP '+res.status);
         const code = await res.text();
         codeEl.textContent = code;
