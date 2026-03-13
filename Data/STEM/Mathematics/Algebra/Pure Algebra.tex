@@ -7,92 +7,132 @@
 \usepackage{amsthm}
 \usepackage{amssymb}
 
-\title{Basic Geometry}
+\title{Pure Algebra}
 \author{Rovenszky Robin}
 \date{Last updated: 13 March 2026}
 
 \newtheorem{theorem}{Theorem}
+\newtheorem*{remark}{Remark}
 
 \begin{document}
 
 \maketitle
 
-\section{The Binomial Theorem}
-\begin{theorem}[Binomial Theorem]
-The Binomial theorem describes the algebraic expansion of powers of a binomial.
-\begin{equation}
-    (x+y)^n = \binom{n}{0}x^ny^0 + \binom{n}{1}x^{n-1}y^1 + ... + \binom{n}{n}x^0y^n
-\end{equation}
+\section{What is $\sqrt{2}$?}
+We understand that it must exist, since in a right trinagle with legs $a = 1, b= 1, \alpha = 90$, where $\alpha$ is their enclosed angle, the hypothenuse has length $\sqrt{2}$. So what is $\sqrt{2}$?
+\\
+\begin{theorem}
+    For an x satisfying $x^2 = 2$, x may also satisfy $x = \frac{p}{q}$ with $p, q \in \mathbb{Z}$, $gcd(p, q) = 1$
 \end{theorem}
+\begin{proof}
+    Assume the statement is true. Then
+    \begin{equation}
+        \frac{p^2}{q^2} = 2 \implies p^2 = 2q^2 \implies 2 \mid p^2 \implies 2 \mid p \implies 4 \mid p^2 \implies
+    \end{equation}
+    \begin{equation}
+        \implies 4 \mid 2q^2 \implies 2 \mid q^2 \implies 2 \mid q \implies \gcd(p, q) \ge 2 \Rightarrow\!\Leftarrow
+    \end{equation}
+    Or alternatively, we could have also finished the proof via
+    $p^2 = 2q^2$. Now we notice that $p^2$ has two in its prime factorization to an even power, while $2q^2$ has two in its prime factorization to an odd power (since $\gcd(p,q) = 1$).
+\end{proof}
 
-\section{Problem set.}
-\subsection{Algebra 101.}
-\subsubsection{Problem 1.1.}
-Expand $(a\pm b)^5$
-\begin{equation}
-    (a \pm b)^5
-\end{equation}
-Using the Binomial Theorem (Theorem 1) yields:
-\begin{equation}
-    (a \pm b)^5 = \binom{5}{0}a^5 \pm \binom{5}{1}a^4b + \binom{5}{2}a^3b^2 \pm \binom{5}{3}a^2b^3 + \binom{5}{4}ab^4 \pm \binom{5}{5}b^5
-\end{equation}
+We can generalize this result to show that for all $a \in \mathbb{Z}_{\ge 0}$, if $x^2 = a$, then if $a$ contains a prime factor to an odd exponent (so $a$ is not a perfect square), then and only then $x \in \mathbb{R} \setminus \mathbb{Q}$.
 
-\subsubsection{Problem 1.2.}
-Expand $(x\pm 1)^5$
-\begin{equation}
-    (x \pm 1)^5
-\end{equation}
-Using the Binomial Theorem (Theorem 1) yields:
-\begin{equation}
-    (x \pm 1)^5 = \binom{5}{0}x^5\pm \binom{5}{1}x^4 + \binom{5}{2}x^3 \pm \binom{5}{3}x^2 + \binom{5}{4}x \pm \binom{5}{5}
-\end{equation}
-
-\subsubsection{Problem 1.3.}
-Expand $(a+b+c+d)^2$
-\begin{equation}
-    (a+b+c+d)^2 = a^2 + b^2 + c^2 + d^2 + 2ab + 2ac + 2ad + 2bc + 2bd + 2cd
-\end{equation}
-
-\subsubsection{Problem 1.4.}
-Rewrite $a^2 + ab + a + b$ as a product of two first-degree polynomials
-\begin{equation}
-    a^2 + ab + a + b = a(a+b) + (a+b) = (a + b) (a + 1)
-\end{equation}
-
-\subsubsection{Problem 1.5.}
-Rewrite $x^3 + 2x^2 + 2x + 1$ as a product of a second and a first degree polynomial. (It cannot be rewritten as a product of three first-degree polynomials, due to The Fundamental Theorem of Algebra and results from Abstract Algebra / Field Theory.
-
-\begin{equation}
-    x^3 + 2x^2 + 2x + 1 = (x^3 + x^2 + x) + (x^2 + x + 1) = x(x^2 + x + 1) + (x^2 + x + 1) =
-\end{equation}
-\begin{equation}
-    = (x^2 + x + 1)(x + 1)
-\end{equation}
-
-\subsubsection{Problem 1.6.}
-Rewrite $x^3 + 6x^2 + 12x + 8$ as a product of polynomials.
-
-\subsubsection{Problem 1.7.}
-Find all solutions of the equation $ab + 2a - 3b = 14$ where $a, b \in \mathbb{N^+}$.
-
-\subsubsection{Problem 1.8.}
-What is the minimal point of the expression $2x^2 + 2y^2 - 2xy + 4x -6y + 8$.
-
-\subsubsection{Problem 1.9.}
-Prove the following inequality:
+\section{Finding $\sqrt{2}$}
+Since we cannot find irrational numbers, we will approximate it. Let us start with:
 \[
-(a+b+c)(\frac{1}{a} + \frac{1}{b} + \frac{1}{c}) \ge 9
+1 < x < 2 \Leftrightarrow 1 < x^2 < 4
 \]
-where $a, b, c > 0$.
+\begin{theorem}
+    \[
+    0 < x < y \implies 0 < x^2 < y^2
+    \]
+\end{theorem}
+\hrule
+\vspace{1em}
 
-\subsubsection{Problem 2.1.}
-\subsubsection{Problem 2.2.}
-\subsubsection{Problem 2.3.}
-\subsubsection{Problem 2.4.}
-\subsubsection{Problem 2.5.}
-\subsubsection{Problem 2.6.}
-\subsubsection{Problem 2.7.}
-\subsubsection{Problem 2.8.}
-\subsubsection{Problem 2.9.}
+Before we prove our theorem, let us write out the axioms of order (also known as axioms of arrangement):
+\begin{enumerate}
+    \item Axiom of Trichotomy: Exactly one of the following can be true: $a < b, b < a, a = b$.
+    \item Addition preserves order: $a < b$ and $c$ arbitrary $\implies$ $a + c < b + c$.
+    \item  Axiom of Transitivity: $a < b$ and $b < c$ $\implies$ $a < c$.
+    \item Multiplication by positive preserves order: $0 < a$ and $b < c$, then $ab < ac$.
+    \item Positivity of 1: $0 < 1$.
+\end{enumerate}
+We will use the distributivity of addition (or that addition preserves order) to prove the following:
+\[
+    x < 0 \implies 0 < -x
+\]
+\begin{proof}
+\[
+    x + (-x) < 0 + (-x)
+\]
+\[
+    0 < -x
+\]
+\end{proof}
+Now we use the distributivity of multiplication (or that multiplication by positive preserves order) to prove the following:
+\[
+    (-1)\cdot x = -x
+\]
+\begin{proof}
+\[
+    (1 + (-1)) \cdot x = 0
+\]
+\[
+    1 \cdot x + (-1) \cdot x = 0 \implies (-1) \cdot x = -x
+\]
+\end{proof}
+For this however, we need the following statement aswell, for which we will again use the distributivity of multiplication:
+\[
+    0\cdot x = 0
+\]
+\begin{proof}
+\[
+    (0+0) \cdot x = 0 \cdot x
+\]
+\[
+    0 \cdot x + 0 \cdot x = 0 \cdot x
+\]
+\[
+    0 \cdot x = 0
+\]
+\end{proof}
+
+\hrule
+\vspace{1em}
+
+Now we proceed with a proof of Theorem 3 using the distributivity of multiplication:
+
+\begin{proof}
+    \begin{equation}
+    0 < x < y \implies 0 < x^2 < y^2
+    \end{equation}
+    Then multiplying by x yields:
+    \[
+    x^2 < xy
+    \]
+    and multiplying (27) by y gives us:
+    \[
+    xy < y^2
+    \]
+    Combining the latter two yields:
+    \[
+    x^2 < xy < y^2 \implies x^2 < y^2
+    \]
+\end{proof}
+
+\begin{remark}
+    We can also prove that $y < x < 0 \implies 0 < -x < -y$ using the distributivity of multiplication.
+\end{remark}
+
+\begin{proof}
+    \[
+    (-x) \cdot (-x) < (-y) \cdot (-x)
+    \]
+    \[
+    x^2 < xy < y^2
+    \]
+\end{proof}
 
 \end{document}
