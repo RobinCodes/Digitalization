@@ -1,0 +1,135 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+
+\title{$\sqrt{2}$}
+\author{Rovenszky Robin}
+\date{Last updated: 13 March 2026}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem*{remark}{Remark}
+
+\begin{document}
+
+\maketitle
+
+\section{What is $\sqrt{2}$?}
+We understand that it must exist, since in a right trinagle with legs $a = 1, b= 1, \alpha = 90$, where $\alpha$ is their enclosed angle, the hypothenuse has length $\sqrt{2}$. So what is $\sqrt{2}$?
+\\
+\begin{theorem}
+    For an x satisfying $x^2 = 2$, x may also satisfy $x = \frac{p}{q}$ with $p, q \in \mathbb{Z}$, $gcd(p, q) = 1$
+\end{theorem}
+\begin{proof}
+    Assume the statement is true. Then
+    \begin{equation}
+        \frac{p^2}{q^2} = 2 \implies p^2 = 2q^2 \implies 2 \mid p^2 \implies 2 \mid p \implies 4 \mid p^2 \implies
+    \end{equation}
+    \begin{equation}
+        \implies 4 \mid 2q^2 \implies 2 \mid q^2 \implies 2 \mid q \implies \gcd(p, q) \ge 2 \Rightarrow\!\Leftarrow
+    \end{equation}
+    Or alternatively, we could have also finished the proof via
+    $p^2 = 2q^2$. Now we notice that $p^2$ has two in its prime factorization to an even power, while $2q^2$ has two in its prime factorization to an odd power (since $\gcd(p,q) = 1$).
+\end{proof}
+
+We can generalize this result to show that for all $a \in \mathbb{Z}_{\ge 0}$, if $x^2 = a$, then if $a$ contains a prime factor to an odd exponent (so $a$ is not a perfect square), then and only then $x \in \mathbb{R} \setminus \mathbb{Q}$.
+
+\section{Finding $\sqrt{2}$}
+Since we cannot find irrational numbers, we will approximate it. Let us start with:
+\[
+1 < x < 2 \Leftrightarrow 1 < x^2 < 4
+\]
+\begin{theorem}
+    \[
+    0 < x < y \implies 0 < x^2 < y^2
+    \]
+\end{theorem}
+\hrule
+\vspace{1em}
+
+Before we prove our theorem, let us write out the axioms of order (also known as axioms of arrangement):
+\begin{enumerate}
+    \item Axiom of Trichotomy: Exactly one of the following can be true: $a < b, b < a, a = b$.
+    \item Addition preserves order: $a < b$ and $c$ arbitrary $\implies$ $a + c < b + c$.
+    \item  Axiom of Transitivity: $a < b$ and $b < c$ $\implies$ $a < c$.
+    \item Multiplication by positive preserves order: $0 < a$ and $b < c$, then $ab < ac$.
+    \item Positivity of 1: $0 < 1$.
+\end{enumerate}
+We will use the distributivity of addition (or that addition preserves order) to prove the following:
+\[
+    x < 0 \implies 0 < -x
+\]
+\begin{proof}
+\[
+    x + (-x) < 0 + (-x)
+\]
+\[
+    0 < -x
+\]
+\end{proof}
+Now we use the distributivity of multiplication (or that multiplication by positive preserves order) to prove the following:
+\[
+    (-1)\cdot x = -x
+\]
+\begin{proof}
+\[
+    (1 + (-1)) \cdot x = 0
+\]
+\[
+    1 \cdot x + (-1) \cdot x = 0 \implies (-1) \cdot x = -x
+\]
+\end{proof}
+For this however, we need the following statement aswell, for which we will again use the distributivity of multiplication:
+\[
+    0\cdot x = 0
+\]
+\begin{proof}
+\[
+    (0+0) \cdot x = 0 \cdot x
+\]
+\[
+    0 \cdot x + 0 \cdot x = 0 \cdot x
+\]
+\[
+    0 \cdot x = 0
+\]
+\end{proof}
+
+\hrule
+\vspace{1em}
+
+Now we proceed with a proof of Theorem 3 using the distributivity of multiplication:
+
+\begin{proof}
+    \begin{equation}
+    0 < x < y \implies 0 < x^2 < y^2
+    \end{equation}
+    Then multiplying by x yields:
+    \[
+    x^2 < xy
+    \]
+    and multiplying (27) by y give us:
+    \[
+    xy < y^2
+    \]
+    Combining the latter two yields:
+    \[
+    x^2 < xy < y^2 \implies x^2 < y^2
+    \]
+\end{proof}
+
+\begin{remark}
+    We can also prove that $y < x < 0 \implies 0 < -x < -y$ using the distributivity of multiplication.
+\end{remark}
+
+\begin{proof}
+    \[
+    (-x) \cdot (-x) < (-y) \cdot (-x)
+    \]
+    \[
+    x^2 < xy < y^2
+    \]
+\end{proof}
+
+\end{document}
