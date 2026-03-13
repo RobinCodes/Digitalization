@@ -44,12 +44,14 @@ function buildTree(dir, rel = '') {
       const childRel = rel ? `${rel}/${e.name}` : e.name;
       if (e.isDirectory()) {
         const children = buildTree(path.join(dir, e.name), childRel);
-        return { name: e.name, type: 'folder', path: childRel, children, count: children.length };
+        let mtime = null;
+        try { mtime = fs.statSync(path.join(dir, e.name)).mtime.toISOString(); } catch {}
+        return { name: e.name, type: 'folder', path: childRel, children, count: children.length, mtime };
       }
       const ext = path.extname(e.name).toLowerCase();
-      let size = 0;
-      try { size = fs.statSync(path.join(dir, e.name)).size; } catch {}
-      return { name: e.name, type: 'file', ext, path: childRel, size };
+      let size = 0, mtime = null;
+      try { const st = fs.statSync(path.join(dir, e.name)); size = st.size; mtime = st.mtime.toISOString(); } catch {}
+      return { name: e.name, type: 'file', ext, path: childRel, size, mtime };
     })
     .sort((a, b) => {
       if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;

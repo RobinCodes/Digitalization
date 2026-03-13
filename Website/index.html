@@ -47,6 +47,12 @@
     *{scrollbar-width:thin;scrollbar-color:var(--accent) var(--bg2)}
     html{cursor:none}
     body{font-family:var(--font-ui);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:none;-webkit-font-smoothing:antialiased;transition:background .4s,color .4s}
+    /* ── No scrollbar on main page on desktop ─────────────────────── */
+    @media(min-width:769px){
+      html,body{overflow:hidden;height:100%}
+      #main{height:calc(100vh - var(--header-h));overflow-y:auto;scrollbar-width:none}
+      #main::-webkit-scrollbar{display:none}
+    }
     a{color:inherit;text-decoration:none;cursor:none}
     button{cursor:none;border:none;background:none;font-family:inherit;color:inherit}
     ::selection{background:var(--accent-dim);color:var(--accent2)}
@@ -999,7 +1005,7 @@
 
     /* ── PDF SIDE NAV BUTTONS ────────────────────────────────────────── */
     .pdf-side-nav{
-      position:fixed;top:50%;z-index:7480;
+      position:fixed;top:50%;z-index:7520;
       width:40px;height:80px;margin-top:-40px;
       display:none;align-items:center;justify-content:center;
       background:rgba(13,13,17,.72);
@@ -1128,6 +1134,182 @@
     }
     #settingsBtn:hover{background:var(--bg4);border-color:var(--accent);color:var(--accent);transform:rotate(45deg)}
     #settingsBtn svg{width:14px;height:14px}
+
+    /* ── Prevent iOS auto-zoom on input focus ─────────────────────── */
+    @media(max-width:768px){
+      input,select,textarea{font-size:16px!important;touch-action:manipulation}
+    }
+    /* Also apply touch-action on buttons to prevent double-tap zoom */
+    button,a{touch-action:manipulation}
+
+    [data-notooltip]{pointer-events:auto}
+
+    /* ── SEARCH ROW ─────────────────────────────────────────────────── */
+    .search-row{
+      display:flex;align-items:stretch;height:44px;
+      border-bottom:1px solid var(--border);
+      max-width:1600px;margin:0 auto;
+      padding:0 40px;
+    }
+    @media(max-width:768px){.search-row{padding:0 20px;height:42px}}
+    .search-input-wrap{
+      flex:1;min-width:0;position:relative;display:flex;align-items:center;
+      border-right:1px solid var(--border);
+    }
+    .search-icon{
+      position:absolute;left:0;width:13px;height:13px;
+      color:var(--text3);pointer-events:none;flex-shrink:0;
+    }
+    #searchInput{
+      width:100%;height:100%;padding:0 30px 0 22px;
+      background:transparent;border:none;outline:none;
+      font-family:var(--font-mono);font-size:12px;color:var(--text);
+    }
+    #searchInput::placeholder{color:var(--text3)}
+    .search-clear{
+      position:absolute;right:10px;width:17px;height:17px;border-radius:50%;
+      display:none;align-items:center;justify-content:center;
+      background:var(--bg4);border:1px solid var(--border);color:var(--text3);
+      transition:background .15s,color .15s,border-color .15s;flex-shrink:0;
+    }
+    .search-clear.visible{display:flex}
+    .search-clear:hover{background:rgba(220,60,60,.18);border-color:rgba(220,60,60,.4);color:rgba(220,80,80,1)}
+    .search-clear svg{width:8px;height:8px;pointer-events:none}
+    .search-tag-strip{
+      display:flex;align-items:center;gap:5px;padding:0 12px;
+      border-right:1px solid var(--border);
+      overflow-x:auto;flex-shrink:0;max-width:240px;
+    }
+    .search-tag-strip:empty{display:none}
+    .active-tag-chip{
+      display:inline-flex;align-items:center;gap:3px;flex-shrink:0;
+      padding:2px 7px;border-radius:99px;
+      font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;
+      background:var(--accent-dim);border:1px solid rgba(196,161,60,.4);color:var(--accent);
+      transition:background .15s;white-space:nowrap;
+    }
+    .active-tag-chip:hover{background:rgba(196,161,60,.18)}
+    .active-tag-chip svg{width:7px;height:7px;opacity:.7;flex-shrink:0;pointer-events:none}
+    .search-count-badge{
+      display:flex;align-items:center;padding:0 14px;flex-shrink:0;
+      font-family:var(--font-mono);font-size:9.5px;color:var(--text3);
+      letter-spacing:.07em;border-right:1px solid var(--border);
+      white-space:nowrap;
+    }
+    .search-count-badge:empty{display:none}
+    /* Sort dropdown */
+    .sort-dropdown{position:relative;display:flex;align-items:center;padding:0 14px;flex-shrink:0}
+    .sort-dd-btn{
+      display:flex;align-items:center;gap:6px;
+      font-family:var(--font-mono);font-size:11px;color:var(--text2);
+      white-space:nowrap;transition:color .15s;
+    }
+    .sort-dd-btn:hover{color:var(--accent)}
+    .sort-dd-icon{width:12px;height:12px;flex-shrink:0;opacity:.55;pointer-events:none}
+    .sort-dd-chevron{width:9px;height:9px;flex-shrink:0;opacity:.45;transition:transform .2s;pointer-events:none}
+    .sort-dropdown.open .sort-dd-chevron{transform:rotate(180deg)}
+    .sort-dd-label{letter-spacing:.05em}
+    .sort-dd-menu{
+      position:absolute;top:calc(100% + 6px);right:-4px;z-index:3000;
+      background:var(--bg2);border:1px solid var(--border-md);
+      border-radius:10px;padding:4px;min-width:152px;
+      box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03);
+      opacity:0;pointer-events:none;
+      transform:translateY(-6px) scale(0.96);transform-origin:top right;
+      transition:opacity .14s,transform .17s cubic-bezier(.22,1,.36,1);
+    }
+    .sort-dd-menu.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}
+    .sort-dd-item{
+      display:flex;align-items:center;width:100%;padding:7px 11px;border-radius:6px;
+      font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;
+      color:var(--text2);text-align:left;transition:background .1s,color .1s;white-space:nowrap;
+    }
+    .sort-dd-item:hover{background:var(--bg4);color:var(--text)}
+    .sort-dd-item.active{color:var(--accent)}
+    .sort-dd-item.active::before{content:"✓ ";opacity:.85}
+    .sort-dd-sep{height:1px;background:var(--border);margin:3px 2px}
+    .no-results-box{
+      grid-column:1/-1;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;min-height:200px;gap:12px;
+      color:var(--text3);font-size:13px;font-family:var(--font-mono);
+    }
+    .no-results-box svg{width:32px;height:32px;opacity:.3}
+    /* Drag-cursor fix */
+    body.ki-dragging,.ki-dragging *{cursor:grabbing!important}
+
+    /* ── CARD TAGS ───────────────────────────────────────────────────── */
+    .card-tags{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:5px}
+    .card-tag{
+      font-family:var(--font-mono);font-size:8px;letter-spacing:.09em;text-transform:uppercase;
+      padding:2px 6px;border-radius:4px;
+      background:var(--accent-dim);border:1px solid rgba(196,161,60,.28);color:var(--accent);
+      opacity:.72;transition:opacity .2s,background .2s;white-space:nowrap;
+    }
+    .card:hover .card-tag{opacity:1;background:rgba(196,161,60,.14)}
+    .card-tag.clickable:hover{background:rgba(196,161,60,.22);border-color:rgba(196,161,60,.5)}
+    .card-tag-more{
+      font-family:var(--font-mono);font-size:8px;letter-spacing:.06em;
+      padding:2px 5px;border-radius:4px;
+      background:var(--bg4);border:1px solid var(--border);color:var(--text3);
+      position:relative;transition:color .15s,background .15s;
+    }
+    .card-tag-more:hover{color:var(--text2);background:var(--bg3)}
+    .card-tag-more .tag-tooltip{
+      position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+      background:var(--bg2);border:1px solid var(--border-md);border-radius:8px;
+      padding:7px 9px;display:flex;flex-direction:column;gap:4px;min-width:130px;
+      z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.55);
+      opacity:0;pointer-events:none;transition:opacity .15s;white-space:nowrap;
+    }
+    .card-tag-more:hover .tag-tooltip{opacity:1;pointer-events:all}
+    .tag-tooltip .card-tag{opacity:1;display:block}
+
+    /* ── SETTINGS SECTION HIERARCHY ─────────────────────────────────── */
+    .stg-sec-group{display:flex;flex-direction:column;gap:3px}
+    .stg-sec-parent{
+      display:flex;align-items:center;gap:10px;
+      padding:9px 12px;border-radius:8px;
+      background:var(--bg3);border:1px solid var(--border);
+      font-family:var(--font-mono);font-size:11px;color:var(--text2);
+      transition:border-color .2s,background .2s;
+    }
+    .stg-sec-parent.drag-over{border-color:rgba(196,161,60,.5);background:var(--accent-dim)}
+    .stg-sec-children{
+      display:flex;flex-direction:column;gap:3px;
+      margin-left:20px;padding-left:8px;
+      border-left:1px solid var(--border);
+      overflow:hidden;max-height:0;
+      transition:max-height .3s var(--tr);
+    }
+    .stg-sec-children.open{max-height:500px}
+    .stg-sec-child{
+      display:flex;align-items:center;gap:10px;
+      padding:7px 10px;border-radius:6px;
+      background:var(--bg2);border:1px solid var(--border);
+      font-family:var(--font-mono);font-size:10px;color:var(--text2);
+      transition:border-color .2s,background .2s;
+    }
+    .stg-sec-child.drag-over{border-color:rgba(196,161,60,.4);background:var(--accent-dim)}
+    .stg-sec-toggle{
+      flex-shrink:0;width:14px;height:14px;display:flex;align-items:center;justify-content:center;
+      color:var(--text3);transition:transform .25s var(--tr);
+    }
+    .stg-sec-toggle svg{width:10px;height:10px}
+    .stg-sec-parent.open .stg-sec-toggle{transform:rotate(90deg)}
+
+    /* ── MOBILE IMPROVEMENTS ─────────────────────────────────────────── */
+    @media(max-width:480px){
+      .page-hero{padding:48px 20px 32px}
+      .page-title{font-size:clamp(32px,9vw,60px)}
+      .grid-container{padding:20px 20px 80px}
+      .file-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+      .section-cards{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+      .card{padding:16px 12px 12px;gap:8px}
+      .card-icon{width:36px;height:36px}
+      .card-icon svg{width:20px;height:20px}
+      .card-name{font-size:12px}
+      #selPanel{bottom:env(safe-area-inset-bottom,16px);right:12px;left:12px;width:auto;max-height:55vh}
+    }
   </style>
 </head>
 <body>
@@ -1139,7 +1321,7 @@
   <!-- HEADER -->
   <header id="header">
     <div class="header-inner">
-      <a class="logo" href="#" data-page="home">
+      <a class="logo" href="/" id="logoLink">
         <span class="logo-sym">∑</span>
         <span class="logo-text" data-i18n="logoText">Knowledge&nbsp;Index</span>
       </a>
@@ -1153,7 +1335,7 @@
           <button id="langEN" class="lang-btn">EN</button>
           <button id="langHU" class="lang-btn">HU</button>
         </div>
-        <button id="settingsBtn" title="Settings" aria-label="Settings">
+        <button id="settingsBtn" aria-label="Settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
         <button id="themeToggle">
@@ -1200,6 +1382,41 @@
         <p class="page-subtitle" data-i18n="homeSubtitle">Browse the complete collection of mathematical and scientific notes, organized by subject and topic.</p>
       </div>
       <div class="breadcrumb-bar" id="breadcrumbBar"></div>
+      <!-- Search bar -->
+      <div class="search-row" id="searchBarWrap">
+        <!-- Search icon + input + clear -->
+        <div class="search-input-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="Search files, folders, tags…" autocomplete="off" spellcheck="false">
+          <button class="search-clear" id="searchClear" aria-label="Clear search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <!-- Active tag filter chips -->
+        <div class="search-tag-strip" id="activeTagChips"></div>
+        <!-- Result count -->
+        <span class="search-count-badge" id="searchCount"></span>
+        <!-- Custom sort dropdown -->
+        <div class="sort-dropdown" id="sortDropdown">
+          <button class="sort-dd-btn" id="sortDdBtn">
+            <svg class="sort-dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+            <span class="sort-dd-label" id="sortDdLabel">Default</span>
+            <svg class="sort-dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sort-dd-menu" id="sortDdMenu">
+            <button class="sort-dd-item active" data-sort="default">Default</button>
+            <div class="sort-dd-sep"></div>
+            <button class="sort-dd-item" data-sort="name-asc">Name A → Z</button>
+            <button class="sort-dd-item" data-sort="name-desc">Name Z → A</button>
+            <div class="sort-dd-sep"></div>
+            <button class="sort-dd-item" data-sort="date-desc">Newest first</button>
+            <button class="sort-dd-item" data-sort="date-asc">Oldest first</button>
+            <div class="sort-dd-sep"></div>
+            <button class="sort-dd-item" data-sort="size-desc">Largest first</button>
+            <button class="sort-dd-item" data-sort="size-asc">Smallest first</button>
+          </div>
+        </div>
+      </div>
       <div class="grid-container">
         <div class="grid-info"><span class="grid-count" id="gridCount">—</span></div>
         <div class="file-grid" id="fileGrid">
@@ -1245,45 +1462,45 @@
       </div>
       <div class="pdf-topbar-mid">
         <!-- Page nav -->
-        <button class="pdf-tbtn" id="pdfPrevPage" title="Previous page (←)">
+        <button class="pdf-tbtn" id="pdfPrevPage">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="pdf-page-info">
           <input class="pdf-page-input" id="pdfPageInput" type="number" min="1" value="1">
           <span style="color:var(--text3)">/ <span id="pdfTotalPages">—</span></span>
         </div>
-        <button class="pdf-tbtn" id="pdfNextPage" title="Next page (→)">
+        <button class="pdf-tbtn" id="pdfNextPage">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
         <div class="pdf-sep"></div>
         <!-- Zoom -->
-        <button class="pdf-tbtn" id="pdfZoomOut" title="Zoom out (-)">
+        <button class="pdf-tbtn" id="pdfZoomOut">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         </button>
         <span class="pdf-zoom-wrap" id="pdfZoomWrap">
-          <span class="pdf-zoom-pct" id="pdfZoomPct" title="Click to set zoom">100%</span>
+          <span class="pdf-zoom-pct" id="pdfZoomPct">100%</span>
           <input class="pdf-zoom-input" id="pdfZoomInput" type="number" min="10" max="500" value="100">
         </span>
-        <button class="pdf-tbtn" id="pdfZoomIn" title="Zoom in (+)">
+        <button class="pdf-tbtn" id="pdfZoomIn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         </button>
-        <button class="pdf-tbtn" id="pdfZoomFit" title="Fit to width">Fit</button>
+        <button class="pdf-tbtn" id="pdfZoomFit">Fit</button>
         <div class="pdf-sep"></div>
       </div>
       <div class="pdf-topbar-right">
-        <button class="pdf-tbtn accent" id="pdfDownload" title="Download PDF">
+        <button class="pdf-tbtn accent" id="pdfDownload">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           <span data-i18n="download">Download</span>
         </button>
-        <button class="pdf-tbtn accent" id="pdfPrint" title="Print document">
+        <button class="pdf-tbtn accent" id="pdfPrint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           <span data-i18n="print">Print</span>
         </button>
-        <button class="pdf-tbtn accent" id="pdfShare" title="Copy share link">
+        <button class="pdf-tbtn accent" id="pdfShare">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           <span data-i18n="share">Share</span>
         </button>
-        <button class="pdf-tbtn danger" id="pdfClose" title="Close (Esc)">
+        <button class="pdf-tbtn danger" id="pdfClose">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           <span data-i18n="close">Close</span>
         </button>
@@ -1292,7 +1509,7 @@
 
     <!-- ── Mobile bar (visible only ≤768px) ───────────────────── -->
     <div id="pdfMobileBar">
-      <button class="pmb-nav" id="pmbNav" title="Navigation menu" aria-label="Navigation menu">
+      <button class="pmb-nav" id="pmbNav" aria-label="Navigation menu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <button class="pmb-close" id="pmbClose">
@@ -1301,11 +1518,11 @@
       <span class="pmb-filename" id="pmbFilename">document.pdf</span>
       <span class="pmb-page" id="pmbPageInfo">—</span>
       <!-- Zoom always visible -->
-      <button class="pmb-zoom" id="pmbZoomOut" title="Zoom out">
+      <button class="pmb-zoom" id="pmbZoomOut">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
       </button>
       <span class="pmb-zoom-pct" id="pmbZoomPct">100%</span>
-      <button class="pmb-zoom" id="pmbZoomIn" title="Zoom in">
+      <button class="pmb-zoom" id="pmbZoomIn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
       </button>
       <button class="pmb-menu" id="pmbMenu">
@@ -1562,7 +1779,7 @@
             </div>
           </div>
           <div class="stg-row" style="align-items:flex-start;flex-direction:column;gap:10px">
-            <div class="stg-sublbl" data-i18n="stgSectionsHint">Drag to reorder how sections appear in the archive</div>
+            <div class="stg-sublbl" data-i18n="stgSectionsHint">Drag top-level types to reorder. Expand to reorder subjects inside each type.</div>
             <div class="stg-section-list" id="stgSectionList"></div>
           </div>
         </div>
@@ -2029,7 +2246,35 @@
     function renderGrid(node) {
       const grid  = document.getElementById('fileGrid');
       const count = document.getElementById('gridCount');
-      const items = node ? (node.children||[]) : [];
+      const rawItems = node ? (node.children||[]) : [];
+
+      // ── Global search mode ───────────────────────────────────────────
+      const isSearching = searchQuery.length > 0 || activeTagFilters.size > 0;
+      if (isSearching) {
+        grid.innerHTML = '';
+        const allItems = treeData ? collectAllItems(treeData) : [];
+        let results = allItems.filter(item => {
+          if (searchQuery && !itemMatchesSearch(item, searchQuery)) return false;
+          if (!itemMatchesTags(item)) return false;
+          return true;
+        });
+        results = sortItems(results);
+        const cntEl = document.getElementById('searchCount'); if (cntEl) cntEl.textContent = `${results.length} result${results.length!==1?'s':''}${activeTagFilters.size?' · '+activeTagFilters.size+' tag filter'+( activeTagFilters.size!==1?'s':''):''}${sortMode!=='default'?' · sorted':''}`;
+        if (!results.length) {
+          grid.innerHTML = `<div class="no-results-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>No results for "${esc(searchQuery)}"</span></div>`;
+        } else {
+          results.forEach((item, idx) => {
+            const card = buildCard(item);
+            card.style.animationDelay = (idx * 20) + 'ms';
+            grid.appendChild(card);
+          });
+        }
+        count.textContent = `${results.length} result${results.length!==1?'s':''}`;
+        return;
+      }
+      const cntBadge = document.getElementById('searchCount'); if (cntBadge) cntBadge.textContent = '';
+
+      let items = sortItems(rawItems);
 
       const folders = items.filter(i=>i.type==='folder');
       const files   = items.filter(i=>i.type==='file');
@@ -2114,13 +2359,20 @@
               return ai - bi;
             });
           }
+          const childOrders = JSON.parse(localStorage.getItem('ki_child_orders') || '{}');
           let cardIndex = 0;
           orderedSections.forEach(section => {
-            const sectionItems = section.children || [];
-            const allSectionItems = [
+            let sectionItems = section.children || [];
+            // Apply child order if saved for this section
+            const savedChildOrder = childOrders[section.name];
+            if (savedChildOrder) {
+              const cm = {}; savedChildOrder.forEach((n,i) => cm[n]=i);
+              sectionItems = [...sectionItems].sort((a,b) => (cm[a.name]??9999)-(cm[b.name]??9999));
+            }
+            const allSectionItems = sortItems([
               ...sectionItems.filter(i=>i.type==='folder'),
               ...sectionItems.filter(i=>i.type==='file'),
-            ];
+            ]);
             const group = document.createElement('div');
             group.className = 'section-group';
             group.dataset.section = section.name;
@@ -2202,6 +2454,20 @@
       const badge = item.type==='folder' ? 'DIR' : (item.ext||'FILE').replace('.','').toUpperCase();
       const meta  = item.type==='folder' ? `${item.count} item${item.count!==1?'s':''}` : fmtSize(item.size||0);
 
+      const tags = parseItemTags(item);
+      const displayName = getDisplayName(item);
+      let tagsHtml = '';
+      if (tags.length) {
+        const MAX_INLINE = 2;
+        const visible = tags.slice(0, MAX_INLINE);
+        const hidden  = tags.slice(MAX_INLINE);
+        const visHtml = visible.map(t => `<span class="card-tag clickable" data-tag="${esc(t)}">${esc(t)}</span>`).join('');
+        const moreHtml = hidden.length
+          ? `<span class="card-tag-more">+${hidden.length}<span class="tag-tooltip">${hidden.map(t=>`<span class="card-tag clickable" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</span></span>`
+          : '';
+        tagsHtml = `<div class="card-tags">${visHtml}${moreHtml}</div>`;
+      }
+
       card.innerHTML = `
         <div class="card-cb">
           <svg class="card-cb-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -2209,14 +2475,23 @@
         </div>
         <div class="card-icon ${it}">${I[it]||I.generic}</div>
         <div class="card-body">
-          <div class="card-name">${esc(item.name)}</div>
+          <div class="card-name">${esc(displayName)}</div>
           <div class="card-meta">
             <span class="card-badge" style="color:var(--${cv})">${badge}</span>
             <span class="card-count">${meta}</span>
           </div>
+          ${tagsHtml}
         </div>
         <span class="card-arrow">↗</span>
       `;
+
+      // Tag chip click → filter by tag
+      card.querySelectorAll('.card-tag.clickable').forEach(chip => {
+        chip.addEventListener('click', e => {
+          e.stopPropagation();
+          addTagFilter(chip.dataset.tag);
+        });
+      });
 
       // Checkbox click — always look up current coverage state at click time
       card.querySelector('.card-cb').addEventListener('click', e => {
@@ -2256,11 +2531,26 @@
       return card;
     }
 
+    function clearSearch() {
+      searchQuery = ''; sortMode = 'default'; activeTagFilters = new Set();
+      const inp = document.getElementById('searchInput');
+      if (inp) inp.value = '';
+      const clr = document.getElementById('searchClear');
+      if (clr) clr.classList.remove('visible');
+      const chips = document.getElementById('activeTagChips');
+      if (chips) chips.innerHTML = '';
+      const cnt = document.getElementById('searchCount');
+      if (cnt) cnt.textContent = '';
+    }
+
     function handleClick(item) {
       if (item.type==='folder') {
+        clearSearch();
         pathStack.push(item); currentNode = item;
         renderBreadcrumb(); renderGrid(item);
-        window.scrollTo({ top: document.getElementById('breadcrumbBar').offsetTop-70, behavior:'smooth' });
+        { const _sc = window.innerWidth >= 769 ? document.getElementById('main') : window;
+          const _top = document.getElementById('breadcrumbBar').offsetTop - 70;
+          _sc === window ? _sc.scrollTo({top:_top,behavior:'smooth'}) : _sc.scrollTo({top:0,behavior:'smooth'}); }
         return;
       }
       const ext = (item.ext||'').toLowerCase();
@@ -2306,8 +2596,8 @@
       pdfCurrentName = texName;
       lastFailPath   = texPath;
       lastFailName   = texName;
-      document.getElementById('pdfFilename').textContent = texName;
-      document.getElementById('pmbFilename').textContent = texName;
+      document.getElementById('pdfFilename').textContent = displayFileName(texName);
+      document.getElementById('pmbFilename').textContent = displayFileName(texName);
       document.getElementById('pmbPageInfo').textContent = '—';
 
       // Reset viewer state
@@ -2331,8 +2621,8 @@
     function openPdfDirect(url, name) {
       pdfCurrentPath = '';
       pdfCurrentName = name;
-      document.getElementById('pdfFilename').textContent = name;
-      document.getElementById('pmbFilename').textContent = name;
+      document.getElementById('pdfFilename').textContent = displayFileName(name);
+      document.getElementById('pmbFilename').textContent = displayFileName(name);
       document.getElementById('pmbPageInfo').textContent = '—';
       pdfDoc=null; pdfPage=1; pdfZoom=1.0; pdfBytes=null;
       pdfCanvas.getContext('2d').clearRect(0,0,pdfCanvas.width,pdfCanvas.height);
@@ -2411,9 +2701,16 @@
         document.getElementById('pdfPageInput').max = doc.numPages;
         updateMobileBar();
         pdfOverlay.classList.add('hidden');
-        fitToWidth();
-        if (pdfFullDocMode) renderFullDoc(); else renderPage(pdfPage);
-        updateSideNavState();
+        // Remove any stale nav-disabled state
+        document.getElementById('pdfNavPrev').classList.remove('nav-disabled');
+        document.getElementById('pdfNavNext').classList.remove('nav-disabled');
+        if (pdfFullDocMode) {
+          renderFullDoc();
+          updateSideNavState();
+        } else {
+          // Always open in fit mode — fitToWidth renders the page too
+          fitToWidth();
+        }
       }).catch(e => {
         showCompileFail('Failed to parse PDF:\n' + e.message, pdfCurrentPath);
       });
@@ -2525,12 +2822,13 @@
 
     function fitToWidth() {
       if (!pdfDoc) return;
-      pdfDoc.getPage(1).then(page => {
+      pdfDoc.getPage(pdfPage).then(page => {
         const vp = page.getViewport({ scale: 1 });
         const bodyW = document.getElementById('pdfBody').clientWidth - 56;
         pdfZoom = Math.min(2.5, bodyW / vp.width);
         document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom*100)+'%';
         renderPage(pdfPage);
+        updateSideNavState();
       });
     }
 
@@ -2565,11 +2863,11 @@
     /* ── PDF side navigation buttons ────────────────────────────────── */
     document.getElementById('pdfNavPrev').addEventListener('click', () => {
       if (!pdfDoc || pdfPage <= 1) return;
-      pdfPage--; renderPage(pdfPage); updateMobileBar();
+      pdfPage--; renderPage(pdfPage); updateMobileBar(); updateSideNavState();
     });
     document.getElementById('pdfNavNext').addEventListener('click', () => {
       if (!pdfDoc || pdfPage >= pdfDoc.numPages) return;
-      pdfPage++; renderPage(pdfPage); updateMobileBar();
+      pdfPage++; renderPage(pdfPage); updateMobileBar(); updateSideNavState();
     });
 
     // Zoom percentage click-to-edit
@@ -2745,16 +3043,13 @@
             pageImgs.push(offCanvas.toDataURL('image/jpeg', 0.94));
             progBar.style.width = ((idx+1)/pages.length*100)+'%';
           }
-          const imgs = pageImgs.map((src, i) =>
-            `<div class="pw"${i === pageImgs.length - 1 ? ' style="break-after:avoid"' : ''}><img src="${src}"></div>`
+          const imgs = pageImgs.map((src) =>
+            `<div class="pw"><img src="${src}"></div>`
           ).join('');
           const docName = esc(pdfCurrentName.replace(/\.tex$/i, ''));
           const html = `<!DOCTYPE html><html><head>
             <title>${docName} — Print</title>
-            <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff}
-            img{display:block;width:100%;max-width:100%;height:auto}
-            .pw{width:100%;break-inside:avoid;page-break-inside:avoid;break-after:page;page-break-after:always}
-            @media print{@page{margin:0;size:auto}body{margin:0}}</style>
+            <style>@page{margin:0;size:auto}*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;background:#fff}.pw{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;page-break-after:always;break-after:page}.pw:last-child{page-break-after:avoid;break-after:avoid}img{max-width:100%;max-height:100%;object-fit:contain;display:block}</style>
             </head><body>${imgs}</body></html>`;
           const blob    = new Blob([html], { type: 'text/html' });
           const blobUrl = URL.createObjectURL(blob);
@@ -3027,6 +3322,7 @@
       makeSwipeDismiss(sesSheetBox, () => sesSheetBox, () => {
         sesSheetBox.style.transform = '';
         sesSheet.classList.remove('open');
+        document.body.style.overflow = '';
       });
 
       /* ── PDF body: swipe left/right for page turns ────────────────── */
@@ -3258,7 +3554,7 @@
             ${I[cit]||I.generic}
             <span class="ses-name">${esc(child.name)}</span>
             <span class="ses-type">${ext}</span>
-            <button class="ses-rm" title="Exclude">
+            <button class="ses-rm">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           `;
@@ -3279,10 +3575,15 @@
           list.appendChild(more);
         }
 
+        // Lock body scroll so swiping inside sheet doesn't scroll the page
+        document.body.style.overflow = 'hidden';
         sheet.classList.add('open');
       }
 
-      function closeMobileExpand() { sheet.classList.remove('open'); }
+      function closeMobileExpand() {
+        sheet.classList.remove('open');
+        document.body.style.overflow = '';
+      }
 
       closeBtn.addEventListener('click', closeMobileExpand);
       sheetBd.addEventListener('click',  closeMobileExpand);
@@ -3464,10 +3765,14 @@
     }
 
     /* ── Header scroll effect ───────────────────────────────────────── */
-    window.addEventListener('scroll', () => {
-      // Use CSS class instead of hardcoded colors so light theme works
-      document.getElementById('header').classList.toggle('scrolled', window.scrollY > 10);
-    }, { passive:true });
+    function _syncHeaderScroll() {
+      const scrollY = window.innerWidth >= 769
+        ? (document.getElementById('main').scrollTop || 0)
+        : window.scrollY;
+      document.getElementById('header').classList.toggle('scrolled', scrollY > 10);
+    }
+    window.addEventListener('scroll', _syncHeaderScroll, { passive:true });
+    document.getElementById('main').addEventListener('scroll', _syncHeaderScroll, { passive:true });
 
     /* ════════════════════════════════════════════════════════════════
        SELECTION SYSTEM
@@ -3932,6 +4237,163 @@
     }
     function encPath(p) { return p.split('/').map(encodeURIComponent).join('/'); }
 
+    /* ── Tag helpers ────────────────────────────────────────────────── */
+    // Filename format: "Display Name {Tag1, Tag2, Tag3}.ext"
+    function parseItemTags(item) {
+      if (item.type === 'folder') return [];
+      const nameNoExt = item.name.replace(/\.[^.]+$/, '');
+      const m = nameNoExt.match(/\{([^}]+)\}/);
+      if (!m) return [];
+      return m[1].split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    function getDisplayName(item) {
+      if (item.type === 'folder') return item.name;
+      // Strip everything from first { or end of name (remove extension too)
+      const nameNoExt = item.name.replace(/\.[^.]+$/, '');
+      const braceIdx = nameNoExt.indexOf(' {');
+      return braceIdx !== -1 ? nameNoExt.slice(0, braceIdx).trim() : nameNoExt.trim();
+    }
+
+    /* Strip extension and {tags} from a raw filename string for display */
+    function displayFileName(name) {
+      const nameNoExt = name.replace(/\.[^.]+$/, '');
+      const braceIdx = nameNoExt.indexOf(' {');
+      return braceIdx !== -1 ? nameNoExt.slice(0, braceIdx).trim() : nameNoExt.trim();
+    }
+
+    /* ── Search & Filter state ──────────────────────────────────────── */
+    let searchQuery   = '';
+    let sortMode      = 'default';
+    let activeTagFilters = new Set();
+
+    function addTagFilter(tag) {
+      activeTagFilters.add(tag);
+      renderSearchUI();
+      renderGrid(currentNode);
+    }
+
+    function removeTagFilter(tag) {
+      activeTagFilters.delete(tag);
+      renderSearchUI();
+      renderGrid(currentNode);
+    }
+
+    function renderSearchUI() {
+      const chips = document.getElementById('activeTagChips');
+      if (!chips) return;
+      chips.innerHTML = '';
+      activeTagFilters.forEach(tag => {
+        const chip = document.createElement('button');
+        chip.className = 'active-tag-chip';
+        chip.innerHTML = `${esc(tag)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+        chip.addEventListener('click', () => removeTagFilter(tag));
+        chips.appendChild(chip);
+      });
+    }
+
+    /* Collect ALL items recursively from tree for global search */
+    function collectAllItems(node, results = []) {
+      for (const child of (node.children || [])) {
+        results.push(child);
+        if (child.type === 'folder') collectAllItems(child, results);
+      }
+      return results;
+    }
+
+    function itemMatchesSearch(item, q) {
+      const lq = q.toLowerCase();
+      const nameLower = item.name.toLowerCase();
+      const displayLower = getDisplayName(item).toLowerCase();
+      const tags = parseItemTags(item).map(t => t.toLowerCase());
+      const pathLower = (item.path || '').toLowerCase();
+      return nameLower.includes(lq) || displayLower.includes(lq)
+          || tags.some(t => t.includes(lq)) || pathLower.includes(lq);
+    }
+
+    function itemMatchesTags(item) {
+      if (!activeTagFilters.size) return true;
+      if (item.type === 'folder') {
+        // folder matches if any descendant matches
+        const allDesc = collectAllItems(item);
+        return allDesc.some(d => {
+          const dtags = parseItemTags(d).map(t => t.toLowerCase());
+          return [...activeTagFilters].every(ft => dtags.some(dt => dt.includes(ft.toLowerCase())));
+        });
+      }
+      const tags = parseItemTags(item).map(t => t.toLowerCase());
+      return [...activeTagFilters].every(ft => tags.some(t => t.includes(ft.toLowerCase())));
+    }
+
+    function sortItems(items) {
+      if (sortMode === 'default') return items;
+      const copy = [...items];
+      copy.sort((a, b) => {
+        // folders always first unless explicitly sorting by type
+        if (a.type !== b.type && !sortMode.startsWith('date')) {
+          if (a.type === 'folder') return -1;
+          if (b.type === 'folder') return 1;
+        }
+        switch (sortMode) {
+          case 'name-asc':  return getDisplayName(a).localeCompare(getDisplayName(b), undefined, {numeric:true});
+          case 'name-desc': return getDisplayName(b).localeCompare(getDisplayName(a), undefined, {numeric:true});
+          case 'date-desc': return ((b.mtime||'').localeCompare(a.mtime||''));
+          case 'date-asc':  return ((a.mtime||'').localeCompare(b.mtime||''));
+          case 'size-desc': return (b.size||0) - (a.size||0);
+          case 'size-asc':  return (a.size||0) - (b.size||0);
+        }
+        return 0;
+      });
+      return copy;
+    }
+
+    /* ── Search wiring ─────────────────────────────────────────────── */
+    (function() {
+      const inp  = document.getElementById('searchInput');
+      const clr  = document.getElementById('searchClear');
+      const ddBtn = document.getElementById('sortDdBtn');
+      const ddMenu = document.getElementById('sortDdMenu');
+
+      // Input
+      inp && inp.addEventListener('input', function() {
+        searchQuery = this.value.trim();
+        if (clr) clr.classList.toggle('visible', searchQuery.length > 0);
+        renderGrid(currentNode);
+      });
+
+      // Clear X
+      clr && clr.addEventListener('click', () => {
+        clearSearch();
+        renderGrid(currentNode);
+      });
+
+      // Custom sort dropdown
+      if (ddBtn && ddMenu) {
+        ddBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          ddMenu.classList.toggle('open');
+          ddBtn.closest('.sort-dropdown').classList.toggle('open');
+        });
+        document.addEventListener('click', () => {
+          ddMenu.classList.remove('open');
+          ddBtn.closest('.sort-dropdown').classList.remove('open');
+        });
+        ddMenu.querySelectorAll('.sort-dd-item').forEach(item => {
+          item.addEventListener('click', e => {
+            e.stopPropagation();
+            sortMode = item.dataset.sort;
+            ddMenu.querySelectorAll('.sort-dd-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            const lbl = document.getElementById('sortDdLabel');
+            if (lbl) lbl.textContent = item.textContent.replace('✓ ','');
+            ddMenu.classList.remove('open');
+            ddBtn.closest('.sort-dropdown').classList.remove('open');
+            renderGrid(currentNode);
+          });
+        });
+      }
+    })();
+
     /* ── Init ───────────────────────────────────────────────────────── */
 
     /* ════════════════════════════════════════════════════════════════
@@ -3994,101 +4456,154 @@
         }
       });
 
-      /* ── Section list (drag-to-reorder) ────────────────────────────── */
+      /* ── Section list (hierarchical drag-to-reorder) ──────────────── */
       function buildSectionList() {
         const list = document.getElementById('stgSectionList');
         if (!list) return;
         list.innerHTML = '';
         if (!treeData || !treeData.children) return;
 
-        // Get the items that will actually be section headers
-        let sections;
-        if (sectionBy === 'subject') {
-          sections = [];
-          treeData.children.filter(c => c.type === 'folder').forEach(typeFolder => {
-            (typeFolder.children || []).filter(c => c.type === 'folder').forEach(subj => sections.push(subj));
-          });
-        } else {
-          sections = treeData.children.filter(c => c.type === 'folder');
-        }
-
-        let ordered = [...sections];
-        if (sectionOrder) {
-          const orderMap = {};
-          sectionOrder.forEach((name, i) => { orderMap[name] = i; });
-          ordered.sort((a, b) => (orderMap[a.name] ?? 9999) - (orderMap[b.name] ?? 9999));
-        }
         const EMOJIS = { Stem:'🔬', Mathematics:'📐', Science:'🧪', Humanities:'📚', Arts:'🎨', History:'🏛', Language:'🗣', default:'📁' };
-        ordered.forEach((sec) => {
-          const el = document.createElement('div');
-          el.className = 'stg-sec-item';
-          el.draggable = true;
-          el.dataset.name = sec.name;
-          const emoji = EMOJIS[sec.name] || EMOJIS.default;
-          el.innerHTML = `
-            <span class="stg-sec-handle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
-            <span class="stg-sec-emoji">${emoji}</span>
-            <span class="stg-sec-name">${sec.name.toUpperCase()}</span>
-          `;
-          list.appendChild(el);
-        });
+        const HANDLE_SVG = `<span class="stg-sec-handle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>`;
+        const CARET_SVG = `<span class="stg-sec-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></span>`;
 
-        // Drag-and-drop reorder
-        let dragSrc = null;
-        list.querySelectorAll('.stg-sec-item').forEach(item => {
-          item.addEventListener('dragstart', e => {
-            dragSrc = item;
-            e.dataTransfer.effectAllowed = 'move';
-            item.style.opacity = '.45';
-          });
-          item.addEventListener('dragend', () => {
-            item.style.opacity = '';
-            saveSectionOrder();
-          });
-          item.addEventListener('dragover', e => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            if (item === dragSrc) return;
-            const rect = item.getBoundingClientRect();
-            const after = e.clientY > rect.top + rect.height / 2;
-            if (after) list.insertBefore(dragSrc, item.nextSibling);
-            else        list.insertBefore(dragSrc, item);
-          });
-        });
+        let childOrders = JSON.parse(localStorage.getItem('ki_child_orders') || '{}');
 
-        // Touch drag for mobile
-        let touchDragEl = null, touchPlaceholder = null;
-        list.querySelectorAll('.stg-sec-item').forEach(item => {
-          item.addEventListener('touchstart', e => {
-            touchDragEl = item;
-            item.style.opacity = '.45';
-          }, { passive: true });
-          item.addEventListener('touchmove', e => {
-            if (!touchDragEl) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.stg-sec-item');
-            if (target && target !== touchDragEl) {
-              const rect = target.getBoundingClientRect();
-              const after = touch.clientY > rect.top + rect.height / 2;
-              if (after) list.insertBefore(touchDragEl, target.nextSibling);
-              else        list.insertBefore(touchDragEl, target);
+        function makeDraggable(container, selector, onSave) {
+          let dragSrc = null;
+          container.querySelectorAll(selector).forEach(el => {
+            el.addEventListener('dragstart', e => { dragSrc=el; e.dataTransfer.effectAllowed='move'; el.style.opacity='.45'; document.body.classList.add('ki-dragging'); });
+            el.addEventListener('dragend',   () => { el.style.opacity=''; document.body.classList.remove('ki-dragging'); onSave(); });
+            el.addEventListener('dragover',  e => {
+              e.preventDefault(); e.stopPropagation();
+              if (el===dragSrc) return;
+              const after = e.clientY > el.getBoundingClientRect().top + el.getBoundingClientRect().height/2;
+              container.insertBefore(dragSrc, after ? el.nextSibling : el);
+            });
+            let tdEl = null;
+            el.addEventListener('touchstart', () => { tdEl=el; el.style.opacity='.45'; }, {passive:true});
+            el.addEventListener('touchmove', e => {
+              if (!tdEl) return; e.preventDefault();
+              const touch=e.touches[0];
+              const target=document.elementFromPoint(touch.clientX,touch.clientY)?.closest(selector);
+              if (target && target!==tdEl && target.parentNode===container) {
+                const after=touch.clientY>target.getBoundingClientRect().top+target.getBoundingClientRect().height/2;
+                container.insertBefore(tdEl, after?target.nextSibling:target);
+              }
+            }, {passive:false});
+            el.addEventListener('touchend', () => { if(tdEl){tdEl.style.opacity='';tdEl=null;} onSave(); });
+          });
+        }
+
+        if (sectionBy === 'subject') {
+          // ── Subject mode: list all subjects as flat draggable rows ──
+          // Collect subjects across all type folders
+          let typeFolders = treeData.children.filter(c => c.type === 'folder');
+          const allSubjects = [];
+          typeFolders.forEach(tf => {
+            (tf.children||[]).filter(c=>c.type==='folder').forEach(subj => allSubjects.push(subj));
+          });
+          // Apply saved subject order
+          let orderedSubjects = [...allSubjects];
+          if (sectionOrder) {
+            const om = {}; sectionOrder.forEach((n,i) => om[n]=i);
+            orderedSubjects.sort((a,b) => (om[a.name]??9999)-(om[b.name]??9999));
+          }
+          orderedSubjects.forEach(subj => {
+            const emoji = EMOJIS[subj.name] || '📂';
+            const el = document.createElement('div');
+            el.className = 'stg-sec-parent';
+            el.draggable = true;
+            el.dataset.name = subj.name;
+            el.innerHTML = `${HANDLE_SVG}<span class="stg-sec-emoji">${emoji}</span><span class="stg-sec-name">${subj.name.toUpperCase()}</span>`;
+            list.appendChild(el);
+          });
+          // Drag saves subject names to sectionOrder
+          makeDraggable(list, '.stg-sec-parent', () => {
+            const order = [...list.querySelectorAll('.stg-sec-parent')].map(el=>el.dataset.name);
+            sectionOrder = order;
+            localStorage.setItem('ki_section_order', JSON.stringify(order));
+            renderGrid(currentNode);
+          });
+
+        } else {
+          // ── Type mode: type folders at top, subjects as children ──
+          let typeFolders = treeData.children.filter(c => c.type === 'folder');
+          if (sectionOrder) {
+            const om = {}; sectionOrder.forEach((n,i) => om[n]=i);
+            typeFolders.sort((a,b) => (om[a.name]??9999)-(om[b.name]??9999));
+          }
+
+          typeFolders.forEach(typeFolder => {
+            const hasSubjects = (typeFolder.children||[]).some(c=>c.type==='folder');
+            const emoji = EMOJIS[typeFolder.name] || EMOJIS.default;
+
+            const group = document.createElement('div');
+            group.className = 'stg-sec-group';
+
+            const parentEl = document.createElement('div');
+            parentEl.className = 'stg-sec-parent';
+            parentEl.draggable = true;
+            parentEl.dataset.name = typeFolder.name;
+            parentEl.innerHTML = `${HANDLE_SVG}<span class="stg-sec-emoji">${emoji}</span><span class="stg-sec-name">${typeFolder.name.toUpperCase()}</span>${hasSubjects ? CARET_SVG : ''}`;
+            group.appendChild(parentEl);
+
+            if (hasSubjects) {
+              const childList = document.createElement('div');
+              childList.className = 'stg-sec-children';
+
+              let subjects = (typeFolder.children||[]).filter(c=>c.type==='folder');
+              const savedChildOrder = childOrders[typeFolder.name];
+              if (savedChildOrder) {
+                const cm={}; savedChildOrder.forEach((n,i)=>cm[n]=i);
+                subjects.sort((a,b)=>(cm[a.name]??9999)-(cm[b.name]??9999));
+              }
+              subjects.forEach(subj => {
+                const subjEmoji = EMOJIS[subj.name] || '📂';
+                const childEl = document.createElement('div');
+                childEl.className = 'stg-sec-child';
+                childEl.draggable = true;
+                childEl.dataset.name = subj.name;
+                childEl.innerHTML = `${HANDLE_SVG}<span class="stg-sec-emoji" style="font-size:11px">${subjEmoji}</span><span class="stg-sec-name">${subj.name.toUpperCase()}</span>`;
+                childList.appendChild(childEl);
+              });
+
+              group.appendChild(childList);
+
+              parentEl.addEventListener('click', e => {
+                if (e.target.closest('.stg-sec-handle')) return;
+                parentEl.classList.toggle('open');
+                childList.classList.toggle('open');
+              });
+
+              makeDraggable(childList, '.stg-sec-child', () => {
+                const order = [...childList.querySelectorAll('.stg-sec-child')].map(el=>el.dataset.name);
+                childOrders[typeFolder.name] = order;
+                localStorage.setItem('ki_child_orders', JSON.stringify(childOrders));
+                renderGrid(currentNode);
+              });
             }
-          }, { passive: false });
-          item.addEventListener('touchend', () => {
-            if (touchDragEl) { touchDragEl.style.opacity = ''; touchDragEl = null; }
-            saveSectionOrder();
+
+            list.appendChild(group);
           });
-        });
+
+          // Top-level drag saves type names to sectionOrder
+          makeDraggable(list, '.stg-sec-parent', () => {
+            const order = [...list.querySelectorAll('.stg-sec-parent')].map(el=>el.dataset.name);
+            sectionOrder = order;
+            localStorage.setItem('ki_section_order', JSON.stringify(order));
+            renderGrid(currentNode);
+          });
+        }
       }
 
       function saveSectionOrder() {
         const list = document.getElementById('stgSectionList');
         if (!list) return;
-        const order = [...list.querySelectorAll('.stg-sec-item')].map(el => el.dataset.name);
+        const order = [...list.querySelectorAll('.stg-sec-parent')].map(el => el.dataset.name);
         sectionOrder = order;
         localStorage.setItem('ki_section_order', JSON.stringify(order));
-        renderGrid(currentNode); // re-render grid with new order
+        renderGrid(currentNode);
       }
 
       function syncSettingsUI() {
