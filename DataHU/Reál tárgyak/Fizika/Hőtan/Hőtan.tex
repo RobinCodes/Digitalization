@@ -1,21 +1,27 @@
 \documentclass{article}
 
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
 \usepackage{tikz}
+\usepackage{siunitx}            % mértékegységek, hőmérséklet
 \usetikzlibrary{arrows.meta, positioning}
+
 \theoremstyle{definition}
 \newtheorem{definition}{Definíció}[section]
 
 \title{Hőtan}
-\author{Simon László}
+\author{Simon László, Rovenszky Robin}
 \date{12/03/2026}
 
 \begin{document}
 
 \maketitle
-\section{}
+\section{Alap definíciók}
 \begin{definition}[Hőállapot]
     Részecskék hőmozgása.
 \end{definition}
@@ -30,15 +36,15 @@
 \subsubsection{Celsius}
 %Drawing missing
 \begin{itemize}
-    \item 100 fok C víz forráspontja
-    \item 0 fok C víz fagyáspontja
+    \item \SI{100}{\degreeCelsius} -- a víz forráspontja
+    \item \SI{0}{\degreeCelsius} -- a víz fagyáspontja
 \end{itemize}
 
 \subsubsection{Hőmérők}
 %Drawing missing
 \begin{itemize}
-    \item 212 fok F - 100 fok C - k.b. 373 fok K
-    \item 32 fok F - 0 fok C - k.b. 273 fok K
+    \item $212^\circ F$ = \SI{100}{\degreeCelsius} $\approx 373^\circ K$
+    \item $32^\circ F$ = \SI{0}{\degreeCelsius} $\approx 273^\circ K$
 \end{itemize}
 
 \subsection{Hőtágulás}

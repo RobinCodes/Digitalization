@@ -1,10 +1,17 @@
 \documentclass{article}
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
 \usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage[version=4]{mhchem}
+\usepackage{siunitx}            % mértékegységek, hőmérséklet
 
 \title{5. Főcsoport: A Nitrogén csoport}
 \author{Haydu Lőrinc, Lengyel Zoltán Péter, Rovenszky Robin}
 \date{Legutolsó frissítés: 2026. Március 13.}
-\newtheorem{definition}{Definition}[section]
+
+\newtheorem{definition}{Definíció}[section]
 
 \begin{document}
 
@@ -25,7 +32,7 @@
     Pl.: Ammónia 
     % insert ammónia ábra here
     \item 3-szoros negatív töltésű anion (pl. $N^{3-}$ - nitrid-ion). \\
-    Egyedi, mert lényegében csak a nátrium tud ennyi iont felvenni, mivel nagyon nagy az elektronegativitása.
+    Egyedi, mert lényegében csak a nitrogén tud ennyi iont felvenni, mivel nagyon nagy az elektronegativitása.
     \item Az is lehetséges, hogy a nitrogén 5 db kovalens kötést létesítsen. Pl.: $HNO_3$ - salétromsav
     % insert salétromsav ábra here
     \\
@@ -40,10 +47,10 @@
 \subsection{Molekulaszerkezet}
 %insert Nitrogen atom here
 Ez egy erős kovalens kötés $\rightarrow$ közönséges körülmények között nem reakcióképes
-$\rightarrow$ apoláris molekula $\rightarrow$ diszperzioós kölcsönhatás $\rightarrow$ molekularácsos szilárd halmazállapotban
+$\rightarrow$ apoláris molekula $\rightarrow$ diszperziós kölcsönhatás $\rightarrow$ molekularácsos szilárd halmazállapotban
 \subsection{Fizikai tulajdonságok}
 \begin{itemize}
-    \item alacsony olvadáspont és forráspont (-210C és -180C)
+    \item alacsony olvadáspont és forráspont (\SI{-210}{\degreeCelsius} és \SI{-180}{\degreeCelsius})
     \item vízben rosszul oldódik
 \end{itemize}
 
@@ -53,21 +60,21 @@ $\rightarrow$ apoláris molekula $\rightarrow$ diszperzioós kölcsönhatás $\r
 
 \subsection{Kémiai tulajdonságok}
 \begin{itemize}
-    \item $N_2 + O_2 \rightarrow^{3000C}2NO$
-    \item $\mathrm{N_2 + 3H_2 \ \overset{\text{Fe-katalizátor}}{\rightleftharpoons}\ 2NH_3 }$
+    \item $N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO$
+    \item \(\ce{N2 + 3 H2 <=>[\text{Fe-katalizátor}] 2 NH3}\)
 \end{itemize}
 
 \subsection{Biológiai kitekintő: Nitrogén körforgása a környezetben}
 \begin{itemize}
     \item A nitrogén hármas kötése miatt majdnem semmi sem veszi fel, viszont nitrifikáló baktériumok fel tudják venni, ezek pedig szimbiózisban élnek bizonyos növényekkel (pl. bab, borsó, ill. egyéb hüvelyesek).
-    \item Másik mód amivel a körforgásba kerül a $3000^\circ\text{C}$-n bekövetkező reakció (villámlás).
+    \item Másik mód, amivel a körforgásba kerül a $\SI{3000}{\degreeCelsius}$-n bekövetkező reakció (villámlás).
 \end{itemize}
 
 \subsection{Szervetlen vegyipar legfontosabb folyamatai}
 \begin{itemize}
     \item Hidrogén-klorid gyártás
-    \item Kénsac-gyártás
-    \item Ammónia-gyártás
+    \item Kénsav gyártás
+    \item Ammónia gyártás
 \end{itemize}
 
 
@@ -79,7 +86,7 @@ $\rightarrow$ apoláris molekula $\rightarrow$ diszperzioós kölcsönhatás $\r
 
 \end{enumerate}
 \subsection{Előállítás} 
-A levegő cseppfolyósításával és frakcionális desztillációjával elkülönítikd
+A levegő cseppfolyósításával és frakcionális desztillációjával elkülönítik.
 
 \begin{definition}[Frakcionált desztilláció.]
 A forráspontkülönbségen alapuló elválasztási művelet.
@@ -94,8 +101,8 @@ A forráspontkülönbségen alapuló elválasztási művelet.
         Színtelen, édeskés szagú gáz \begin{itemize}
             \item Felhasználása: \begin{itemize}
                 \item Tejszínhab készítése (szifon)
-                \item Érzéstelenítés orvoslás tudományban (szülési fájdalmak csökkentése)
-                \item Méhészet (elbódítja a méheket mielőtt beavatkozik)
+                \item Érzéstelenítés orvostudományban (szülési fájdalmak csökkentése)
+                \item Méhészet (elbódítja a méheket, mielőtt beavatkozik)
                 \item Autóversenyek (nitro)
             \end{itemize}
             \item Hétköznapi neve: kéjgáz (nevetőgáz)
@@ -103,18 +110,18 @@ A forráspontkülönbségen alapuló elválasztási művelet.
 
         \item $NO$ (nitrogén-monoxid)
         \[
-        N_2 + O_2 \xrightarrow{3000^\circ\mathrm{C}} 2NO
+        N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO
         \]
         Tovább alakul:
         \[
         2NO + O_2 \rightarrow 2NO_2
         \]
-        Színtelen, szúrós szagú, mérgező gáz, az érfalak rugalmasságát szabályozza az emberi szervezetben $\implies$ a vérnyomásra hat (nitroglicerin tabletta)
+        Színtelen, szúrós szagú, mérgező gáz, amely az érfalak rugalmasságát szabályozza az emberi szervezetben, $\implies$ a vérnyomásra hat (nitroglicerin tabletta)
         % insert nitroglicerin ábra here
 
         \item $NO_2$ (nitrogén-dioxid)\\
         % insert nitrogén-dioxid ábra here
-        Vörösbarna, szúrós szagú gáz, erősen mérgező. A szennyezett városi legevő egyik mérgező összetevője.
+        Vörösbarna, szúrós szagú gáz, erősen mérgező. A szennyezett városi levegő egyik mérgező összetevője.
         
     \end{enumerate}
 
