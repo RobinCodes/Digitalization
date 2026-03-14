@@ -485,7 +485,9 @@
     .pdf-zoom-wrap.editing .pdf-zoom-input{display:inline-block}
     .pdf-zoom-wrap{display:inline-flex;align-items:center}
 
-    .pdf-body{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:28px 20px;background:var(--bg);overscroll-behavior-x:contain;touch-action:pan-y}
+    .pdf-body{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;align-items:flex-start;justify-content:center;padding:28px 20px;background:var(--bg);overscroll-behavior-x:contain;touch-action:pan-y}
+    /* Only allow horizontal scroll when user has manually zoomed past fit width */
+    .pdf-body.pdf-zoomed{overflow-x:auto}
     .pdf-canvas-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px}
     #pdfCanvas{display:block;box-shadow:0 8px 40px rgba(0,0,0,.6);border-radius:2px;transition:opacity .3s}
     #pdfCanvas.loading-page{opacity:.4}
@@ -1125,7 +1127,79 @@
     .stg-sec-name{flex:1;letter-spacing:.1em;text-transform:uppercase}
     .stg-sec-emoji{font-size:14px;width:20px;text-align:center}
 
-    /* Settings gear in header */
+    /* ── UNSAVED CHANGES CONFIRM POPUP ─────────────────────────────── */
+    #stgConfirmModal{
+      position:fixed;inset:0;z-index:8500;display:flex;align-items:center;justify-content:center;
+      padding:24px;opacity:0;pointer-events:none;transition:opacity .2s;
+    }
+    #stgConfirmModal.open{opacity:1;pointer-events:all}
+    .stg-cf-bd{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+    .stg-cf-box{
+      position:relative;z-index:1;width:min(400px,100%);
+      background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);
+      box-shadow:0 0 0 1px rgba(196,161,60,.12),0 32px 80px rgba(0,0,0,.75);
+      padding:32px 28px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;
+      transform:scale(.95) translateY(8px);transition:transform .25s var(--tr-spring);text-align:center;
+    }
+    #stgConfirmModal.open .stg-cf-box{transform:scale(1) translateY(0)}
+    .stg-cf-icon{font-size:28px;line-height:1;margin-bottom:2px}
+    .stg-cf-title{font-family:var(--font-ui);font-size:16px;font-weight:600;color:var(--text);letter-spacing:.01em}
+    .stg-cf-msg{font-family:var(--font-display);font-size:15px;line-height:1.65;color:var(--text2);max-width:320px}
+    .stg-cf-btns{display:flex;flex-direction:column;gap:8px;width:100%;margin-top:6px}
+    .stg-cf-btn{
+      width:100%;padding:10px 18px;border-radius:8px;
+      font-family:var(--font-ui);font-size:13px;font-weight:500;letter-spacing:.04em;
+      transition:background .18s,border-color .18s,color .18s,transform .15s var(--tr-spring);
+    }
+    .stg-cf-btn:active{transform:scale(0.98)}
+    .stg-cf-btn.apply{
+      background:var(--accent);color:var(--bg);border:1px solid var(--accent);
+      box-shadow:0 0 16px rgba(196,161,60,.35);
+    }
+    .stg-cf-btn.apply:hover{background:var(--accent2);border-color:var(--accent2)}
+    .stg-cf-btn.discard{
+      background:transparent;color:var(--red);border:1px solid rgba(196,92,92,.35);
+    }
+    .stg-cf-btn.discard:hover{background:rgba(196,92,92,.1);border-color:rgba(196,92,92,.6)}
+    .stg-cf-btn.back{
+      background:var(--bg3);color:var(--text2);border:1px solid var(--border);
+    }
+    .stg-cf-btn.back:hover{background:var(--bg4);color:var(--text);border-color:var(--border-md)}
+    /* Dirty indicator on settings header */
+    .stg-dirty-dot{
+      width:7px;height:7px;border-radius:50%;background:var(--accent);
+      box-shadow:0 0 6px rgba(196,161,60,.7);
+      opacity:0;transition:opacity .2s;flex-shrink:0;
+    }
+    #settingsModal.dirty .stg-dirty-dot{opacity:1}
+
+    /* ── SETTINGS FOOTER ────────────────────────────────────────────── */
+    .stg-footer{
+      display:flex;align-items:center;justify-content:flex-end;gap:8px;
+      padding:12px 18px;border-top:1px solid var(--border);flex-shrink:0;
+      background:var(--bg2);
+    }
+    .stg-footer-btn{
+      display:inline-flex;align-items:center;gap:6px;
+      height:32px;padding:0 14px;border-radius:7px;
+      font-family:var(--font-mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+      transition:background .18s,border-color .18s,color .18s,box-shadow .18s;
+    }
+    .stg-footer-btn.cancel{
+      background:var(--bg3);color:var(--text2);border:1px solid var(--border);
+    }
+    .stg-footer-btn.cancel:hover{background:var(--bg4);color:var(--text);border-color:var(--border-md)}
+    .stg-footer-btn.apply{
+      background:var(--accent);color:var(--bg);border:1px solid var(--accent);
+      box-shadow:0 0 12px rgba(196,161,60,.28);
+      opacity:.35;pointer-events:none;
+      transition:background .18s,border-color .18s,color .18s,box-shadow .18s,opacity .2s;
+    }
+    .stg-footer-btn.apply:hover{background:var(--accent2);border-color:var(--accent2);box-shadow:0 0 20px rgba(196,161,60,.45)}
+    /* Lit up only when dirty */
+    #settingsModal.dirty .stg-footer-btn.apply{opacity:1;pointer-events:all}
+    .stg-footer-btn svg{width:12px;height:12px;flex-shrink:0}
+
     #settingsBtn{
       display:inline-flex;align-items:center;justify-content:center;
       width:32px;height:32px;border-radius:8px;
@@ -1387,7 +1461,7 @@
         <!-- Search icon + input + clear -->
         <div class="search-input-wrap">
           <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="searchInput" placeholder="Search files, folders, tags…" autocomplete="off" spellcheck="false">
+          <input type="text" id="searchInput" placeholder="Search files, folders, tags…" data-i18n-ph="searchPlaceholder" autocomplete="off" spellcheck="false">
           <button class="search-clear" id="searchClear" aria-label="Clear search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -1400,27 +1474,27 @@
         <div class="sort-dropdown" id="sortDropdown">
           <button class="sort-dd-btn" id="sortDdBtn">
             <svg class="sort-dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
-            <span class="sort-dd-label" id="sortDdLabel">Default</span>
+            <span class="sort-dd-label" id="sortDdLabel" data-i18n="sortDefault">Default</span>
             <svg class="sort-dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="sort-dd-menu" id="sortDdMenu">
-            <button class="sort-dd-item active" data-sort="default">Default</button>
+            <button class="sort-dd-item active" data-sort="default" data-i18n="sortDefault">Default</button>
             <div class="sort-dd-sep"></div>
-            <button class="sort-dd-item" data-sort="name-asc">Name A → Z</button>
-            <button class="sort-dd-item" data-sort="name-desc">Name Z → A</button>
+            <button class="sort-dd-item" data-sort="name-asc" data-i18n="sortNameAsc">Name A → Z</button>
+            <button class="sort-dd-item" data-sort="name-desc" data-i18n="sortNameDesc">Name Z → A</button>
             <div class="sort-dd-sep"></div>
-            <button class="sort-dd-item" data-sort="date-desc">Newest first</button>
-            <button class="sort-dd-item" data-sort="date-asc">Oldest first</button>
+            <button class="sort-dd-item" data-sort="date-desc" data-i18n="sortDateDesc">Newest first</button>
+            <button class="sort-dd-item" data-sort="date-asc" data-i18n="sortDateAsc">Oldest first</button>
             <div class="sort-dd-sep"></div>
-            <button class="sort-dd-item" data-sort="size-desc">Largest first</button>
-            <button class="sort-dd-item" data-sort="size-asc">Smallest first</button>
+            <button class="sort-dd-item" data-sort="size-desc" data-i18n="sortSizeDesc">Largest first</button>
+            <button class="sort-dd-item" data-sort="size-asc" data-i18n="sortSizeAsc">Smallest first</button>
           </div>
         </div>
       </div>
       <div class="grid-container">
         <div class="grid-info"><span class="grid-count" id="gridCount">—</span></div>
         <div class="file-grid" id="fileGrid">
-          <div class="state-box"><div class="spinner"></div><span>Loading index…</span></div>
+          <div class="state-box"><div class="spinner"></div><span data-i18n="loadingIndex">Loading index…</span></div>
         </div>
       </div>
     </section>
@@ -1484,7 +1558,7 @@
         <button class="pdf-tbtn" id="pdfZoomIn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         </button>
-        <button class="pdf-tbtn" id="pdfZoomFit">Fit</button>
+        <button class="pdf-tbtn" id="pdfZoomFit" data-i18n="pshFit">Fit</button>
         <div class="pdf-sep"></div>
       </div>
       <div class="pdf-topbar-right">
@@ -1549,7 +1623,7 @@
       <div class="pzs-track">
         <input type="range" id="pzsRange" min="25" max="350" step="5" value="100">
       </div>
-      <span class="pzs-label">Zoom</span>
+      <span class="pzs-label" data-i18n="pshZoomLabel">Zoom</span>
     </div>
   </div>
 
@@ -1607,19 +1681,19 @@
     <div class="pdm-bd" id="pdmBd"></div>
     <div class="pdm-box">
       <div class="pdm-hdr">
-        <span class="pdm-title" id="pdmTitle">Select pages to download</span>
+        <span class="pdm-title" id="pdmTitle" data-i18n="pdmSelectDl">Select pages to download</span>
         <div class="pdm-hdr-r">
           <span class="pdm-info" id="pdmInfo">0 selected</span>
-          <button class="pdm-btn" id="pdmAll">All</button>
-          <button class="pdm-btn" id="pdmNone">None</button>
+          <button class="pdm-btn" id="pdmAll" data-i18n="pdmAll">All</button>
+          <button class="pdm-btn" id="pdmNone" data-i18n="pdmNone">None</button>
           <button class="pdm-btn danger" id="pdmClose">✕</button>
         </div>
       </div>
       <div class="pdm-prog"><div class="pdm-prog-bar" id="pdmBar"></div></div>
       <div class="pdm-grid-wrap"><div class="pdm-grid" id="pdmGrid"></div></div>
       <div class="pdm-foot">
-        <button class="pdm-btn" id="pdmCancel">Cancel</button>
-        <button class="pdm-btn accent" id="pdmDl">↓ Download selected</button>
+        <button class="pdm-btn" id="pdmCancel" data-i18n="pdmCancel">Cancel</button>
+        <button class="pdm-btn accent" id="pdmDl" data-i18n="pdmDownloadSel">↓ Download selected</button>
       </div>
     </div>
   </div>
@@ -1726,7 +1800,10 @@
     <div class="stg-bd" id="stgBd"></div>
     <div class="stg-box">
       <div class="stg-hdr">
-        <span class="stg-title" data-i18n="settingsTitle">Settings</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="stg-title" data-i18n="settingsTitle">Settings</span>
+          <span class="stg-dirty-dot" id="stgDirtyDot"></span>
+        </div>
         <button class="stg-x" id="stgClose">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1783,6 +1860,27 @@
             <div class="stg-section-list" id="stgSectionList"></div>
           </div>
         </div>
+      </div>
+      <!-- Footer actions -->
+      <div class="stg-footer">
+        <button class="stg-footer-btn cancel" id="stgFooterCancel" data-i18n="stgCancelBtn">Cancel</button>
+        <button class="stg-footer-btn apply" id="stgFooterApply" data-i18n="stgApplyBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Apply changes
+        </button>
+      </div>
+    </div>
+  </div>
+  <div id="stgConfirmModal">
+    <div class="stg-cf-bd" id="stgCfBd"></div>
+    <div class="stg-cf-box">
+      <div class="stg-cf-icon">⚠︎</div>
+      <div class="stg-cf-title" data-i18n="stgCfTitle">Unsaved changes</div>
+      <div class="stg-cf-msg" data-i18n="stgCfMsg">You have unsaved changes. Apply them to keep your settings, or discard them to revert.</div>
+      <div class="stg-cf-btns">
+        <button class="stg-cf-btn apply" id="stgCfApply" data-i18n="stgCfApply">Apply &amp; Close</button>
+        <button class="stg-cf-btn discard" id="stgCfDiscard" data-i18n="stgCfDiscard">Discard changes</button>
+        <button class="stg-cf-btn back" id="stgCfBack" data-i18n="stgCfBack">Back to settings</button>
       </div>
     </div>
   </div>
@@ -1871,6 +1969,40 @@
         stgSectionBySub:'How to group the archive at root level',
         stgSecByType:   'Type',
         stgSecBySubject:'Subject',
+        // Sort
+        sortDefault:    'Default',
+        sortNameAsc:    'Name A → Z',
+        sortNameDesc:   'Name Z → A',
+        sortDateDesc:   'Newest first',
+        sortDateAsc:    'Oldest first',
+        sortSizeDesc:   'Largest first',
+        sortSizeAsc:    'Smallest first',
+        // Search
+        searchPlaceholder: 'Search files, folders, tags…',
+        // Page download modal
+        pdmSelectDl:    'Select pages to download',
+        pdmSelectPrint: 'Select pages to print',
+        pdmAll:         'All',
+        pdmNone:        'None',
+        pdmCancel:      'Cancel',
+        pdmDownloadSel: '↓ Download selected',
+        pdmPrintSel:    '⎙ Print selected',
+        pdmPagesSel:    'pages selected',
+        // Grid/state
+        loadingIndex:   'Loading index…',
+        // Grid count
+        gridCountFolders: (n) => `${n} folder${n!==1?'s':''}`,
+        gridCountFiles:   (n) => `${n} file${n!==1?'s':''}`,
+        gridCountResults: (n) => `${n} result${n!==1?'s':''}`,
+        // Unsaved-changes confirm popup
+        stgCfTitle:   'Unsaved changes',
+        stgCfMsg:     'You have unsaved changes. Apply them to keep your settings, or discard them to revert.',
+        stgCfApply:   'Apply \u0026 Close',
+        stgCfDiscard: 'Discard changes',
+        stgCfBack:    'Back to settings',
+        // Settings footer
+        stgApplyBtn:  'Apply changes',
+        stgCancelBtn: 'Cancel',
       },
       hu: {
         logoText:     'Tudás\u00a0Archívum',
@@ -1939,6 +2071,40 @@
         stgSectionBySub:'Hogyan csoportosítsa az archívumot',
         stgSecByType:   'Típus',
         stgSecBySubject:'Tantárgy',
+        // Rendezés
+        sortDefault:    'Alapértelmezett',
+        sortNameAsc:    'Név A → Z',
+        sortNameDesc:   'Név Z → A',
+        sortDateDesc:   'Legújabb elöl',
+        sortDateAsc:    'Legrégebbi elöl',
+        sortSizeDesc:   'Legnagyobb elöl',
+        sortSizeAsc:    'Legkisebb elöl',
+        // Keresés
+        searchPlaceholder: 'Keresés fájlok, mappák, címkék közt…',
+        // Oldal letöltő ablak
+        pdmSelectDl:    'Válassz oldalakat a letöltéshez',
+        pdmSelectPrint: 'Válassz oldalakat a nyomtatáshoz',
+        pdmAll:         'Mind',
+        pdmNone:        'Egyik sem',
+        pdmCancel:      'Mégsem',
+        pdmDownloadSel: '↓ Kijelöltek letöltése',
+        pdmPrintSel:    '⎙ Kijelöltek nyomtatása',
+        pdmPagesSel:    'oldal kijelölve',
+        // Rács/állapot
+        loadingIndex:   'Index betöltése…',
+        // Rács számláló
+        gridCountFolders: (n) => `${n} mappa`,
+        gridCountFiles:   (n) => `${n} fájl`,
+        gridCountResults: (n) => `${n} találat`,
+        // Nem mentett változtatások megerősítő ablak
+        stgCfTitle:   'Nem mentett változtatások',
+        stgCfMsg:     'Nem mentett változtatásaid vannak. Alkalmazd a beállítások megőrzéséhez, vagy vesd el a visszaállításhoz.',
+        stgCfApply:   'Alkalmazás \u0026 bezárás',
+        stgCfDiscard: 'Változtatások elvetése',
+        stgCfBack:    'Vissza a beállításokhoz',
+        // Beállítások lábléc
+        stgApplyBtn:  'Változtatások alkalmazása',
+        stgCancelBtn: 'Mégsem',
       },
     };
 
@@ -1949,55 +2115,86 @@
         <div class="story-section">
           <h2>On the impulse to record</h2>
           <p>There is a moment every student of mathematics knows — the moment a proof finally closes, when the last line follows inexorably from the first, and the whole argument stands before you like a cathedral: complete, load-bearing, impossible to improve. The instinct that follows is almost physical: write it down. Not because you fear forgetting — though you will forget — but because the thing deserves to exist somewhere outside your own head, in a form that will outlast the urgency of the afternoon.</p>
-          <p>This archive began as exactly that impulse, repeated across years and subjects. A note here, a derivation there. A proof that took three weeks to understand compressed into two careful pages. A theorem whose statement I had seen a hundred times but whose proof I had never truly seen — until I sat down and wrote it myself, line by line, in my own notation.</p>
+          <p>But that same impulse — the need to fix the fleeting, to make the fragile permanent — is not mathematics' alone. The poet writes a line not to publish it but to catch it before it dissolves. The painter sketches not to produce a finished work but to arrest an observation before it leaves. The biologist names a species to make a private perception into a public fact. Recording is one of the most distinctly human acts: it converts experience into knowledge, knowledge into tradition, and tradition into civilization itself.</p>
           <div class="story-pull">&ldquo;Mathematics is the art of giving the same name to different things.&rdquo; &mdash; Henri Poincar&eacute;</div>
-          <p>What surprised me, over time, was how much the act of writing changed the act of understanding. To write a proof is to interrogate it. Every elision you allow yourself in reading becomes a gap you must close in writing. The argument that seemed clear at a glance reveals, on paper, that it was only familiar — which is a very different thing.</p>
+          <p>This archive began as exactly that impulse, repeated across years and subjects. A note here, a derivation there. A proof that took three weeks to understand compressed into two careful pages. A theorem whose statement I had seen a hundred times but whose proof I had never truly seen — until I sat down and wrote it myself, line by line, in my own notation. What surprised me was how much the act of writing changed the act of understanding. To write a proof is to interrogate it; every elision you allow yourself in reading becomes a gap you must close in writing.</p>
         </div>
         <div class="story-section">
-          <h2>On the beauty of the thing</h2>
-          <p>I did not always believe that mathematics was beautiful. Early on it seemed merely difficult — a discipline of rules and exceptions, of techniques to memorise and procedures to execute. It was only later, when the techniques became fluent enough to recede into the background, that the actual structure of mathematics became visible, and that structure was startling.</p>
+          <h2>On the beauty of mathematics</h2>
+          <p>I did not always believe that mathematics was beautiful. Early on it seemed merely difficult — a discipline of rules and exceptions, of techniques to memorise and procedures to execute. It was only later, when the techniques became fluent enough to recede into the background, that the actual structure of mathematics became visible. And that structure was startling.</p>
           <div class="story-pull">&ldquo;The mathematician does not study pure mathematics because it is useful; he studies it because he delights in it, and he delights in it because it is beautiful.&rdquo; &mdash; Henri Poincar&eacute;</div>
-          <p>There is the beauty of pure surprise: that the sum of the reciprocals of the perfect squares converges to exactly &pi;&sup2;/6, a fact that connects the integers to the circle with no obvious reason why it should. There is the beauty of deep unity: that the same group-theoretic structures govern the symmetries of a crystal, the solutions of a polynomial, and the fundamental particles of matter.</p>
-          <div class="story-pull">&ldquo;It is not knowledge, but the act of learning &mdash; not possession, but the act of getting there &mdash; which grants the greatest enjoyment.&rdquo; &mdash; Carl Friedrich Gauss</div>
+          <p>There is the beauty of pure surprise: that the sum of the reciprocals of the perfect squares converges to exactly &pi;&sup2;/6, a fact that connects the integers to the circle with no obvious reason why it should. There is the beauty of deep unity: that the same group-theoretic structures govern the symmetries of a crystal, the solutions of a polynomial, and the fundamental particles of matter. There is the beauty of unexpected contact: Euler's identity e<sup>i&pi;</sup> + 1 = 0 assembles five fundamental constants — e, i, &pi;, 1, 0 — into a single equation that looks, on first encounter, like a miracle, and on hundredth encounter, like inevitability. There is the beauty of irreducibility: a prime number cannot be anything other than what it is, and yet the distribution of the primes refuses to behave — growing sparser without end, in a pattern that still contains one of the great unsolved problems of all mathematics.</p>
+          <div class="story-pull">&ldquo;It is not knowledge, but the act of learning — not possession, but the act of getting there — which grants the greatest enjoyment.&rdquo; &mdash; Carl Friedrich Gauss</div>
+          <p>The Riemann Hypothesis asks whether the non-trivial zeros of the zeta function &zeta;(s) all lie on the critical line Re(s) = 1/2. It was posed in 1859. It remains open. The Clay Mathematics Institute has offered one million dollars for its proof. More striking than the prize is the depth of the question itself: it reaches from number theory to complex analysis to physics, suggesting that the primes — those elementary facts of arithmetic — encode something about the universe that we do not yet understand.</p>
+        </div>
+        <div class="story-section">
+          <h2>On the beauty of the sciences</h2>
+          <p>The sciences share with mathematics the pursuit of a structure beneath appearances, but they add something mathematics alone cannot offer: the shock of contact with the real. When Galileo dropped two spheres from the Leaning Tower of Pisa, or aimed his telescope at Jupiter and found four moons orbiting a body that was not Earth, he was doing something new in the history of thought — he was insisting that the universe had the final vote, and that no argument, however elegant, could override it.</p>
+          <div class="story-pull">&ldquo;The most beautiful thing we can experience is the mysterious. It is the source of all true art and science.&rdquo; &mdash; Albert Einstein</div>
+          <p>The periodic table, that grid of elements from hydrogen to oganesson, is one of the most compressed and generative objects in the history of knowledge. Mendeleev arranged it in 1869 and left gaps — not in ignorance, but in confidence, predicting three elements not yet discovered. When gallium, scandium, and germanium were isolated and matched his predictions almost exactly, it was one of the purest confirmations science has ever produced: a theory predicting, not just explaining. The table is beautiful for the same reason a well-composed piece of music is beautiful — it reveals, in the arrangement of its parts, a pattern that was always there, waiting to be seen.</p>
+          <p>DNA's double helix, the geodesics of general relativity, the Carnot cycle, the action potential — each of these is not merely useful but aesthetically compelling. They have the signature of deep truth: simplicity on the surface, inexhaustible complexity underneath.</p>
+        </div>
+        <div class="story-section">
+          <h2>On the beauty of the arts</h2>
+          <p>It would be wrong to separate the sciences and mathematics too sharply from the arts. The history of human expression is not a history of two cultures but of one restless, pattern-seeking mind working in different registers. Bach's counterpoint and Euler's analysis share the same obsession with structure and transformation. A fugue and a proof both ask: given these constraints, what follows necessarily? The answer in both cases should seem, at the end, both surprising and inevitable.</p>
+          <div class="story-pull">&ldquo;Without music, life would be a mistake.&rdquo; &mdash; Friedrich Nietzsche</div>
+          <p>Shakespeare's sonnets are not merely declarations of feeling; they are arguments — the volta at line nine turns the poem, just as a lemma turns a proof. Vermeer's use of light in the Girl with a Pearl Earring involves, implicitly, an understanding of physics that predated Newton. The proportions of the Parthenon encode geometric relationships that still reward analysis. Architecture, at its best, is applied mathematics made habitable. Music, at its best, is time structured by ratio.</p>
+          <div class="story-pull">&ldquo;Art is the lie that enables us to realize the truth.&rdquo; &mdash; Pablo Picasso</div>
+          <p>What the arts offer that equations cannot is embodied knowledge — understanding that arrives not through argument but through experience. A theorem about harmony can tell you everything about an interval and nothing about what a chord feels like to hear for the first time after a period of silence. Both kinds of knowledge are real. Both kinds are incomplete without the other.</p>
         </div>
         <div class="story-section">
           <h2>On the method of LaTeX</h2>
-          <p>Every document in this archive is written in LaTeX — not out of convention or inertia, but because the medium shapes the thought. To typeset a formula properly, you must understand its structure. The discipline of the source file is a discipline of precision.</p>
-          <p>There is also something right about the permanence of plain text. A LaTeX source file written in 1990 compiles today, unchanged. The mathematics does not decay. The theorems that Euler, Gauss, and Riemann established remain as true now as the day they were proved.</p>
+          <p>Every document in this archive is written in LaTeX — not out of convention or inertia, but because the medium shapes the thought. To typeset a formula properly, you must understand its structure. The discipline of the source file is a discipline of precision. There is also something right about the permanence of plain text. A LaTeX source file written in 1990 compiles today, unchanged. The mathematics does not decay. The theorems that Euler, Gauss, and Riemann established remain as true now as the day they were proved — as true as the day Shakespeare wrote a sonnet, or Beethoven sketched the opening of the Fifth.</p>
           <div class="story-pull">&ldquo;Pure mathematics is, in its way, the poetry of logical ideas.&rdquo; &mdash; Albert Einstein</div>
         </div>
         <div class="story-section">
           <h2>On what an archive is for</h2>
-          <p>Hermann Weyl described mathematics as the science of the infinite — the discipline through which the human mind, finite and mortal, reaches toward structures that transcend it. Every proof in this archive is an attempt, however small, to participate in that reaching.</p>
+          <p>Hermann Weyl described mathematics as the science of the infinite — the discipline through which the human mind, finite and mortal, reaches toward structures that transcend it. But the same description applies, I think, to the whole project of human knowledge. Every poem is an attempt to say something that resists saying. Every proof is an attempt to establish something that exceeds the prover. Every scientific theory is a model of a reality too large to hold entirely in the mind.</p>
           <div class="story-pull">&ldquo;The essence of mathematics lies in its freedom.&rdquo; &mdash; Georg Cantor</div>
-          <p>The archive is the record of a process. Not a monument to conclusions, but a map of a journey still in progress. If someone else reads these notes and finds them useful, that is a gift I did not anticipate. But the primary reader was always a future version of myself — one who has forgotten the details, but not the conviction that the details are worth knowing.</p>
+          <p>The archive is the record of a process. Not a monument to conclusions, but a map of a journey still in progress. It contains mathematics because mathematics is where I began — and because mathematics has the property, unique among disciplines, of absolute proof. But it also gestures toward science, toward literature, toward the full range of what a person who loves knowledge might want to understand. If someone else reads these notes and finds them useful, that is a gift I did not anticipate. The primary reader was always a future version of myself — one who has forgotten the details, but not the conviction that the details are worth knowing.</p>
+          <div class="story-pull">&ldquo;Tell me and I forget, teach me and I may remember, involve me and I learn.&rdquo; &mdash; Benjamin Franklin</div>
         </div>`,
       hu: `
         <div class="story-section">
           <h2>A feljegyzés ösztönéről</h2>
           <p>Van egy pillanat, amelyet minden matematikával foglalkozó ember ismer — az a pillanat, amikor egy bizonyítás végre bezárul, amikor az utolsó sor elkerülhetetlenül következik az elsőből, és az egész érvelés úgy áll előtted, mint egy katedrális: teljes, teherhordó, javíthatatlan. Az ezt követő ösztön szinte testi: írd le. Nem azért, mert félsz elfelejteni — pedig el fogod felejteni —, hanem mert a dolog megérdemli, hogy a saját fejedtől függetlenül is létezzen, olyan formában, amely túléli a délután sürgősségét.</p>
-          <p>Ez az archívum pontosan abból az ösztönből született, amely éveken és tantárgyakon át ismétlődött. Egy lejegyzet itt, egy levezetés ott. Egy bizonyítás, amelynek megértéséhez három hét kellett, de két gondos oldalra sűrítve. Egy tétel, amelynek állítását százszor láttam, de amelynek bizonyítását sohasem láttam igazán.</p>
+          <p>De ugyanez az ösztön — a múlandó rögzítésének vágya, a törékenynek állandóvá tétele — nem csak a matematikáé. A költő azért ír le egy sort, hogy megfogja, mielőtt eloszlik. A festő azért vázol, hogy megállítson egy megfigyelést, mielőtt eltávozik. A biológus azért nevez el egy fajt, hogy egy személyes észlelésből közös tényt csináljon. A feljegyzés az egyik legemberibb cselekedet: az élményt tudássá, a tudást hagyománnyá, a hagyományt civilizációvá alakítja.</p>
           <div class="story-pull">&bdquo;A matematika művészete abban áll, hogy különböző dolgoknak ugyanazt a nevet adjuk.&rdquo; &mdash; Henri Poincaré</div>
-          <p>Ami meglepett, az volt, mennyire megváltoztatja az írás aktusa a megértés aktusát. Egy bizonyítást leírni annyi, mint vallatóra fogni. Minden kihagyás, amelyet olvasáskor megengedsz magadnak, olyan hézag, amelyet írásban be kell töltened.</p>
+          <p>Ez az archívum pontosan abból az ösztönből született, amely éveken és tantárgyakon át ismétlődött. Egy lejegyzet itt, egy levezetés ott. Egy bizonyítás, amelynek megértéséhez három hét kellett, de két gondos oldalra sűrítve. Egy tétel, amelynek állítását százszor láttam, de amelynek bizonyítását sohasem láttam igazán — egészen addig, amíg le nem ültem és magam nem írtam meg, sorról sorra, a saját jelölésrendszeremben. Ami meglepett, az volt, mennyire megváltoztatja az írás aktusa a megértés aktusát. Egy bizonyítást leírni annyi, mint vallatóra fogni; minden kihagyás, amelyet olvasáskor megengedsz magadnak, olyan hézag, amelyet írásban be kell töltened.</p>
         </div>
         <div class="story-section">
-          <h2>A szépségről</h2>
-          <p>Nem mindig hittem abban, hogy a matematika szép. Eleinte csupán nehéznek tűnt — szabályok és kivételek tudománya, megjegyzendő technikák és végrehajtandó eljárások. Csak később, amikor a technikák annyira folyékonnyá váltak, hogy a háttérbe húzódhattak, vált láthatóvá a matematika valódi szerkezete — és az a szerkezet megdöbbentő volt.</p>
+          <h2>A matematika szépségéről</h2>
+          <p>Nem mindig hittem abban, hogy a matematika szép. Eleinte csupán nehéznek tűnt — szabályok és kivételek tudománya, megjegyzendő technikák és végrehajtandó eljárások. Csak később, amikor a technikák annyira folyékonnyá váltak, hogy a háttérbe húzódhattak, vált láthatóvá a matematika valódi szerkezete. És az a szerkezet megdöbbentő volt.</p>
           <div class="story-pull">&bdquo;A matematikus nem azért tanulmányozza a tiszta matematikát, mert hasznos; azért tanulmányozza, mert gyönyörűséget lel benne, és azért lel benne gyönyörűséget, mert szép.&rdquo; &mdash; Henri Poincaré</div>
-          <p>Ott van a tiszta meglepetés szépsége: hogy a négyzetszámok reciprokösszege pontosan &pi;&sup2;/6-hoz konvergál — egy tény, amely az egész számokat a körrel kapcsolja össze. Ott van a mély egység szépsége: hogy ugyanazok a csoportelméleti struktúrák irányítják egy kristály szimmetriáit, egy polinom megoldásait és az anyag alapvető részecskéit.</p>
+          <p>Ott van a tiszta meglepetés szépsége: hogy a négyzetszámok reciprokösszege pontosan &pi;&sup2;/6-hoz konvergál — egy tény, amely az egész számokat a körrel kapcsolja össze, látszólag minden ok nélkül. Ott van a mély egység szépsége: hogy ugyanazok a csoportelméleti struktúrák irányítják egy kristály szimmetriáit, egy polinom megoldásait és az anyag alapvető részecskéit. Ott van a váratlan találkozás szépsége: Euler-azonossága, e<sup>i&pi;</sup> + 1 = 0, öt alapvető konstanst — e-t, i-t, &pi;-t, 1-et, 0-t — egyetlen egyenletbe sűrít, amely első találkozásra csodának, századikra elkerülhetetlennek tűnik.</p>
           <div class="story-pull">&bdquo;Nem a tudás, hanem a tanulás aktusa — nem a birtok, hanem az odaérés aktusa — nyújtja a legnagyobb örömöt.&rdquo; &mdash; Carl Friedrich Gauss</div>
+          <p>A Riemann-sejtés azt kérdezi, hogy a zéta-függvény &zeta;(s) összes nem-triviális zérusa a Re(s) = 1/2 kritikus egyenesen fekszik-e. 1859-ben fogalmazták meg. Ma is megoldatlan. A Clay Matematikai Intézet egymillió dollárt kínál a bizonyításáért. Még megdöbbentőbb a kérdés mélysége: számelméletből komplex analízisen át fizikáig nyúlik, azt sejtetve, hogy a prímszámok — az aritmetika eme elemi tényei — valami olyasmit kódolnak a világegyetemről, amit még nem értünk.</p>
+        </div>
+        <div class="story-section">
+          <h2>A természettudományok szépségéről</h2>
+          <p>A természettudományok a matematikával együtt a jelenségek mögötti struktúra felkutatásával foglalkoznak, de hozzátesznek valamit, amit a matematika egyedül nem tud megadni: a valósággal való érintkezés sokkját. Amikor Galilei két gömböt dobott le a Pisai Ferde Toronyból, vagy teleszkópját Jupiterre irányítva négy holdat talált, amelyek nem a Föld körül keringenek, valami újat tett a gondolkodás történetében: ragaszkodott ahhoz, hogy az univerzumnak van végső szava, és hogy egyetlen érv, bármilyen elegáns is, nem írhatja felül.</p>
+          <div class="story-pull">&bdquo;A legszebb dolog, amit átélhetünk, a titokzatos. Ez minden igaz művészet és tudomány forrása.&rdquo; &mdash; Albert Einstein</div>
+          <p>A periódusos rendszer — az elemek rácsozata hidrogéntől az oganezszonig — a tudástörténet egyik legsűrűbb és legtermékennyebb tárgya. Mengyelejev 1869-ben rendezte el, és hézagokat hagyott — nem tudatlanságból, hanem bizalomból, megjósolva három még felfedezetlen elemet. Amikor a galliumot, szkandiumot és germániumot izolálták, és szinte pontosan illeszkedtek az előrejelzéseihez, ez volt az egyik legtisztább megerősítés, amelyet a tudomány valaha kapott: egy elmélet, amely nem csak magyaráz, hanem megjósol. A táblázat ugyanolyan okból szép, mint egy jól megkomponált zenei mű: az elemek elrendezésében egy mintát tár fel, amely mindig is ott volt, csak meg kellett látni.</p>
+        </div>
+        <div class="story-section">
+          <h2>A művészetek szépségéről</h2>
+          <p>Téves lenne a természettudományokat és a matematikát túl élesen elválasztani a művészetektől. Az emberi kifejezés történelme nem két kultúra, hanem egy nyugtalan, mintákat kereső elme történelme, amely különböző regiszterekben dolgozik. Bach ellenpont-technikája és Euler analízise ugyanazt a struktúra és transzformáció iránti megszállottságot osztja. A fúga és a bizonyítás egyaránt azt kérdezi: adottak ezek a kényszerek — mi következik szükségszerűen? A válasz mindkét esetben meglepőnek és elkerülhetetlennek kell tűnnie egyszerre.</p>
+          <div class="story-pull">&bdquo;Zene nélkül az élet tévedés lenne.&rdquo; &mdash; Friedrich Nietzsche</div>
+          <p>Shakespeare szonettjei nem csupán érzések kinyilvánításai; érvelések — a kilencedik sorban forduló volta ugyanúgy fordít, ahogy egy lemma fordul a bizonyításban. Vermeer fényhasználata a Gyöngyös fülbevalós lányban egy Newton előtt fizikafelfogást feltételez implicit módon. A Parthenon arányai geometriai összefüggéseket kódolnak, amelyek ma is jutalmazzák az elemzést. Az építészet a legjobb formájában alkalmazott matematika, amelybe be lehet lakni. A zene a legjobb formájában arányok által tagolt idő.</p>
+          <div class="story-pull">&bdquo;A művészet az a hazugság, amelynek segítségével felismerjük az igazságot.&rdquo; &mdash; Pablo Picasso</div>
+          <p>Amit a művészetek kínálnak, amit az egyenletek nem tudnak megadni, az a megtestesített tudás — megértés, amely nem érvelésen, hanem tapasztalaton át érkezik. Egy összhangzatról szóló tétel mindent el tud mondani egy intervallumról, de semmit arról, hogyan hat egy akkord, amelyet egy csendes időszak után hallunk először. Mindkét fajta tudás valódi. Mindkettő hiányos a másik nélkül.</p>
         </div>
         <div class="story-section">
           <h2>A LaTeX módszeréről</h2>
-          <p>Az archívum minden dokumentumát LaTeX-ben írtam — nem szokásból vagy tehetetlenségből, hanem mert a médium alakítja a gondolatot. Egy képletet helyesen szedni annyi, mint megérteni a szerkezetét. A forrásfájl fegyelme a pontosság fegyelme.</p>
-          <p>Van valami helyes a sima szöveg állandóságában is. Egy 1990-ben írt LaTeX forrásfájl ma, változatlanul, lefordul. A matematika nem bomlik el.</p>
+          <p>Az archívum minden dokumentumát LaTeX-ben írtam — nem szokásból vagy tehetetlenségből, hanem mert a médium alakítja a gondolatot. Egy képletet helyesen szedni annyi, mint megérteni a szerkezetét. A forrásfájl fegyelme a pontosság fegyelme. Van valami helyes a sima szöveg állandóságában is: egy 1990-ben írt LaTeX forrásfájl ma, változatlanul, lefordul. A matematika nem bomlik el. Az Euler, Gauss és Riemann által felállított tételek ugyanolyan igazak ma, mint a bizonyításuk napján — ugyanolyan igazak, mint amilyen napon Shakespeare megírt egy szonettet, vagy Beethoven felvázolta az Ötödik szimfónia nyitányát.</p>
           <div class="story-pull">&bdquo;A tiszta matematika a maga módján a logikai eszmék költészete.&rdquo; &mdash; Albert Einstein</div>
         </div>
         <div class="story-section">
           <h2>Mire való egy archívum</h2>
-          <p>Hermann Weyl a matematikát a végtelen tudományaként írta le — azt a diszciplínát, amelyen keresztül a véges és halandó emberi elme olyan struktúrák felé nyúl, amelyek meghaladják azt. Az archívumban szereplő minden bizonyítás kísérlet arra, hogy részt vegyen ebben a nyújtózásban.</p>
+          <p>Hermann Weyl a matematikát a végtelen tudományaként írta le — azt a diszciplínát, amelyen keresztül a véges és halandó emberi elme olyan struktúrák felé nyúl, amelyek meghaladják azt. De ugyanez a leírás érvényes, úgy gondolom, az emberi tudás egész projektjére. Minden vers kísérlet arra, hogy kimondjon valamit, ami ellenáll a kimondásnak. Minden bizonyítás kísérlet arra, hogy megállapítson valamit, ami meghaladja a bizonyítót. Minden tudományos elmélet egy valóság modellje, amely túl nagy ahhoz, hogy teljesen a fejben tarthassuk.</p>
           <div class="story-pull">&bdquo;A matematika lényege a szabadságában rejlik.&rdquo; &mdash; Georg Cantor</div>
-          <p>Az archívum egy folyamat leírata. Nem a következtetések emlékműve, hanem egy még folyamatban lévő utazás térképe. Az elsődleges olvasó mindig egy jövőbeli önmagam volt — olyan valaki, aki elfelejtette a részleteket, de nem azt a meggyőződést, hogy a részletek megismerése érdemes.</p>
+          <p>Az archívum egy folyamat leírata. Nem a következtetések emlékműve, hanem egy még folyamatban lévő utazás térképe. Matematikát tartalmaz, mert a matematikával kezdtem — és mert a matematikának megvan az a tulajdonsága, amely egyedülálló a diszciplínák között: az abszolút bizonyítás. De gesztikulál a természettudomány, az irodalom, az emberi tudás teljes spektruma felé is. Ha valaki más is olvassa ezeket a feljegyzéseket és hasznosnak találja, az egy váratlan ajándék. Az elsődleges olvasó mindig egy jövőbeli önmagam volt — olyan valaki, aki elfelejtette a részleteket, de nem azt a meggyőződést, hogy a részletek megismerése érdemes.</p>
+          <div class="story-pull">&bdquo;Mondd el és elfelejtem, taníts meg és talán emlékezni fogok, vonj be és megtanulom.&rdquo; &mdash; Benjamin Franklin</div>
         </div>`,
     };
 
@@ -2014,6 +2211,17 @@
           }
         }
       });
+      // Placeholder translations
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.dataset.i18nPh;
+        const val = t(key);
+        if (val) el.placeholder = val;
+      });
+      // Sort dropdown label — sync to active item
+      const activeSortItem = document.querySelector('.sort-dd-item.active');
+      const sortLbl = document.getElementById('sortDdLabel');
+      if (sortLbl && activeSortItem) sortLbl.textContent = t(activeSortItem.dataset.i18n || 'sortDefault');
+      else if (sortLbl) sortLbl.textContent = t('sortDefault');
       // Story content
       const sc = document.getElementById('story-content');
       if (sc) sc.innerHTML = STORY[LANG] || STORY.en;
@@ -2025,6 +2233,10 @@
       // Update language button active state
       document.getElementById('langEN').classList.toggle('active', LANG === 'en');
       document.getElementById('langHU').classList.toggle('active', LANG === 'hu');
+      const lEN2 = document.getElementById('langEN2');
+      const lHU2 = document.getElementById('langHU2');
+      if (lEN2) lEN2.classList.toggle('active', LANG === 'en');
+      if (lHU2) lHU2.classList.toggle('active', LANG === 'hu');
     }
 
     function switchLang(lang) {
@@ -2055,6 +2267,11 @@
     // Language switch buttons
     document.getElementById('langEN').addEventListener('click', () => switchLang('en'));
     document.getElementById('langHU').addEventListener('click', () => switchLang('hu'));
+    // Mobile drawer duplicate buttons
+    const langEN2 = document.getElementById('langEN2');
+    const langHU2 = document.getElementById('langHU2');
+    if (langEN2) langEN2.addEventListener('click', () => switchLang('en'));
+    if (langHU2) langHU2.addEventListener('click', () => switchLang('hu'));
 
     /* ── Theme toggle ─────────────────────────────────────────────── */
     const THEME_KEY = 'ki_theme';
@@ -2259,7 +2476,7 @@
           return true;
         });
         results = sortItems(results);
-        const cntEl = document.getElementById('searchCount'); if (cntEl) cntEl.textContent = `${results.length} result${results.length!==1?'s':''}${activeTagFilters.size?' · '+activeTagFilters.size+' tag filter'+( activeTagFilters.size!==1?'s':''):''}${sortMode!=='default'?' · sorted':''}`;
+        const cntEl = document.getElementById('searchCount'); if (cntEl) cntEl.textContent = T[LANG].gridCountResults(results.length) + (activeTagFilters.size?' · '+activeTagFilters.size+' '+t('stgSections').toLowerCase():'') + (sortMode!=='default'?' · '+t('sortDefault').toLowerCase():'');
         if (!results.length) {
           grid.innerHTML = `<div class="no-results-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>No results for "${esc(searchQuery)}"</span></div>`;
         } else {
@@ -2269,8 +2486,7 @@
             grid.appendChild(card);
           });
         }
-        count.textContent = `${results.length} result${results.length!==1?'s':''}`;
-        return;
+        count.textContent = T[LANG].gridCountResults(results.length);        return;
       }
       const cntBadge = document.getElementById('searchCount'); if (cntBadge) cntBadge.textContent = '';
 
@@ -2278,7 +2494,7 @@
 
       const folders = items.filter(i=>i.type==='folder');
       const files   = items.filter(i=>i.type==='file');
-      count.textContent = `${folders.length} folder${folders.length!==1?'s':''}, ${files.length} file${files.length!==1?'s':''}`;
+      count.textContent = `${T[LANG].gridCountFolders(folders.length)}, ${T[LANG].gridCountFiles(files.length)}`;
 
       grid.innerHTML = '';
 
@@ -2548,9 +2764,11 @@
         clearSearch();
         pathStack.push(item); currentNode = item;
         renderBreadcrumb(); renderGrid(item);
-        { const _sc = window.innerWidth >= 769 ? document.getElementById('main') : window;
+        // On mobile scroll to breadcrumb; on desktop preserve scroll position
+        if (window.innerWidth < 769) {
           const _top = document.getElementById('breadcrumbBar').offsetTop - 70;
-          _sc === window ? _sc.scrollTo({top:_top,behavior:'smooth'}) : _sc.scrollTo({top:0,behavior:'smooth'}); }
+          window.scrollTo({ top: _top, behavior: 'smooth' });
+        }
         return;
       }
       const ext = (item.ext||'').toLowerCase();
@@ -2784,9 +3002,10 @@
       const body = document.getElementById('pdfBody');
       const wrap = body.querySelector('.pdf-canvas-wrap');
       body.classList.remove('full-doc-mode');
+      body.classList.remove('pdf-zoomed');
       wrap.innerHTML = '';
       wrap.appendChild(pdfCanvas);
-      renderPage(pdfPage);
+      fitToWidth(); // always re-fit so we open clean with no x-scrollbar
     }
 
     function renderPage(num) {
@@ -2820,16 +3039,35 @@
       next.classList.toggle('nav-disabled', !pdfDoc || pdfPage >= (pdfDoc ? pdfDoc.numPages : 1));
     }
 
+    /* pdfFitZoom — zoom level that exactly fills the viewer width.
+       Stored so we can detect when the user zooms past it. */
+    let pdfFitZoom = 1.0;
+
+    /* Show x-scrollbar only when zoomed past the fit level */
+    function markZoomState() {
+      const body = document.getElementById('pdfBody');
+      if (pdfZoom > pdfFitZoom + 0.02) body.classList.add('pdf-zoomed');
+      else                              body.classList.remove('pdf-zoomed');
+    }
+
     function fitToWidth() {
       if (!pdfDoc) return;
-      pdfDoc.getPage(pdfPage).then(page => {
-        const vp = page.getViewport({ scale: 1 });
-        const bodyW = document.getElementById('pdfBody').clientWidth - 56;
-        pdfZoom = Math.min(2.5, bodyW / vp.width);
-        document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom*100)+'%';
-        renderPage(pdfPage);
-        updateSideNavState();
-      });
+      // Double-rAF: first frame lets the browser finish painting the modal at full
+      // size, second frame reads the now-stable clientWidth.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        pdfDoc.getPage(pdfPage).then(page => {
+          const body  = document.getElementById('pdfBody');
+          const bodyW = body.clientWidth - 44; // 20 px padding each side + 4 px safety
+          const vp    = page.getViewport({ scale: 1 });
+          pdfZoom    = bodyW > 0 ? Math.min(2.5, bodyW / vp.width) : 1.0;
+          pdfFitZoom = pdfZoom; // remember the fit level
+          document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom * 100) + '%';
+          body.classList.remove('pdf-zoomed'); // fit = no x-scrollbar, always
+          renderPage(pdfPage);
+          updateSideNavState();
+          updateMobileBar();
+        });
+      }));
     }
 
     /* PDF toolbar controls */
@@ -2851,11 +3089,13 @@
     document.getElementById('pdfZoomIn').addEventListener('click', () => {
       pdfZoom = Math.min(3.5, pdfZoom + 0.15);
       document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom*100)+'%';
+      markZoomState();
       renderPage(pdfPage);
     });
     document.getElementById('pdfZoomOut').addEventListener('click', () => {
       pdfZoom = Math.max(0.25, pdfZoom - 0.15);
       document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom*100)+'%';
+      markZoomState();
       renderPage(pdfPage);
     });
     document.getElementById('pdfZoomFit').addEventListener('click', fitToWidth);
@@ -2888,6 +3128,7 @@
         v = Math.max(10, Math.min(500, v));
         pdfZoom = v / 100;
         document.getElementById('pdfZoomPct').textContent = v + '%';
+        markZoomState();
         renderPage(pdfPage);
       }
       input.addEventListener('blur', commitZoom);
@@ -2912,8 +3153,8 @@
       function open(m) {
         if (!pdfDoc) return;
         mode = m;
-        titleEl.textContent  = mode === 'print' ? 'Select pages to print' : 'Select pages to download';
-        actionBtn.innerHTML  = mode === 'print' ? '⎙ Print selected' : '↓ Download selected';
+        titleEl.textContent  = mode === 'print' ? t('pdmSelectPrint') : t('pdmSelectDl');
+        actionBtn.innerHTML  = mode === 'print' ? t('pdmPrintSel') : t('pdmDownloadSel');
         sel = new Set([...Array(pdfDoc.numPages)].map((_,i)=>i+1));
         grid.innerHTML = '';
         progBar.style.width = '0%';
@@ -2936,7 +3177,7 @@
       function closeDl() { dlModal.classList.remove('open'); }
 
       function updateInfo() {
-        infoEl.textContent = sel.size + ' page' + (sel.size!==1?'s':'') + ' selected';
+        infoEl.textContent = sel.size + ' ' + t('pdmPagesSel');
       }
 
       /* Render thumbnails — dark-mode aware */
@@ -3112,6 +3353,18 @@
 
     document.getElementById('pdfClose').addEventListener('click', closePdfViewer);
 
+    /* Re-fit whenever the window is resized so fit mode stays exact
+       and the horizontal scrollbar never re-appears on its own */
+    let _pdfResizeTimer;
+    window.addEventListener('resize', () => {
+      if (!pdfModal.classList.contains('open') || !pdfDoc) return;
+      clearTimeout(_pdfResizeTimer);
+      _pdfResizeTimer = setTimeout(() => {
+        if (pdfFullDocMode) renderFullDoc();
+        else fitToWidth();
+      }, 120);
+    });
+
     function closePdfViewer() {
       pdfModal.classList.remove('open');
       document.body.style.overflow = '';
@@ -3150,6 +3403,7 @@
         if (pzsPct) pzsPct.textContent = Math.round(pdfZoom * 100) + '%';
         this.style.setProperty('--fill',
           ((+this.value - +this.min) / (+this.max - +this.min) * 100) + '%');
+        markZoomState();
         renderPage(pdfPage);
         updateMobileBar();
       });
@@ -4400,25 +4654,153 @@
        SETTINGS MODAL
     ═════════════════════════════════════════════════════════════════ */
     (function() {
-      const modal = document.getElementById('settingsModal');
-      if (!modal) return;
+      const modal   = document.getElementById('settingsModal');
+      const cfModal = document.getElementById('stgConfirmModal');
+      if (!modal || !cfModal) return;
 
-      function openSettings() {
-        modal.classList.add('open');
+      /* ── Snapshot helpers ──────────────────────────────────────────── */
+      let _snap = null; // state captured when settings opened
+
+      function takeSnapshot() {
+        return {
+          theme:        document.body.classList.contains('light') ? 'light' : 'dark',
+          lang:         LANG,
+          fullDoc:      pdfFullDocMode,
+          sectionBy:    sectionBy,
+          sectionOrder: localStorage.getItem('ki_section_order') || 'null',
+          childOrders:  localStorage.getItem('ki_child_orders')  || '{}',
+        };
+      }
+
+      function isDirty() {
+        if (!_snap) return false;
+        const now = takeSnapshot();
+        return now.theme       !== _snap.theme
+            || now.lang        !== _snap.lang
+            || now.fullDoc     !== _snap.fullDoc
+            || now.sectionBy   !== _snap.sectionBy
+            || now.sectionOrder !== _snap.sectionOrder
+            || now.childOrders  !== _snap.childOrders;
+      }
+
+      function markDirty() {
+        modal.classList.toggle('dirty', isDirty());
+      }
+
+      /* Revert every setting to the snapshot */
+      function discardChanges() {
+        if (!_snap) return;
+        // Theme
+        if (takeSnapshot().theme !== _snap.theme) applyTheme(_snap.theme);
+        // Language
+        if (LANG !== _snap.lang) switchLang(_snap.lang);
+        // Full-doc
+        if (pdfFullDocMode !== _snap.fullDoc) {
+          pdfFullDocMode = _snap.fullDoc;
+          localStorage.setItem(PDF_FULL_DOC_KEY, pdfFullDocMode ? '1' : '0');
+          document.getElementById('stgFullDocToggle').classList.toggle('on', pdfFullDocMode);
+          if (pdfModal.classList.contains('open') && pdfDoc) {
+            if (pdfFullDocMode) renderFullDoc(); else exitFullDocMode();
+          }
+        }
+        // Section-by
+        if (sectionBy !== _snap.sectionBy) {
+          sectionBy = _snap.sectionBy;
+          localStorage.setItem('ki_section_by', sectionBy);
+        }
+        // Section/child orders
+        if (_snap.sectionOrder === 'null') localStorage.removeItem('ki_section_order');
+        else localStorage.setItem('ki_section_order', _snap.sectionOrder);
+        localStorage.setItem('ki_child_orders', _snap.childOrders);
+        sectionOrder = JSON.parse(_snap.sectionOrder);
+        renderGrid(currentNode);
         syncSettingsUI();
         buildSectionList();
       }
-      function closeSettings() { modal.classList.remove('open'); }
+
+      /* ── Open / close ──────────────────────────────────────────────── */
+      function openSettings() {
+        _snap = takeSnapshot();
+        modal.classList.add('open');
+        modal.classList.remove('dirty');
+        syncSettingsUI();
+        buildSectionList();
+      }
+
+      function closeSettings() {
+        modal.classList.remove('open');
+        modal.classList.remove('dirty');
+        _snap = null;
+      }
+
+      /* Called whenever the user tries to dismiss settings */
+      function tryClose() {
+        if (isDirty()) {
+          showConfirm();
+        } else {
+          closeSettings();
+        }
+      }
 
       document.getElementById('settingsBtn').addEventListener('click', openSettings);
-      document.getElementById('stgClose').addEventListener('click', closeSettings);
-      document.getElementById('stgBd').addEventListener('click', closeSettings);
+      document.getElementById('stgClose').addEventListener('click', tryClose);
+      document.getElementById('stgBd').addEventListener('click', tryClose);
+
+      /* Footer buttons */
+      document.getElementById('stgFooterCancel').addEventListener('click', tryClose);
+      document.getElementById('stgFooterApply').addEventListener('click', () => {
+        // Changes are already applied live; just commit and close cleanly
+        if (pdfModal.classList.contains('open') && pdfDoc) {
+          if (pdfFullDocMode) renderFullDoc(); else fitToWidth();
+        }
+        closeSettings();
+      });
+
+      /* Escape key closes (with dirty check) */
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          if (cfModal.classList.contains('open')) { hideConfirm(); return; }
+          if (modal.classList.contains('open'))   { tryClose();    return; }
+        }
+      });
+
+      /* ── Confirm popup ─────────────────────────────────────────────── */
+      function showConfirm() {
+        // Re-translate popup in case language was just switched
+        document.querySelectorAll('#stgConfirmModal [data-i18n]').forEach(el => {
+          const val = t(el.dataset.i18n);
+          if (val) el.innerHTML = val;
+        });
+        cfModal.classList.add('open');
+      }
+      function hideConfirm() { cfModal.classList.remove('open'); }
+
+      document.getElementById('stgCfBd').addEventListener('click', hideConfirm);
+
+      document.getElementById('stgCfBack').addEventListener('click', hideConfirm);
+
+      document.getElementById('stgCfDiscard').addEventListener('click', () => {
+        hideConfirm();
+        discardChanges();
+        closeSettings();
+      });
+
+      document.getElementById('stgCfApply').addEventListener('click', () => {
+        hideConfirm();
+        // Changes are already applied live — just close cleanly
+        // If PDF is open and full-doc was changed, apply the PDF render now
+        if (pdfModal.classList.contains('open') && pdfDoc) {
+          if (pdfFullDocMode) renderFullDoc(); else fitToWidth();
+        }
+        closeSettings();
+      });
 
       /* ── Theme segment ─────────────────────────────────────────────── */
       document.getElementById('stgThemeSeg').querySelectorAll('.stg-seg-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           applyTheme(btn.dataset.theme);
           syncSettingsUI();
+          markDirty();
         });
       });
 
@@ -4427,6 +4809,7 @@
         btn.addEventListener('click', () => {
           switchLang(btn.dataset.lang);
           syncSettingsUI();
+          markDirty();
         });
       });
 
@@ -4435,11 +4818,12 @@
         btn.addEventListener('click', () => {
           sectionBy = btn.dataset.sectionby;
           localStorage.setItem('ki_section_by', sectionBy);
-          sectionOrder = null; // reset order when mode changes
+          sectionOrder = null;
           localStorage.removeItem('ki_section_order');
           syncSettingsUI();
           buildSectionList();
           renderGrid(currentNode);
+          markDirty();
         });
       });
 
@@ -4449,11 +4833,11 @@
         pdfFullDocMode = !pdfFullDocMode;
         localStorage.setItem(PDF_FULL_DOC_KEY, pdfFullDocMode ? '1' : '0');
         fdToggle.classList.toggle('on', pdfFullDocMode);
-        // Apply immediately if PDF is open
+        // Apply live so user sees the preview immediately behind the settings panel
         if (pdfModal.classList.contains('open') && pdfDoc) {
-          if (pdfFullDocMode) renderFullDoc();
-          else exitFullDocMode();
+          if (pdfFullDocMode) renderFullDoc(); else exitFullDocMode();
         }
+        markDirty();
       });
 
       /* ── Section list (hierarchical drag-to-reorder) ──────────────── */
@@ -4524,6 +4908,7 @@
             sectionOrder = order;
             localStorage.setItem('ki_section_order', JSON.stringify(order));
             renderGrid(currentNode);
+            markDirty();
           });
 
         } else {
@@ -4581,6 +4966,7 @@
                 childOrders[typeFolder.name] = order;
                 localStorage.setItem('ki_child_orders', JSON.stringify(childOrders));
                 renderGrid(currentNode);
+                markDirty();
               });
             }
 
@@ -4593,6 +4979,7 @@
             sectionOrder = order;
             localStorage.setItem('ki_section_order', JSON.stringify(order));
             renderGrid(currentNode);
+            markDirty();
           });
         }
       }
