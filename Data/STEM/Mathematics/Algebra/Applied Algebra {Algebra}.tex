@@ -95,6 +95,39 @@ Therefore
 \subsubsection{Problem 1.7.}
 Find all solutions of the equation $ab + 2a - 3b = 14$ where $a, b \in \mathbb{N^+}$.
 
+Group terms containing $a$
+\[
+    ab + 2a - 3b = 14
+\]
+\[
+    a(b+2) - 3b = 14
+\]
+Move the $3b$ term
+\[
+    a(b+2) = 3b + 14
+\]
+Express $a$:
+\[
+    a = \frac{3b+14}{b+2} 
+\]
+Rewrite the numerator:
+\[
+    3b+14 = 3(b+2) + 8
+\]
+Thus
+\[
+    a = 3 + \frac{8}{b+2}.
+\]
+
+For $a$ to be integer, $b+2$ must divide 8.\\
+Divisors of 8: $1, 2, 4, 8$. Since $b \ge 1$, $b+2 \ge 3$, we are left with two possibilities:
+\begin{itemize}
+    \item $b + 2 = 8 \implies b = 2$
+    \item $b + 2 = 8 \implies b = 6$
+\end{itemize}
+
+Now we plug these $b$ values back into our expression for $a$ to find the two solutions to our equation: $(5,2)$ and $(4, 6)$.
+
 \subsubsection{Problem 1.8.}
 What is the minimal point of the expression $2x^2 + 2y^2 - 2xy + 4x -6y + 8$?
 
