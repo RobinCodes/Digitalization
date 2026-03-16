@@ -1,0 +1,152 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+\usepackage{graphicx}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definíció}[section]
+
+\newtheorem*{remark}{Megjegyzés}
+
+\theoremstyle{definition}
+\newtheorem{example}{Példa}
+
+\title{Gráfelmélet}
+\author{Simon László\thanks{Rovenszky Robin fordításával}}
+\date{Utoljára frissítve: 2026. március 16}
+
+\begin{document}
+
+\maketitle
+
+\section{Gráfok}
+
+\begin{definition}[Gráf]
+Egy gráf csúcsokból és élekből áll. Egy él vagy két csúcsot köt össze, vagy egy csúcsot önmagával.
+\end{definition}
+
+\begin{remark}
+Háromféleképpen fogjuk bemutatni az adatokat.
+\begin{enumerate}
+
+\item Felsorolásos forma: \\ \\
+\begin{matrix}
+A & B & C & D & E\\
+AB & AC & BC & DE & EE
+\end{matrix}
+
+\item Gráfábrázolás: \\ \\
+\begin{tikzpicture}[
+    vertex/.style={circle, draw, inner sep=1.5pt},
+    >=Stealth]
+
+\node[vertex] (A) at (0,0) {$A$};
+\node[vertex] (C) at (4,0) {$C$};
+\node[vertex] (B) at (2,2) {$B$};
+\draw[-] (A) -- node[above left] {$e_{AB}$} (B);
+\draw[-] (B) -- node[above right] {$e_{BC}$} (C);
+\draw[-] (A) -- node[below] {$e_{CA}$} (C);
+
+\node[vertex] (E) at (0,-2) {$E$};
+\node[vertex] (D) at (4,-2) {$D$};
+\draw[-] (E) -- node[above] {$e_{ED}$} (D);
+\draw[-] (E) edge[loop above] node {$e_{EE}$} ();
+\end{tikzpicture}
+
+\item Mátrixos forma: \\ \\
+\begin{matrix}
+ & A & B & C & D & E \\
+ A & 0 & 1 & 1 & 0 & 0\\
+ B & 1 & 0 & 1 & 0 & 0\\
+ C & 1 & 1 & 0 & 0 & 0\\
+ D & 0 & 0 & 0 & 0 & 1\\
+ E & 0 & 0 & 0 & 1 & 1
+\end{matrix}
+
+\end{enumerate}
+\end{remark}
+
+\begin{definition}[Hurok]
+Huroknak nevezzük azt az élt, amely egy csúcsot önmagával köt össze.
+\end{definition}
+
+\begin{definition}[Párhuzamos élek]
+Párhuzamos éleknek nevezzük azokat az éleket, amelyek ugyanazokat a csúcsokat kötik össze.
+\end{definition}
+
+\begin{example}
+Gráfábrázolás: \\
+\begin{tikzpicture}[
+    vertex/.style={circle, draw, inner sep=1.5pt},
+    >=Stealth
+]
+
+\node[vertex] (A) at (0,0) {$A$};
+\node[vertex] (C) at (4,0) {$C$};
+\node[vertex] (B) at (2,2) {$B$};
+
+\draw[-] (A) -- (B);
+\draw[-] (B) -- (C);
+\draw[-] (A) -- (C);
+
+\draw[-, bend left=25] (A) to (B);
+
+\end{tikzpicture}
+\end{example}
+
+\begin{definition}[Egyszerű gráf]
+Olyan gráf, amely nem tartalmaz hurkokat vagy párhuzamos éleket.
+\end{definition}
+
+\begin{definition}[Út]
+Az út csúcsok és élek olyan sorozata, amely egy kezdőcsúcsot egy végcsúcshoz köt össze úgy, hogy egyetlen csúcs sem ismétlődik.
+\end{definition}
+
+\begin{definition}[Vonal]
+A vonal csúcsok és élek olyan sorozata, amely egy kezdőcsúcsot egy végcsúcshoz köt össze úgy, hogy egyetlen él sem ismétlődik.
+\end{definition}
+
+\begin{definition}[Séta]
+A séta csúcsok és élek véges, váltakozó sorozata, amely egy gráfban történő bejárást ír le.
+\end{definition}
+
+\begin{definition}[Kör]
+A kör olyan út, amely ugyanabban a csúcsban kezdődik és végződik.
+\end{definition}
+
+\begin{definition}[Hamilton-út]
+A Hamilton-út olyan út, amely a gráf minden csúcsát tartalmazza.
+\end{definition}
+
+\begin{definition}[Hamilton-kör]
+A Hamilton-kör olyan kör, amely a gráf minden csúcsát tartalmazza.
+\end{definition}
+
+\begin{definition}[Euler-út]
+Az Euler-út olyan élséta, amely a gráf minden élét tartalmazza.
+\end{definition}
+
+\begin{definition}[Euler-kör]
+Az Euler-kör olyan kör, amely a gráf minden élét tartalmazza.
+\end{definition}
+
+\begin{definition}[Fokszám]
+Egy csúcs fokszáma az adott csúcshoz kapcsolódó élek száma. (Egy hurok 2-vel növeli a csúcs fokszámát.)
+\end{definition}
+
+\begin{definition}[Összefüggő gráf]
+Egy gráf összefüggő, ha bármely két csúcs között létezik út.
+\end{definition}
+
+\begin{definition}[Komponens]
+Egy gráf komponense olyan maximális részgráf, amelyben bármely két csúcs között létezik út, és amelyhez a gráf más csúcsai nem kapcsolódnak.
+\end{definition}
+
+\end{document}

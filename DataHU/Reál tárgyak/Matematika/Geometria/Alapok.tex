@@ -1,0 +1,187 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+
+\usepackage[utf8]{inputenc}     
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+\title{Alapgeometria}
+\author{Rovenszky Robin\thanks{Rovenszky Robin fordításával}}
+\date{Utoljára frissítve: 2026. március 16.}
+
+\newtheorem{theorem}{Tétel}
+
+\begin{document}
+
+\maketitle
+
+\begin{theorem}[Pitagorasz-tétel]
+Egy derékszögű háromszögben, amelynek befogói $a$ és $b$, átfogója pedig $c$, a következő összefüggés áll fenn:
+\[
+a^2 + b^2 = c^2.
+\]
+\end{theorem}
+
+\begin{proof}
+Vegyünk egy $(a+b)$ oldalhosszúságú négyzetet. Helyezzünk el a négyzet belsejében négy azonos derékszögű háromszöget, amelyek befogói $a$ és $b$, átfogójuk $c$, úgy, hogy az átfogók egy kisebb négyzetet alkossanak a középpontban.
+
+A nagy négyzet területe:
+\[
+(a+b)^2.
+\]
+
+Ez a terület egyenlő a négy háromszög területének és a középső kis négyzet területének összegével.
+
+Minden háromszög területe:
+\[
+\frac{1}{2}ab,
+\]
+így a négy háromszög együtt:
+\[
+4 \cdot \frac{1}{2}ab = 2ab.
+\]
+
+A középső négyzet oldala $c$, területe:
+\[
+c^2.
+\]
+
+Tehát
+\[
+(a+b)^2 = 2ab + c^2.
+\]
+
+A bal oldalt kibontva:
+\[
+a^2 + 2ab + b^2 = 2ab + c^2.
+\]
+
+A két oldalból kivonva $2ab$-t:
+\[
+a^2 + b^2 = c^2.
+\]
+
+Ez bizonyítja a tételt.
+\end{proof}
+
+\newpage
+
+\section{Kapcsolódó feladatok}
+
+\subsection{1. feladat}
+
+Első Pitagorasz-tétel:
+\begin{equation}
+    12^2 + x^2 = 15^2
+\end{equation}
+\begin{equation}
+    144+x^2 = 225
+\end{equation}
+\begin{equation}
+    x^2 = 81
+\end{equation}
+\begin{equation}
+    x = 9
+\end{equation}
+Második Pitagorasz-tétel:
+\begin{equation}
+    12^2 + y^2 = 13^2
+\end{equation}
+\begin{equation}
+    144 + y^2 = 169
+\end{equation}
+\begin{equation}
+    y^2 = 25
+\end{equation}
+\begin{equation}
+    y = 5
+\end{equation}
+Tehát a végső eredményünk: $x + y = 14$. \qed
+
+\subsection{2. feladat}
+
+Első Pitagorasz-tétel:
+\begin{equation}
+    x^2 + (12-r)^2 = (12+r)^2
+\end{equation}
+Második Pitagorasz-tétel:
+\begin{equation}
+    x^2 + r^2 = (24-r)^2
+\end{equation}
+(9) - (10) értékelése:
+\begin{equation}
+    (12-r)^2 - r^2 = (12+r)^2 - (24-r)^2
+\end{equation}
+\begin{equation}
+    (12-2r) \cdot 12 = 36 \cdot (2r - 12)
+\end{equation}
+12-vel osztva:
+\begin{equation}
+    (12-2r) = (2r - 12) \cdot 3
+\end{equation}
+Majd 2-vel osztva:
+\begin{equation}
+    6-r = 3 \cdot (r-6)
+\end{equation}
+\begin{equation}
+    6-r = 3r - 18
+\end{equation}
+18+r hozzáadásával:
+\begin{equation}
+    24 = 4r
+\end{equation}
+\begin{equation}
+    r = 6
+\end{equation}
+\qed
+
+\subsection{3. feladat}
+\begin{theorem}[1. tétel]
+Egy paralelogrammára:
+\begin{equation}
+    e^2 + f^2 = a^2 \cdot2 + b^2 \cdot2
+\end{equation}
+\begin{proof}
+Első Pitagorasz-tétel:
+\begin{equation}
+    (a-x)^2 + m^2 = e^2
+\end{equation}
+Második Pitagorasz-tétel:
+\begin{equation}
+    (a+x)^2 + m^2 = f^2
+\end{equation}
+(19) + (20) értékelése:
+\begin{equation}
+    a^2 - 2ax + x^2 + m^2 + a^2 + 2ax + x^2 + m^2 = e^2 + f^2
+\end{equation}
+Egyszerűsítve és a $m^2 + x^2 = b^2$ összefüggést felhasználva:
+\begin{equation}
+    2a^2 + 2b^2 = e^2 + f^2
+\end{equation}
+\end{proof}
+
+\end{theorem}
+
+\subsection{4. feladat}
+Legyen a kis kör sugara $r$.\\
+Első Pitagorasz-tétel:
+\begin{equation}
+    x^2 + (12 - r)^2 = (12 + r)^2
+\end{equation}
+Második Pitagorasz-tétel:
+\begin{equation}
+    r^2 + x^2 = (24-r)^2
+\end{equation}
+Lásd az (1.2) Kapcsolódó feladatok: 2. feladat megoldását. Ezek két egyenértékű feladat, 90 fokos elforgatással. A képek segítenek a tisztázásban.
+
+\subsection{5. feladat}
+Most tegyük a köröket téglalapok belsejébe ahelyett, hogy más körökbe tennénk!\\
+Keressük a téglalap magasságát a kis körök átmérője alapján.\\
+$r_0 = 12$
+
+\subsection{6. feladat}
+Egy másik kör-belső-téglalap probléma. A téglalap 60x48, mi a kis körök sugara?
+\end{document}

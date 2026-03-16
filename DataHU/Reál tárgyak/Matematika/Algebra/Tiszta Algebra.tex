@@ -1,0 +1,151 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+
+\title{Tiszta algebra}
+\author{Rovenszky Robin\thanks{Rovenszky Robin fordításával}}
+\date{Utoljára frissítve: 2026. március 16.}
+
+\newtheorem{theorem}{Tétel}
+\newtheorem*{remark}{Megjegyzés}
+
+\begin{document}
+
+\maketitle
+
+\section{Mi az a $\sqrt{2}$?}
+Tudjuk, hogy léteznie kell, hiszen egy derékszögű háromszögben, ahol a befogók hossza $a = 1$, $b = 1$, és a közöttük lévő szög $\alpha = 90^\circ$, az átfogó hossza $\sqrt{2}$. De mi is valójában $\sqrt{2}$?\\
+
+\begin{theorem}
+    Legyen $x$ olyan szám, amelyre $x^2 = 2$. Feltehetjük, hogy $x$ kifejezhető $\frac{p}{q}$ alakban, ahol $p, q \in \mathbb{Z}$ és $\gcd(p,q) = 1$.
+\end{theorem}
+
+\begin{proof}
+    Tegyük fel, hogy az állítás igaz. Ekkor
+    \begin{equation}
+        \frac{p^2}{q^2} = 2 \implies p^2 = 2q^2 \implies 2 \mid p^2 \implies 2 \mid p \implies 4 \mid p^2 \implies
+    \end{equation}
+    \begin{equation}
+        \implies 4 \mid 2q^2 \implies 2 \mid q^2 \implies 2 \mid q \implies \gcd(p, q) \ge 2 \Rightarrow\!\Leftarrow
+    \end{equation}
+    Vagy alternatív módon befejezhettük volna a bizonyítást $p^2 = 2q^2$ segítségével. Ekkor észrevesszük, hogy $p^2$ prímtényezős felbontásában a kettes kitevője páros, míg $2q^2$ prímtényezős felbontásában a kettes kitevője páratlan (mivel $\gcd(p,q) = 1$).
+\end{proof}
+
+Ezt az eredményt általánosíthatjuk úgy, hogy minden $a \in \mathbb{Z}_{\ge 0}$ esetén, ha $x^2 = a$, és $a$ tartalmaz prímtényezőt páratlan kitevővel (azaz $a$ nem tökéletes négyzet), akkor és csak akkor $x \in \mathbb{R} \setminus \mathbb{Q}$.
+
+\section{$\sqrt{2}$ meghatározása}
+Mivel irracionális számot nem találhatunk pontosan, közelítjük. Kezdjük a következő intervallummal:
+\[
+1 < x < 2 \Leftrightarrow 1 < x^2 < 4
+\]
+
+\begin{theorem}
+    \[
+    0 < x < y \implies 0 < x^2 < y^2
+    \]
+\end{theorem}
+
+\hrule
+\vspace{1em}
+
+Mielőtt bizonyítanánk a tételt, írjuk le a **rendezési axiómákat**:
+
+\begin{enumerate}
+    \item \textbf{Trikotómia axióma:} Pontosan egy állítás lehet igaz a következők közül: $a < b$, $b < a$, $a = b$.
+    \item \textbf{Összeadás megőrzi a rendezést:} Ha $a < b$ és $c$ tetszőleges, akkor $a+c < b+c$.
+    \item \textbf{Tranzitivitás axiómája:} Ha $a < b$ és $b < c$, akkor $a < c$.
+    \item \textbf{Pozitív szorzás megőrzi a rendezést:} Ha $0 < a$ és $b < c$, akkor $ab < ac$.
+    \item \textbf{1 pozitivitása:} $0 < 1$.
+\end{enumerate}
+
+Az összeadás disztributivitását (vagy hogy az összeadás megőrzi a rendezést) használva bizonyíthatjuk:
+\[
+x < 0 \implies 0 < -x
+\]
+
+\begin{proof}
+\[
+x + (-x) < 0 + (-x)
+\]
+\[
+0 < -x
+\]
+\end{proof}
+
+A szorzás disztributivitását (vagy hogy a pozitív szorzás megőrzi a rendezést) használva bizonyíthatjuk:
+\[
+(-1)\cdot x = -x
+\]
+
+\begin{proof}
+\[
+(1 + (-1)) \cdot x = 0
+\]
+\[
+1 \cdot x + (-1) \cdot x = 0 \implies (-1)\cdot x = -x
+\]
+\end{proof}
+
+Ehhez szükségünk van még a következő állításra is:
+\[
+0 \cdot x = 0
+\]
+
+\begin{proof}
+\[
+(0+0)\cdot x = 0\cdot x
+\]
+\[
+0\cdot x + 0\cdot x = 0\cdot x
+\]
+\[
+0\cdot x = 0
+\]
+\end{proof}
+
+\hrule
+\vspace{1em}
+
+Most bizonyítsuk a 3. tételt a szorzás disztributivitásának segítségével:
+
+\begin{proof}
+\begin{equation}
+0 < x < y \implies 0 < x^2 < y^2
+\end{equation}
+
+Szorzunk $x$-szel:
+\[
+x^2 < xy
+\]
+
+Majd (27)-et $y$-val:
+\[
+xy < y^2
+\]
+
+Egyesítve:
+\[
+x^2 < xy < y^2 \implies x^2 < y^2
+\]
+\end{proof}
+
+\begin{remark}
+Szintén bizonyítható, hogy $y < x < 0 \implies 0 < -x < -y$ a szorzás disztributivitása segítségével.
+\end{remark}
+
+\begin{proof}
+\[
+(-x) \cdot (-x) < (-y) \cdot (-x)
+\]
+\[
+x^2 < xy < y^2
+\]
+\end{proof}
+
+\end{document}
