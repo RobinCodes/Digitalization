@@ -13,13 +13,14 @@
 
 \newtheorem{theorem}{Theorem}
 \newtheorem*{remark}{Remark}
+\newtheorem*{proposition}{Proposition}
 
 \begin{document}
 
 \maketitle
 
 \section{What is $\sqrt{2}$?}
-We understand that it must exist, since in a right trinagle with legs $a = 1, b= 1, \alpha = 90$, where $\alpha$ is their enclosed angle, the hypothenuse has length $\sqrt{2}$. So what is $\sqrt{2}$?
+We understand that it must exist, since in a right triangle with legs $a = 1, b= 1, \alpha = 90$, where $\alpha$ is their enclosed angle, the hypotenuse has length $\sqrt{2}$. So what is $\sqrt{2}$?
 \\
 \begin{theorem}
     For an x satisfying $x^2 = 2$, x may also satisfy $x = \frac{p}{q}$ with $p, q \in \mathbb{Z}$, $gcd(p, q) = 1$
@@ -173,5 +174,21 @@ When we consider open intervals, like $I_n = (0, \frac{1}{n})$, there is no guar
 
 Now let's find a nested sequence of closed non-empty intervals whose intersection is \emph{exactly} one point.
 The length of the intervals $\frac{I_0}{2^n} < \epsilon \implies $ 
+
+\section{Problem Set}
+\subsection{Problem 1.}
+There is an infinite amount of gold. A person takes one each day for infinitely many days. Can he take all of them?
+
+\begin{proposition}
+  $\nexists$ gold that he hasn't stolen
+\end{proposition}
+\begin{proof}
+    We prove by disproving the opposite of the proposition that $\exists\text{ gold that he hasn't stolen}$
+    \\ \\
+    We number each of the gold coins one by one from 1 to infinity; now $\nexists$ gold for which we can't tell on which day it was stolen. $\implies$ $\nexists\text{ gold that he hasn't stolen}$
+
+\end{proof}
+
+
 
 \end{document}
