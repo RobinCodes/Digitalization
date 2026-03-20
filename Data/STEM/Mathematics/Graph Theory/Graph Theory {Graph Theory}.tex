@@ -8,12 +8,7 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning}
 \usepackage{graphicx} % Required for inserting images
-% who the fuck puts that comment there lmao
-% most internet-copied thing ever
-% lol
-% we are NOT releasing this without checking these comments first :sob: 
-%lowk just copying it from another overleaf default project lmao
-%anyways gonna start working on it now
+
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 
@@ -23,12 +18,14 @@
 \newtheorem{example}{Example}
 
 \title{Graph Theory}
-\author{Simon László}
+\author{László Simon}
 \date{Last updated: March 16, 2026}
 
 \begin{document}
 
 \maketitle
+\tableofcontents
+\newpage
 
 \section{Graphs}
 \begin{definition}[Graphs]
@@ -64,23 +61,17 @@ AB & AC & BC & DE & EE
 \draw[-] (E) edge[loop above] node {$e_{EE}$} ();
 \end{tikzpicture}
 
-% I'm going to end your lineage with this shit
-%thank chatgpt lmao
-% fahhhh LMAO
-%reading through these comments later will be peak
-% :sob:
-%anyways what if we just left in the "Whatever the fuck this is called form"
-% :sob: v2
-%fahhhh 67th line btw (not anymore)
 \item Matrix form: \\ \\
+\[
 \begin{matrix}
- & A & B & C & D & E \\
- A & 0 & 1 & 1 & 0 & 0\\
- B & 1 & 0 & 1 & 0 & 0\\
- C & 1 & 1 & 0 & 0 & 0\\
- D & 0 & 0 & 0 & 0 & 1\\
- E & 0 & 0 & 0 & 1 & 1
+ & \text{A} & \text{B} & \text{C} & \text{D} & \text{E} \\
+\text{A} & 0 & 1 & 1 & 0 & 0\\
+\text{B} & 1 & 0 & 1 & 0 & 0\\
+\text{C} & 1 & 1 & 0 & 0 & 0\\
+\text{D} & 0 & 0 & 0 & 0 & 1\\
+\text{E} & 0 & 0 & 0 & 1 & 1
 \end{matrix}
+\]
 \end{enumerate}
 \end{remark}
 

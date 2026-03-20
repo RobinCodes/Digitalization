@@ -1,0 +1,50 @@
+\documentclass{article}
+\usepackage{amsthm}
+
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+%code header
+\usepackage{xcolor}
+\usepackage{listings}
+\definecolor{vsBlue}{RGB}{0,0,255}
+\definecolor{vsGreen}{RGB}{0,128,0}
+\definecolor{vsGray}{RGB}{128,128,128}
+\definecolor{vsString}{RGB}{163,21,21}
+\definecolor{vsBg}{RGB}{255,255,255}
+\lstdefinestyle{csharpVS}{
+  language=[Sharp]C,
+  backgroundcolor=\color{vsBg},
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{vsBlue}\bfseries,
+  commentstyle=\color{vsGreen}\itshape,
+  stringstyle=\color{vsString},
+  numberstyle=\tiny\color{vsGray},
+  numbers=left,
+  stepnumber=1,
+  numbersep=5pt,
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  tabsize=4
+}
+
+\lstset{style=csharpVS}
+
+\title{C\#}
+\author{Lengyel Zoltán Péter, Rovenszky Robin}
+\date{Legutóbb frissítve: 2026. Március 19.}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\begin{lstlisting}
+
+
+\end{lstlisting}
+
+\end{document}

@@ -8,16 +8,20 @@
 \usepackage{amssymb}
 
 \title{Pure Algebra}
-\author{Rovenszky Robin}
-\date{Last updated: 17 March 2026}
+\author{Robin Rovenszky}
+\date{Last updated: March 18, 2026}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem*{remark}{Remark}
 \newtheorem*{proposition}{Proposition}
 
+\newtheorem*{definition}{Definition}
+
 \begin{document}
 
 \maketitle
+\tableofcontents
+\newpage
 
 \section{What is $\sqrt{2}$?}
 We understand that it must exist, since in a right triangle with legs $a = 1, b= 1, \alpha = 90$, where $\alpha$ is their enclosed angle, the hypotenuse has length $\sqrt{2}$. So what is $\sqrt{2}$?
@@ -174,21 +178,88 @@ When we consider open intervals, like $I_n = (0, \frac{1}{n})$, there is no guar
 
 Now let's find a nested sequence of closed non-empty intervals whose intersection is \emph{exactly} one point.
 The length of the intervals $\frac{I_0}{2^n} < \epsilon \implies $ 
+% TODO: Finish this based on material that will be uploaded to Kréta eventually. We learnt this on 17 March 2026
 
 \section{Problem Set}
 \subsection{Problem 1.}
 There is an infinite amount of gold. A person takes one each day for infinitely many days. Can he take all of them?
 
 \begin{proposition}
-  $\nexists$ gold that he hasn't stolen
+  He can't steal all of them, since any arbitrary day I can go in and observe that there is still an infinite amount of gold in the room.
 \end{proposition}
+However, we will see that this is actually not true. Instead, we will prove the opposite of this statement.
+\begin{proposition}
+    He can steal all of them, therefore $\nexists$ gold that he has not stolen.
+\end{proposition}
+
+For our proof, we will introduce concepts such as \textbf{bijection}, \textbf{countably infinite sets} and \textbf{uncountably infinite sets}.
+
+\begin{definition}[Countably infinite set]
+    A set is countably infinite if its elements can be put in one-to-one correspondence with the natural numbers.
+\end{definition}
+
+\begin{definition}[Bijection]
+    A bijection is a function that is both injective and surjective. Intuitively, it pairs element of one set with \textbf{exactly one unique element} of another set, and every element of the second set is matched to.
+\end{definition}
+    Formally:\\
+    Let $f : A \rightarrow B$ be a function.\\
+    $f$ is a bijection if it satisfies the following properties:
+    \begin{enumerate}
+        \item \textbf{Injective} (one-to-one)
+        \[
+            f(a_1) = f(a_2) \implies a_1 = a_2
+        \]
+        Different inputs always produce different outputs.
+        \item \textbf{Surjective} (onto)
+        \[
+            \forall b \in B \: \exists a \in A : f(a) = b
+        \]
+        Every element of $B$ is the image of some element in $A$.\\
+        If both hold, then
+        \[
+        f : A \leftrightarrow B
+        \]
+        pairs the set perfectly. This means that the sets are the same size, or equivalently
+        \[
+        |A| = |B|.
+        \]
+    \end{enumerate}
+
+% also got to show the property of bijection that a bijection exists iff it has an inverse function etc 
+    
+With our newfound knowledge, let us revisit \emph{countably infinite sets}.
+
+    Formally, a set $A$ is countably infinite if there exists a \textbf{bijection}
+    \[
+    f: \mathbb{N} \rightarrow A.
+    \]
+    Such sets include:
+    \begin{itemize}
+        \item $\mathbb{N}$
+        \item $\mathbb{Z}$
+        \item $\mathbb{Q}$.
+    \end{itemize}
+    This means that you can list the elements
+    \[
+    a_1, a_2, a_3,...
+    \]
+    even though the list never ends.
+
+\begin{definition}[Uncountably infinite set]
+    A set is uncountable if there is no enumeration
+    \[
+    r_1, r_2, r_3,...
+    \]
+    that contains every element of the set. 
+    The classic example is $\mathbb{R}$, proved by Cantor's diagonalization argument.
+\end{definition}
+
+% still got to introduce Cantor's diagonalization argument, apply that to the gold problem, show what happens based on wheter those sets correspond to R or N etc., 
+
+With these concepts in mind now, let us reconsider the original gold problem.
+
 \begin{proof}
-    We prove by disproving the opposite of the proposition that $\exists\text{ gold that he hasn't stolen}$
-    \\ \\
-    We number each of the gold coins one by one from 1 to infinity; now $\nexists$ gold for which we can't tell on which day it was stolen. $\implies$ $\nexists\text{ gold that he hasn't stolen}$
 
 \end{proof}
-
-
 
 \end{document}
