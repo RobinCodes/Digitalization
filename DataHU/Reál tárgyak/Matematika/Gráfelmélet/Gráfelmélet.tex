@@ -53,7 +53,7 @@ AB & AC & BC & DE & EE
 \node[vertex] (C) at (4,0) {$C$};
 \node[vertex] (B) at (2,2) {$B$};
 \draw[-] (A) -- node[above left] {$e_{AB}$} (B);
-\draw[-] (B) -- node[above right] {$e_{BC}$} (C);
+\draw[-] (B) -- node[above  right] {$e_{BC}$} (C);
 \draw[-] (A) -- node[below] {$e_{CA}$} (C);
 
 \node[vertex] (E) at (0,-2) {$E$};
@@ -85,6 +85,7 @@ Párhuzamos éleknek nevezzük azokat az éleket, amelyek ugyanazokat a csúcsok
 
 \begin{example}
 Gráfábrázolás: \\
+\begin{center}
 \begin{tikzpicture}[
     vertex/.style={circle, draw, inner sep=1.5pt},
     >=Stealth
@@ -101,6 +102,7 @@ Gráfábrázolás: \\
 \draw[-, bend left=25] (A) to (B);
 
 \end{tikzpicture}
+\end{center}
 \end{example}
 
 \begin{definition}[Egyszerű gráf]

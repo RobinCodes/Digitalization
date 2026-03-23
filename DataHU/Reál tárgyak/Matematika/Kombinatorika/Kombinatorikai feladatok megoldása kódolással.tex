@@ -1,0 +1,41 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+\usepackage{graphicx}
+
+\title{Kombinatorikai feladatok megoldása kódolással}
+\author{Rovenszky Robin}
+\date{Legutóbb frissítve: 2026. Március 23.}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Első feladat}
+Hányféleképpen írhatjuk fel a tizet három nem negatív egész szám összegeként, ha az összeadandók sorrendje is számít?
+
+\section{Második feladat}
+A huszat hányféle képpen lehet felírni három pozitív egész szám összegeként, ha az összeadandók sorrendje is számít?
+
+Általánosan $n \in \mathbb{N^+}$ számot $k \in \mathbb{N^+}$ darab számból 
+\[
+n-1 \choose k-1
+\]
+féleképpen írhatunk fel, $1 \le k \le n$.\\\\
+Ha $k \in \mathbb{N}$, akkor pedig
+\[
+n + k - 1 \choose k - 1
+\]
+féleképpen.
+
+\end{document}
