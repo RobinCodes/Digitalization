@@ -9,9 +9,35 @@
 \usepackage{graphicx}
 % mértékegységek, hőmérséklet
 
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+% Level 4
+\titleclass{\subsubsubsection}{straight}[\subsubsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+
+\titleformat{\subsubsubsection}
+{\normalfont\normalsize\bfseries}
+{\thesubsubsubsection}{1em}{}
+
+% Level 5
+\titleclass{\subsubsubsubsection}{straight}[\subsubsubsection]
+\newcounter{subsubsubsubsection}[subsubsubsection]
+\renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
+
+\titleformat{\subsubsubsubsection}
+{\normalfont\normalsize\bfseries}
+{\thesubsubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsection}{0pt}{3ex}{1ex}
+\titlespacing*{\subsubsubsubsection}{0pt}{3ex}{1ex}
+
 \title{5. Főcsoport: A Nitrogén csoport}
 \author{Haydu Lőrinc, Lengyel Zoltán Péter, Rovenszky Robin}
-\date{Legutóbb frissítve: 2026. Március 17.}
+\date{Legutóbb frissítve: 2026. Március 24.}
 
 \newtheorem{definition}{Definíció}
 
@@ -22,146 +48,202 @@
 \newpage
 
 \section{A Nitrogén csoport}
-\begin{enumerate}
-    \item Nitrogén (N)
-    \item Foszfor (P)
-    \item Arzén (As)
-    \item Antimon (Sb)
-    \item Bizmut (Bi)
-\end{enumerate}
-
-5 db vegyérték elektron $\implies$ a nemesgáz elektronszerkezetének eléréséhez:
-\begin{itemize}
-    \item 3 db kovalens kötés\\
-    Pl.: Ammónia 
-    % insert ammónia ábra here
-    \item 3-szoros negatív töltésű anion (pl. $N^{3-}$ - nitrid-ion). \\
-    Egyedi, mert lényegében csak a nitrogén tud ennyi iont felvenni, mivel nagyon nagy az elektronegativitása.
-    \item Az is lehetséges, hogy a nitrogén 5 db kovalens kötést létesítsen. Pl.: $HNO_3$ - salétromsav
-    % insert salétromsav ábra here
-    \\
-    A nitrogén túllépett a nemesgáz elektroszerkezetén, de ez így is energetikailag kedvező.
-\end{itemize}
-
-\section{Nitrogén}
-\subsection{Atomi jellemzők}
-\begin{itemize}
-    \item nagy EN (3.0)
-\end{itemize}
-\subsection{Molekulaszerkezet}
-%insert Nitrogen atom here
-Ez egy erős kovalens kötés $\rightarrow$ közönséges körülmények között nem reakcióképes
-$\rightarrow$ apoláris molekula $\rightarrow$ diszperziós kölcsönhatás $\rightarrow$ molekularácsos szilárd halmazállapotban
-\subsection{Fizikai tulajdonságok}
-\begin{itemize}
-    \item alacsony olvadáspont és forráspont (\SI{-210}{\degreeCelsius} és \SI{-180}{\degreeCelsius})
-    \item vízben rosszul oldódik
-\end{itemize}
-
-\begin{itemize}
-    \item (keszonbetegség $\rightarrow$ gázok oldhatósága nagyobb nyomás alatt jobb!)
-\end{itemize}
-
-\subsection{Kémiai tulajdonságok}
-\begin{itemize}
-    \item $N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO$
-    \item \(\ce{N2 + 3 H2 <=>[\text{Fe-katalizátor}] 2 NH3}\)
-\end{itemize}
-
-\subsection{Biológiai kitekintő: Nitrogén körforgása a környezetben}
-\begin{itemize}
-    \item A nitrogén hármas kötése miatt majdnem semmi sem veszi fel, viszont nitrifikáló baktériumok fel tudják venni, ezek pedig szimbiózisban élnek bizonyos növényekkel (pl. bab, borsó, ill. egyéb hüvelyesek).
-    \item Másik mód, amivel a körforgásba kerül a $\SI{3000}{\degreeCelsius}$-n bekövetkező reakció (villámlás).
-\end{itemize}
-
-\subsection{Szervetlen vegyipar legfontosabb folyamatai}
-\begin{itemize}
-    \item Hidrogén-klorid gyártás
-    \item Kénsav gyártás
-    \item Ammónia gyártás
-\end{itemize}
-
-
-\subsection{Felhasználás}
-\begin{enumerate}
-    \item Ammónia gyártás
-    \item Védőgáz (csomagolás, hegesztés)
-    \item Hűtés (folyékony nitrogénnel)
-
-\end{enumerate}
-\subsection{Előállítás} 
-A levegő cseppfolyósításával és frakcionális desztillációjával elkülönítik.
-
-\begin{definition}[Frakcionált desztilláció.]
-A forráspontkülönbségen alapuló elválasztási művelet.
-\end{definition}
-
-\subsection{A vegyületei}
-
-\begin{itemize}
-    \item Oxidjai
     \begin{enumerate}
-        \item $N_2O$ (dinitrogén-monoxid)\\
-        Színtelen, édeskés szagú gáz \begin{itemize}
-            \item Felhasználása: \begin{itemize}
-                \item Tejszínhab készítése (szifon)
-                \item Érzéstelenítés orvostudományban (szülési fájdalmak csökkentése)
-                \item Méhészet (elbódítja a méheket, mielőtt beavatkozik)
-                \item Autóversenyek (nitro)
-            \end{itemize}
-            \item Hétköznapi neve: kéjgáz (nevetőgáz)
-        \end{itemize}
-
-        \item $NO$ (nitrogén-monoxid)
-        \[
-        N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO
-        \]
-        Tovább alakul:
-        \[
-        2NO + O_2 \rightarrow 2NO_2
-        \]
-        Színtelen, szúrós szagú, mérgező gáz, amely az érfalak rugalmasságát szabályozza az emberi szervezetben, $\implies$ a vérnyomásra hat (nitroglicerin tabletta)
-        % insert nitroglicerin ábra here
-
-        \item $NO_2$ (nitrogén-dioxid)\\
-        % insert nitrogén-dioxid ábra here
-        Vörösbarna, szúrós szagú gáz, erősen mérgező. A szennyezett városi levegő egyik mérgező összetevője.
-        
-    \end{enumerate}
-
-    \item Oxosavai
-    \begin{enumerate}
-        \item Salétromossav
-        \[
-        2NO_2 + H_2O \rightarrow \underset{\text{salétromossav}}{HNO_2} + \underset{\text{salétromsav}}{HNO_3}
-        \]
-        Gyenge, bomlékony, egyértékű sav. Csak vizes oldatban létezik. Sói: nitritek, pl.: $KNO_2$ $\leftarrow$ kálium-nitrit $\leftarrow$ pác\textbf{só} $\leftarrow$ tartósítószer\\
-        \item Salétromsav
-        
-        Csak vizes oldatban létezik; erős, egyértékű sav. A koncentrált (tömény) salétromsav-oldat nagyjából 65 w\%-os.
-
-        \begin{definition}[Erős sav]
-            A $H^+$-ion leadása híg vizes oldatban 100\%-os.
-        \end{definition}
-        \begin{definition}[Egyértékű sav]
-            Egy sav molekula egy db $H^+$-iont képes leadni.
-        \end{definition}
-        
-         Kísérlet 1.\\
-        L: híg salétronsav (5 tömeg$\%$-os) + Mg-reszelék\\
-        T: peszgés; enyhe hőfejlődés, színtelen, szagtalan gáz\\
-        M: $Mg + 2HNO_3 \rightarrow Mg (NO_3)_2 + H_2$   \\\\
-        Kísérlet 2. \\
-        cc. salétronsav és 5Ft reakciója\\
-        L:
-
-        A salétronsav használható fehérje kimutatása:\\
-        xantoprotein-próba: fehérje + cc. salétromsav
-        $\rightarrow$ dohánysárga \\
-        
-
+        \item Nitrogén (N)
+        \item Foszfor (P)
+        \item Arzén (As)
+        \item Antimon (Sb)
+        \item Bizmut (Bi)
     \end{enumerate}
     
-\end{itemize}
+    5 db vegyérték elektron $\implies$ a nemesgáz elektronszerkezetének eléréséhez:
+    \begin{itemize}
+        \item 3 db kovalens kötés\\
+        Pl.: Ammónia 
+        % insert ammónia ábra here
+        \item 3-szoros negatív töltésű anion (pl. $N^{3-}$ - nitrid-ion). \\
+        Egyedi, mert lényegében csak a nitrogén tud ennyi iont felvenni, mivel nagyon nagy az elektronegativitása.
+        \item Az is lehetséges, hogy a nitrogén 5 db kovalens kötést létesítsen. Pl.: $HNO_3$ - salétromsav
+        % insert salétromsav ábra here
+        \\
+        A nitrogén túllépett a nemesgáz elektroszerkezetén, de ez így is energetikailag kedvező.
+    \end{itemize}
+    
+\section{Nitrogén}
+    \subsection{Atomi jellemzők}
+        \begin{itemize}
+            \item nagy EN (3.0)
+        \end{itemize}
+        
+    \subsection{Molekulaszerkezet}
+        %insert Nitrogen atom here
+        Ez egy erős kovalens kötés $\rightarrow$ közönséges körülmények között nem reakcióképes
+        $\rightarrow$ apoláris molekula $\rightarrow$ diszperziós kölcsönhatás $\rightarrow$ molekularácsos szilárd halmazállapotban
+    \subsection{Fizikai tulajdonságok}
+        \begin{itemize}
+            \item Alacsony olvadáspont és forráspont (\SI{-210}{\degreeCelsius} és \SI{-180}{\degreeCelsius})
+            \item Vízben rosszul oldódik
+            \item Keszonbetegség (búvárbetegség) $\rightarrow$ gázok oldhatósága nagyobb nyomás alatt jobb!
+        \end{itemize}
+    
+    \subsection{Kémiai tulajdonságok}
+        \begin{itemize}
+            \item $N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO$
+            \item \(\ce{N2 + 3 H2 <=>[\text{Fe-katalizátor}] 2 NH3}\)
+        \end{itemize}
+    
+    \subsection{Biológiai kitekintő: Nitrogén körforgása a környezetben}
+        \begin{itemize}
+            \item A nitrogén hármas kötése miatt majdnem semmi sem veszi fel, viszont nitrifikáló baktériumok fel tudják venni, ezek pedig szimbiózisban élnek bizonyos növényekkel (pl. bab, borsó, ill. egyéb hüvelyesek).
+            \item Másik mód, amivel a körforgásba kerül a $\SI{3000}{\degreeCelsius}$-n bekövetkező reakció (villámlás).
+        \end{itemize}
+    
+    \subsection{Szervetlen vegyipar legfontosabb folyamatai}
+        \begin{itemize}
+            \item Hidrogén-klorid gyártás
+            \item Kénsav gyártás
+            \item Ammónia gyártás
+        \end{itemize}
+    
+    
+    \subsection{Felhasználás}
+        \begin{enumerate}
+            \item Ammónia gyártás
+            \item Védőgáz (csomagolás, hegesztés)
+            \item Hűtés (folyékony nitrogénnel)
+        \end{enumerate}
+        
+    \subsection{Előállítás} 
+        A levegő cseppfolyósításával és frakcionális desztillációjával elkülönítik.
+        
+        \begin{definition}[Frakcionált desztilláció.]
+        A forráspontkülönbségen alapuló elválasztási művelet.
+        \end{definition}
+    
+    \subsection{A vegyületei}
+        \subsubsection{Oxidjai}
+            \subsubsubsection{Dinitrogén-monoxid; $N_2O$}
+                    Színtelen, édeskés szagú gáz 
+                    \begin{itemize}
+                        \item Felhasználása: 
+                        \begin{itemize}
+                            \item Tejszínhab készítése (szifon)
+                            \item Érzéstelenítés orvostudományban (szülési fájdalmak csökkentése)
+                            \item Méhészet (elbódítja a méheket, mielőtt beavatkozik)
+                            \item Autóversenyek (nitro)
+                        \end{itemize}
+                        \item Hétköznapi neve: kéjgáz (nevetőgáz)
+                    \end{itemize}
+            
+            \subsubsubsection{Nitrogén-monoxid; $NO$}
+                    \[
+                    N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO
+                    \]
+                    Tovább alakul:
+                    \[
+                    2NO + O_2 \rightarrow 2NO_2
+                    \]
+                    Színtelen, szúrós szagú, mérgező gáz, amely az érfalak rugalmasságát szabályozza az emberi szervezetben, $\implies$ a vérnyomásra hat (nitroglicerin tabletta)
+                    % insert nitroglicerin ábra here
+            
+            \subsubsubsection{Nitrogén-dioxid; $NO_2$}
+                    % insert nitrogén-dioxid ábra here
+                    Vörösbarna, szúrós szagú gáz, erősen mérgező. A szennyezett városi levegő egyik mérgező összetevője.
+                
+        \subsubsection{Oxosavai}
+            \subsubsubsection{Salétromossav}
+                    \[
+                    2NO_2 + H_2O \rightarrow \underset{\text{salétromossav}}{HNO_2} + \underset{\text{salétromsav}}{HNO_3}
+                    \]
+                    Gyenge, bomlékony, egyértékű sav. Csak vizes oldatban létezik. Sói: nitritek, pl.: $KNO_2$ $\leftarrow$ kálium-nitrit $\leftarrow$ pác\textbf{só} $\leftarrow$ tartósítószer\\
+            
+            \subsubsubsection{Salétromsav}
+                    Csak vizes oldatban létezik; erős, egyértékű sav. A koncentrált (tömény) salétromsav-oldat nagyjából 65 w\%-os.
+            
+                    \begin{definition}[Erős sav]
+                        A $H^+$-ion leadása híg vizes oldatban 100\%-os.
+                    \end{definition}
+                    
+                    \begin{definition}[Egyértékű sav]
+                        Egy sav molekula egy db $H^+$-iont képes leadni.
+                    \end{definition}
+            
+                    A salétromsav használható fehérjék kimutatására:\\
+                    xantoprotein-próba: fehérje + cc. salétromsav
+                    $\rightarrow$ dohánysárga szín\\
+                    Salétromsav régies neve: választó víz, mert a $HNO_3$ oldja az ezüstöt, de nem oldja az aranyat. Ékszerészek használták.
+            
+                    \subsubsubsubsection{Salétromsav reakciója fémekkel}
+            
+                        \hrule
+                        \vspace{8pt}
+                    
+                        \begin{enumerate}
+                            \item Híg salétromsav ($\approx5$w\%-os) és ezüst
+                        % Hány w%-ig?
+                        
+                            \setlength\parindent{110pt}
+                            Nincs reakció
+                            
+                            \item Közepes töményénységű ($\approx$30w\%-os) salétromsav és ezüst
+                            \[
+                                3Ag + 4HNO_3 \rightarrow 3AgNO_3 + \underset{\text{színtelen gáz}}{NO} + 2H_2O
+                            \]
+                            \item Tömény (65w\%-os) salétromsav és ezüst
+                            % >65w%?
+                            \[
+                            Ag + 2HNO_3 \rightarrow AgNO_3 + \underset{\text{vörösbarna gáz}}{NO_2} + H_2O
+                            \]
+        
+                            \hrule
+                        
+                            \item Híg salétromsav ($\approx$5w\%-os) és vas
+                            % Mennyi w%-ig?
+                            \[
+                                Fe + 2HNO_3 \rightarrow Fe(NO_3)_2 + H_2
+                            \]
+        
+                            % közepes töménységűvel mizu?
+                            
+                            \item Tömény (65w\%-os) salétromsav és vas
+                            % >65w%? Honnantól?
+                            
+                            \setlength\parindent{110pt}
+                            Passziválódik!
+        
+                            \vspace{10pt}
+                            \hrule
+                            
+                        \end{enumerate}
+                        
+                        \begin{definition}[Passziválódás]
+                            Ugyan a reakció beindul, viszont egy atomnyi vastagságú "védőréteg" alakul ki, ezért a reakció megáll. A védőréteg felépítése bonyolult. A védőréteg nitrátból és oxidból áll.
+                        \end{definition}
+            
+                    \subsubsubsubsection{A salétromsav fontos vegyületei}
+                        \begin{enumerate}
+                            \item $NaNO_3$; nátrium-nitrát, chilei salétrom
+                            \item $KNO_3$; kálium-nitrét, kálisalétrom $\leftarrow$ fekete lőpor
+                            \item $NH_4NO_3$; ammónium-nitrát $\leftarrow$ műtrágya (pétisó - $NH_4NO_3$ és mészkőpor keveréke). Nyílt lángban robbanékony.
+                        \end{enumerate}
 
+\section{Kísérletek}
+    \subsection{Kísérlet 1.}
+        % insert kísérlet 1 picture here
+        \textbf{Leírás.} Híg salétromsav (5 w$\%$-os) + Mg-reszelék\\
+        \textbf{Tapasztalat.} Pezsgés, enyhe hőfejlődés, színtelen, szagtalan gáz\\
+        \textbf{Magyarázat:} 
+        \[
+            Mg + 2HNO_3 \rightarrow Mg (NO_3)_2 + H_2
+        \]
+        
+    \subsection{Kísérlet 2: Tömény salétromsav és 5 Forintos érme reakciója.}
+        % insert kísérlet 2 picture here
+        \textbf{Leírás.} Tömény salétromsavba 5 Forintos érmét rakunk.\\
+        \textbf{Tapasztalat.} Vörösbarna, jellegzetes szagú gáz, zöldeskék oldat. A főzőpohár fala forró lett, az érme jóval kisebb lett.\\
+        \textbf{Magyarázat.} 
+        \[
+            Cu + 4HNO_3 \rightarrow \underset{\text{réz-nitrát}}{Cu(NO_3)_2} + 2NO_2 + 2H_2O
+        \]
+        
 \end{document}
