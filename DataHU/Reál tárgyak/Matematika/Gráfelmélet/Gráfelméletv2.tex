@@ -1,0 +1,109 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+\newtheorem{definition}{Definíció}
+\newtheorem{corollary}{Folyomány}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Tétel}
+
+\title{Gráfelmélet}
+\author{Rovenszky Robin}
+\date{Legutóbb frissítve: 2026. Március 26.}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Bevezető}
+
+\section{Definíciók}
+\begin{definition}[Irányítatlan gráf]
+    Csúcsokból és élekből áll. Egy él két, nem feltétlenül különböző csúcsot köt össze.
+\end{definition}
+
+\begin{definition}[Hurokél]
+    Olyan él, amely egy csúcsot önmagához köt.
+\end{definition}
+
+\begin{definition}
+    Egy él akkor többszörös él, ha létezik legalább egy másik él amely ugyan azt a két csúcsot köti össze.
+\end{definition}
+
+\begin{definition}[Egyszerű gráf]
+    Olyan gráf, melynek nincs hurokélje és többszörös élje.
+\end{definition}
+
+\begin{definition}[Összefüggő gráf]
+    Olyan gráf, melynek bármely pontjából bármely másik pontjába vezet út.
+\end{definition}
+
+\begin{definition}[Komponens]
+    Olyan részgráf, amely összefüggő és a csúcsok számára nézve maximális.
+\end{definition}
+
+\begin{definition}[Fokszám]
+    Adott csúcs fokszáma megadja az adott csúcsot elhagyó élek számát. Adott gráf fokszáma megadja az gráfban lévő csúcsok fokszámainak összegét.
+\end{definition}
+
+\begin{definition}[Üres gráf]
+    Olyan gráf, melynek fokszáma 0.
+\end{definition}
+
+\begin{definition}[Teljes gráf]
+    Olyan gráf, mely a fokszámára való tekintettel maximális, tehát minden csúcs minden csúccsal össze van kötve.
+\end{definition}
+
+\begin{definition}[Út]
+    Egymáshoz kapcsolódó élek egymásutánja. Se él, se csúcs nem ismétlődik benne.
+\end{definition}
+
+\begin{definition}[Vonal]
+    Olyan út, amelyben a csúcsok ismétlődhetnek.
+\end{definition}
+
+\begin{definition}[Séta]
+    Olyan vonal, amely megengedi az élek ismétlődését.
+\end{definition}
+
+\begin{definition}[Kör]
+    Olyan út, melynek kezdő és végpontja megegyezik.
+\end{definition}
+
+\begin{definition}[Hamilton-út]
+    A gráf összes csúcsát tartalmazó út.
+\end{definition}
+
+\begin{definition}[Hamilton-kör]
+    A gráf összes csúcsát tartalmazó kör.
+\end{definition}
+
+\begin{definition}[Euler-vonal]
+    A gráf összes élét tartalmazó vonal.
+\end{definition}
+
+\begin{definition}[Euler-kör]
+    A gráf összes élét tartalmazó kör.
+\end{definition}
+
+\begin{lemma}
+    Egy összefüggő gráf komponenseinek száma 1.
+\end{lemma}
+\begin{proof}
+    
+\end{proof}
+
+\section{Fák}
+\begin{definition}[Fa]
+    Egyszerű, összefüggő, körmentes gráf.
+\end{definition}
+
+\end{document}

@@ -1,43 +1,77 @@
 \documentclass{article}
+
+% --- Encoding & Language ---
 \usepackage[utf8]{inputenc}     % pdfLaTeX
 \usepackage[T1]{fontenc}
 \usepackage[magyar]{babel}
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage[version=4]{mhchem}
-\usepackage{siunitx}
-\usepackage{graphicx}
-% mértékegységek, hőmérséklet
 
+% --- Math & Chemistry ---
+\usepackage{amsmath, amsthm}
+\usepackage[version=4]{mhchem} % chemical formulas
+\usepackage{chemfig}            % structural formulas
+\usepackage{siunitx}            % units, temperatures
+
+% --- Section formatting ---
 \usepackage{titlesec}
 
+% Allow deep section numbering and TOC
 \setcounter{secnumdepth}{5}
 \setcounter{tocdepth}{5}
 
-% Level 4
+\makeatletter
+
+% ------------------------
+% LEVEL 4: subsubsubsection
+% ------------------------
 \titleclass{\subsubsubsection}{straight}[\subsubsection]
 \newcounter{subsubsubsection}[subsubsection]
 \renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
 
-\titleformat{\subsubsubsection}
-{\normalfont\normalsize\bfseries}
-{\thesubsubsubsection}{1em}{}
+\renewcommand\subsubsubsection{%
+  \@startsection{subsubsubsection}{4}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
 
-% Level 5
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 4
+\newcommand*\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+
+% --------------------------
+% LEVEL 5: subsubsubsubsection
+% --------------------------
 \titleclass{\subsubsubsubsection}{straight}[\subsubsubsection]
 \newcounter{subsubsubsubsection}[subsubsubsection]
 \renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
 
-\titleformat{\subsubsubsubsection}
-{\normalfont\normalsize\bfseries}
-{\thesubsubsubsubsection}{1em}{}
+\renewcommand\subsubsubsubsection{%
+  \@startsection{subsubsubsubsection}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
 
-\titlespacing*{\subsubsubsection}{0pt}{3ex}{1ex}
+\titleformat{\subsubsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsubsection}{1em}{}
+
 \titlespacing*{\subsubsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 5
+% Use level 4 internally for safety (LaTeX only knows TOC levels 1-4)
+\newcommand*\l@subsubsubsubsection{\@dottedtocline{4}{10em}{5em}}
+
+\makeatother
 
 \title{5. Főcsoport: A Nitrogén csoport}
 \author{Haydu Lőrinc, Lengyel Zoltán Péter, Rovenszky Robin}
-\date{Legutóbb frissítve: 2026. Március 24.}
+\date{Legutóbb frissítve: 2026. Március 27.}
 
 \newtheorem{definition}{Definíció}
 
@@ -48,6 +82,7 @@
 \newpage
 
 \section{A Nitrogén csoport}
+% insert relevant part of the periodic table to the left here
     \begin{enumerate}
         \item Nitrogén (N)
         \item Foszfor (P)
@@ -55,28 +90,32 @@
         \item Antimon (Sb)
         \item Bizmut (Bi)
     \end{enumerate}
-    
     5 db vegyérték elektron $\implies$ a nemesgáz elektronszerkezetének eléréséhez:
     \begin{itemize}
         \item 3 db kovalens kötés\\
         Pl.: Ammónia 
-        % insert ammónia ábra here
+
+        % insert figure here
+        
         \item 3-szoros negatív töltésű anion (pl. $N^{3-}$ - nitrid-ion). \\
         Egyedi, mert lényegében csak a nitrogén tud ennyi iont felvenni, mivel nagyon nagy az elektronegativitása.
         \item Az is lehetséges, hogy a nitrogén 5 db kovalens kötést létesítsen. Pl.: $HNO_3$ - salétromsav
-        % insert salétromsav ábra here
-        \\
+        
+        % insert figure here
+        
         A nitrogén túllépett a nemesgáz elektroszerkezetén, de ez így is energetikailag kedvező.
     \end{itemize}
     
 \section{Nitrogén}
     \subsection{Atomi jellemzők}
         \begin{itemize}
-            \item nagy EN (3.0)
+            \item Nagy az elektronegativitása (Pauling-skálán 3.0)
         \end{itemize}
         
     \subsection{Molekulaszerkezet}
-        %insert Nitrogen atom here
+    
+        %insert figure here
+        
         Ez egy erős kovalens kötés $\rightarrow$ közönséges körülmények között nem reakcióképes
         $\rightarrow$ apoláris molekula $\rightarrow$ diszperziós kölcsönhatás $\rightarrow$ molekularácsos szilárd halmazállapotban
     \subsection{Fizikai tulajdonságok}
@@ -123,41 +162,45 @@
     \subsection{A vegyületei}
         \subsubsection{Oxidjai}
             \subsubsubsection{Dinitrogén-monoxid; $N_2O$}
-                    Színtelen, édeskés szagú gáz 
+            % insert figure here
+                Színtelen, édeskés szagú gáz 
+                \begin{itemize}
+                    \item Felhasználása: 
                     \begin{itemize}
-                        \item Felhasználása: 
-                        \begin{itemize}
-                            \item Tejszínhab készítése (szifon)
-                            \item Érzéstelenítés orvostudományban (szülési fájdalmak csökkentése)
-                            \item Méhészet (elbódítja a méheket, mielőtt beavatkozik)
-                            \item Autóversenyek (nitro)
-                        \end{itemize}
-                        \item Hétköznapi neve: kéjgáz (nevetőgáz)
+                        \item Tejszínhab készítése (szifon)
+                        \item Érzéstelenítés orvostudományban (szülési fájdalmak csökkentése)
+                        \item Méhészet (elbódítja a méheket, mielőtt beavatkozik)
+                        \item Autóversenyek (nitro)
                     \end{itemize}
+                    \item Hétköznapi neve: kéjgáz (nevetőgáz)
+                \end{itemize}
             
             \subsubsubsection{Nitrogén-monoxid; $NO$}
-                    \[
-                    N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO
-                    \]
-                    Tovább alakul:
-                    \[
-                    2NO + O_2 \rightarrow 2NO_2
-                    \]
-                    Színtelen, szúrós szagú, mérgező gáz, amely az érfalak rugalmasságát szabályozza az emberi szervezetben, $\implies$ a vérnyomásra hat (nitroglicerin tabletta)
-                    % insert nitroglicerin ábra here
+            % insert figure here
+                \[
+                N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO
+                \]
+                Tovább alakul:
+                \[
+                2NO + O_2 \rightarrow 2NO_2
+                \]
+                Színtelen, szúrós szagú, mérgező gáz, amely az érfalak rugalmasságát szabályozza az emberi szervezetben, $\implies$ a vérnyomásra hat (nitroglicerin tabletta)
+                % insert nitroglicerin ábra here
             
             \subsubsubsection{Nitrogén-dioxid; $NO_2$}
-                    % insert nitrogén-dioxid ábra here
-                    Vörösbarna, szúrós szagú gáz, erősen mérgező. A szennyezett városi levegő egyik mérgező összetevője.
+            % insert nitrogén-dioxid ábra here
+                Vörösbarna, szúrós szagú gáz, erősen mérgező. A szennyezett városi levegő egyik mérgező összetevője.
                 
         \subsubsection{Oxosavai}
             \subsubsubsection{Salétromossav}
+            % insert figure here
                     \[
                     2NO_2 + H_2O \rightarrow \underset{\text{salétromossav}}{HNO_2} + \underset{\text{salétromsav}}{HNO_3}
                     \]
                     Gyenge, bomlékony, egyértékű sav. Csak vizes oldatban létezik. Sói: nitritek, pl.: $KNO_2$ $\leftarrow$ kálium-nitrit $\leftarrow$ pác\textbf{só} $\leftarrow$ tartósítószer\\
             
             \subsubsubsection{Salétromsav}
+            % insert figure here
                     Csak vizes oldatban létezik; erős, egyértékű sav. A koncentrált (tömény) salétromsav-oldat nagyjából 65 w\%-os.
             
                     \begin{definition}[Erős sav]
@@ -223,9 +266,55 @@
                     \subsubsubsubsection{A salétromsav fontos vegyületei}
                         \begin{enumerate}
                             \item $NaNO_3$; nátrium-nitrát, chilei salétrom
-                            \item $KNO_3$; kálium-nitrét, kálisalétrom $\leftarrow$ fekete lőpor
+                            \item $KNO_3$; kálium-nitrát, kálisalétrom $\leftarrow$ fekete lőpor
                             \item $NH_4NO_3$; ammónium-nitrát $\leftarrow$ műtrágya (pétisó - $NH_4NO_3$ és mészkőpor keveréke). Nyílt lángban robbanékony.
+                            \item $AgNO_3$; ezüst-nitrát (pokolkő, lápisz). Vízoldható; ezüstvegyület; fényérzékeny anyag
                         \end{enumerate}
+
+                    \subsubsubsubsection{Felhasználás}
+                        \begin{itemize}
+                            \item Festékgyártás
+                            \item Robbanóanyag-gyártás (TNT)
+                            \item Műtrágya-gyártás
+                            \item Ékszerészek
+                            \item Fehérjék kimutatása
+                        \end{itemize}
+
+                    \subsubsubsubsection{A salétromsav gyártása}
+                        \begin{enumerate}
+                            \item Ammónia gyártása
+                            \[
+                            \ce{N2 + 3 H2 <=>[\SI{450}{\degreeCelsius}] 2 NH3}
+                            \]
+                            \item Az ammónia oxidációja
+                            \[
+                            2NH_3 + 2.5O_2 \xrightarrow{\text{(Pt)-katalizátor}} 2NO + 3H_2O
+                            \]
+                            \item A $NO$ oxidációja
+                            \[
+                            2NO + O_2 \rightarrow 2NO_2
+                            \]
+                            \item Reakció vízzel
+                            \[
+                            2NO_2 + H_2O \rightarrow \underset{\text{salétromossav}}{HNO_2} + \underset{\text{salétromsav}}{HNO_3}
+                            \]
+                            \[
+                            2NO_2 + H_2O + \frac{1}{2}O_2 \rightarrow 2HNO_3
+                            \]\[
+                            \text{Nincs melléktermék, optimális}
+                            \]
+                        \end{enumerate}
+
+            \subsubsection{Az Ammónia}
+            % insert figure here
+            \begin{itemize}
+                \item Piramis alakú molekula, $\alpha = 107^\circ.$
+                \begin{enumerate}
+                    \item Nitrogén - Hidrogén (N-H) kötések polárisak
+                    \item A molekula szerkezete nem szimmetrikus
+                \end{enumerate}
+                $\implies$ Poláris molekula; Dipólus-Dipólus kölcsönhatás; Hidrogénkötés
+            \end{itemize}
 
 \section{Kísérletek}
     \subsection{Kísérlet 1.}

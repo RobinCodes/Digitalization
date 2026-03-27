@@ -1,0 +1,733 @@
+\documentclass{article}
+
+% --- Kódolás és nyelv ---
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[hungarian]{babel}
+
+% --- Matematika és kémia ---
+\usepackage{amsmath, amsthm, amssymb}
+
+% --- Szakaszcímek formázása ---
+\usepackage{titlesec}
+
+% Mély szakaszszámozás és tartalomjegyzék engedélyezése
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+\makeatletter
+
+% ------------------------
+% 4. SZINT: subsubsubsection
+% ------------------------
+\titleclass{\subsubsubsection}{straight}[\subsubsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+
+\renewcommand\subsubsubsection{%
+  \@startsection{subsubsubsection}{4}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsection}{0pt}{3ex}{1ex}
+
+% Tartalomjegyzék-bejegyzés a 4. szinthez
+\newcommand*\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+
+% --------------------------
+% 5. SZINT: subsubsubsubsection
+% --------------------------
+\titleclass{\subsubsubsubsection}{straight}[\subsubsubsection]
+\newcounter{subsubsubsubsection}[subsubsubsection]
+\renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
+
+\renewcommand\subsubsubsubsection{%
+  \@startsection{subsubsubsubsection}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsubsection}{0pt}{3ex}{1ex}
+
+% Tartalomjegyzék-bejegyzés az 5. szinthez
+% Biztonsági okokból belső 4. szintet használunk (a LaTeX csak 1--4 TOC-szinteket ismer)
+\newcommand*\l@subsubsubsubsection{\@dottedtocline{4}{10em}{5em}}
+
+\makeatother
+
+\title{Bevezetés az Analízisbe: A Négyzetgyök}
+\author{Rovenszky Robin}
+\date{Legutóbb frissítve: 2026. Március 27.}
+
+\newtheorem{theorem}{Tétel}
+\newtheorem{remark}{Megjegyzés}
+\newtheorem{proposition}{Állítás}
+\newtheorem{definition}{Definíció}
+\newtheorem{example}{Példa}
+
+\renewcommand{\proofname}{Bizonyítás}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Mi az a $\sqrt{2}$?}
+Értjük, hogy léteznie kell, hiszen egy derékszögű háromszögben, amelynek befogói $a = 1, b = 1$, és $\alpha = 90$ a közbezárt szögük, az átfogó hossza $\sqrt{2}$. Tehát mi az a $\sqrt{2}$?
+
+\begin{theorem}
+    Nem létezik olyan racionális $x$ szám, amelyre $x^2 = 2$. Ekvivalensen, ha $x$ kielégíti az $x^2 = 2$ feltételt, akkor $x$ nem írható $x = \frac{p}{q}$ alakban, ahol $p, q \in \mathbb{Z}$, $\gcd(p, q) = 1$.
+\end{theorem}
+\begin{proof}
+    Tegyük fel, hogy az állítás igaz. Ekkor
+    \begin{equation}
+        \frac{p^2}{q^2} = 2 \implies p^2 = 2q^2 \implies 2 \mid p^2 \implies 2 \mid p \implies 4 \mid p^2 \implies
+    \end{equation}
+    \begin{equation}
+        \implies 4 \mid 2q^2 \implies 2 \mid q^2 \implies 2 \mid q \implies \gcd(p, q) \ge 2 \Rightarrow\!\Leftarrow
+    \end{equation}
+    Alternatívaként a bizonyítást a $p^2 = 2q^2$ összefüggéssel is befejezhettük volna. Észrevesszük, hogy $p^2$ prímfelbontásában a kettő páros kitevőn szerepel, míg $2q^2$ prímfelbontásában a kettő páratlan kitevőn szerepel (mivel $\gcd(p,q) = 1$).
+\end{proof}
+
+Ezt az eredményt általánosíthatjuk: megmutatható, hogy minden $a \in \mathbb{Z}_{\ge 0}$ esetén, ha $x^2 = a$, akkor $x \in \mathbb{R} \setminus \mathbb{Q}$ akkor és csak akkor, ha $a$ valamely prímtényezője páratlan kitevőn szerepel (azaz $a$ nem teljes négyzetszám).
+
+\section{A $\sqrt{2}$ meghatározása}
+Mivel az irracionális számokat nem lehet pontosan meghatározni, közelíteni fogjuk. Kezdjük a következővel:
+\[
+1 < x < 2 \Leftrightarrow 1 < x^2 < 4
+\]
+\begin{theorem}
+    \[
+    0 < x < y \implies 0 < x^2 < y^2
+    \]
+\end{theorem}
+\hrule
+\vspace{1em}
+
+Mielőtt bebizonyítanánk a tételünket, írjuk fel a rendezési axiómákat:
+\begin{enumerate}
+    \item Trichotómia axiómája: Az alábbiak közül pontosan egy igaz: $a < b$, $b < a$, $a = b$.
+    \item Az összeadás megőrzi a rendezést: $a < b$ és tetszőleges $c$ esetén $a + c < b + c$.
+    \item Tranzitivitás axiómája: $a < b$ és $b < c$ $\implies$ $a < c$.
+    \item Pozitív számmal való szorzás megőrzi a rendezést: Ha $0 < a$ és $b < c$, akkor $ab < ac$.
+    \item Az 1 pozitivitása: $0 < 1$.
+\end{enumerate}
+Az összeadás disztributivitását (azaz azt, hogy az összeadás megőrzi a rendezést) felhasználva bizonyítjuk a következőt:
+\[
+    x < 0 \implies 0 < -x
+\]
+\begin{proof}
+\[
+    x + (-x) < 0 + (-x)
+\]
+\[
+    0 < -x
+\]
+\end{proof}
+Most a szorzás disztributivitását (azaz azt, hogy pozitív számmal való szorzás megőrzi a rendezést) felhasználva bizonyítjuk a következőt:
+\[
+    (-1)\cdot x = -x
+\]
+\begin{proof}
+\[
+    (1 + (-1)) \cdot x = 0
+\]
+\[
+    1 \cdot x + (-1) \cdot x = 0 \implies (-1) \cdot x = -x
+\]
+\end{proof}
+Ehhez azonban szükségünk van a következő állításra is, amelyet szintén a szorzás disztributivitásával bizonyítunk:
+\[
+    0\cdot x = 0
+\]
+\begin{proof}
+\[
+    (0+0) \cdot x = 0 \cdot x
+\]
+\[
+    0 \cdot x + 0 \cdot x = 0 \cdot x
+\]
+\[
+    0 \cdot x = 0
+\]
+\end{proof}
+
+\hrule
+\vspace{1em}
+
+Most a szorzás disztributivitásával folytatjuk a 3. tétel bizonyítását:
+
+\begin{proof}
+    \[
+    0 < x < y \implies 0 < x^2 < y^2
+    \]
+    $x$-szel szorozva kapjuk:
+    \[
+    x^2 < xy
+    \]
+    az egyenlőtlenséget $y$-nal szorozva pedig:
+    \[
+    xy < y^2
+    \]
+    A két utóbbit összevonva:
+    \[
+    x^2 < xy < y^2 \implies x^2 < y^2
+    \]
+\end{proof}
+
+\begin{remark}
+    A szorzás disztributivitásával szintén bizonyítható, hogy $y < x < 0 \implies 0 < -x < -y$.
+\end{remark}
+
+\begin{proof}
+Tegyük fel, hogy
+\[
+y < x < 0.
+\]
+
+$-1$-gyel szorozva az egyenlőtlenséget, a sorrend megfordul:
+\[
+-y > -x > 0.
+\]
+
+Növekvő sorrendbe írva:
+\[
+0 < -x < -y.
+\]
+\end{proof}
+
+\section{Az oroszlánfogási módszer (avagy az intervallumfelezési módszer)}
+A $\sqrt{2}$-t algoritmikusan meghatározhatjuk az oroszlánfogási módszerrel.\\
+Adott $x \in [a_0, b_0]$, ahol $c_0 = \frac{a_0 + b_0}{2}$ a számtani közép, mivel
+\[
+    \frac{a + b}{2} - a = b - \frac{a+b}{2}
+\]
+\[
+    \frac{b-a}{2} = \frac{b-a}{2}
+\]
+Más szóval:
+\[
+    a + \frac{b-a}{2} = \frac{a+b}{2}.
+\]
+Ezután egy egyszerű kérdést teszünk fel: $x < c_0$ (A) vagy $x > c_0$ (B)?\\
+Ha (A), akkor $a_1 = a_0$, $b_1 = c_0$. Egyébként (B): $a_1 = c_0$, $b_1 = b_0$.
+
+Az algoritmusnak adunk egy korlátot, hogy a program leálljon és az eredményt vissza tudjuk kapni. Ezt a korlátot \emph{pontosságnak} nevezzük.
+
+\begin{theorem}[Cantor-axióma]
+    Minden egymásba ágyazott, nemüres zárt intervallumsorozatnak legalább egy közös pontja van. Ezen felül, ha az intervallumok hossza nullához tart, akkor ez \emph{pontosan} egy közös pontot ad.
+\end{theorem}
+Ez az axióma természetes magyarázatot ad a valós számokra ($\mathbb{R}$), mivel az axióma nem teljesül a racionális számok halmazában ($\mathbb{Q}$), de kivétel nélkül teljesül a valós számok halmazában.
+
+Példa: $I_n = [0, 1 + \frac{1}{n}]$, amelyek egymásba ágyazott, nemüres zárt intervallumok. Egymásba ágyazottak, mivel
+\[
+    1 + \frac{1}{n} > 1 + \frac{1}{n+1}.
+\]
+Így kapjuk:
+\[
+    [0, 1] \subset I_n
+\]
+
+\begin{remark}[Mi a helyzet a nyílt intervallumokkal?]
+Ha nyílt intervallumokat vizsgálunk, mint például $I_n = (0, \frac{1}{n})$, nincs garancia arra, hogy a metszetük nemüres (ahogyan a mi példánkban sem az).
+\end{remark}
+
+Most keressünk egy egymásba ágyazott, nemüres zárt intervallumsorozatot, amelynek metszete \emph{pontosan} egy pont.
+Az intervallumok hossza $\frac{|I_0|}{2^n} < \epsilon \implies$
+% TODO: Fejezd be ezt a Krétára feltöltendő anyag alapján. 2026. március 17-én tanultuk.
+
+\section{Végtelenségek}
+\subsection{1. Feladat.}
+Végtelen mennyiségű arany van. Egy személy naponta egyet vesz el, végtelen sok napon át. El tudja-e venni mindet?
+
+\begin{proposition}
+  Nem tudja mindet ellopni, mivel bármelyik tetszőleges napon bemehetek és megfigyelhetem, hogy még mindig végtelen mennyiségű arany van a szobában.
+\end{proposition}
+Azonban látni fogjuk, hogy ez valójában nem igaz. Ehelyett ennek az állításnak az ellenkezőjét bizonyítjuk be.
+\begin{proposition}
+    El tudja lopni mindet, tehát $\nexists$ olyan arany, amelyet nem lopott el.
+\end{proposition}
+
+\subsection{Bijekció, megszámlálhatóan végtelen, nem megszámlálhatóan végtelen}
+
+A bizonyításhoz bevezetjük a \textbf{bijekció}, a \textbf{megszámlálhatóan végtelen halmaz} és a \textbf{nem megszámlálhatóan végtelen halmaz} fogalmait.
+% Olvasom ezeket és tényleg belehalok, mennyire nem szigorú ez az egész
+\begin{definition}[Megszámlálhatóan végtelen halmaz]
+    Egy halmaz megszámlálhatóan végtelen, ha elemei kölcsönösen egyértelmű megfeleltetésbe hozhatók a természetes számokkal.
+\end{definition}
+
+\begin{definition}[Bijekció]
+    A bijekció olyan függvény, amely egyszerre injektív és szürjektív. Intuitívan: az egyik halmaz elemeit a másik halmaz \textbf{pontosan egy egyedi eleméhez} rendeli, és a második halmaz minden eleme párba van állítva.
+\end{definition}
+    Formálisan:\\
+    Legyen $f : A \rightarrow B$ egy függvény.\\
+    $f$ bijekció, ha teljesíti az alábbi tulajdonságokat:
+    \begin{enumerate}
+        \item \textbf{Injektív} (egy-egy értelmű)
+        \[
+            f(a_1) = f(a_2) \implies a_1 = a_2
+        \]
+        Különböző bemenetek mindig különböző kimeneteket adnak.
+        \item \textbf{Szürjektív} (ráképezés)
+        \[
+            \forall b \in B \: \exists a \in A : f(a) = b
+        \]
+        A $B$ minden eleme valamely $A$-beli elem képe.\\
+        Ha mindkettő teljesül, akkor
+        \[
+        f : A \leftrightarrow B
+        \]
+        a halmazokat tökéletesen párba állítja. Ez azt jelenti, hogy a halmazok egyenlő méretűek, ekvivalensen:
+        \[
+        |A| = |B|.
+        \]
+    \end{enumerate}
+
+% Szintén meg kell mutatni a bijekció azon tulajdonságát, miszerint bijekció létezik akkor és csak akkor, ha a függvénynek van inverze, stb.
+    
+Újonnan szerzett tudásunkkal térjünk vissza a \emph{megszámlálhatóan végtelen halmazok}hoz.
+
+    Formálisan, az $A$ halmaz megszámlálhatóan végtelen, ha létezik egy \textbf{bijekció}
+    \[
+    f: \mathbb{N} \rightarrow A.
+    \]
+    Ilyen halmazok például:
+    \begin{itemize}
+        \item $\mathbb{N}$
+        \item $\mathbb{Z}$
+        \item $\mathbb{Q}$.
+    \end{itemize}
+    Ez azt jelenti, hogy az elemek felsorolhatók:
+    \[
+    a_1, a_2, a_3, \ldots
+    \]
+    még ha a lista sohasem ér is véget.
+
+\begin{definition}[Nem megszámlálhatóan végtelen halmaz]
+    Egy halmaz nem megszámlálható, ha nincs olyan felsorolás
+    \[
+    r_1, r_2, r_3, \ldots
+    \]
+    amely a halmaz minden elemét tartalmazza.
+    A klasszikus példa $\mathbb{R}$, amelyet Cantor átlós érve bizonyít.
+\end{definition}
+
+% Még be kell vezetni Cantor átlós érvét, alkalmazni az arany-feladatra, megmutatni, mi történik attól függően, hogy ezek a halmazok $\mathbb{R}$-nek vagy $\mathbb{N}$-nek felelnek-e meg, stb.
+
+Ezekkel a fogalmakkal felvértezve térjünk vissza az eredeti arany-feladathoz.
+
+\begin{proof}
+% Szintén todo, kell a Cantor-féle átlós érv stb.
+\end{proof}
+
+\section{Négyzetgyököt tartalmazó kifejezések faktorizálása}
+Próbáljuk meg kifejteni $(\sqrt{2} + 1)^2$-et.
+\[
+    (\sqrt{2}+1)^2 = (\sqrt{2})^2 + 2\sqrt{2} + 1 = 3 + 2\sqrt{2}
+\]
+
+\hrule
+\vspace{10pt}
+
+Most próbáljuk meg faktorizálni $11 + 6\sqrt{2}$-t.
+Mi lenne egy szisztematikusabb megközelítés?
+Először megfigyelhetjük, hogy a megoldásunk alakja
+\[
+    (a+b)^2 = a^2 + b^2 + 2ab,
+\]
+(Triviálisan, mivel az egyenletünk $a^2 + b^2 + 2ab$ alakú.)\\
+Ezután észrevesszük, hogy a $2ab$ rész:
+\[
+    6\sqrt{2} = 2ab
+\]
+és hogy
+\[
+    3\sqrt{2} = ab.
+\]
+Ez megadja a lehetséges $(a, b)$ megoldáspárok táblázatát.
+\begin{center}
+    \begin{tabular}{c|c}
+        $a$ & $b$ \\
+        \hline
+        \rule{0pt}{3ex} 
+        $1$ & $3\sqrt{2}$ \\ 
+        $3$ & $\sqrt{2}$ \\ 
+    \end{tabular}
+\end{center}
+Láthatjuk, hogy szükségünk van $a^2 + b^2 = 11$-re.\\
+\[
+    (1)^2 + (3\sqrt{2})^2 = 19,
+\]
+Tehát a megoldásnak a másik eset kell, hogy legyen: $(a = 3, b = \sqrt{2}).$ Ellenőrzés:
+\[
+    (3)^2 + (\sqrt{2})^2 = 9 + 2 = 11.
+\]
+Ez azt jelenti, hogy
+\[
+    11 + 6\sqrt{2} = (3 + \sqrt{2})^2
+\] \qed
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+Most próbáljunk ki egy kicsit bonyolultabb feladatot.
+Faktorizáljuk $17-4\sqrt{15}$-öt.
+Emlékezzünk, hogy
+\[
+    (a + b)^2 = a^2 + b^2 + 2ab
+\]
+és hogy
+\[
+    (a - b)^2 = a^2 + b^2 - 2ab
+\]
+Tehát
+\[
+    2ab = 4\sqrt{15}
+\]
+\[
+    ab = 2\sqrt{15}
+\]
+Most megvan az alábbi lehetséges megoldáspárok $(a, b)$ táblázata, amelyek kielégítik az $ab = 2\sqrt{15}$ feltételt.
+\begin{center}
+    \begin{tabular}{c|c}
+        $a$ & $b$ \\
+        \hline
+        \rule{0pt}{3ex} 
+        $2$ & $\sqrt{15}$ \\ 
+        $1$ & $2\sqrt{15}$ \\ 
+        $\sqrt{3}$ & $2\sqrt{5}$ \\ 
+        $\sqrt{5}$ & $2\sqrt{3}$ \\ 
+    \end{tabular}
+\end{center}
+Az összes lehetséges megoldáspárt kiértékelve, megkeressük azt, amely szintén kielégíti $a^2 + b^2 = 17$-et:\\
+1. eset:
+\[
+    (2)^2 + (\sqrt{15})^2 = 19
+\]
+nem teljesül. 2. eset:
+\[
+    (1)^2 + (2\sqrt{15})^2 = 61
+\]
+szintén nem teljesíti az egyenletünket. 3. eset:
+\[
+    (\sqrt{3})^2 + (2\sqrt{5})^2 = 23
+\]
+ismét nem teljesíti $a^2 + b^2 = 17$-et. Tehát a 4. eset:
+\[
+    (\sqrt{5})^2 + (2\sqrt{3})^2 = 17.
+\]
+Ez azt jelenti, hogy $a = \sqrt{5}$, $b = 2\sqrt{3}$.\\
+Így
+\[
+    17-4\sqrt{15} = (\sqrt{5} - 2\sqrt{3})^2
+\] \qed
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+Most egy másik: Faktorizáljuk $120 - 30\sqrt{15}$-öt.
+Észrevesszük, hogy a megoldás $(a - b)^2 = a^2 + b^2 - 2ab$ alakú lesz. Ekkor
+\[
+    2ab = 30\sqrt{15}
+\]
+\[
+    ab = 15\sqrt{15}
+\]
+
+Ez megadja a lehetséges megoldáspárok $(a, b)$ alábbi táblázatát:
+\begin{center}
+    \begin{tabular}{c|c}
+        $a$ & $b$ \\
+        \hline
+        \rule{0pt}{3ex} 
+        $1$ & $15\sqrt{15}$ \\ 
+        $3$ & $5\sqrt{15}$ \\ 
+        $5$ & $3\sqrt{15}$ \\ 
+        $3\sqrt{5}$ & $5\sqrt{3}$ \\ 
+        $5\sqrt{5}$ & $3\sqrt{3}$
+    \end{tabular}
+\end{center}
+Kimerítő felsorolás után megállapítjuk, hogy csak a $(3\sqrt{5},\; 5\sqrt{3})$ pár elégíti ki $a^2 + b^2 = 120$-at, és ezért
+\[
+    120-30\sqrt{15} = (3\sqrt{5} - 5\sqrt{3})^2
+\] \qed
+
+\section{Algebra négyzetgyökökkel: Azonosságok, Definíció}
+\begin{definition}[Négyzetgyök]
+    A négyzetgyököt a $\sqrt{\phantom{x}}$ jellel jelöljük. A $\sqrt{\phantom{x}}$ a négyzetre emelés inverze, és ezért $\sqrt{x} = x^{1/2}$.\\
+    $\sqrt{x} = a$ akkor és csak akkor, ha $a^2 = x$, és ezért $a \in \mathbb{R},\; a \ge 0.$  
+\end{definition}
+
+\subsection{Azonosságok}
+1. azonosság.
+\[
+    (\sqrt{a})^2 = a.
+\]
+2. azonosság.
+\[
+    \sqrt{a^2} = |a|.
+\]
+3. azonosság.
+\[
+    \sqrt{a} \cdot \sqrt{b} = \sqrt{ab}.
+\]
+ahol $a, b \ge 0.$
+4. azonosság.
+\[
+    \sqrt{\frac{a}{b}} = \frac{\sqrt{a}}{\sqrt{b}}.
+\]
+ahol $a, b \ge 0.$
+Egy gyakori hiba azt gondolni, hogy
+\[
+    \sqrt{a + b} \not= \sqrt{a} + \sqrt{b}
+\]
+azonosság. Miközben a valóságban nem az. Például,
+\[
+    \sqrt{16 + 9} \not= \sqrt{16} + \sqrt{9}
+\]
+mivel
+\[
+    5 \not= 4 + 3.
+\]
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+A $\sqrt{ab} = \sqrt{a} \cdot \sqrt{b}$ állítás nem ekvivalens a $\sqrt{a} \cdot \sqrt{b} = \sqrt{ab}$ állítással, mivel $\sqrt{ab}$ létezése nem garantálja $\sqrt{a}$ vagy $\sqrt{b}$ létezését, hacsak az $a, b \ge 0$ feltétel nincs megadva.
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+\[
+\sqrt{20} = \sqrt{4\cdot5} = \sqrt{4} \cdot \sqrt{5} = 2\sqrt{5}.
+\]
+\[
+3\sqrt{2} = \sqrt{9} \cdot \sqrt{2} = \sqrt{18}.
+\]
+Általánosan, $a\sqrt{b} = \sqrt{a^2b}$ és $\sqrt{a}$\\ % HOZZÁADANDÓ
+
+Mire jó ez? Megkérdezhetjük, melyik a nagyobb az alábbiak közül?
+\[
+    4\sqrt{2}  % HOZZÁADANDÓ
+\]
+
+\subsection{Feladatok}
+% HOZZÁADANDÓ:
+% 183-tól 191-ig minden
+% 186 is hozzáadandó
+
+% 188:
+\subsubsection{Kifejezések kiértékelése}
+\begin{enumerate} % a szimbólumokat a, b, c ... legyen
+    \item $\sqrt{12} - \sqrt{27} + \frac{1}{2}\sqrt{48};$
+    \item $3\sqrt{2} + \sqrt{32} - \sqrt{200};$
+    \item $2\sqrt{72} - \sqrt{50} - 2\sqrt{8};$
+    \item $5\sqrt{3} + \frac{1}{3}\sqrt{27} - \sqrt{48};$
+    \item $\sqrt{80} + \frac{1}{2}\sqrt{20} + 3\sqrt{45};$
+    \item $3\sqrt{32} - \sqrt{50} + 2\sqrt{18} + 3\sqrt{8};$
+    \item 
+    \item 
+\end{enumerate}
+\subsubsection{Megoldások.} % Inkább függelék legyen a megoldásoknak?
+\begin{enumerate}
+    \item $2\sqrt{3} - 3\sqrt{3} + 2\sqrt{3} = \sqrt{3}$
+    \item 
+    \item $12\sqrt{2} - 5\sqrt{2} - 4\sqrt{2}$
+\end{enumerate}
+
+% 191 is
+
+\section{Gyöktelenítés}
+\begin{definition}[Gyöktelenítés]
+    A gyöktelenítés az a folyamat, amelynek során egy tört nevezőjéből megszüntetjük a négyzetgyököt (vagy más \textbf{gyökkifejezést}) egy megfelelő kifejezéssel való szorzással. Ige: a nevező gyöktelenítése.
+\end{definition}
+
+\begin{definition}[Gyökkifejezés]
+    Egy gyökkifejezés $\sqrt[n]{x}$ alakú kifejezés.
+\end{definition}
+
+\begin{definition}[Racionális szám]
+    Egy racionális szám bármely $\frac{p}{q}$ alakú szám, ahol
+$p,q\in\mathbb{Z}$ és $q\ne0$. (A racionális számok halmaza $\mathbb{Q}$.)
+\end{definition}
+
+\begin{example}
+    \[
+    \frac{8}{\sqrt{2}} = \frac{8\sqrt{2}}{\sqrt{2}\sqrt{2}} = \frac{8\sqrt{2}}{2} = 4\sqrt{2}
+    \]
+\end{example}
+\begin{example}
+    \[
+    \frac{\sqrt{5}}{\sqrt{7}}
+    = \frac{\sqrt{5}\sqrt{7}}{7}
+    = \frac{\sqrt{35}}{7}
+    \]
+\end{example}
+Láthatjuk, hogy a tört nem feltétlenül tűnik el.
+\begin{example}
+    \[
+    \frac{2}{2 + \sqrt{2}} \cdot 
+    \]
+\end{example}
+
+\subsection{Feladatok}
+% 207, 208
+% 208 Z:
+\[
+\frac{1}{\sqrt{2} + \sqrt{3} - \sqrt{5}}
+\]
+Szorozva
+\[
+\frac{\sqrt{2} - \sqrt{3} + \sqrt{5}}{\sqrt{2} - \sqrt{3} + \sqrt{5}}
+\]
+% HOZZÁADANDÓ
+
+\subsection{Nehéz feladatok}
+\subsubsection{1. Feladat.}
+
+\subsubsubsection[Feladat]{\makebox[0.87\textwidth][r]{Feladat}}
+\vspace{-4pt}
+\hrule
+\vspace{10pt}
+
+Egyszerűsítse a következő kifejezést:
+\[
+\frac{2 - \sqrt{3}}{\sqrt{2} - \sqrt{2 - \sqrt{3}}} + \frac{2 + \sqrt{3}}{\sqrt{2} + \sqrt{2 + \sqrt{3}}}.
+\]
+
+\subsubsubsection[Megoldás]{\makebox[0.87\textwidth][r]{Megoldás}}
+\vspace{-4pt}
+\hrule
+\vspace{10pt}
+
+\[
+\frac{(2 - \sqrt{3})(\sqrt{2} + \sqrt{2 - \sqrt{3}})}{2 - (2 - \sqrt{3})} = \frac{(2 - \sqrt{3})(\sqrt{2} + \sqrt{2 - \sqrt{3}})}{\sqrt{3}}
+\]
+\[
+\frac{(2 + \sqrt{3})(\sqrt{2} - \sqrt{2 + \sqrt{3}})}{2 - (2 + \sqrt{3})} = -\frac{(2 + \sqrt{3})(\sqrt{2} - \sqrt{2 + \sqrt{3}})}{\sqrt{3}}
+\]
+\[
+\frac{(2 - \sqrt{3})(\sqrt{2} + \sqrt{2 - \sqrt{3}}) - (2 + \sqrt{3})(\sqrt{2} - \sqrt{2 + \sqrt{3}})}{\sqrt{3}}
+\]
+\[
+\frac{2\sqrt{2}-\sqrt{6} + 2\sqrt{2 - \sqrt{3}} - \sqrt{3}\sqrt{2 - \sqrt{3}} - 2\sqrt{2} - \sqrt{6} + 2\sqrt{2 + \sqrt{3}} + \sqrt{3}\sqrt{2 + \sqrt{3}}}{\sqrt{3}}
+\]
+Láthatjuk, hogy a $2\sqrt{2}$-k kiesnek, és a hasonló tagokat csoportosítva kapjuk:
+\[
+\frac{-2\sqrt{6} + 2(\sqrt{2 - \sqrt{3}} + \sqrt{2 + \sqrt{3}}) + \sqrt{3}(\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}})}{\sqrt{3}}.
+\]
+\hrule
+\vspace{10pt}
+Most figyeljük meg a következő különleges részeket:
+\[
+\text{A) } \sqrt{2 - \sqrt{3}} + \sqrt{2 + \sqrt{3}}
+\]
+\[
+\text{B) } \sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}}
+\]
+
+Ötlet A)-hoz: Emeljük négyzetre a kifejezést, majd nézzük meg, hogy egyszerűsödik-e, majd vonjuk a négyzetgyökét!
+\[
+\sqrt{2 - \sqrt{3}} + \sqrt{2 + \sqrt{3}} 
+\]
+\[
+\sqrt{(\sqrt{2 + \sqrt{3}} + \sqrt{2 - \sqrt{3}})^2} 
+\]
+\[
+\sqrt{2 + \sqrt{3} + 2 - \sqrt{3} + 2\sqrt{4 - 3}}
+\]
+\[
+\sqrt{6}.
+\]
+Az ötlet ugyanaz B)-hez: 
+\[
+\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}}
+\]
+\[
+\sqrt{(\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}})^2}
+\]
+\[
+\sqrt{2 + \sqrt{3} + 2 - \sqrt{3} - 2\sqrt{4 - 3}}
+\]
+\[
+\sqrt{2}.
+\]
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+Ez lehetővé teszi a megoldásunk befejezését:
+\[
+\frac{-2\sqrt{6} + 2{\sqrt{6}} + \sqrt{3}\sqrt{2}}{\sqrt{3}}
+\]
+\[
+\boxed{\sqrt{2}.}
+\] \qed
+
+\subsubsubsubsection[Egy alternatív megközelítés]{\makebox[0.85\textwidth][r]{Egy alternatív megközelítés}}
+\vspace{-4pt}
+\hrule
+\vspace{10pt}
+Mi lenne, ha $\sqrt{2 + \sqrt{3}}$ egy négyzetgyök alatti négyzet? 
+\[
+\sqrt{2 + \sqrt{3}} = \sqrt{\frac{4 + 2\sqrt{3}}{2}} = \sqrt{\frac{(\sqrt{3} + 1)^2}{2}} = \frac{\sqrt{3} + 1}{\sqrt{2}}
+\]
+Hasonlóan $\sqrt{2 - \sqrt{3}}$-ra:
+\[
+\sqrt{2 - \sqrt{3}} = \sqrt{\frac{4 - 2\sqrt{3}}{2}} = \sqrt{\frac{(\sqrt{3} - 1)^2}{2}} = \frac{\sqrt{3} - 1}{\sqrt{2}}
+\]
+Vagy együttesen:
+\[
+\sqrt{2 \pm \sqrt{3}} = \sqrt{\frac{4 \pm 2\sqrt{3}}{2}} = \sqrt{\frac{(\sqrt{3} \pm 1)^2}{2}} = \frac{\sqrt{3} \pm 1}{\sqrt{2}}
+\]
+Tehát
+\[
+\sqrt{2 + \sqrt{3}} + \sqrt{2 - \sqrt{3}} = \frac{\sqrt{3} + 1 + \sqrt{3} - 1}{\sqrt{2}} = \frac{2\sqrt{3}}{\sqrt{2}} = \sqrt{2}\sqrt{3} = \sqrt{6}
+\]
+És
+\[
+\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}} = \frac{\sqrt{3} + 1 - \sqrt{3} + 1}{\sqrt{2}} = \frac{2}{\sqrt{2}} = \sqrt{2}.
+\]
+Innen pontosan ugyanúgy fejezhetjük be a megoldásunkat, mint az előző megközelítésben:
+\[
+\frac{-2\sqrt{6} + 2{\sqrt{6}} + \sqrt{3}\sqrt{2}}{\sqrt{3}}
+\]
+\[
+\boxed{\sqrt{2}.}
+\] \qed
+
+\subsubsection[Összefoglalás]{\makebox[0.90\textwidth][r]{Összefoglalás}}
+\vspace{-8pt}
+\hrule
+\vspace{10pt}
+Összefoglalva, először azt kértük, hogy egyszerűsítsük a következő kifejezést:
+\[
+\frac{2 - \sqrt{3}}{\sqrt{2} - \sqrt{2 - \sqrt{3}}} + \frac{2 + \sqrt{3}}{\sqrt{2} + \sqrt{2 + \sqrt{3}}}.
+\]
+Némi egyszerűsítés után eljutottunk a következőhöz:
+\[
+\frac{-2\sqrt{6} + 2(\sqrt{2 - \sqrt{3}} + \sqrt{2 + \sqrt{3}}) + \sqrt{3}(\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}})}{\sqrt{3}},
+\]
+majd megkérdeztük, hogyan egyszerűsíthető a $\sqrt{2 \pm \sqrt{3}} \pm \sqrt{2 \pm \sqrt{3}}$ kifejezés azzal a megkötéssel, hogy a két legkülső összeadott tagnak felváltva pozitív és negatív előjele van.
+Két megközelítést javasoltunk: Az elsőben az első eszünkbe jutó dolgot próbáltuk: négyzetre emelni, majd egyszerűsíteni, mert talán a számok jól jönnek ki, majd négyzetgyököt vonni. A másodikban észrevettük, hogy az összeadás mindkét tagja valójában négyzetgyök alatti négyzet, és ezt a tényt felhasználva egyszerűsítettük.\\
+
+Az eredményünk $\sqrt{4 \pm 2}$ volt, ami a $\sqrt{2}$ végső megoldást adja.
+
+\end{document}

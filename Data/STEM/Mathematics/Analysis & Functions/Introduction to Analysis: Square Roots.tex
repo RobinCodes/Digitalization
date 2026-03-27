@@ -1,0 +1,731 @@
+\documentclass{article}
+
+% --- Encoding & Language ---
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+
+% --- Math & Chemistry ---
+\usepackage{amsmath, amsthm, amssymb}
+
+% --- Section formatting ---
+\usepackage{titlesec}
+  
+% Allow deep section numbering and TOC
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+\makeatletter
+
+% ------------------------
+% LEVEL 4: subsubsubsection
+% ------------------------
+\titleclass{\subsubsubsection}{straight}[\subsubsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+
+\renewcommand\subsubsubsection{%
+  \@startsection{subsubsubsection}{4}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 4
+\newcommand*\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+
+% --------------------------
+% LEVEL 5: subsubsubsubsection
+% --------------------------
+\titleclass{\subsubsubsubsection}{straight}[\subsubsubsection]
+\newcounter{subsubsubsubsection}[subsubsubsection]
+\renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
+
+\renewcommand\subsubsubsubsection{%
+  \@startsection{subsubsubsubsection}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 5
+% Use level 4 internally for safety (LaTeX only knows TOC levels 1-4)
+\newcommand*\l@subsubsubsubsection{\@dottedtocline{4}{10em}{5em}}
+
+\makeatother
+
+\title{Introduction to Analysis: Square Roots}
+\author{Robin Rovenszky}
+\date{Last updated: March 27, 2026}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{remark}{Remark}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{What is $\sqrt{2}$?}
+We understand that it must exist, since in a right triangle with legs $a = 1, b= 1, \alpha = 90$, where $\alpha$ is their enclosed angle, the hypotenuse has length $\sqrt{2}$. So what is $\sqrt{2}$?
+
+\begin{theorem}
+    There is no rational number $x$ such that $x^2 = 2$. Equivalently, for an x satisfying $x^2 = 2$, x not also satisfy $x = \frac{p}{q}$ with $p, q \in \mathbb{Z}$, $gcd(p, q) = 1$
+\end{theorem}
+\begin{proof}
+    Assume the statement is true. Then
+    \begin{equation}
+        \frac{p^2}{q^2} = 2 \implies p^2 = 2q^2 \implies 2 \mid p^2 \implies 2 \mid p \implies 4 \mid p^2 \implies
+    \end{equation}
+    \begin{equation}
+        \implies 4 \mid 2q^2 \implies 2 \mid q^2 \implies 2 \mid q \implies \gcd(p, q) \ge 2 \Rightarrow\!\Leftarrow
+    \end{equation}
+    Or alternatively, we could have also finished the proof via
+    $p^2 = 2q^2$. Now we notice that $p^2$ has two in its prime factorization to an even power, while $2q^2$ has two in its prime factorization to an odd power (since $\gcd(p,q) = 1$).
+\end{proof}
+
+We can generalize this result to show that for all $a \in \mathbb{Z}_{\ge 0}$, if $x^2 = a$, then if $a$ contains a prime factor to an odd exponent (so $a$ is not a perfect square), then and only then $x \in \mathbb{R} \setminus \mathbb{Q}$.
+
+\section{Finding $\sqrt{2}$}
+Since we cannot find irrational numbers, we will approximate it. Let us start with:
+\[
+1 < x < 2 \Leftrightarrow 1 < x^2 < 4
+\]
+\begin{theorem}
+    \[
+    0 < x < y \implies 0 < x^2 < y^2
+    \]
+\end{theorem}
+\hrule
+\vspace{1em}
+
+Before we prove our theorem, let us write out the axioms of order (also known as axioms of arrangement):
+\begin{enumerate}
+    \item Axiom of Trichotomy: Exactly one of the following can be true: $a < b, b < a, a = b$.
+    \item Addition preserves order: $a < b$ and $c$ arbitrary $\implies$ $a + c < b + c$.
+    \item  Axiom of Transitivity: $a < b$ and $b < c$ $\implies$ $a < c$.
+    \item Multiplication by positive preserves order: $0 < a$ and $b < c$, then $ab < ac$.
+    \item Positivity of 1: $0 < 1$.
+\end{enumerate}
+We will use the distributivity of addition (or that addition preserves order) to prove the following:
+\[
+    x < 0 \implies 0 < -x
+\]
+\begin{proof}
+\[
+    x + (-x) < 0 + (-x)
+\]
+\[
+    0 < -x
+\]
+\end{proof}
+Now we use the distributivity of multiplication (or that multiplication by positive preserves order) to prove the following:
+\[
+    (-1)\cdot x = -x
+\]
+\begin{proof}
+\[
+    (1 + (-1)) \cdot x = 0
+\]
+\[
+    1 \cdot x + (-1) \cdot x = 0 \implies (-1) \cdot x = -x
+\]
+\end{proof}
+For this however, we need the following statement as well, for which we will again use the distributivity of multiplication:
+\[
+    0\cdot x = 0
+\]
+\begin{proof}
+\[
+    (0+0) \cdot x = 0 \cdot x
+\]
+\[
+    0 \cdot x + 0 \cdot x = 0 \cdot x
+\]
+\[
+    0 \cdot x = 0
+\]
+\end{proof}
+
+\hrule
+\vspace{1em}
+
+Now we proceed with a proof of Theorem 3 using the distributivity of multiplication:
+
+\begin{proof}
+    \[
+    0 < x < y \implies 0 < x^2 < y^2
+    \]
+    Then multiplying by x yields:
+    \[
+    x^2 < xy
+    \]
+    and multiplying the inequality by y gives us:
+    \[
+    xy < y^2
+    \]
+    Combining the latter two yields:
+    \[
+    x^2 < xy < y^2 \implies x^2 < y^2
+    \]
+\end{proof}
+
+\begin{remark}
+    We can also prove that $y < x < 0 \implies 0 < -x < -y$ using the distributivity of multiplication.
+\end{remark}
+
+\begin{proof}
+Assume
+\[
+y < x < 0.
+\]
+
+Multiplying the inequality by $-1$ reverses the order:
+\[
+-y > -x > 0.
+\]
+
+Rewriting in increasing order gives
+\[
+0 < -x < -y.
+\]
+\end{proof}
+
+\section{Lion Catching Method (or The Interval Halving Method)}
+We can find $\sqrt{2}$ algorithmically via Lion Catching Method.\\
+Given $x \in [a_0, b_0]$, $c_0 = \frac{a_0 + b_0}{2}$ is the arithmetic mean, since
+\[
+    \frac{a + b}{2} - a = b - \frac{a+b}{2}
+\]
+\[
+    \frac{b-a}{2} = \frac{b-a}{2}
+\]
+In other words,
+\[
+    a + \frac{b-a}{2} = \frac{a+b}{2}.
+\]
+Then we ask a simple question: $x < c_0$ (A) or $x > c_0$ (B)?\\
+If (A), then $a_1 = a_0$, $b_1 = c_0$. Otherwise (B), $a_1 = c_0$, $b_1 = b_0$.
+
+We will give the algorithm a limit, so that the program halts and we can retrieve the calculation. This limit will be its \emph{precision}.
+
+\begin{theorem}[Cantor's Axiom]
+    Every nested sequence of non-empty closed intervals has at least one common point. Additionally, if the intervals' length goes to zero, then this yields \emph{exactly} one common point.
+\end{theorem}
+This axiom gives us a natural explanation of the Real Numbers ($\mathbb{R}$), since the axiom does not hold as long as we are in the set of rational numbers ($\mathbb{Q}$), but holds without exception in the set of real numbers.
+
+Example: $I_n = [0, 1 + \frac{1}{n}]$ which are nested, non-empty closed intervals. Nested, since
+\[
+    1 + \frac{1}{n} > 1 + \frac{1}{n+1}.
+\]
+Thus we get:
+\[
+    [0, 1] \subset I_n
+\]
+
+\begin{remark}[But what about open intervals?]
+When we consider open intervals, like $I_n = (0, \frac{1}{n})$, there is no guarantee that the intersection is non-empty (as in our example).
+\end{remark}
+
+Now let's find a nested sequence of closed non-empty intervals whose intersection is \emph{exactly} one point.
+The length of the intervals $\frac{I_0}{2^n} < \epsilon \implies $ 
+% TODO: Finish this based on material that will be uploaded to Kréta eventually. We learnt this on 17 March 2026
+
+\section{Infinities}
+\subsection{Problem 1.}
+There is an infinite amount of gold. A person takes one each day for infinitely many days. Can he take all of them?
+
+\begin{proposition}
+  He can't steal all of them, since any arbitrary day I can go in and observe that there is still an infinite amount of gold in the room.
+\end{proposition}
+However, we will see that this is actually not true. Instead, we will prove the opposite of this statement.
+\begin{proposition}
+    He can steal all of them, therefore $\nexists$ gold that he has not stolen.
+\end{proposition}
+
+\subsection{Bijection, Countably Infinite, Uncountably Infinite}
+
+For our proof, we will introduce concepts such as \textbf{bijection}, \textbf{countably infinite sets} and \textbf{uncountably infinite sets}.
+%I am reading these and genuinely dying of how unrigorous this shit is
+\begin{definition}[Countably infinite set]
+    A set is countably infinite if its elements can be put in one-to-one correspondence with the natural numbers.
+\end{definition}
+
+\begin{definition}[Bijection]
+    A bijection is a function that is both injective and surjective. Intuitively, it pairs elements of one set with \textbf{exactly one unique element} of another set, and every element of the second set is matched to.
+\end{definition}
+    Formally:\\
+    Let $f : A \rightarrow B$ be a function.\\
+    $f$ is a bijection if it satisfies the following properties:
+    \begin{enumerate}
+        \item \textbf{Injective} (one-to-one)
+        \[
+            f(a_1) = f(a_2) \implies a_1 = a_2
+        \]
+        Different inputs always produce different outputs.
+        \item \textbf{Surjective} (onto)
+        \[
+            \forall b \in B \: \exists a \in A : f(a) = b
+        \]
+        Every element of $B$ is the image of some element in $A$.\\
+        If both hold, then
+        \[
+        f : A \leftrightarrow B
+        \]
+        pairs the set perfectly. This means that the sets are the same size, or equivalently
+        \[
+        |A| = |B|.
+        \]
+    \end{enumerate}
+
+% also got to show the property of bijection that a bijection exists iff it has an inverse function etc 
+    
+With our newfound knowledge, let us revisit \emph{countably infinite sets}.
+
+    Formally, a set $A$ is countably infinite if there exists a \textbf{bijection}
+    \[
+    f: \mathbb{N} \rightarrow A.
+    \]
+    Such sets include:
+    \begin{itemize}
+        \item $\mathbb{N}$
+        \item $\mathbb{Z}$
+        \item $\mathbb{Q}$.
+    \end{itemize}
+    This means that you can list the elements
+    \[
+    a_1, a_2, a_3,...
+    \]
+    even though the list never ends.
+
+\begin{definition}[Uncountably infinite set]
+    A set is uncountable if there is no enumeration
+    \[
+    r_1, r_2, r_3,...
+    \]
+    that contains every element of the set. 
+    The classic example is $\mathbb{R}$, proved by Cantor's diagonalization argument.
+\end{definition}
+
+% still got to introduce Cantor's diagonalization argument, apply that to the gold problem, show what happens based on wheter those sets correspond to R or N etc., 
+
+With these concepts in mind now, let us reconsider the original gold problem.
+
+\begin{proof}
+% also todo, needs the Cantors diagonalization etc.
+\end{proof}
+
+\section{Factorizing expressions with square roots}
+Let's try to expand $(\sqrt{2} + 1)^2$.
+\[
+    (\sqrt{2}+1)^2 = (\sqrt{2})^2 + 2\sqrt{2} + 1 = 3 + 2\sqrt{2}
+\]
+
+\hrule
+\vspace{10pt}
+
+Now let us try to factorize $11 + 6\sqrt{2}$.
+What would be a more systematic approach?
+We first observe that our solution will be of the form
+\[
+    (a+b)^2 = a^2 + b^2 + 2ab,
+\]
+(Trivially, since our equation is of the form $a^2 + b^2 + 2ab$.)\\
+Then we notice that the $2ab$ part will be:
+\[
+    6\sqrt{2} = 2ab
+\]
+And that
+\[
+    3\sqrt{2} = ab.
+\]
+Which gives us a table of possible (a, b) solutions.
+\begin{center}
+    \begin{tabular}{c|c}
+        a & b \\
+        \hline
+        \rule{0pt}{3ex} 
+        $1$ & $3\sqrt{2}$ \\ 
+        $3$ & $\sqrt{2}$ \\ 
+    \end{tabular}
+\end{center}
+We can see that we need $a^2 + b^2 = 11$.\\
+\[
+    (1)^2 + (3\sqrt{2})^2 = 19,
+\]
+Therefore the solution must be the other case, $(a = 3, b = \sqrt{2}).$ Verifying,
+\[
+    (3)^2 + (\sqrt{2})^2 = 9 + 2 = 11.
+\]
+Which means 
+\[
+    11 + 6\sqrt{2} = (3 + \sqrt{2})^2
+\] \qed
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+Now let's try a little more complicated problem.
+Factorize $17-4\sqrt{15}$.
+Recall that
+\[
+    (a + b)^2 = a^2 + b^2 + 2ab
+\]
+And that
+\[
+    (a - b)^2 = a^2 + b^2 - 2ab
+\]
+Therefore
+\[
+    2ab = 4\sqrt{15}
+\]
+\[
+    ab = 2\sqrt{15}
+\]
+Now we have the following table of pairs of possible solutions (a, b) which satisfy $ab = 2\sqrt{15}$.
+\begin{center}
+    \begin{tabular}{c|c}
+        a & b \\
+        \hline
+        \rule{0pt}{3ex} 
+        $2$ & $\sqrt{15}$ \\ 
+        $1$ & $2\sqrt{15}$ \\ 
+        $\sqrt{3}$ & $2\sqrt{5}$ \\ 
+        $\sqrt{5}$ & $2\sqrt{3}$ \\ 
+    \end{tabular}
+\end{center}
+Evaluating all the possible solution pairs to find one which also satisfies $a^2 + b^2 = 17$:\\
+Case 1.
+\[
+    (2)^2 + (\sqrt{15})^2 = 19
+\]
+does not satisfy. Case 2:
+\[
+    (1)^2 + (2\sqrt{15})^2 = 61
+\]
+also does not satisfy our equation. Case 3:
+\[
+    (\sqrt{3})^2 + (2\sqrt{5})^2 = 23
+\]
+again, does not satisfy $a^2 + b^2 = 17$. Therefore, case 4;
+\[
+    (\sqrt{5})^2 + (2\sqrt{3})^2 = 17.
+\]
+Which means that $a = \sqrt{5}$, $b = (2\sqrt{3})$.\\
+Thus 
+\[
+    17-4\sqrt{15} = (\sqrt{5} - 2\sqrt{3})^2
+\] \qed
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+Now another: Factorize $120 - 30\sqrt{15}$.
+We notice that the solution will be of form $(a - b)^2 = a^2 + b^2 - 2ab$. Then
+\[
+    2ab = 30\sqrt{15}
+\]
+\[
+    ab = 15\sqrt{15}
+\]
+
+Which gives us the following table of possible solution pairs (a, b):
+\begin{center}
+    \begin{tabular}{c|c}
+        a & b \\
+        \hline
+        \rule{0pt}{3ex} 
+        $1$ & $15\sqrt{15}$ \\ 
+        $3$ & $5\sqrt{15}$ \\ 
+        $5$ & $3\sqrt{15}$ \\ 
+        $3\sqrt{5}$ & $5\sqrt{3}$ \\ 
+        $5\sqrt{5}$ & $3\sqrt{3}$
+    \end{tabular}
+\end{center}
+We find, after exhaustive enumeration, that only the pair ($3\sqrt{5}$, $5\sqrt{3}$) satisfies $a^2 + b^2 = 120$, and therefore
+\[
+    120-30\sqrt{15} = (3\sqrt{5} - 5\sqrt{3})^2
+\] \qed
+
+\section{Algebra with Square Roots: Identities, Definition}
+\begin{definition}[Square root]
+    We denote the square root via the symbol $\sqrt{\phantom{x}}$. $\sqrt{\phantom{x}}$ is the inverse of squaring, and thus $\sqrt{x} = x^{1/2}$.\\
+    $\sqrt{x} = a$ if and only if $a^2 = x$, and thus $a \in \mathbb{R}, a \ge 0.$  
+\end{definition}
+
+\subsection{Identities}
+Identity 1.
+\[
+    (\sqrt{a})^2 = a.
+\]
+Identity 2.
+\[
+    \sqrt{a^2} = |a|.
+\]
+Identity 3.
+\[
+    \sqrt{a} \cdot \sqrt{b} = \sqrt{ab}.
+\]
+Where $a, b \ge 0.$
+Identity 4.
+\[
+    \sqrt{\frac{a}{b}} = \frac{\sqrt{a}}{\sqrt{b}}.
+\]
+Where $a, b \ge 0.$
+One common mistake is thinking that
+\[
+    \sqrt{a + b} \not= \sqrt{a} + \sqrt{b}
+\]
+is an identity. While in reality, it is not. For example,
+\[
+    \sqrt{16 + 9} \not= \sqrt{16} + \sqrt{9}
+\]
+since
+\[
+    5 \not= 4 + 3.
+\]
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+The statement $\sqrt{ab} = \sqrt{a} \cdot \sqrt{b}$ is not equivalent to the statement $\sqrt{a} \cdot \sqrt{b} = \sqrt{ab}$, since the existence of $\sqrt{ab}$ does not guarantee the existence of $\sqrt{a}$ or $\sqrt{b}$, unless the condition $a, b \ge 0$ is given.
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+\[
+\sqrt{20} = \sqrt{4\cdot5} = \sqrt{4} \cdot \sqrt{5} = 2\sqrt{5}.
+\]
+\[
+3\sqrt{2} = \sqrt{9} \cdot \sqrt{2} = \sqrt{18}.
+\]
+Generally, $a\sqrt{b} = \sqrt{a^2b}.$ and $\sqrt{a}$\\ % TBA
+
+How is this useful? We may ask, which of the following is bigger?
+\[
+    4\sqrt{2}  % TBA
+\]
+
+\subsection{Problems}
+% TBA:
+% all from 183 to 191
+% also add 186
+
+% 188:
+\subsubsection{Evaluating expressions}
+\begin{enumerate} % set the symbols to a, b, c ...
+    \item $\sqrt{12} - \sqrt{27} + \frac{1}{2}\sqrt{48};$
+    \item $3\sqrt{2} + \sqrt{32} - \sqrt{200};$
+    \item $2\sqrt{72} - \sqrt{50} - 2\sqrt{8};$
+    \item $5\sqrt{3} + \frac{1}{3}\sqrt{27} - \sqrt{48};$
+    \item $\sqrt{80} + \frac{1}{2}\sqrt{20} + 3\sqrt{45};$
+    \item $3\sqrt{32} - \sqrt{50} + 2\sqrt{18} + 3\sqrt{8};$
+    \item 
+    \item 
+\end{enumerate} % set the symbols to a,b,c ....
+\subsubsection{Solutions.} % should solutions be an appendix instead?
+\begin{enumerate}
+    \item $2\sqrt{3} - 3\sqrt{3} + 2\sqrt{3} = \sqrt{3}$
+    \item 
+    \item $12\sqrt{2} - 5\sqrt{2} - 4\sqrt{2}$
+\end{enumerate}
+
+% 191 too
+
+\section{Rationalization}
+\begin{definition}[Rationalization]
+    Rationalization is the process of eliminating a square root (or other \textbf{radical}) from the denominator of a fraction by multiplying by a suitable expression. Verb: Rationalizing [the denominator].
+\end{definition}
+
+\begin{definition}[Radical]
+    A radical expression is an expression of the form $\sqrt[n]{x}$.
+\end{definition}
+
+\begin{definition}[Rational]
+    A rational number is any number of the form $\frac{p}{q}$ where
+$p,q\in\mathbb{Z}$ and $q\ne0$. (The set of rationals numbers is $\mathbb{Q}$).
+\end{definition}
+
+\begin{example}
+    \[
+    \frac{8}{\sqrt{2}} = \frac{8\sqrt{2}}{\sqrt{2}\sqrt{2}} = \frac{8\sqrt{2}}{2} = 4\sqrt{2}
+    \]
+\end{example}
+\begin{example}
+    \[
+    \frac{\sqrt{5}}{\sqrt{7}}
+    = \frac{\sqrt{5}\sqrt{7}}{7}
+    = \frac{\sqrt{35}}{7}
+    \]
+\end{example}
+We can see that the fraction does not necessarily disappear.
+\begin{example}
+    \[
+    \frac{2}{2 + \sqrt{2}} \cdot 
+    \]
+\end{example}
+
+\subsection{Problems}
+% 207, 208
+% 208 Z:
+\[
+\frac{1}{\sqrt{2} + \sqrt{3} - \sqrt{5}}
+\]
+Multiplying by
+\[
+\frac{\sqrt{2} - \sqrt{3} + \sqrt{5}}{\sqrt{2} - \sqrt{3} + \sqrt{5}}
+\]
+% TBA
+
+\subsection{Hard problems}
+\subsubsection{Problem 1.}
+
+\subsubsubsection[Problem]{\makebox[0.87\textwidth][r]{Problem}}
+\vspace{-4pt}
+\hrule
+\vspace{10pt}
+
+Simplify the following expression:
+\[
+\frac{2 - \sqrt{3}}{\sqrt{2} - \sqrt{2 - \sqrt{3}}} + \frac{2 + \sqrt{3}}{\sqrt{2} + \sqrt{2 + \sqrt{3}}}.
+\]
+
+\subsubsubsection[Solution]{\makebox[0.87\textwidth][r]{Solution}}
+\vspace{-4pt}
+\hrule
+\vspace{10pt}
+
+\[
+\frac{(2 - \sqrt{3})(\sqrt{2} + \sqrt{2 - \sqrt{3}})}{2 - (2 - \sqrt{3})} = \frac{(2 - \sqrt{3})(\sqrt{2} + \sqrt{2 - \sqrt{3}})}{\sqrt{3}}
+\]
+\[
+\frac{(2 + \sqrt{3})(\sqrt{2} - \sqrt{2 + \sqrt{3}})}{2 - (2 + \sqrt{3})} = -\frac{(2 + \sqrt{3})(\sqrt{2} - \sqrt{2 + \sqrt{3}})}{\sqrt{3}}
+\]
+\[
+\frac{(2 - \sqrt{3})(\sqrt{2} + \sqrt{2} - \sqrt{3}) - (2 + \sqrt{3})(\sqrt{2} - \sqrt{2 + \sqrt{3}})}{\sqrt{3}}
+\]
+\[
+\frac{2\sqrt{2}-\sqrt{6} + 2\sqrt{2 - \sqrt{3}} - \sqrt{3}\sqrt{2 - \sqrt{3}} - 2\sqrt{2} - \sqrt{6} + 2\sqrt{2 + \sqrt{3}} + \sqrt{3}\sqrt{2 + \sqrt{3}}}{\sqrt{3}}
+\]
+We can see that the $2\sqrt{2}$s cancel out, and grouping like terms gives us
+\[
+\frac{-2\sqrt{6} + 2(\sqrt{2 - \sqrt{3}} + \sqrt{2 + \sqrt{3}}) + \sqrt{3}(\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}})}{\sqrt{3}}.
+\]
+\hrule
+\vspace{10pt}
+We now observe the following particular parts:
+\[
+\text{A) } \sqrt{2 - \sqrt{3}} + \sqrt{2 + \sqrt{3}}
+\]
+\[
+\text{B) } \sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}}
+\]
+
+Idea for A): Let's square the expression, then see if it simplifies, then take its square root!
+\[
+\sqrt{2 - \sqrt{3}} + \sqrt{2 + \sqrt{3}} 
+\]
+\[
+\sqrt{(\sqrt{2 + \sqrt{3}} + \sqrt{2 - \sqrt{3}})^2} 
+\]
+\[
+\sqrt{2 + \sqrt{3} + 2 - \sqrt{3} + 2\sqrt{4 - 3}}
+\]
+\[
+\sqrt{6}.
+\]
+The idea is the same for B): 
+\[
+\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}}
+\]
+\[
+\sqrt{(\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}})^2}
+\]
+\[
+\sqrt{2 + \sqrt{3} + 2 - \sqrt{3} - 2\sqrt{4 - 3}}
+\]
+\[
+\sqrt{2}.
+\]
+
+\vspace{10pt}
+\hrule
+\vspace{10pt}
+
+Which lets us finish our solution:
+\[
+\frac{-2\sqrt{6} + 2{\sqrt{6}} + \sqrt{3}\sqrt{2}}{\sqrt{3}}
+\]
+\[
+\boxed{\sqrt{2}.}
+\] \qed
+
+\subsubsubsubsection[An alternate approach]{\makebox[0.85\textwidth][r]{An alternate approach}}
+\vspace{-4pt}
+\hrule
+\vspace{10pt}
+What if $\sqrt{2 + \sqrt{3}}$ is a square under a square root? 
+\[
+\sqrt{2 + \sqrt{3}} = \sqrt{\frac{4 + 2\sqrt{3}}{2}} = \sqrt{\frac{(\sqrt{3} + 1)^2}{2}} = \frac{\sqrt{3} + 1}{\sqrt{2}}
+\]
+Similarly for $\sqrt{2 - \sqrt{3}}$:
+\[
+\sqrt{2 - \sqrt{3}} = \sqrt{\frac{4 - 2\sqrt{3}}{2}} = \sqrt{\frac{(\sqrt{3} - 1)^2}{2}} = \frac{\sqrt{3} - 1}{\sqrt{2}}
+\]
+Or collectively
+\[
+\sqrt{2 \pm \sqrt{3}} = \sqrt{\frac{4 \pm 2\sqrt{3}}{2}} = \sqrt{\frac{(\sqrt{3} \pm 1)^2}{2}} = \frac{\sqrt{3} \pm 1}{\sqrt{2}}
+\]
+Therefore
+\[
+\sqrt{2 + \sqrt{3}} + \sqrt{2 - \sqrt{3}} = \frac{\sqrt{3} + 1 + \sqrt{3} - 1}{\sqrt{2}} = \frac{2\sqrt{3}}{\sqrt{2}} = \sqrt{2}\sqrt{3} = \sqrt{6}
+\]
+And
+\[
+\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}} = \frac{\sqrt{3} + 1 - \sqrt{3} + 1}{\sqrt{2}} = \frac{2}{\sqrt{2}} = \sqrt{2}.
+\]
+From here, we can finish our solution in exactly the same way as the previous approach:
+\[
+\frac{-2\sqrt{6} + 2{\sqrt{6}} + \sqrt{3}\sqrt{2}}{\sqrt{3}}
+\]
+\[
+\boxed{\sqrt{2}.}
+\] \qed
+
+\subsubsection[Summary]{\makebox[0.90\textwidth][r]{Summary}}
+\vspace{-8pt}
+\hrule
+\vspace{10pt}
+Summarizing, we first asked to simplify the following expression:
+\[
+\frac{2 - \sqrt{3}}{\sqrt{2} - \sqrt{2 - \sqrt{3}}} + \frac{2 + \sqrt{3}}{\sqrt{2} + \sqrt{2 + \sqrt{3}}}.
+\]
+After some simplification, we arrived at
+\[
+\frac{-2\sqrt{6} + 2(\sqrt{2 - \sqrt{3}} + \sqrt{2 + \sqrt{3}}) + \sqrt{3}(\sqrt{2 + \sqrt{3}} - \sqrt{2 - \sqrt{3}})}{\sqrt{3}},
+\]
+and then we asked how the expression $\sqrt{2 \pm \sqrt{3}} \pm \sqrt{2 \pm \sqrt{3}}$ can be simplified with the restriction that the two outermost added terms have alternating signs.
+We proposed two approaches: In the first, we tried the first thing that comes to mind: square, then try to simplify, because maybe the numbers play out nicely, then take its square root. In the second, we noticed that both terms in the addition are actually squares under a square root, and simplified using this fact. \\
+
+Our result was $\sqrt{4 \pm 2}$, giving us the final solution of $\sqrt{2}.$
+
+\end{document}
