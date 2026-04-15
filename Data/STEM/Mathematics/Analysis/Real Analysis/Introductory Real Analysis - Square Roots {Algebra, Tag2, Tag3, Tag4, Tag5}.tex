@@ -67,7 +67,7 @@
 
 \title{Introductory Real Analysis: Square Roots}
 \author{Robin Rovenszky}
-\date{Last updated: March 27, 2026}
+\date{Last updated: April 13, 2026}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{remark}{Remark}
@@ -82,10 +82,10 @@
 \newpage
 
 \section{What is $\sqrt{2}$?}
-We understand that it must exist, since in a right triangle with legs $a = 1, b= 1, \alpha = 90$, where $\alpha$ is their enclosed angle, the hypotenuse has length $\sqrt{2}$. So what is $\sqrt{2}$?
+We understand that it should exist, since in a right triangle with legs $a = 1, b= 1, \alpha = 90$, where $\alpha$ is their enclosed angle, the hypotenuse has length $\sqrt{2}$. So what is $\sqrt{2}$?
 
 \begin{theorem}
-    There is no rational number $x$ such that $x^2 = 2$. Equivalently, for an x satisfying $x^2 = 2$, x not also satisfy $x = \frac{p}{q}$ with $p, q \in \mathbb{Z}$, $gcd(p, q) = 1$
+    There is no rational number $x$ such that $x^2 = 2$. Equivalently, for an x satisfying $x^2 = 2$, x may not also satisfy $x = \frac{p}{q}$ with $p, q \in \mathbb{Z}$, $\gcd(p, q) = 1$
 \end{theorem}
 \begin{proof}
     Assume the statement is true. Then
@@ -95,14 +95,30 @@ We understand that it must exist, since in a right triangle with legs $a = 1, b=
     \begin{equation}
         \implies 4 \mid 2q^2 \implies 2 \mid q^2 \implies 2 \mid q \implies \gcd(p, q) \ge 2 \Rightarrow\!\Leftarrow
     \end{equation}
-    Or alternatively, we could have also finished the proof via
-    $p^2 = 2q^2$. Now we notice that $p^2$ has two in its prime factorization to an even power, while $2q^2$ has two in its prime factorization to an odd power (since $\gcd(p,q) = 1$).
+    Or alternatively, we could have also finished the proof via noticing that in the equation
+    $p^2 = 2q^2$, $p^2$ has two in its prime factorization to an even power (since it is a square), while $2q^2$ has two in its prime factorization to an odd power (since it is a square, but multiplied by 2). Therefore our equation cannot hold, since one number cannot have two in its prime factorization to an odd and an even power at the same time.
 \end{proof}
 
 We can generalize this result to show that for all $a \in \mathbb{Z}_{\ge 0}$, if $x^2 = a$, then if $a$ contains a prime factor to an odd exponent (so $a$ is not a perfect square), then and only then $x \in \mathbb{R} \setminus \mathbb{Q}$.
 
+\begin{remark}[Proof of irrationality of the square root of non-square numbers]
+If $x^2 = a$ and $a$ is not a perfect square, then and only then $x \in \mathbb{R} \setminus \mathbb{Q}$.
+    \begin{proof}
+        If $a$ is not a perfect square, then $a$ contains a prime factor to an odd exponent. Then, if $a$ were rational, we would have $a = \frac{p}{q}$ for some $p, q \in \mathbb{Z}$. (Note that, without loss of generality, we could also assume that $q > 0$ and that $\gcd(p, q) = 1$.)
+
+        Then, since $a = \frac{p}{q}$, $\frac{p^2}{q^2} = a \implies p^2 = a\cdot q^2$.\\
+        Now, pick a prime factor in $a$ whose exponent is odd. (We know one must exist, since $a$ is not a perfect square.)
+        \begin{itemize}
+            \item in the prime factorization of $p$, $r$ must appear an even number of times, since it is a perfect square.
+            \item in the prime factorization of $aq^2$, $r$ must appear an odd numbers of times, since the above argument applies to $q^2$, and multiplying that once by $a$ yields an odd exponent.
+        \end{itemize}
+        We have reached a contradiction, as no number can have a prime in its prime factorization to an even and an odd power at the same time, and prime factorizations are unique by the Fundamental Theorem of Arithmetic. Therefore $a \in \mathbb{R} \setminus \mathbb{Q}.$
+        
+    \end{proof}
+\end{remark}
+
 \section{Finding $\sqrt{2}$}
-Since we cannot find irrational numbers, we will approximate it. Let us start with:
+Since we cannot find irrational numbers exactly, we will approximate it. Let us start with:
 \[
 1 < x < 2 \Leftrightarrow 1 < x^2 < 4
 \]
@@ -165,7 +181,7 @@ For this however, we need the following statement as well, for which we will aga
 \hrule
 \vspace{1em}
 
-Now we proceed with a proof of Theorem 3 using the distributivity of multiplication:
+Now we proceed with a proof of Theorem 2 using the distributivity of multiplication:
 
 \begin{proof}
     \[
@@ -179,7 +195,7 @@ Now we proceed with a proof of Theorem 3 using the distributivity of multiplicat
     \[
     xy < y^2
     \]
-    Combining the latter two yields:
+    Combining the latter two under the Axiom of Transitivity yields:
     \[
     x^2 < xy < y^2 \implies x^2 < y^2
     \]
@@ -190,6 +206,8 @@ Now we proceed with a proof of Theorem 3 using the distributivity of multiplicat
 \end{remark}
 
 \begin{proof}
+\leavevmode \\
+
 Assume
 \[
 y < x < 0.
@@ -206,9 +224,9 @@ Rewriting in increasing order gives
 \]
 \end{proof}
 
-\section{Lion Catching Method (or The Interval Halving Method)}
-We can find $\sqrt{2}$ algorithmically via Lion Catching Method.\\
-Given $x \in [a_0, b_0]$, $c_0 = \frac{a_0 + b_0}{2}$ is the arithmetic mean, since
+\section{Lion Catching Method}
+We can find $\sqrt{2}$ algorithmically via the \textbf{Bisection Method}, also known as the \emph{Interval Halving Method}, or the \emph{Lion Catching Method.} (from \emph{Hector Petard: A Contribution to the Mathematical Theory of Big Game Hunting, 1938.)}\\
+Given $[a_0, b_0]$, $c_0 = \frac{a_0 + b_0}{2}$ is the arithmetic mean, since
 \[
     \frac{a + b}{2} - a = b - \frac{a+b}{2}
 \]
@@ -222,7 +240,7 @@ In other words,
 Then we ask a simple question: $x < c_0$ (A) or $x > c_0$ (B)?\\
 If (A), then $a_1 = a_0$, $b_1 = c_0$. Otherwise (B), $a_1 = c_0$, $b_1 = b_0$.
 
-We will give the algorithm a limit, so that the program halts and we can retrieve the calculation. This limit will be its \emph{precision}.
+We will give the algorithm a limit, so that the program halts and we can retrieve the calculation. This limit will be its \emph{precision}. (Alternatively, we could make the program report on its progress while storing the previous value in memory for a little longer, and continue [in theory] indefinitely.)
 
 \begin{theorem}[Cantor's Axiom]
     Every nested sequence of non-empty closed intervals has at least one common point. Additionally, if the intervals' length goes to zero, then this yields \emph{exactly} one common point.
@@ -243,7 +261,7 @@ When we consider open intervals, like $I_n = (0, \frac{1}{n})$, there is no guar
 \end{remark}
 
 Now let's find a nested sequence of closed non-empty intervals whose intersection is \emph{exactly} one point.
-The length of the intervals $\frac{I_0}{2^n} < \epsilon \implies $ 
+The length of the intervals $\frac{I_0}{2^n} < \epsilon \implies $
 % TODO: Finish this based on material that will be uploaded to Kréta eventually. We learnt this on 17 March 2026
 
 \section{Infinities}
@@ -253,15 +271,14 @@ There is an infinite amount of gold. A person takes one each day for infinitely 
 \begin{proposition}
   He can't steal all of them, since any arbitrary day I can go in and observe that there is still an infinite amount of gold in the room.
 \end{proposition}
-However, we will see that this is actually not true. Instead, we will prove the opposite of this statement.
+However, we will see that this is actually not the right way to look at the problem, since, as we will see, "any arbitrary day" is not equivalent to infinity. Instead, we observe the following proposition:
 \begin{proposition}
-    He can steal all of them, therefore $\nexists$ gold that he has not stolen.
+    He can steal all of them, therefore there doesn't exist gold that he has not stolen.
 \end{proposition}
 
 \subsection{Bijection, Countably Infinite, Uncountably Infinite}
 
 For our proof, we will introduce concepts such as \textbf{bijection}, \textbf{countably infinite sets} and \textbf{uncountably infinite sets}.
-%I am reading these and genuinely dying of how unrigorous this shit is
 \begin{definition}[Countably infinite set]
     A set is countably infinite if its elements can be put in one-to-one correspondence with the natural numbers.
 \end{definition}
@@ -293,7 +310,56 @@ For our proof, we will introduce concepts such as \textbf{bijection}, \textbf{co
         \]
     \end{enumerate}
 
-% also got to show the property of bijection that a bijection exists iff it has an inverse function etc 
+\begin{theorem}[Inverse of a Bijection]
+    A function $f: A \rightarrow B$ is a bijection if and only if there exists a function $g: B \rightarrow A$ (often denoted as $f^{-1}$) such that:
+    \begin{enumerate}
+        \item $g(f(a)) = a$ for all $a \in A$ (equivalently, $g \circ f = \text{id}_A$)
+        \item $f(g(b)) = b$ for all $b \in B$ (equivalently, $f \circ g = \text{id}_B$)
+    \end{enumerate}
+\end{theorem}
+
+\begin{proof}
+    \textbf{Part 1: Forward Direction ($\implies$)}\\
+    Assume $f: A \rightarrow B$ is a bijection. We must show that an inverse function $g: B \rightarrow A$ exists.
+    \begin{itemize}
+        \item Because $f$ is \textbf{surjective}, for every element $b \in B$, there is at least one element $a \in A$ such that $f(a) = b$.
+        \item Because $f$ is \textbf{injective}, this element $a$ is strictly unique. There is only one $a$ that maps to a specific $b$.
+        \item Therefore, we can unambiguously define a new function $g: B \rightarrow A$ by setting $g(b) = a$.
+        \item By this definition, applying $f$ to $g(b)$ yields $f(g(b)) = f(a) = b$ for all $b \in B$. 
+        \item Similarly, applying $g$ to $f(a)$ yields $g(f(a)) = g(b) = a$ for all $a \in A$. 
+        \item Thus, the inverse function $g$ exists and satisfies both conditions.
+    \end{itemize}
+
+    \vspace{1em} % Adds a little visual breathing room between parts
+    \textbf{Part 2: Reverse Direction ($\impliedby$)}\\
+    Assume there exists a function $g: B \rightarrow A$ such that $g(f(a)) = a$ and $f(g(b)) = b$. We must show that $f$ is a bijection (both injective and surjective).
+    \begin{itemize}
+        \item \textbf{Injective:} Suppose $f(a_1) = f(a_2)$ for some $a_1, a_2 \in A$.
+        Applying our function $g$ to both sides gives:
+        \[
+            g(f(a_1)) = g(f(a_2))
+        \]
+        Because we know $g(f(a)) = a$, this equation simplifies directly to:
+        \[
+            a_1 = a_2
+        \]
+        Since $f(a_1) = f(a_2) \implies a_1 = a_2$, the function $f$ is injective.
+
+        \item \textbf{Surjective:} Let $b$ be an arbitrary element in $B$. We need to find an element $a \in A$ such that $f(a) = b$.
+        Let $a = g(b)$.
+        Applying $f$ to this chosen $a$ gives:
+        \[
+            f(a) = f(g(b))
+        \]
+        Because we know $f(g(b)) = b$, we have:
+        \[
+            f(a) = b
+        \]
+        Therefore, for every $b \in B$, there is an $a \in A$ that maps to it, making $f$ surjective.
+    \end{itemize}
+    
+    Since $f$ is proven to be both injective and surjective, it is, by definition, a bijection.
+\end{proof}
     
 With our newfound knowledge, let us revisit \emph{countably infinite sets}.
 
@@ -319,15 +385,13 @@ With our newfound knowledge, let us revisit \emph{countably infinite sets}.
     r_1, r_2, r_3,...
     \]
     that contains every element of the set. 
-    The classic example is $\mathbb{R}$, proved by Cantor's diagonalization argument.
+    The classic example is $\mathbb{R}$, proved by \textbf{Cantor's diagonalization argument.}
 \end{definition}
-
-% still got to introduce Cantor's diagonalization argument, apply that to the gold problem, show what happens based on wheter those sets correspond to R or N etc., 
 
 With these concepts in mind now, let us reconsider the original gold problem.
 
 \begin{proof}
-% also todo, needs the Cantors diagonalization etc.
+Since the set of all gold bars is $\mathbb{N}$ (as they can be organised next to each other, like listing them), and the set of all days is also $\mathbb{N}$ since we can also "list them out", both sets are countably infinite, and thus their cardinalities are equal. This tells us that the vault \emph{can be exhausted.} (Note that this proof is not "rigorous" in any mathematical sense, as the question is also not posed in a mathematical sense. Refer to \emph{Cantor's diagonalization argument.})
 \end{proof}
 
 \section{Factorizing expressions with square roots}
@@ -465,10 +529,17 @@ We find, after exhaustive enumeration, that only the pair ($3\sqrt{5}$, $5\sqrt{
 \] \qed
 
 \section{Algebra with Square Roots: Identities, Definition}
-\begin{definition}[Square root]
-    We denote the square root via the symbol $\sqrt{\phantom{x}}$. $\sqrt{\phantom{x}}$ is the inverse of squaring, and thus $\sqrt{x} = x^{1/2}$.\\
-    $\sqrt{x} = a$ if and only if $a^2 = x$, and thus $a \in \mathbb{R}, a \ge 0.$  
+\begin{definition}[Principal Square Root]
+    We denote the principal square root via the symbol $\sqrt{\phantom{x}}$. To ensure this operation is a well-defined function, we restrict its codomain to non-negative real numbers. Thus,
+    \[
+        \sqrt{x} = a \iff a^2 = x
+    \]
+    where $a \in \mathbb{R}$ and $a \ge 0$.
 \end{definition}
+
+\begin{remark}[Why not "Without Loss of Generality"?]
+    We cannot state $a \ge 0$ "without loss of generality." The equation $a^2 = x$ (for $x > 0$) has two distinct real solutions. If we assumed $a \ge 0$ without loss of generality, it would imply that choosing $a \le 0$ yields the exact same mathematical properties. Instead, restricting $a \ge 0$ is a strict definitional choice required to make the square root a single-valued function (specifically, the \textbf{principal} branch).
+\end{remark}
 
 \subsection{Identities}
 Identity 1.
@@ -483,7 +554,8 @@ Identity 3.
 \[
     \sqrt{a} \cdot \sqrt{b} = \sqrt{ab}.
 \]
-Where $a, b \ge 0.$
+
+Where $a, b \ge 0.$\\
 Identity 4.
 \[
     \sqrt{\frac{a}{b}} = \frac{\sqrt{a}}{\sqrt{b}}.
@@ -518,7 +590,7 @@ The statement $\sqrt{ab} = \sqrt{a} \cdot \sqrt{b}$ is not equivalent to the sta
 \[
 3\sqrt{2} = \sqrt{9} \cdot \sqrt{2} = \sqrt{18}.
 \]
-Generally, $a\sqrt{b} = \sqrt{a^2b}.$ and $\sqrt{a}$\\ % TBA
+Generally, $a\sqrt{b} = \sqrt{a^2b}.$ and $\sqrt{c} = m\sqrt{n}$ where $c = m^2n.$ (Every number is of this form, however, $m$ may be $1$ for some cases, therefore this may not lead to an actual reduction.)\\
 
 How is this useful? We may ask, which of the following is bigger?
 \[
@@ -727,5 +799,204 @@ and then we asked how the expression $\sqrt{2 \pm \sqrt{3}} \pm \sqrt{2 \pm \sqr
 We proposed two approaches: In the first, we tried the first thing that comes to mind: square, then try to simplify, because maybe the numbers play out nicely, then take its square root. In the second, we noticed that both terms in the addition are actually squares under a square root, and simplified using this fact. \\
 
 Our result was $\sqrt{4 \pm 2}$, giving us the final solution of $\sqrt{2}.$
+
+\section{Exam Problems}
+\subsection{Problem #1.}
+Evaluate the following: (3 points)
+\vspace{8pt}
+    \hrule
+    \vspace{8pt}
+    \[
+    \sqrt{\frac{36}{25}\cdot\frac{81}{144}\cdot0,36}
+    \]
+    First, let $0,36 = \frac{36}{100}$, then split the square root into a product of fractions
+    \[
+    =\sqrt{\frac{36}{25}}\cdot \sqrt{\frac{81}{144}}\cdot\sqrt{\frac{36}{100}} = \frac{6}{5}\cdot\frac{9}{12}\frac{6}{10}=\frac{6\cdot9\cdot6}{5\cdot12\cdot10}=\frac{324}{600}=\frac{27}{50}=0,54
+    \]
+    \vspace{3pt}
+    \hrule 
+    \vspace{8pt}
+    \[
+    \sqrt{72 \cdot 32}
+    \]
+    \[
+    \sqrt{2^8 \cdot 3^2} = 2^4 \cdot 3 = 16 \cdot 3 = 48.
+    \]
+    Generally,
+    \[
+    \sqrt{ab}
+    \]
+    Eval. $ab$'s prime factorization
+    \[
+    ab = p_1^{\alpha_1} \cdot p_2^{\alpha_2} ... p_i^{\alpha_i}
+    \]
+    If all $\alpha_i$ are even, then
+    \[
+    \sqrt{ab} = p_1^{\frac{\alpha_1}{2}} \cdot p_2^{\frac{\alpha_2}{2}} ... p_i^{\frac{\alpha_i}{2}}
+    \]
+    \vspace{3pt}
+    \hrule
+    \vspace{8pt}
+    \[
+    \sqrt{90\cdot6,4}
+    \]
+    \[
+    \sqrt{90 \cdot \frac{64}{10}}
+    \]
+    \[
+    \sqrt{10 \cdot 9 \cdot \frac{64}{10}}
+    \]
+    \[
+    \sqrt{9 \cdot 64}
+    \]
+    \[
+    \sqrt{9} \cdot \sqrt{64} = 3 \cdot 8 = 24.
+    \]
+
+\subsection{Problem #2.}
+Evaluate the following expressions (2 points)
+\[
+2\sqrt{72} - \sqrt{50} - 2\sqrt{8}
+\]
+\[
+\sqrt{72} = \sqrt{36 \cdot 2} = 6\sqrt{2}
+\]
+\[
+\sqrt{50} = \sqrt{25 \cdot 2} = 5\sqrt{2}
+\]
+\[
+\sqrt{8} = \sqrt{4 \cdot 2} = 2\sqrt{2}
+\]
+\[
+2(6\sqrt{2}) - 5\sqrt{2} - 2(2\sqrt{2}) = 12\sqrt{2} - 5\sqrt{2} - 4\sqrt{2} = 3\sqrt{2}
+\]
+
+\vspace{3pt}
+\hrule
+\vspace{8pt}
+
+\[
+\sqrt{12} - \sqrt{27} + \frac{1}{2}\sqrt{48}
+\]
+We notice that all of the numbers are divisible by 3.
+\[
+2\sqrt{3}  - 3\sqrt{3} + \frac{1}{2}4\sqrt{3}
+\]
+\[
+2\sqrt{3} - 3\sqrt{3} + 2\sqrt{3}
+\]
+\[
+\sqrt{3}.
+\]
+
+\subsection{Problem #3.}
+Simplify the following expressions. (2 points)
+\[
+\sqrt{30}\cdot\sqrt{20}
+\]
+\[
+\sqrt{30 \cdot 20} = \sqrt{600}
+\]
+\[
+600 = 2^3 \cdot 3 \cdot 5^2
+\]
+\[
+=\sqrt{2^2 \cdot 5^2 \cdot 2 \cdot 3} = 2 \cdot 5 \cdot \sqrt{6} = 10\sqrt{6}
+\]
+
+\vspace{3pt}
+\hrule
+\vspace{8pt}
+
+\[
+\sqrt{63}\cdot\sqrt{28}
+\]
+\[
+\sqrt{1764} = ?.
+\]
+\[
+1764 = 2^2\cdot3^2\cdot7^2
+\]
+\[
+\sqrt{2^2\cdot3^2\cdot7^2} = 2\cdot3\cdot7 = 42.
+\]
+
+\subsection{Problem 4#.}
+Evaluate the expression. (3 points)
+\[
+(2\sqrt{18} + \sqrt{54})\cdot(3\sqrt{6}-\sqrt{27}-\sqrt{3})
+\]
+Simplify every radical
+\[
+2\sqrt{18} = 2\cdot3\sqrt{2}=6\sqrt{2}
+\]
+\[
+\sqrt{54} = 3\sqrt{6}
+\]
+\[
+\sqrt{27} = 3\sqrt{3}
+\]
+Then the expression becomes
+\[
+(6\sqrt{2} + 3\sqrt{6}) \cdot (3\sqrt{6} - 3\sqrt{3} - \sqrt{3})
+\]
+\[
+(6\sqrt{2} + 3\sqrt{6}) \cdot (3\sqrt{6} - 4\sqrt{3})
+\]
+After simply algebraically expanding the brackets like with any expression, we get
+\[
+54 + 36\sqrt{3} - 36\sqrt{2} - 24\sqrt{6}.
+\]
+
+\subsection{Problem #5.}
+Calculate the exact value of the following expression. (3 points)
+\[
+(\sqrt{2 + 2\sqrt{3}} - \sqrt{-2 +2\sqrt{3}})^2
+\]
+We will omit the details here, ask any LLM.
+The final result, for checking purposes, is $4(\sqrt{3} - \sqrt{2})$.
+
+\subsection{Problem #6.}
+Calculate the exact value of the following expression. (3 points)
+\[
+\sqrt{48  + 6\sqrt{15}} + \sqrt{48 - 6\sqrt{15}}
+\]
+We will omit the details here, ask any LLM. The final results, for checking purposes, is $6\sqrt{5}.$
+
+\subsection{Problem #7.}
+Rationalize the denominator.
+
+\[
+\frac{2}{\sqrt{5}-2}
+\]
+The conjugate of $\sqrt{5}-2$ is $\sqrt{5} + 2$, therefore we will multiply the entire fraction by that.
+\[
+\frac{2(\sqrt{5} + 2)}{(\sqrt{5}-2)(\sqrt{5} + 2)}
+\]
+\[
+2\sqrt{5} + 4.
+\]
+
+\vspace{3pt}
+\hrule
+\vspace{8pt}
+
+\[
+\frac{28}{1+\sqrt{5}}
+\]
+Multiply by the conjugate
+\[
+\frac{28(1-\sqrt{5})}{(1+\sqrt{5})(1-\sqrt{5})}
+\]
+We omit the small details. The final result is
+\[
+7(\sqrt{5} - 1).
+\]
+
+\subsection{Problem #8.}
+Simplify the following expression. (3 points)
+\[
+\sqrt{a + 2 + 4\sqrt{a-2}}
+\]
 
 \end{document}
