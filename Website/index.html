@@ -108,7 +108,7 @@
     .file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
 
     /* CARDS */
-    .card{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 18px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;overflow:hidden;transition:border-color .25s,box-shadow .25s,transform .25s var(--tr-spring),background .25s;animation:cardIn .4s var(--tr) both}
+    .card{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 18px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;overflow:visible;transition:border-color .25s,box-shadow .25s,transform .25s var(--tr-spring),background .25s;animation:cardIn .4s var(--tr) both}
     @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
     .card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,var(--accent-dim),transparent 60%);opacity:0;transition:opacity .3s}
     .card:hover{border-color:rgba(196,161,60,.35);box-shadow:0 0 0 1px rgba(196,161,60,.12),0 8px 30px rgba(0,0,0,.4);transform:translateY(-4px);background:var(--bg3)}
@@ -126,7 +126,7 @@
     .card-icon.generic{background:rgba(255,255,255,.05);color:var(--text2)}
     .card-icon.bib{background:rgba(92,191,176,.12);color:var(--teal)}
     .card-body{flex:1;min-width:0;width:100%}
-    .card-name{font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--text);line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;transition:color .2s}
+    .card-name{font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--text);line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;line-clamp:2;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;transition:color .2s}
     .card.back-card .card-name{color:var(--text2)}
     .card.back-card:hover .card-name{color:var(--accent2)}
     .card-meta{display:flex;align-items:center;gap:6px;margin-top:5px}
@@ -402,7 +402,7 @@
     /* ── Folder children popup ── handled by inline .sel-expand (JS-driven) ─── */
 
     /* STORY PAGE */
-    #page-story{}
+    /*#page-story{}*/
     .story-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
     .story-title{font-family:var(--font-display);font-size:clamp(44px,7vw,88px);font-weight:400;line-height:1;letter-spacing:-.02em;margin-bottom:56px}
     .story-title em{font-style:italic;color:var(--accent)}
@@ -414,7 +414,7 @@
     .accent-line{width:40px;height:2px;background:var(--accent);margin-bottom:20px;border-radius:1px}
 
     /* NOTES PAGE */
-    #page-notes{}
+    /*#page-notes{}*/
     .notes-hero{padding:72px 40px 48px;max-width:1600px;margin:0 auto;border-bottom:1px solid var(--border)}
     .articles-container{padding:40px 40px 80px;max-width:1600px;margin:0 auto}
     .articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px}
@@ -424,7 +424,7 @@
     .article-date{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);opacity:.7}
     .article-title{font-family:var(--font-display);font-size:22px;font-weight:500;line-height:1.25;color:var(--text);transition:color .2s}
     .article-card:hover .article-title{color:var(--accent2)}
-    .article-desc{font-size:13px;color:var(--text2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .article-desc{font-size:13px;color:var(--text2);line-height:1.6;display:-webkit-box;line-clamp:3;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
     .article-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px;border-top:1px solid var(--border)}
     .article-tags{display:flex;gap:6px;flex-wrap:wrap}
     .article-tag{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border-md);border-radius:4px;color:var(--text3)}
@@ -540,7 +540,7 @@
     .fail-footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--border)}
 
     /* CODE VIEWER MODAL */
-    #codeModal{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
+    #codeModal{position:fixed;inset:0;z-index:7200;display:flex;align-items:center;justify-content:center;padding:calc(var(--header-h) + 16px) 24px 24px;opacity:0;pointer-events:none;transition:opacity .25s}
     #codeModal.open{opacity:1;pointer-events:all}
     .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
     .modal-box{position:relative;z-index:1;width:min(900px,100%);max-height:85vh;background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.03);transform:scale(0.96) translateY(8px);transition:transform .3s var(--tr-spring)}
@@ -1329,16 +1329,160 @@
     }
     .card-tag-more:hover{color:var(--text2);background:var(--bg3)}
     .card-tag-more .tag-tooltip{
-      position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+      /* fixed so it escapes any overflow:hidden ancestor */
+      position:fixed;
       background:var(--bg2);border:1px solid var(--border-md);border-radius:8px;
       padding:7px 9px;display:flex;flex-direction:column;gap:4px;min-width:130px;
-      z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.55);
+      z-index:10001;box-shadow:0 8px 28px rgba(0,0,0,.55);
       opacity:0;pointer-events:none;transition:opacity .15s;white-space:nowrap;
+      /* position set by JS — default off-screen */
+      top:-9999px;left:-9999px;
     }
     .card-tag-more:hover .tag-tooltip{opacity:1;pointer-events:all}
     .tag-tooltip .card-tag{opacity:1;display:block}
 
-    /* ── SETTINGS SECTION HIERARCHY ─────────────────────────────────── */
+    /* ── MEDIA MODAL (image / video / audio) ──────────────────────────────────── */
+    #mediaModal{position:fixed;inset:0;z-index:7300;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--header-h) 16px 16px;opacity:0;pointer-events:none;transition:opacity .25s;background:rgba(0,0,0,.92)}
+    #mediaModal.open{opacity:1;pointer-events:all}
+    .media-inner{position:relative;max-width:min(96vw,1200px);max-height:calc(100vh - var(--header-h) - 48px);display:flex;flex-direction:column;align-items:center;gap:0;border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.8)}
+    .media-topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;gap:10px}
+    .media-filename{font-family:var(--font-mono);font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+    .media-badge{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid rgba(108,191,128,.35);color:var(--green);flex-shrink:0}
+    .media-body{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;background:#000;min-height:200px}
+    .media-body img{max-width:100%;max-height:calc(100vh - var(--header-h) - 130px);object-fit:contain;display:block}
+    .media-body video,.media-body audio{max-width:100%;outline:none}
+    .media-body audio{width:360px;margin:32px}
+    /* ── GREYED / BILINGUAL CARDS ──────────────────────────────────────────────── */
+    .card.greyed{opacity:.45;filter:saturate(.25)}
+    .card.greyed:hover{opacity:.7;filter:saturate(.5)}
+    .card.greyed .card-icon{filter:grayscale(1)}
+    .card-split-overlay{position:absolute;inset:0;border-radius:inherit;display:flex;overflow:hidden;opacity:0;transition:opacity .28s var(--tr);pointer-events:none;z-index:3}
+    .card.bilingual:hover .card-split-overlay{opacity:1;pointer-events:all}
+    .card-split-en,.card-split-hu{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:background .18s}
+    .card-split-en{background:rgba(92,143,196,.18)}
+    .card-split-en:hover{background:rgba(92,143,196,.32)}
+    .card-split-hu{background:rgba(196,161,60,.16);border-left:1px solid rgba(255,255,255,.07)}
+    .card-split-hu:hover{background:rgba(196,161,60,.28)}
+    .card-split-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+    .card-split-flag{font-size:18px;line-height:1}
+    /* ── AUTHOR TAGS ────────────────────────────────────────────────────────────── */
+    .card-tag.author{background:rgba(92,143,196,.14);border-color:rgba(92,143,196,.35);color:var(--blue)}
+    .card:hover .card-tag.author{background:rgba(92,143,196,.22)}
+    /* ── MUSIC PLAYER ──────────────────────────────────────────────────────────── */
+    #musicBar{position:fixed;bottom:0;left:0;right:0;z-index:6000;height:56px;background:var(--bg2);border-top:1px solid var(--border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;padding:0 20px;gap:12px;transform:translateY(100%);transition:transform .4s var(--tr-spring)}
+    #musicBar.visible{transform:translateY(0)}
+    body.music-open #main,body.music-open #selPanel,body.music-open #selPanelTab{padding-bottom:56px}
+    .mb-cover{width:38px;height:38px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;color:var(--text3)}
+    .mb-cover svg{width:16px;height:16px}
+    .mb-info{flex:1;min-width:0}
+    .mb-title{font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mb-sub{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mb-btn{flex-shrink:0;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .2s}
+    .mb-btn:hover{color:var(--text);background:var(--bg4);border-color:var(--border-md)}
+    .mb-btn.primary{border-color:rgba(196,161,60,.4);background:var(--accent-dim);color:var(--accent)}
+    .mb-btn.primary:hover{background:rgba(196,161,60,.22)}
+    .mb-btn svg{width:14px;height:14px;flex-shrink:0}
+    .mb-progress{flex:2;min-width:60px;max-width:240px;display:flex;flex-direction:column;gap:3px}
+    .mb-prog-track{height:3px;background:var(--bg4);border-radius:2px;cursor:pointer;position:relative}
+    .mb-prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .1s linear}
+    .mb-time{font-family:var(--font-mono);font-size:9px;color:var(--text3);display:flex;justify-content:space-between}
+    .mb-vol{display:flex;align-items:center;gap:6px;flex-shrink:0}
+    .mb-vol svg{width:12px;height:12px;color:var(--text3);flex-shrink:0}
+    input.mb-vol-slider{width:60px;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;background:var(--bg4);outline:none}
+    input.mb-vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer}
+    .mb-close{flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:color .15s}
+    .mb-close:hover{color:var(--red)}
+    .mb-close svg{width:10px;height:10px}
+    /* ── MATERIAL LANGUAGE SWITCH ───────────────────────────────────────────────── */
+    .mat-lang-seg{display:flex;gap:3px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px}
+    .mat-lang-btn{flex:1;padding:5px 10px;border-radius:6px;font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);transition:background .2s,color .2s;white-space:nowrap}
+    .mat-lang-btn.active{background:var(--accent);color:var(--bg);font-weight:600}
+    /* ── CHANGELOG PAGE ─────────────────────────────────────────────────────────── */
+    .cl-hero{padding:72px 40px 48px;max-width:1600px;margin:0 auto;border-bottom:1px solid var(--border)}
+    .cl-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:16px 40px;max-width:1600px;margin:0 auto;border-bottom:1px solid var(--border)}
+    @media(max-width:768px){.cl-toolbar{padding:12px 20px}}
+    .cl-filter-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;color:var(--text2);background:var(--bg3);border:1px solid var(--border);transition:all .18s}
+    .cl-filter-btn:hover{color:var(--text);background:var(--bg4);border-color:var(--border-md)}
+    .cl-filter-btn.active{color:var(--accent);background:var(--accent-dim);border-color:rgba(196,161,60,.4)}
+    .cl-filter-btn svg{width:11px;height:11px;flex-shrink:0}
+    .cl-add-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:7px;font-family:var(--font-mono);font-size:11px;letter-spacing:.07em;color:var(--bg);background:var(--accent);border:1px solid var(--accent);margin-left:auto;box-shadow:0 0 12px var(--accent-glow);transition:all .18s}
+    .cl-add-btn:hover{background:var(--accent2);border-color:var(--accent2)}
+    .cl-add-btn svg{width:12px;height:12px}
+    .cl-feed{padding:24px 40px 80px;max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+    @media(max-width:768px){.cl-feed{padding:16px 20px 80px}}
+    .cl-entry{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;display:flex;flex-direction:column;gap:10px;animation:cardIn .35s var(--tr) both;position:relative;transition:border-color .2s}
+    .cl-entry:hover{border-color:var(--border-md)}
+    .cl-entry.important{border-left:3px solid var(--accent)}
+    .cl-entry-header{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+    .cl-date{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--text3)}
+    .cl-type-chip{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid;flex-shrink:0}
+    .cl-type-chip.website{color:var(--blue);border-color:rgba(92,143,196,.35)}
+    .cl-type-chip.note{color:var(--green);border-color:rgba(108,191,128,.35)}
+    .cl-type-chip.fix{color:var(--purple);border-color:rgba(160,123,196,.35)}
+    .cl-important-chip{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;padding:2px 7px;border-radius:4px;background:rgba(196,161,60,.12);border:1px solid rgba(196,161,60,.3);color:var(--accent)}
+    .cl-authors{font-family:var(--font-mono);font-size:10px;color:var(--blue);margin-left:auto}
+    .cl-title{font-family:var(--font-display);font-size:18px;font-weight:500;color:var(--text);line-height:1.35}
+    .cl-body{font-family:var(--font-display);font-size:15px;line-height:1.75;color:var(--text2)}
+    .cl-delete{position:absolute;top:14px;right:14px;width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--text3);opacity:0;transition:opacity .15s,color .15s,background .15s}
+    .cl-entry:hover .cl-delete{opacity:1}
+    .cl-delete:hover{color:var(--red);background:rgba(196,92,92,.12)}
+    .cl-delete svg{width:10px;height:10px}
+    /* Add entry modal */
+    #clAddModal{position:fixed;inset:0;z-index:8200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+    #clAddModal.open{opacity:1;pointer-events:all}
+    .clm-bd{position:absolute;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px)}
+    .clm-box{position:relative;z-index:1;width:min(580px,100%);background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7);transform:scale(.97) translateY(8px);transition:transform .3s var(--tr-spring)}
+    #clAddModal.open .clm-box{transform:scale(1) translateY(0)}
+    .clm-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+    .clm-title{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+    .clm-x{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--text3);transition:color .15s,border-color .15s}
+    .clm-x:hover{color:var(--red);border-color:rgba(196,92,92,.3)}
+    .clm-x svg{width:10px;height:10px}
+    .clm-body{padding:18px;display:flex;flex-direction:column;gap:12px}
+    .clm-field{display:flex;flex-direction:column;gap:5px}
+    .clm-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+    .clm-input,.clm-textarea{background:var(--bg3);border:1px solid var(--border-md);border-radius:7px;color:var(--text);font-family:var(--font-ui);font-size:13px;padding:8px 11px;outline:none;transition:border-color .2s;width:100%}
+    .clm-input:focus,.clm-textarea:focus{border-color:var(--accent)}
+    .clm-textarea{resize:vertical;min-height:80px;line-height:1.6}
+    .clm-row{display:flex;gap:10px;flex-wrap:wrap}
+    .clm-seg{display:flex;gap:3px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:3px}
+    .clm-seg-btn{flex:1;padding:5px 10px;border-radius:5px;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;color:var(--text2);transition:background .15s,color .15s;white-space:nowrap;text-align:center}
+    .clm-seg-btn.active{background:var(--accent);color:var(--bg)}
+    .clm-chk-row{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;color:var(--text2)}
+    .clm-chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-md);background:var(--bg4);appearance:none;-webkit-appearance:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,border-color .15s}
+    .clm-chk:checked{background:var(--accent);border-color:var(--accent)}
+    .clm-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--border)}
+    .clm-btn{padding:7px 16px;border-radius:7px;font-family:var(--font-mono);font-size:11px;letter-spacing:.07em;transition:all .18s}
+    .clm-btn.cancel{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+    .clm-btn.cancel:hover{background:var(--bg4);color:var(--text)}
+    .clm-btn.submit{background:var(--accent);color:var(--bg);border:1px solid var(--accent);box-shadow:0 0 12px var(--accent-glow)}
+    .clm-btn.submit:hover{background:var(--accent2);border-color:var(--accent2)}
+    /* ── PRECOMPILE SETTINGS ─────────────────────────────────────────────────────── */
+    .precomp-status-row{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;color:var(--text2)}
+    .precomp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .3s}
+    .precomp-dot.idle{background:var(--bg4);border:1.5px solid var(--border)}
+    .precomp-dot.running{background:var(--accent);animation:spin .8s linear infinite}
+    .precomp-dot.done{background:var(--green)}
+    .precomp-dot.error{background:var(--red)}
+    
+
+    /* ── PDF QUICK SETTINGS IN TOPBAR ─────────────────────────────────── */
+    .pdf-qs-group{display:flex;align-items:center;gap:3px;flex-shrink:0}
+    .pdf-qs-theme-btn{position:relative;overflow:hidden;width:30px;padding:0!important}
+    .pdf-qs-theme-btn .ti-moon,.pdf-qs-theme-btn .ti-sun{position:absolute;width:13px;height:13px;transition:opacity .3s,transform .3s var(--tr-spring)}
+    .pdf-qs-theme-btn .ti-moon{opacity:1;transform:scale(1)}
+    .pdf-qs-theme-btn .ti-sun{opacity:0;transform:scale(.5)}
+    body.light .pdf-qs-theme-btn .ti-moon{opacity:0;transform:scale(.5)}
+    body.light .pdf-qs-theme-btn .ti-sun{opacity:1;transform:scale(1)}
+    .pdf-qs-lang{display:flex;gap:2px;flex-shrink:0}
+    .pdf-qs-lang-btn{height:28px;padding:0 7px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;color:var(--text2);transition:all .2s;white-space:nowrap}
+    .pdf-qs-lang-btn:hover{background:var(--bg4);color:var(--text)}
+    .pdf-qs-lang-btn.active{background:var(--accent-dim);border-color:rgba(196,161,60,.4);color:var(--accent)}
+    .pdf-qs-docmode-btn{opacity:.55;transition:opacity .2s,color .2s,border-color .2s}
+    .pdf-qs-docmode-btn.on{opacity:1;color:var(--accent);border-color:rgba(196,161,60,.4)!important}
+    /* ── CODE MODAL COPY BUTTON ──────────────────────────────────────────── */
+    .modal-btn.copy-ok{color:var(--teal)!important;border-color:rgba(92,191,176,.4)!important}
+    
     .stg-sec-group{display:flex;flex-direction:column;gap:3px}
     .stg-sec-parent{
       display:flex;align-items:center;gap:10px;
@@ -1403,6 +1547,7 @@
         <a class="nav-link active" href="#" data-page="home" data-i18n="navHome">Home</a>
         <a class="nav-link" href="#" data-page="story" data-i18n="navStory">Story</a>
         <a class="nav-link" href="#" data-page="notes" data-i18n="navNotes">Notes</a>
+        <a class="nav-link" href="#" data-page="changelog" data-i18n="navChangelog">Log</a>
       </nav>
       <div class="header-right">
         <div class="lang-sw">
@@ -1431,6 +1576,7 @@
       <a class="mob-nav-link active" href="#" data-mob-page="home" data-i18n="navHome">Home</a>
       <a class="mob-nav-link" href="#" data-mob-page="story" data-i18n="navStory">Story</a>
       <a class="mob-nav-link" href="#" data-mob-page="notes" data-i18n="navNotes">Notes</a>
+      <a class="mob-nav-link" href="#" data-mob-page="changelog" data-i18n="navChangelog">Log</a>
       <div class="mob-drawer-sep"></div>
       <div class="mob-drawer-controls">
         <div class="lang-sw">
@@ -1523,6 +1669,42 @@
       </div>
     </section>
 
+
+    <!-- CHANGELOG -->
+    <section class="page" id="page-changelog">
+      <div class="cl-hero">
+        <span class="page-label" data-i18n="clLabel">/ log</span>
+        <h1 class="page-title" data-i18n="clTitle2">Change<br><em>Log</em></h1>
+        <p class="page-subtitle" data-i18n="clSubtitle">Website and note history — features, fixes, and additions.</p>
+      </div>
+      <div class="cl-toolbar">
+        <button class="cl-filter-btn active" data-cl-filter="all" data-i18n="clFilterAll">All</button>
+        <button class="cl-filter-btn" data-cl-filter="website">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span data-i18n="clFilterWebsite">Website</span>
+        </button>
+        <button class="cl-filter-btn" data-cl-filter="note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span data-i18n="clFilterNote">Note</span>
+        </button>
+        <button class="cl-filter-btn" data-cl-filter="fix">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          <span data-i18n="clFilterFix">Fix</span>
+        </button>
+        <button class="cl-filter-btn" data-cl-filter="important">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span data-i18n="clFilterImportant">Important</span>
+        </button>
+        <button class="cl-add-btn" id="clAddBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="clAdd">Add Entry</span>
+        </button>
+      </div>
+      <div class="cl-feed" id="clFeed">
+        <div class="state-box"><div class="spinner"></div></div>
+      </div>
+    </section>
+
   </main>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
@@ -1559,6 +1741,21 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         </button>
         <button class="pdf-tbtn" id="pdfZoomFit" data-i18n="pshFit">Fit</button>
+        <div class="pdf-sep"></div>
+        <!-- PDF quick settings -->
+        <div class="pdf-qs-group">
+          <button class="pdf-tbtn pdf-qs-theme-btn" id="pdfQsTheme">
+            <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="ti-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+          <div class="pdf-qs-lang">
+            <button class="pdf-qs-lang-btn" id="pdfQsEN">EN</button>
+            <button class="pdf-qs-lang-btn" id="pdfQsHU">HU</button>
+          </div>
+          <button class="pdf-tbtn pdf-qs-docmode-btn" id="pdfQsDocMode" title="Toggle full document mode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
+          </button>
+        </div>
         <div class="pdf-sep"></div>
       </div>
       <div class="pdf-topbar-right">
@@ -1659,6 +1856,23 @@
         </div>
       </div>
       <!-- Actions -->
+      <div class="psh-section">
+        <span class="psh-label" data-i18n="pshSettingsLabel">Quick Settings</span>
+        <div class="psh-row" style="flex-wrap:wrap;gap:6px">
+          <button class="psh-btn" id="pshQsTheme" style="gap:6px">
+            <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="ti-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+            <span data-i18n="stgTheme">Theme</span>
+          </button>
+          <button class="psh-btn" id="pshQsEN">EN</button>
+          <button class="psh-btn" id="pshQsHU">HU</button>
+          <button class="psh-btn" id="pshQsDocMode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
+            <span data-i18n="stgFullDoc">Full doc</span>
+          </button>
+        </div>
+      </div>
+      <!-- Actions -->
       <div class="psh-actions">
         <button class="psh-action-btn" id="pshDownload">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1735,6 +1949,7 @@
           <span id="codeModalTitle">file.tex</span>
         </div>
         <div class="modal-btns">
+          <button class="modal-btn" id="codeModalCopy">⎘ <span data-i18n="copyCode">Copy</span></button>
           <button class="modal-btn" id="codeModalDownload">↓ <span data-i18n="download">Download</span></button>
           <button class="modal-btn danger" id="codeModalClose">✕ <span data-i18n="close">Close</span></button>
         </div>
@@ -1830,6 +2045,17 @@
               <button class="stg-seg-btn" data-lang="hu">HU</button>
             </div>
           </div>
+          <div class="stg-row" id="stgMatLangRow" style="display:none">
+            <div>
+              <div class="stg-lbl" data-i18n="stgMatLang">Material language</div>
+              <div class="stg-sublbl" data-i18n="stgMatLangSub">Which language notes to display</div>
+            </div>
+            <div class="mat-lang-seg" id="stgMatLangSeg">
+              <button class="mat-lang-btn" data-matlang="en" data-i18n="stgMatLangEn">EN</button>
+              <button class="mat-lang-btn" data-matlang="both" data-i18n="stgMatLangBoth">Both</button>
+              <button class="mat-lang-btn" data-matlang="hu" data-i18n="stgMatLangHu">HU</button>
+            </div>
+          </div>
         </div>
         <!-- PDF Viewer -->
         <div class="stg-section">
@@ -1840,6 +2066,23 @@
               <div class="stg-sublbl" data-i18n="stgFullDocSub">Scroll through all pages at once</div>
             </div>
             <div class="stg-toggle" id="stgFullDocToggle"></div>
+          </div>
+        </div>
+        <!-- Precompile -->
+        <div class="stg-section">
+          <span class="stg-sec-title" data-i18n="stgPrecompile">Precompilation</span>
+          <div class="stg-row">
+            <div>
+              <div class="stg-lbl" data-i18n="stgPrecompile">LaTeX Cache</div>
+              <div class="stg-sublbl" data-i18n="stgPrecompileSub">Cache LaTeX → PDF in background</div>
+            </div>
+            <div class="precomp-status-row">
+              <span class="precomp-dot idle" id="precompDot"></span>
+              <span id="precompStatusText" style="font-size:10px">—</span>
+            </div>
+          </div>
+          <div class="stg-row">
+            <button class="stg-footer-btn cancel" id="precompAllBtn" style="opacity:1;pointer-events:all" data-i18n="stgPrecompileAll">Compile all now</button>
           </div>
         </div>
         <!-- Sections -->
@@ -1881,6 +2124,92 @@
         <button class="stg-cf-btn apply" id="stgCfApply" data-i18n="stgCfApply">Apply &amp; Close</button>
         <button class="stg-cf-btn discard" id="stgCfDiscard" data-i18n="stgCfDiscard">Discard changes</button>
         <button class="stg-cf-btn back" id="stgCfBack" data-i18n="stgCfBack">Back to settings</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── MEDIA MODAL ─────────────────────────────────────────────────────────── -->
+  <div id="mediaModal">
+    <div class="media-inner">
+      <div class="media-topbar">
+        <span class="media-badge" id="mediaBadge">IMG</span>
+        <span class="media-filename" id="mediaFilename">file</span>
+        <button class="modal-btn" id="mediaDownload">↓ <span data-i18n="download">Download</span></button>
+        <button class="modal-btn danger" id="mediaClose">✕</button>
+      </div>
+      <div class="media-body" id="mediaBody"></div>
+    </div>
+  </div>
+
+  <!-- ── MUSIC PLAYER ─────────────────────────────────────────────────────────── -->
+  <div id="musicBar">
+    <div class="mb-cover" id="mbCover">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    </div>
+    <div class="mb-info">
+      <div class="mb-title" id="mbTitle">—</div>
+      <div class="mb-sub" id="mbSub"></div>
+    </div>
+    <button class="mb-btn" id="mbPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+    <button class="mb-btn primary" id="mbPlay"><svg viewBox="0 0 24 24" fill="currentColor" id="mbPlayIcon"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+    <button class="mb-btn" id="mbNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+    <div class="mb-progress">
+      <div class="mb-prog-track" id="mbProgTrack"><div class="mb-prog-fill" id="mbProgFill" style="width:0%"></div></div>
+      <div class="mb-time"><span id="mbCurrent">0:00</span><span id="mbDuration">0:00</span></div>
+    </div>
+    <div class="mb-vol">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      <input type="range" class="mb-vol-slider" id="mbVol" min="0" max="1" step="0.02" value="0.8">
+    </div>
+    <button class="mb-close" id="mbClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <!-- ── CHANGELOG ADD MODAL ──────────────────────────────────────────────────── -->
+  <div id="clAddModal">
+    <div class="clm-bd" id="clmBd"></div>
+    <div class="clm-box">
+      <div class="clm-hdr">
+        <span class="clm-title" data-i18n="clAddTitle">New Log Entry</span>
+        <button class="clm-x" id="clmClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="clm-body">
+        <div class="clm-field">
+          <label class="clm-lbl" data-i18n="clTitle">Title</label>
+          <input class="clm-input" id="clmTitle" type="text" placeholder="Short description…">
+        </div>
+        <div class="clm-field">
+          <label class="clm-lbl" data-i18n="clBody">Details (optional)</label>
+          <textarea class="clm-textarea" id="clmBody" placeholder="Longer explanation…"></textarea>
+        </div>
+        <div class="clm-row">
+          <div class="clm-field" style="flex:1">
+            <label class="clm-lbl" data-i18n="clAuthors">Authors</label>
+            <input class="clm-input" id="clmAuthors" type="text" placeholder="Name, Name…">
+          </div>
+          <div class="clm-field" style="flex:1">
+            <label class="clm-lbl" data-i18n="clDate">Date</label>
+            <input class="clm-input" id="clmDate" type="date">
+          </div>
+        </div>
+        <div class="clm-row" style="align-items:flex-end;gap:16px">
+          <div class="clm-field">
+            <label class="clm-lbl" data-i18n="clType">Type</label>
+            <div class="clm-seg" id="clmTypeSeg">
+              <button class="clm-seg-btn active" data-type="website">Website</button>
+              <button class="clm-seg-btn" data-type="note">Note</button>
+              <button class="clm-seg-btn" data-type="fix">Fix</button>
+            </div>
+          </div>
+          <div class="clm-chk-row" style="padding-bottom:3px">
+            <input type="checkbox" class="clm-chk" id="clmImportant">
+            <label for="clmImportant" data-i18n="clImportant">Important</label>
+          </div>
+        </div>
+      </div>
+      <div class="clm-foot">
+        <button class="clm-btn cancel" id="clmCancel" data-i18n="stgCancelBtn">Cancel</button>
+        <button class="clm-btn submit" id="clmSubmit" data-i18n="clSubmit">Add Entry</button>
       </div>
     </div>
   </div>
@@ -2003,6 +2332,59 @@
         // Settings footer
         stgApplyBtn:  'Apply changes',
         stgCancelBtn: 'Cancel',
+        // Code viewer
+        copyCode:     'Copy',
+        // PDF quick settings label
+        pshSettingsLabel: 'Quick Settings',
+        // Toast messages
+        toastLinkCopied:    (name) => `🔗 Link copied — ${name}`,
+        toastLinksCopied:   (n)    => `🔗 Link copied — ${n} items`,
+        toastDownloading:   (name) => `↓ Downloading ${name}`,
+        toastLogCopied:     'Log copied',
+        toastNoPagesSelected: 'No pages selected',
+        toastBuildingPdf:   'Building PDF…',
+        toastDownloaded:    (n)    => `↓ Downloaded ${n} page${n!==1?'s':''}`,
+        toastPrinting:      (n)    => `⎙ Printing ${n} page${n!==1?'s':''}…`,
+        toastPopupBlocked:  '⚠ Popup blocked — allow popups and try again',
+        toastPrintFailed:   (msg)  => `⚠ Print failed: ${msg}`,
+        toastRenderingPrint:'Rendering pages for print…',
+        toastCodeCopied:    'Code copied',
+
+        // Changelog
+        navChangelog: 'Log',
+        clLabel:      '/ log',
+        clTitle2:     'Change<br><em>Log</em>',
+        clSubtitle:   'Website and note history — features, fixes, and additions.',
+        clFilterAll:  'All',
+        clFilterWebsite: 'Website',
+        clFilterNote: 'Note',
+        clFilterFix:  'Fix',
+        clFilterImportant: 'Important',
+        clAdd:        'Add Entry',
+        clAddTitle:   'New Log Entry',
+        clTitle:      'Title',
+        clBody:       'Details',
+        clAuthors:    'Authors',
+        clDate:       'Date',
+        clType:       'Type',
+        clImportant:  'Important',
+        clSubmit:     'Add Entry',
+        clEmpty:      'No entries yet.',
+        // Material language
+        stgMatLang:     'Material language',
+        stgMatLangSub:  'Which language notes to display',
+        stgMatLangEn:   'EN',
+        stgMatLangBoth: 'Both',
+        stgMatLangHu:   'HU',
+        // Media
+        toastMediaOpen: (name) => `Opening ${name}`,
+        // Precompile
+        stgPrecompile:    'Precompilation',
+        stgPrecompileSub: 'Cache LaTeX → PDF in background',
+        stgPrecompileAll: 'Compile all now',
+        stgPrecompileStatus: (n, r) => `Queue: ${n} • ${r ? 'Running' : 'Idle'}`,
+        // Music
+        toastMusicNone: 'No music files found in Music/ folder',
       },
       hu: {
         logoText:     'Tudás\u00a0Archívum',
@@ -2105,6 +2487,59 @@
         // Beállítások lábléc
         stgApplyBtn:  'Változtatások alkalmazása',
         stgCancelBtn: 'Mégsem',
+        // Kódnézegető
+        copyCode:     'Másolás',
+        // PDF gyorsbeállítások felirat
+        pshSettingsLabel: 'Gyorsbeállítások',
+        // Toast üzenetek
+        toastLinkCopied:    (name) => `🔗 Link másolva — ${name}`,
+        toastLinksCopied:   (n)    => `🔗 Link másolva — ${n} elem`,
+        toastDownloading:   (name) => `↓ Letöltés: ${name}`,
+        toastLogCopied:     'Napló másolva',
+        toastNoPagesSelected: 'Nincs oldal kijelölve',
+        toastBuildingPdf:   'PDF készítése…',
+        toastDownloaded:    (n)    => `↓ Letöltve: ${n} oldal`,
+        toastPrinting:      (n)    => `⎙ Nyomtatás: ${n} oldal…`,
+        toastPopupBlocked:  '⚠ Felugró ablak blokkolva — engedélyezd, majd próbáld újra',
+        toastPrintFailed:   (msg)  => `⚠ Nyomtatás sikertelen: ${msg}`,
+        toastRenderingPrint:'Oldalak előkészítése nyomtatáshoz…',
+        toastCodeCopied:    'Kód másolva',
+
+        // Napló
+        navChangelog: 'Napló',
+        clLabel:      '/ napló',
+        clTitle2:     'Változás<br><em>Napló</em>',
+        clSubtitle:   'Weboldal és szemeszter-napló — funkciók, javítások, hozzáadott anyagok.',
+        clFilterAll:  'Összes',
+        clFilterWebsite: 'Weboldal',
+        clFilterNote: 'Anyag',
+        clFilterFix:  'Javítás',
+        clFilterImportant: 'Fontos',
+        clAdd:        'Bejegyzés',
+        clAddTitle:   'Új bejegyzés',
+        clTitle:      'Cím',
+        clBody:       'Részletek',
+        clAuthors:    'Szerzők',
+        clDate:       'Dátum',
+        clType:       'Típus',
+        clImportant:  'Fontos',
+        clSubmit:     'Hozzáadás',
+        clEmpty:      'Még nincs bejegyzés.',
+        // Anyagnyelv
+        stgMatLang:     'Anyag nyelve',
+        stgMatLangSub:  'Milyen nyelvű anyagokat jelenítsen meg',
+        stgMatLangEn:   'AN',
+        stgMatLangBoth: 'Mindkettő',
+        stgMatLangHu:   'MA',
+        // Média
+        toastMediaOpen: (name) => `Megnyitás: ${name}`,
+        // Előfordítás
+        stgPrecompile:    'Előfordítás',
+        stgPrecompileSub: 'LaTeX → PDF háttérben',
+        stgPrecompileAll: 'Összes fordítása most',
+        stgPrecompileStatus: (n, r) => `Sor: ${n} • ${r ? 'Fut' : 'Várakozik'}`,
+        // Zene
+        toastMusicNone: 'Nincs zenefájl a Music/ mappában',
       },
     };
 
@@ -2204,7 +2639,7 @@
         const key = el.dataset.i18n;
         const val = t(key);
         if (val) {
-          if (key === 'homeTitle' || key === 'notesTitle' || key === 'storyTitleHtml') {
+          if (key === 'homeTitle' || key === 'notesTitle' || key === 'storyTitleHtml' || key === 'clTitle2') {
             el.innerHTML = val;
           } else {
             el.textContent = val;
@@ -2240,7 +2675,7 @@
     }
 
     function switchLang(lang) {
-      if (lang === LANG) return;
+      if (lang === LANG) return Promise.resolve();
       LANG = lang;
       localStorage.setItem('ki_lang', lang);
       applyTranslations();
@@ -2248,13 +2683,14 @@
       selection.clear();
       document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
       renderSelPanel();
-      loadTree();
+      const p = loadTree();
       // Reload articles if on notes page
       const notesPage = document.getElementById('page-notes');
       if (notesPage && notesPage.classList.contains('active')) {
         articlesLoaded = false;
         loadArticles();
       }
+      return p;
     }
 
     /* ── PDF.js worker ─────────────────────────────────────────────── */
@@ -2349,9 +2785,10 @@
     function navigateTo(page) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
-      const t = document.getElementById('page-' + page);
-      if (t) t.classList.add('active');
-      if (page === 'notes') loadArticles();
+      const pageEl = document.getElementById('page-' + page);
+      if (pageEl) pageEl.classList.add('active');
+      if (page === 'notes')     loadArticles();
+      if (page === 'changelog') { clLoaded = false; clEntries = []; loadChangelog(); }
 
       // Selection panel only lives on the Home page
       const panel = document.getElementById('selPanel');
@@ -2459,6 +2896,14 @@
     // Custom section order and mode (persisted via localStorage)
     let sectionOrder = JSON.parse(localStorage.getItem('ki_section_order') || 'null');
     let sectionBy    = localStorage.getItem('ki_section_by') || 'type'; // 'type' | 'subject'
+    // Material language: 'en' | 'both' | 'hu'
+    let MAT_LANG = localStorage.getItem('ki_mat_lang') || 'en';
+
+    /* ── Media extension helpers ────────────────────────────────────────────── */
+    const AUDIO_EXTS = new Set(['.mp3','.ogg','.wav','.flac','.m4a','.aac']);
+    const VIDEO_EXTS = new Set(['.mp4','.webm','.mkv','.mov','.avi']);
+    const IMAGE_EXTS_SET = new Set(['.png','.jpg','.jpeg','.gif','.webp','.svg']);
+
 
     function renderGrid(node) {
       const grid  = document.getElementById('fileGrid');
@@ -2494,7 +2939,26 @@
 
       const folders = items.filter(i=>i.type==='folder');
       const files   = items.filter(i=>i.type==='file');
-      count.textContent = `${T[LANG].gridCountFolders(folders.length)}, ${T[LANG].gridCountFiles(files.length)}`;
+
+      // At root level the "folders" are section headers (type/subject groups), not actual content.
+      // Count the items actually rendered as cards.
+      if (pathStack.length === 0 && folders.length > 0) {
+        let vf = 0, vfl = 0;
+        if (sectionBy === 'subject') {
+          folders.forEach(tf => {
+            (tf.children||[]).filter(c=>c.type==='folder').forEach(s => {
+              (s.children||[]).forEach(it => { if(it.type==='folder') vf++; else vfl++; });
+            });
+          });
+        } else {
+          folders.forEach(s => {
+            (s.children||[]).forEach(it => { if(it.type==='folder') vf++; else vfl++; });
+          });
+        }
+        count.textContent = `${T[LANG].gridCountFolders(vf)}, ${T[LANG].gridCountFiles(vfl)}`;
+      } else {
+        count.textContent = `${T[LANG].gridCountFolders(folders.length)}, ${T[LANG].gridCountFiles(files.length)}`;
+      }
 
       grid.innerHTML = '';
 
@@ -2660,31 +3124,52 @@
       const card = document.createElement('div');
 
       const isSel = selection.has(item.path);
-      const coveringFolder = getCoveringFolder(item.path); // always check, folder wins
+      const coveringFolder = getCoveringFolder(item.path);
       const isCovered = !!coveringFolder;
 
-      // If covered by a folder, show covered style (even if also individually selected)
-      card.className = 'card' + (isSel && !isCovered ? ' selected' : '') + (isCovered ? ' covered' : '');
+      // Bilingual / greyed state — must be declared BEFORE card.className uses them
+      const isBilingual = MAT_LANG === 'both' && item.enAvailable && item.huAvailable;
+      // After server-side remapping, item.enAvailable always means "primary lang available"
+      const isGreyed = (item.enAvailable === false && item.huAvailable === true);
+
+      card.className = 'card'
+        + (isSel && !isCovered ? ' selected' : '')
+        + (isCovered ? ' covered' : '')
+        + (isBilingual ? ' bilingual' : '')
+        + (isGreyed    ? ' greyed'    : '');
       card.dataset.path = item.path; card.dataset.type = item.type; card.dataset.ext = item.ext||''; card.dataset.name = item.name;
 
       const badge = item.type==='folder' ? 'DIR' : (item.ext||'FILE').replace('.','').toUpperCase();
       const meta  = item.type==='folder' ? `${item.count} item${item.count!==1?'s':''}` : fmtSize(item.size||0);
 
-      const tags = parseItemTags(item);
+      const tags    = parseItemTags(item);
+      const authors = parseItemAuthors(item);
       const displayName = getDisplayName(item);
       let tagsHtml = '';
-      if (tags.length) {
-        const MAX_INLINE = 2;
-        const visible = tags.slice(0, MAX_INLINE);
-        const hidden  = tags.slice(MAX_INLINE);
-        const visHtml = visible.map(t => `<span class="card-tag clickable" data-tag="${esc(t)}">${esc(t)}</span>`).join('');
-        const moreHtml = hidden.length
-          ? `<span class="card-tag-more">+${hidden.length}<span class="tag-tooltip">${hidden.map(t=>`<span class="card-tag clickable" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</span></span>`
-          : '';
-        tagsHtml = `<div class="card-tags">${visHtml}${moreHtml}</div>`;
+      {
+        const allTagChips  = tags.map(t => `<span class="card-tag clickable" data-tag="${esc(t)}">${esc(t)}</span>`);
+        const authorChips  = authors.map(a => `<span class="card-tag author">${esc(a)}</span>`);
+        const combined     = [...allTagChips, ...authorChips];
+        if (combined.length) {
+          const MAX_INLINE = 3;
+          const visible = combined.slice(0, MAX_INLINE);
+          const hidden  = combined.slice(MAX_INLINE);
+          const moreHtml = hidden.length
+            ? `<span class="card-tag-more">+${hidden.length}<span class="tag-tooltip">${hidden.join('')}</span></span>`
+            : '';
+          tagsHtml = `<div class="card-tags">${visible.join('')}${moreHtml}</div>`;
+        }
+      }
+      let splitOverlayHtml = '';
+      if (isBilingual) {
+        splitOverlayHtml = `<div class="card-split-overlay">
+          <div class="card-split-en" data-split-lang="en"><span class="card-split-flag">🇬🇧</span><span class="card-split-lbl">EN</span></div>
+          <div class="card-split-hu" data-split-lang="hu"><span class="card-split-flag">🇭🇺</span><span class="card-split-lbl">HU</span></div>
+        </div>`;
       }
 
       card.innerHTML = `
+        ${splitOverlayHtml}
         <div class="card-cb">
           <svg class="card-cb-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           <svg class="card-cb-icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2718,6 +3203,25 @@
         } else {
           toggleSelect(item, card);
         }
+      });
+
+      // Split-overlay clicks (bilingual mode)
+      card.querySelectorAll('[data-split-lang]').forEach(half => {
+        half.addEventListener('click', e => {
+          e.stopPropagation();
+          const splitLang = half.dataset.splitLang;
+          if (splitLang === 'hu') {
+            const p = item.huPath || item.path;
+            const n = item.huName || item.name;
+            const huItem = { ...item, path: p, name: n, _lang: 'hu', enAvailable: true };
+            handleClick(huItem);
+          } else {
+            const p = item.enPath || item.path;
+            const n = item.enName || item.name;
+            const enItem = { ...item, path: p, name: n, _lang: 'en', enAvailable: true };
+            handleClick(enItem);
+          }
+        });
       });
 
       card.addEventListener('contextmenu', e => { e.preventDefault(); openCtx(e, item); });
@@ -2760,6 +3264,20 @@
     }
 
     function handleClick(item) {
+      // Greyed card: primary language not available, open the other language version
+      const _itemGreyed = (MAT_LANG === 'en' && item.enAvailable === false && item.huAvailable)
+                       || (MAT_LANG === 'hu' && item.enAvailable === false && item.huAvailable);
+      if (_itemGreyed) {
+        // huPath in HU-primary mode has been remapped to the actual available path
+        const altPath = item.huPath || item.enPath;
+        const altName = item.huName || item.enName || item.name;
+        const altLang = MAT_LANG === 'hu' ? 'en' : 'hu';
+        if (altPath) {
+          const altItem = { ...item, path: altPath, name: altName, _lang: altLang };
+          return handleClick(altItem);
+        }
+        return;
+      }
       if (item.type==='folder') {
         clearSearch();
         pathStack.push(item); currentNode = item;
@@ -2772,23 +3290,36 @@
         return;
       }
       const ext = (item.ext||'').toLowerCase();
-      if (['.tex','.sty','.cls'].includes(ext)) { openPdfViewer(item.path, item.name); return; }
-      if (ext==='.pdf') { openPdfDirect('/data/'+encPath(item.path), item.name); return; }
-      if (['.bib','.md','.txt'].includes(ext)) { openCodeViewer(item.path, item.name); return; }
-      if (['.png','.jpg','.jpeg','.gif','.webp','.svg'].includes(ext)) { window.open('/data/'+encPath(item.path),'_blank'); return; }
+      if (['.tex','.sty','.cls'].includes(ext)) { openPdfViewer(item.path, item.name, item._lang); return; }
+      if (ext==='.pdf') { openPdfDirect('/data/'+encPath(item.path)+'?lang='+(item._lang||LANG), item.name, item._lang); return; }
+      if (['.bib','.md','.txt'].includes(ext)) { openCodeViewer(item.path, item.name, item._lang); return; }
+      if (IMAGE_EXTS_SET.has(ext)) { openMediaModal(item, 'image'); return; }
+      if (AUDIO_EXTS.has(ext))     { openMediaModal(item, 'audio'); return; }
+      if (VIDEO_EXTS.has(ext))     { openMediaModal(item, 'video'); return; }
       window.open('/data/'+encPath(item.path),'_blank');
     }
 
     /* ── Load Tree ──────────────────────────────────────────────────── */
     async function loadTree() {
       try {
-        const res = await fetch('/api/tree?lang=' + LANG);
-        if (!res.ok) throw new Error('HTTP '+res.status);
-        treeData = await res.json(); currentNode = treeData; pathStack = [];
-        renderBreadcrumb(); renderGrid(treeData);
+        const res = await fetch('/api/tree?lang=' + LANG + '&mat_lang=' + MAT_LANG);
+        if (!res.ok) {
+          let detail = 'HTTP ' + res.status;
+          try { const j = await res.json(); detail += ' — ' + (j.message || j.error || ''); } catch {}
+          throw new Error(detail);
+        }
+        treeData = await res.json();
+        currentNode = treeData;
+        pathStack   = [];
+        const hasDual = !!treeData.hasDualLang;
+        const matRow  = document.getElementById('stgMatLangRow');
+        if (matRow) matRow.style.display = hasDual ? '' : 'none';
+        renderBreadcrumb();
+        renderGrid(treeData);
       } catch (err) {
+        console.error('[loadTree]', err);
         document.getElementById('fileGrid').innerHTML =
-          `<div class="state-box"><span style="color:var(--red)">${t('failedLoad')}</span></div>`;
+          `<div class="state-box"><span style="color:var(--red)">${t('failedLoad')}</span><span style="font-family:var(--font-mono);font-size:10px;margin-top:6px;color:var(--text3)">${esc(String(err.message||err))}</span></div>`;
       }
     }
 
@@ -2809,7 +3340,7 @@
     let pdfCurrentName= '';
     let pdfCurrentPath= '';    // tex path for re-compile / source view
 
-    function openPdfViewer(texPath, texName) {
+    function openPdfViewer(texPath, texName, fileLang) {
       pdfCurrentPath = texPath;
       pdfCurrentName = texName;
       lastFailPath   = texPath;
@@ -2833,7 +3364,7 @@
       document.body.style.overflow = 'hidden';
       document.body.classList.add('pdf-open');
 
-      compileTex(texPath);
+      compileTex(texPath, fileLang || LANG);
     }
 
     function openPdfDirect(url, name) {
@@ -2861,12 +3392,12 @@
       }).catch(e => showCompileFail('Failed to load PDF:\n'+e.message, ''));
     }
 
-    async function compileTex(texPath) {
+    async function compileTex(texPath, compileLang) {
       try {
         const res = await fetch('/api/compile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: texPath, lang: LANG }),
+          body: JSON.stringify({ path: texPath, lang: compileLang || LANG }),
         });
 
         if (!res.ok) {
@@ -2910,7 +3441,7 @@
     }
 
     const PDF_FULL_DOC_KEY = 'ki_pdf_full_doc';
-    let pdfFullDocMode = localStorage.getItem(PDF_FULL_DOC_KEY) === '1';
+    let pdfFullDocMode = localStorage.getItem(PDF_FULL_DOC_KEY) !== '0';
 
     function loadPdfBytes(bytes) {
       pdfjsLib.getDocument({ data: bytes }).promise.then(doc => {
@@ -2919,16 +3450,13 @@
         document.getElementById('pdfPageInput').max = doc.numPages;
         updateMobileBar();
         pdfOverlay.classList.add('hidden');
-        // Remove any stale nav-disabled state
         document.getElementById('pdfNavPrev').classList.remove('nav-disabled');
         document.getElementById('pdfNavNext').classList.remove('nav-disabled');
-        if (pdfFullDocMode) {
-          renderFullDoc();
-          updateSideNavState();
-        } else {
-          // Always open in fit mode — fitToWidth renders the page too
-          fitToWidth();
-        }
+        // fitToWidth handles both single-page and full-doc modes
+        fitToWidth();
+        updateSideNavState();
+        // Sync quick-settings buttons
+        if (window._syncPdfQs) window._syncPdfQs();
       }).catch(e => {
         showCompileFail('Failed to parse PDF:\n' + e.message, pdfCurrentPath);
       });
@@ -2968,31 +3496,27 @@
       const body = document.getElementById('pdfBody');
       const wrap = body.querySelector('.pdf-canvas-wrap');
       body.classList.add('full-doc-mode');
-      body.scrollTop = 0;
 
-      // Determine render width from container (minus padding)
-      const availW = body.clientWidth - 40;
+      // Preserve scroll ratio across zoom changes
+      const prevH   = wrap.scrollHeight || 0;
+      const savedST = body.scrollTop;
+      const isFirstRender = wrap.children.length === 0;
 
       wrap.innerHTML = '';
       for (let n = 1; n <= pdfDoc.numPages; n++) {
         const cv = document.createElement('canvas');
         cv.dataset.pageNum = n;
         wrap.appendChild(cv);
-        // Render each page at the chosen zoom, but always at least fit-to-width
         pdfDoc.getPage(n).then(page => {
-          const baseVP = page.getViewport({ scale: 1 });
-          const fitScale = availW / baseVP.width;
-          const renderScale = Math.max(fitScale, pdfZoom);
-          renderPageToCanvas(page, cv, renderScale);
-          // Scale canvas down to fit container if renderScale > fitScale
-          if (renderScale > fitScale) {
-            const displayW = Math.round(baseVP.width * pdfZoom);
-            cv.style.width  = displayW + 'px';
-            cv.style.height = 'auto';
-          } else {
-            cv.style.width  = '';
-            cv.style.height = '';
-          }
+          renderPageToCanvas(page, cv, pdfZoom);
+        });
+      }
+
+      if (!isFirstRender && prevH > 0) {
+        // Restore proportional scroll position after reflow
+        requestAnimationFrame(() => {
+          const newH = wrap.scrollHeight;
+          body.scrollTop = Math.round(savedST * (newH / prevH));
         });
       }
     }
@@ -3062,8 +3586,12 @@
           pdfZoom    = bodyW > 0 ? Math.min(2.5, bodyW / vp.width) : 1.0;
           pdfFitZoom = pdfZoom; // remember the fit level
           document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom * 100) + '%';
-          body.classList.remove('pdf-zoomed'); // fit = no x-scrollbar, always
-          renderPage(pdfPage);
+          if (pdfFullDocMode) {
+            renderFullDoc();
+          } else {
+            body.classList.remove('pdf-zoomed'); // fit = no x-scrollbar, always
+            renderPage(pdfPage);
+          }
           updateSideNavState();
           updateMobileBar();
         });
@@ -3129,7 +3657,8 @@
         pdfZoom = v / 100;
         document.getElementById('pdfZoomPct').textContent = v + '%';
         markZoomState();
-        renderPage(pdfPage);
+        if (pdfFullDocMode) renderFullDoc();
+        else renderPage(pdfPage);
       }
       input.addEventListener('blur', commitZoom);
       input.addEventListener('keydown', e => {
@@ -3232,19 +3761,19 @@
 
       /* ── Download action ────────────────────────────────────────────── */
       async function doDownload() {
-        if (sel.size === 0) { showToast('No pages selected'); return; }
+        if (sel.size === 0) { showToast(t('toastNoPagesSelected')); return; }
         const pages = [...sel].sort((a,b)=>a-b);
         const jsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
         if (!jsPDF) {
           const blob = new Blob([pdfBytes],{type:'application/pdf'});
           const a = document.createElement('a');
           a.href = URL.createObjectURL(blob);
-          a.download = pdfCurrentName.replace(/\.tex$/i,'')+'.pdf';
+          a.download = displayFileName(pdfCurrentName)+'.pdf';
           a.click(); URL.revokeObjectURL(a.href);
-          showToast('↓ Downloading (jsPDF unavailable — full file)');
+          showToast(t('toastDownloading')(displayFileName(pdfCurrentName)));
           closeDl(); return;
         }
-        showToast('Building PDF…');
+        showToast(t('toastBuildingPdf'));
         progBar.style.width = '0%';
         const firstPage = await pdfDoc.getPage(pages[0]);
         const fpVP = firstPage.getViewport({ scale: 2 });
@@ -3259,17 +3788,17 @@
           doc.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, vp.width, vp.height);
           progBar.style.width = ((idx+1)/pages.length*100)+'%';
         }
-        const fname = pdfCurrentName.replace(/\.tex$/i,'') + '_pp' + pages.join('-') + '.pdf';
+        const fname = displayFileName(pdfCurrentName) + '_pp' + pages.join('-') + '.pdf';
         doc.save(fname);
-        showToast('↓ Downloaded ' + pages.length + ' page' + (pages.length!==1?'s':''));
+        showToast(t('toastDownloaded')(pages.length));
         closeDl();
       }
 
       /* ── Print action ───────────────────────────────────────────────── */
       async function doPrint() {
-        if (sel.size === 0) { showToast('No pages selected'); return; }
+        if (sel.size === 0) { showToast(t('toastNoPagesSelected')); return; }
         const pages = [...sel].sort((a,b)=>a-b);
-        showToast('Rendering pages for print…');
+        showToast(t('toastRenderingPrint'));
         progBar.style.width = '0%';
         try {
           const offCanvas = document.createElement('canvas');
@@ -3287,7 +3816,7 @@
           const imgs = pageImgs.map((src) =>
             `<div class="pw"><img src="${src}"></div>`
           ).join('');
-          const docName = esc(pdfCurrentName.replace(/\.tex$/i, ''));
+          const docName = esc(displayFileName(pdfCurrentName));
           const html = `<!DOCTYPE html><html><head>
             <title>${docName} — Print</title>
             <style>@page{margin:0;size:auto}*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;background:#fff}.pw{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;page-break-after:always;break-after:page}.pw:last-child{page-break-after:avoid;break-after:avoid}img{max-width:100%;max-height:100%;object-fit:contain;display:block}</style>
@@ -3295,16 +3824,16 @@
           const blob    = new Blob([html], { type: 'text/html' });
           const blobUrl = URL.createObjectURL(blob);
           const win     = window.open(blobUrl, '_blank');
-          if (!win) { showToast('⚠ Popup blocked — allow popups and try again'); URL.revokeObjectURL(blobUrl); return; }
+          if (!win) { showToast(t('toastPopupBlocked')); URL.revokeObjectURL(blobUrl); return; }
           win.addEventListener('load', () => {
             win.focus(); win.print();
             win.addEventListener('afterprint', () => { win.close(); URL.revokeObjectURL(blobUrl); }, { once: true });
             setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
           }, { once: true });
-          showToast('⎙ Printing ' + pages.length + ' page' + (pages.length!==1?'s':'') + '…');
+          showToast(t('toastPrinting')(pages.length));
           closeDl();
         } catch(e) {
-          showToast('⚠ Print failed: ' + e.message);
+          showToast(t('toastPrintFailed')(e.message));
         }
       }
 
@@ -3352,6 +3881,73 @@
     })();
 
     document.getElementById('pdfClose').addEventListener('click', closePdfViewer);
+
+    /* ── PDF Quick Settings wiring ──────────────────────────────────── */
+    (function() {
+      function syncPdfQs() {
+        // Desktop topbar
+        const qsEN = document.getElementById('pdfQsEN');
+        const qsHU = document.getElementById('pdfQsHU');
+        const qsDM = document.getElementById('pdfQsDocMode');
+        if (qsEN) qsEN.classList.toggle('active', LANG === 'en');
+        if (qsHU) qsHU.classList.toggle('active', LANG === 'hu');
+        if (qsDM) qsDM.classList.toggle('on', pdfFullDocMode);
+        // Mobile sheet
+        const pshEN = document.getElementById('pshQsEN');
+        const pshHU = document.getElementById('pshQsHU');
+        const pshDM = document.getElementById('pshQsDocMode');
+        if (pshEN) pshEN.classList.toggle('active', LANG === 'en');
+        if (pshHU) pshHU.classList.toggle('active', LANG === 'hu');
+        if (pshDM) pshDM.style.borderColor = pdfFullDocMode ? 'rgba(196,161,60,.4)' : '';
+      }
+
+      // Theme toggle in PDF
+      function wirePdfTheme(id) {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          document.getElementById('themeToggle').click();
+          syncPdfQs();
+        });
+      }
+      wirePdfTheme('pdfQsTheme');
+      wirePdfTheme('pshQsTheme');
+
+      // Language buttons in PDF
+      function wirePdfLang(enId, huId) {
+        const en = document.getElementById(enId);
+        const hu = document.getElementById(huId);
+        if (en) en.addEventListener('click', () => { switchLang('en'); syncPdfQs(); });
+        if (hu) hu.addEventListener('click', () => { switchLang('hu'); syncPdfQs(); });
+      }
+      wirePdfLang('pdfQsEN', 'pdfQsHU');
+      wirePdfLang('pshQsEN', 'pshQsHU');
+
+      // Doc mode toggle in PDF
+      function wirePdfDocMode(id) {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          pdfFullDocMode = !pdfFullDocMode;
+          localStorage.setItem(PDF_FULL_DOC_KEY, pdfFullDocMode ? '1' : '0');
+          syncPdfQs();
+          if (pdfDoc) {
+            if (pdfFullDocMode) renderFullDoc();
+            else exitFullDocMode();
+          }
+        });
+      }
+      wirePdfDocMode('pdfQsDocMode');
+      wirePdfDocMode('pshQsDocMode');
+
+      // Sync once on open
+      pdfModal.addEventListener('transitionend', () => {
+        if (pdfModal.classList.contains('open')) syncPdfQs();
+      });
+
+      // Expose so settings modal toggle can call it too
+      window._syncPdfQs = syncPdfQs;
+    })();
 
     /* Re-fit whenever the window is resized so fit mode stays exact
        and the horizontal scrollbar never re-appears on its own */
@@ -3806,7 +4402,7 @@
           el.className = 'ses-item';
           el.innerHTML = `
             ${I[cit]||I.generic}
-            <span class="ses-name">${esc(child.name)}</span>
+            <span class="ses-name">${esc(getDisplayName(child))}</span>
             <span class="ses-type">${ext}</span>
             <button class="ses-rm">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -3848,6 +4444,10 @@
 
     /* Keyboard navigation for PDF */
     document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && mediaModal && mediaModal.classList.contains('open')) {
+        document.getElementById('mediaClose').click();
+        return;
+      }
       if (pdfModal.classList.contains('open')) {
         if (e.key==='ArrowRight'||e.key==='ArrowDown') {
           if (pdfDoc && pdfPage<pdfDoc.numPages) { pdfPage++; renderPage(pdfPage); }
@@ -3879,7 +4479,7 @@
     document.getElementById('failBackdrop').addEventListener('click', () => document.getElementById('compileFailModal').classList.remove('open'));
     document.getElementById('failCopyLog').addEventListener('click', () => {
       const log = document.getElementById('failLogContent').textContent;
-      navigator.clipboard.writeText(log).then(() => showToast('Log copied'));
+      navigator.clipboard.writeText(log).then(() => showToast(t('toastLogCopied')));
     });
 
     /* ════════════════════════════════════════════════════════════════
@@ -3887,15 +4487,15 @@
     ═════════════════════════════════════════════════════════════════ */
     const codeModal = document.getElementById('codeModal');
 
-    async function openCodeViewer(filePath, fileName) {
-      document.getElementById('codeModalTitle').textContent = fileName;
+    async function openCodeViewer(filePath, fileName, fileLang) {
+      document.getElementById('codeModalTitle').textContent = displayFileName(fileName);
       codeModalFile = filePath;
       const codeEl = document.getElementById('codeContent');
       codeEl.textContent = 'Loading…';
       codeModal.classList.add('open');
       document.body.style.overflow = 'hidden';
       try {
-        const res = await fetch('/api/file?path=' + encodeURIComponent(filePath) + '&lang=' + LANG);
+        const res = await fetch('/api/file?path=' + encodeURIComponent(filePath) + '&lang=' + (fileLang || LANG));
         if (!res.ok) throw new Error('HTTP '+res.status);
         const code = await res.text();
         codeEl.textContent = code;
@@ -3916,6 +4516,17 @@
     document.getElementById('codeModalDownload').addEventListener('click', () => {
       if (codeModalFile) window.open('/data/'+encPath(codeModalFile)+'?download=1','_blank');
     });
+    document.getElementById('codeModalCopy').addEventListener('click', () => {
+      const code = document.getElementById('codeContent').textContent;
+      const btn  = document.getElementById('codeModalCopy');
+      navigator.clipboard.writeText(code).then(() => {
+        showToast(t('toastCodeCopied'));
+        btn.classList.add('copy-ok');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ <span>' + t('copyCode') + '</span>';
+        setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copy-ok'); }, 1800);
+      }).catch(() => showToast(t('toastCodeCopied') + ' (failed)'));
+    });
 
     /* ════════════════════════════════════════════════════════════════
        CONTEXT MENU
@@ -3930,7 +4541,8 @@
       const isTex = ['.tex','.sty','.cls'].includes(ext);
       const isPDF = ext==='.pdf';
       const isImg = ['.png','.jpg','.jpeg','.gif','.webp','.svg'].includes(ext);
-      const isText= ['.md','.txt','.bib'].includes(ext);
+      const isText  = ['.md','.txt','.bib'].includes(ext);
+      const isMedia = ['.png','.jpg','.jpeg','.gif','.webp','.svg','.mp3','.ogg','.wav','.flac','.m4a','.mp4','.webm'].includes(ext);
       const isSel = selection.has(item.path);
       const coveringFolder = isSel ? null : getCoveringFolder(item.path);
       const isCovered = !!coveringFolder;
@@ -3942,8 +4554,18 @@
         if (isTex)  html += `<div class="ctx-item" data-action="compile">${I.render} ${t('ctxCompile')}</div>
                               <div class="ctx-item" data-action="view-code">${I.code} ${t('ctxViewSrc')}</div>`;
         if (isPDF)  html += `<div class="ctx-item" data-action="open-pdf">${I.open} ${t('ctxOpenPdf')}</div>`;
-        if (isImg)  html += `<div class="ctx-item" data-action="open-tab">${I.eye} ${t('ctxViewImg')}</div>`;
+        if (isMedia) html += `<div class="ctx-item" data-action="open-media">${I.eye} ${t('ctxViewImg')}</div>`;
         if (isText) html += `<div class="ctx-item" data-action="view-code">${I.code} ${t('ctxViewSrc')}</div>`;
+      }
+      html += `<div class="ctx-separator"></div>`;
+      // Bilingual / alternate language options
+      if (!isFolder) {
+        if (item.huPath && item.huAvailable) {
+          html += `<div class="ctx-item" data-action="open-hu">${I.folder} Open HU version</div>`;
+        }
+        if (item.enPath && item.enPath !== item.path && item.enAvailable !== false) {
+          html += `<div class="ctx-item" data-action="open-en">${I.folder} Open EN version</div>`;
+        }
       }
       html += `<div class="ctx-separator"></div>`;
       if (isCovered) {
@@ -3967,14 +4589,21 @@
           if (a==='open')             handleClick(item);
           if (a==='compile')          openPdfViewer(item.path, item.name);
           if (a==='open-pdf')         openPdfDirect('/data/'+encPath(item.path), item.name);
-          if (a==='open-tab')         window.open('/data/'+encPath(item.path),'_blank');
-          if (a==='view-code')        openCodeViewer(item.path, item.name);
+          if (a==='open-tab')    window.open('/data/'+encPath(item.path),'_blank');
+          if (a==='open-media') {
+            const ext2=(item.ext||'').toLowerCase();
+            const kind2 = ['.mp3','.ogg','.wav','.flac','.m4a'].includes(ext2)?'audio':['.mp4','.webm','.mkv','.mov','.avi'].includes(ext2)?'video':'image';
+            openMediaModal(item, kind2);
+          }
+          if (a==='view-code')        openCodeViewer(item.path, item.name, item._lang);
           if (a==='select')           toggleSelectByPath(item);
+          if (a==='open-hu' && item.huPath) { const hi={...item,path:item.huPath,name:item.huName||item.name,_lang:'hu',enAvailable:true}; handleClick(hi); }
+          if (a==='open-en' && item.enPath) { const ei={...item,path:item.enPath,name:item.enName||item.name,_lang:'en',enAvailable:true}; handleClick(ei); }
           if (a==='deselect-parent')  toggleSelectByPath(coveringFolder);
           if (a==='share')            shareItem(item);
           if (a==='download') {
             window.open('/data/'+encPath(item.path)+'?download=1','_blank');
-            showToast('↓ Downloading '+item.name);
+            showToast(t('toastDownloading')(item.name));
           }
         });
       });
@@ -4095,7 +4724,7 @@
         const rmBtn = `<button class="sel-expand-rm" tabindex="-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>`;
-        el.innerHTML = `${I[cit]||I.generic}<span class="sel-expand-name">${esc(child.name)}</span><span class="sel-expand-type">${esc(ext)}</span>${rmBtn}`;
+        el.innerHTML = `${I[cit]||I.generic}<span class="sel-expand-name">${esc(getDisplayName(child))}</span><span class="sel-expand-type">${esc(ext)}</span>${rmBtn}`;
         el.querySelector('.sel-expand-rm').addEventListener('click', e => {
           e.stopPropagation();
           excludeChild(item.path, child.path);
@@ -4301,7 +4930,7 @@
         row.innerHTML = `
           <div class="sel-item-icon" style="background:rgba(255,255,255,.05);color:var(--${cv})">${I[it]||I.generic}</div>
           <div class="sel-item-body">
-            <div class="sel-item-name">${esc(item.name)}</div>
+            <div class="sel-item-name">${esc(getDisplayName(item))}</div>
             ${hintText ? `<div class="sel-item-hint">${esc(hintText)}</div>` : ''}
           </div>
           <span class="sel-type-badge">${badgeLabel}</span>
@@ -4380,7 +5009,7 @@
 
     function shareItem(item) {
       const url = buildShareUrl(item);
-      copyToClipboard(url, '🔗 Link copied — ' + item.name);
+      copyToClipboard(url, t('toastLinkCopied')(item.name));
     }
 
     function shareSelection() {
@@ -4391,7 +5020,7 @@
       }
       const paths = [...selection.values()].map(i => encodeURIComponent(i.path)).join('||');
       const url = window.location.origin + window.location.pathname + '#select=' + paths;
-      copyToClipboard(url, `🔗 Link copied — ${selection.size} items`);
+      copyToClipboard(url, t('toastLinksCopied')(selection.size));
     }
 
     function copyToClipboard(text, toastMsg) {
@@ -4414,7 +5043,7 @@
     document.getElementById('pdfShare').addEventListener('click', () => {
       if (!pdfCurrentPath) return;
       const url = window.location.origin + window.location.pathname + '#file=' + encodeURIComponent(pdfCurrentPath);
-      copyToClipboard(url, '🔗 Link copied — ' + pdfCurrentName);
+      copyToClipboard(url, t('toastLinkCopied')(displayFileName(pdfCurrentName)));
     });
 
     /* ════════════════════════════════════════════════════════════════
@@ -4495,10 +5124,19 @@
     // Filename format: "Display Name {Tag1, Tag2, Tag3}.ext"
     function parseItemTags(item) {
       if (item.type === 'folder') return [];
+      // Tags from data.txt (server-side metadata)
+      const serverTags = Array.isArray(item.tags) ? item.tags : [];
+      // Tags from filename {tag1, tag2}
       const nameNoExt = item.name.replace(/\.[^.]+$/, '');
       const m = nameNoExt.match(/\{([^}]+)\}/);
-      if (!m) return [];
-      return m[1].split(',').map(s => s.trim()).filter(Boolean);
+      const filenameTags = m ? m[1].split(',').map(s => s.trim()).filter(Boolean) : [];
+      // Merge, deduplicate
+      const all = [...serverTags, ...filenameTags];
+      return [...new Map(all.map(t => [t.toLowerCase(), t])).values()];
+    }
+
+    function parseItemAuthors(item) {
+      return Array.isArray(item.authors) ? item.authors : [];
     }
 
     function getDisplayName(item) {
@@ -4557,12 +5195,17 @@
 
     function itemMatchesSearch(item, q) {
       const lq = q.toLowerCase();
-      const nameLower = item.name.toLowerCase();
+      const nameLower    = item.name.toLowerCase();
       const displayLower = getDisplayName(item).toLowerCase();
-      const tags = parseItemTags(item).map(t => t.toLowerCase());
-      const pathLower = (item.path || '').toLowerCase();
+      const tags         = parseItemTags(item).map(t => t.toLowerCase());
+      const authors      = parseItemAuthors(item).map(a => a.toLowerCase());
+      const pathLower    = (item.path || '').toLowerCase();
+      const desc         = (item.description || '').toLowerCase();
       return nameLower.includes(lq) || displayLower.includes(lq)
-          || tags.some(t => t.includes(lq)) || pathLower.includes(lq);
+          || tags.some(t => t.includes(lq))
+          || authors.some(a => a.includes(lq))
+          || pathLower.includes(lq)
+          || desc.includes(lq);
     }
 
     function itemMatchesTags(item) {
@@ -4648,6 +5291,25 @@
       }
     })();
 
+    /* ── Tag-more tooltip: position with fixed coords so it escapes clipping ── */
+    document.addEventListener('mouseover', e => {
+      const more = e.target.closest('.card-tag-more');
+      if (!more) return;
+      const tip = more.querySelector('.tag-tooltip');
+      if (!tip) return;
+      const r = more.getBoundingClientRect();
+      const tipW = tip.offsetWidth || 140;
+      const tipH = tip.offsetHeight || 80;
+      // Prefer above; flip below if not enough room
+      let top = r.top - tipH - 6;
+      if (top < 8) top = r.bottom + 6;
+      // Center horizontally, clamp to viewport
+      let left = r.left + r.width / 2 - tipW / 2;
+      left = Math.max(8, Math.min(window.innerWidth - tipW - 8, left));
+      tip.style.top  = top + 'px';
+      tip.style.left = left + 'px';
+    });
+
     /* ── Init ───────────────────────────────────────────────────────── */
 
     /* ════════════════════════════════════════════════════════════════
@@ -4665,6 +5327,7 @@
         return {
           theme:        document.body.classList.contains('light') ? 'light' : 'dark',
           lang:         LANG,
+          matLang:      MAT_LANG,
           fullDoc:      pdfFullDocMode,
           sectionBy:    sectionBy,
           sectionOrder: localStorage.getItem('ki_section_order') || 'null',
@@ -4677,6 +5340,7 @@
         const now = takeSnapshot();
         return now.theme       !== _snap.theme
             || now.lang        !== _snap.lang
+            || now.matLang     !== _snap.matLang
             || now.fullDoc     !== _snap.fullDoc
             || now.sectionBy   !== _snap.sectionBy
             || now.sectionOrder !== _snap.sectionOrder
@@ -4702,6 +5366,12 @@
           if (pdfModal.classList.contains('open') && pdfDoc) {
             if (pdfFullDocMode) renderFullDoc(); else exitFullDocMode();
           }
+        }
+        // Material language
+        if (MAT_LANG !== _snap.matLang) {
+          MAT_LANG = _snap.matLang;
+          localStorage.setItem('ki_mat_lang', MAT_LANG);
+          loadTree();
         }
         // Section-by
         if (sectionBy !== _snap.sectionBy) {
@@ -4807,9 +5477,11 @@
       /* ── Language segment ──────────────────────────────────────────── */
       document.getElementById('stgLangSeg').querySelectorAll('.stg-seg-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          switchLang(btn.dataset.lang);
+          const p = switchLang(btn.dataset.lang);
           syncSettingsUI();
           markDirty();
+          // Rebuild section list with the new language's folder structure
+          if (p && p.then) p.then(() => { if (modal.classList.contains('open')) buildSectionList(); });
         });
       });
 
@@ -4828,6 +5500,17 @@
       });
 
       /* ── Full-doc toggle ───────────────────────────────────────────── */
+      /* ── Material language segment ──────────────────────────────────────── */
+      document.getElementById('stgMatLangSeg') && document.getElementById('stgMatLangSeg').querySelectorAll('.mat-lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          MAT_LANG = btn.dataset.matlang;
+          localStorage.setItem('ki_mat_lang', MAT_LANG);
+          document.querySelectorAll('#stgMatLangSeg .mat-lang-btn').forEach(b => b.classList.toggle('active', b === btn));
+          loadTree(); // reload with new mat_lang
+          markDirty();
+        });
+      });
+
       const fdToggle = document.getElementById('stgFullDocToggle');
       fdToggle.addEventListener('click', () => {
         pdfFullDocMode = !pdfFullDocMode;
@@ -4837,6 +5520,8 @@
         if (pdfModal.classList.contains('open') && pdfDoc) {
           if (pdfFullDocMode) renderFullDoc(); else exitFullDocMode();
         }
+        // Keep the PDF quick-settings doc-mode button in sync
+        if (window._syncPdfQs) window._syncPdfQs();
         markDirty();
       });
 
@@ -5005,6 +5690,10 @@
         });
         // Full-doc
         document.getElementById('stgFullDocToggle').classList.toggle('on', pdfFullDocMode);
+        // Material language
+        document.querySelectorAll('#stgMatLangSeg .mat-lang-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.matlang === MAT_LANG);
+        });
         // Section by
         document.querySelectorAll('#stgSectionBySeg .stg-seg-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.sectionby === sectionBy);
@@ -5012,7 +5701,312 @@
       }
     })();
 
-    loadTree().then(handleHashOnLoad).catch(() => setTimeout(handleHashOnLoad, 800));
+
+    /* ════════════════════════════════════════════════════════════════
+       MEDIA MODAL (image / video / audio)
+    ═════════════════════════════════════════════════════════════════ */
+    const mediaModal = document.getElementById('mediaModal');
+    function openMediaModal(item, kind) {
+      const body = document.getElementById('mediaBody');
+      const fname = document.getElementById('mediaFilename');
+      const badge = document.getElementById('mediaBadge');
+      body.innerHTML = '';
+      fname.textContent = displayFileName(item.name);
+      badge.textContent = (item.ext||'').replace('.','').toUpperCase();
+      const src = '/data/' + encPath(item.path) + '?lang=' + (item._lang || LANG);
+      if (kind === 'image') {
+        const img = document.createElement('img');
+        img.src = src; img.alt = item.name;
+        body.appendChild(img);
+      } else if (kind === 'video') {
+        const vid = document.createElement('video');
+        vid.src = src; vid.controls = true; vid.autoplay = false;
+        vid.style.maxHeight = 'calc(100vh - var(--header-h) - 130px)';
+        body.appendChild(vid);
+      } else if (kind === 'audio') {
+        const aud = document.createElement('audio');
+        aud.src = src; aud.controls = true;
+        body.appendChild(aud);
+      }
+      document.getElementById('mediaDownload').onclick = () => window.open('/data/'+encPath(item.path)+'?download=1','_blank');
+      mediaModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    document.getElementById('mediaClose').addEventListener('click', () => {
+      mediaModal.classList.remove('open');
+      document.body.style.overflow = '';
+      document.getElementById('mediaBody').innerHTML = ''; // release media
+    });
+    mediaModal.addEventListener('click', e => {
+      if (e.target === mediaModal) { document.getElementById('mediaClose').click(); }
+    });
+
+    /* ════════════════════════════════════════════════════════════════
+       MUSIC PLAYER
+    ═════════════════════════════════════════════════════════════════ */
+    (function() {
+      const bar   = document.getElementById('musicBar');
+      const audio = new Audio();
+      let tracks = [], currentIdx = 0, playing = false;
+      audio.volume = 0.8;
+
+      function fmtTime(s) {
+        if (!isFinite(s)) return '0:00';
+        const m = Math.floor(s/60), ss = Math.floor(s%60);
+        return `${m}:${ss.toString().padStart(2,'0')}`;
+      }
+
+      function syncUI() {
+        const icon = document.getElementById('mbPlayIcon');
+        if (audio.paused) {
+          icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+        } else {
+          icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        }
+        const tr = tracks[currentIdx];
+        if (tr) {
+          document.getElementById('mbTitle').textContent = displayFileName(tr.name);
+          const mbSubParts = tr.path.split('/').slice(0,-1);
+          document.getElementById('mbSub').textContent = mbSubParts.length ? mbSubParts.join(' › ') : 'Music';
+        }
+      }
+
+      function loadTrack(idx) {
+        currentIdx = Math.max(0, Math.min(tracks.length-1, idx));
+        const tr = tracks[currentIdx];
+        if (!tr) return;
+        audio.src = '/music/' + tr.path.split('/').map(encodeURIComponent).join('/');
+        audio.load();
+        if (playing) audio.play().catch(()=>{});
+        syncUI();
+        bar.classList.add('visible');
+        document.body.classList.add('music-open');
+      }
+
+      audio.addEventListener('timeupdate', () => {
+        const pct = audio.duration ? (audio.currentTime / audio.duration * 100) : 0;
+        document.getElementById('mbProgFill').style.width = pct + '%';
+        document.getElementById('mbCurrent').textContent  = fmtTime(audio.currentTime);
+        document.getElementById('mbDuration').textContent = fmtTime(audio.duration);
+      });
+      audio.addEventListener('ended', () => {
+        if (currentIdx < tracks.length - 1) { playing = true; loadTrack(currentIdx + 1); }
+        else { playing = false; audio.pause(); syncUI(); }
+      });
+      audio.addEventListener('play',  syncUI);
+      audio.addEventListener('pause', syncUI);
+
+      document.getElementById('mbPlay').addEventListener('click', () => {
+        if (!tracks.length) { showToast(t('toastMusicNone')); return; }
+        if (audio.paused) { playing = true; audio.play().catch(()=>{}); }
+        else { playing = false; audio.pause(); }
+      });
+      document.getElementById('mbPrev').addEventListener('click', () => {
+        if (audio.currentTime > 4) { audio.currentTime = 0; if (playing) audio.play().catch(()=>{}); }
+        else if (currentIdx > 0)   { loadTrack(currentIdx - 1); }
+      });
+      document.getElementById('mbNext').addEventListener('click', () => {
+        if (currentIdx < tracks.length - 1) loadTrack(currentIdx + 1);
+      });
+      document.getElementById('mbVol').addEventListener('input', function() {
+        audio.volume = +this.value;
+      });
+      document.getElementById('mbProgTrack').addEventListener('click', e => {
+        if (!audio.duration) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+      });
+      document.getElementById('mbClose').addEventListener('click', () => {
+        playing = false;
+        audio.pause();
+        bar.classList.remove('visible');
+        document.body.classList.remove('music-open');
+      });
+
+      // Load music list and start player
+      async function initMusic() {
+        try {
+          const res = await fetch('/api/music/list');
+          if (!res.ok) return;
+          const data = await res.json();
+          tracks = Array.isArray(data) ? data : [];
+          if (tracks.length > 0) {
+            playing = false; // Don't auto-play on page load
+            loadTrack(0);    // Pre-load track info so bar is ready
+          }
+        } catch { /* Music folder absent – silence the error */ }
+      }
+
+      // Expose for external access (e.g. context menu "Play")
+      window._musicPlayer = { loadTrack, tracks: () => tracks, initMusic };
+
+      initMusic();
+    })();
+
+    /* ════════════════════════════════════════════════════════════════
+       CHANGELOG PAGE
+    ═════════════════════════════════════════════════════════════════ */
+    let clLoaded = false, clEntries = [], clFilter = 'all';
+
+    async function loadChangelog() {
+      if (clLoaded) { renderChangelog(); return; }
+      const feed = document.getElementById('clFeed');
+      try {
+        const res = await fetch('/api/changelog');
+        clEntries = await res.json();
+        clLoaded = true;
+        renderChangelog();
+      } catch {
+        if (feed) feed.innerHTML = `<div class="state-box"><span style="color:var(--red)">Failed to load changelog.</span></div>`;
+      }
+    }
+
+    function renderChangelog() {
+      const feed = document.getElementById('clFeed');
+      if (!feed) return;
+      const filtered = clEntries.filter(e => {
+        if (clFilter === 'all')       return true;
+        if (clFilter === 'important') return e.important;
+        return e.type === clFilter;
+      });
+      if (!filtered.length) {
+        feed.innerHTML = `<div class="state-box"><span>${t('clEmpty')}</span></div>`;
+        return;
+      }
+      feed.innerHTML = '';
+      filtered.forEach((entry, i) => {
+        const el = document.createElement('div');
+        el.className = 'cl-entry' + (entry.important ? ' important' : '');
+        el.style.animationDelay = (i * 30) + 'ms';
+        const typeClass = entry.type || 'website';
+        el.innerHTML = `
+          <div class="cl-entry-header">
+            <span class="cl-date">${entry.date || ''}</span>
+            <span class="cl-type-chip ${typeClass}">${t('clFilter'+typeClass.charAt(0).toUpperCase()+typeClass.slice(1)) || typeClass}</span>
+            ${entry.important ? `<span class="cl-important-chip">★ ${t('clFilterImportant')}</span>` : ''}
+            ${entry.authors && entry.authors.length ? `<span class="cl-authors">${entry.authors.join(', ')}</span>` : ''}
+          </div>
+          <div class="cl-title">${esc(entry.title || '')}</div>
+          ${entry.body ? `<div class="cl-body">${esc(entry.body).replace(/\n/g,'<br>')}</div>` : ''}
+          <button class="cl-delete" data-id="${entry.id}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        `;
+        el.querySelector('.cl-delete').addEventListener('click', () => deleteChangelogEntry(entry.id, el));
+        feed.appendChild(el);
+      });
+    }
+
+    async function deleteChangelogEntry(id, el) {
+      el.style.cssText += ';opacity:0;transform:translateX(20px);transition:.25s';
+      setTimeout(() => el.remove(), 260);
+      clEntries = clEntries.filter(e => e.id !== id);
+      try { await fetch('/api/changelog/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id}) }); } catch {}
+    }
+
+    // Changelog filter buttons
+    document.querySelectorAll('[data-cl-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        clFilter = btn.dataset.clFilter;
+        document.querySelectorAll('[data-cl-filter]').forEach(b => b.classList.toggle('active', b === btn));
+        renderChangelog();
+      });
+    });
+
+    // Add entry modal
+    (function() {
+      const modal   = document.getElementById('clAddModal');
+      const addBtn  = document.getElementById('clAddBtn');
+      let clmType   = 'website';
+
+      document.getElementById('clmDate').value = new Date().toISOString().slice(0,10);
+
+      function openCl()  { modal.classList.add('open');  document.body.style.overflow='hidden'; }
+      function closeCl() { modal.classList.remove('open'); document.body.style.overflow=''; }
+
+      if (addBtn) addBtn.addEventListener('click', openCl);
+      document.getElementById('clmClose') .addEventListener('click', closeCl);
+      document.getElementById('clmCancel').addEventListener('click', closeCl);
+      document.getElementById('clmBd')    .addEventListener('click', closeCl);
+
+      document.querySelectorAll('.clm-seg-btn[data-type]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          clmType = btn.dataset.type;
+          document.querySelectorAll('.clm-seg-btn[data-type]').forEach(b => b.classList.toggle('active', b === btn));
+        });
+      });
+
+      document.getElementById('clmSubmit').addEventListener('click', async () => {
+        const title = document.getElementById('clmTitle').value.trim();
+        if (!title) { document.getElementById('clmTitle').focus(); return; }
+        const entry = {
+          title,
+          body:      document.getElementById('clmBody').value.trim() || null,
+          authors:   document.getElementById('clmAuthors').value.split(',').map(s=>s.trim()).filter(Boolean),
+          date:      document.getElementById('clmDate').value || new Date().toISOString().slice(0,10),
+          type:      clmType,
+          important: document.getElementById('clmImportant').checked,
+        };
+        try {
+          const res = await fetch('/api/changelog/add', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(entry) });
+          const data = await res.json();
+          entry.id = data.id;
+          clEntries.unshift(entry);
+          renderChangelog();
+          // Reset form
+          document.getElementById('clmTitle').value   = '';
+          document.getElementById('clmBody').value    = '';
+          document.getElementById('clmAuthors').value = '';
+          document.getElementById('clmImportant').checked = false;
+          closeCl();
+          showToast('✓ Entry added');
+        } catch { showToast('Failed to save entry'); }
+      });
+    })();
+
+    /* ════════════════════════════════════════════════════════════════
+       PRECOMPILATION UI (settings)
+    ═════════════════════════════════════════════════════════════════ */
+    async function fetchPrecompileStatus() {
+      try {
+        const res = await fetch('/api/precompile/status');
+        const data = await res.json();
+        const el = document.getElementById('precompStatusText');
+        if (el) el.textContent = t('stgPrecompileStatus')(data.queue, data.running);
+        const dot = document.getElementById('precompDot');
+        if (dot) {
+          dot.className = 'precomp-dot ' + (data.running ? 'running' : data.queue === 0 ? 'done' : 'idle');
+        }
+      } catch {}
+    }
+
+    document.addEventListener('click', async e => {
+      if (!e.target.closest('#precompAllBtn')) return;
+      try {
+        await fetch('/api/precompile/folder', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ folderPath:'', lang: LANG }) });
+        if (LANG !== 'hu') await fetch('/api/precompile/folder', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ folderPath:'', lang:'hu' }) });
+        showToast('⟳ Precompilation queued');
+        setTimeout(fetchPrecompileStatus, 500);
+      } catch {}
+    });
+
+    // Poll status every 3 s when settings modal is open
+    let precompPollTimer;
+    const _stgModal = document.getElementById('settingsModal');
+    if (_stgModal) {
+      new MutationObserver(() => {
+        if (_stgModal.classList.contains('open')) {
+          fetchPrecompileStatus();
+          precompPollTimer = setInterval(fetchPrecompileStatus, 3000);
+        } else {
+          clearInterval(precompPollTimer);
+        }
+      }).observe(_stgModal, { attributes: true, attributeFilter: ['class'] });
+    }
+    window.addEventListener('beforeunload', () => clearInterval(precompPollTimer));
+
+
+        loadTree().then(handleHashOnLoad).catch(() => setTimeout(handleHashOnLoad, 800));
   })();
   </script>
 </body>
