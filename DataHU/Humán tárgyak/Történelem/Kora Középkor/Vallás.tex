@@ -5,6 +5,64 @@
 \usepackage[magyar]{babel}
 \usepackage{graphicx}
 
+% --- Section formatting ---
+\usepackage{titlesec}
+
+% Allow deep section numbering and TOC
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+\makeatletter
+
+% ------------------------
+% LEVEL 4: subsubsubsection
+% ------------------------
+\titleclass{\subsubsubsection}{straight}[\subsubsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+
+\renewcommand\subsubsubsection{%
+  \@startsection{subsubsubsection}{4}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 4
+\newcommand*\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+
+% --------------------------
+% LEVEL 5: subsubsubsubsection
+% --------------------------
+\titleclass{\subsubsubsubsection}{straight}[\subsubsubsection]
+\newcounter{subsubsubsubsection}[subsubsubsection]
+\renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
+
+\renewcommand\subsubsubsubsection{%
+  \@startsection{subsubsubsubsection}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 5
+% Use level 4 internally for safety (LaTeX only knows TOC levels 1-4)
+\newcommand*\l@subsubsubsubsection{\@dottedtocline{4}{10em}{5em}}
+
+\makeatother
+
 \title{Vallások}
 \author{Haydu Lőrinc, Lengyel Zoltán Péter, Rovenszky Robin}
 \date{Legutóbb frissítve: 2026. Március 16.}
@@ -204,6 +262,67 @@
     
 \end{itemize}
 
-% missing table explaining jews christians and muslims from somewhere in the note (fah)
+% missing table explaining jews christians and muslims from somewhere in the note
+
+\section{Keresztények}
+\subsection{Szerzetesrendek}
+\subsubsection{Bencések}
+\subsubsubsection{Pannonhalma}
+\begin{itemize}
+    \item 996. Szent Benedek követői alapították a monostort
+    \begin{itemize}
+        \item Szent Asztrik (megalapítja Pannonhalmát, neveli Szent Istvánt)
+    \end{itemize}
+    \item 15. században épült kerengő
+    \begin{itemize}
+        \item Szent Benedek Kápolna
+    \end{itemize}
+    \item Építészeti jellemzői
+    \begin{itemize}
+        \item Román stílus
+        \begin{itemize}
+            \item Lőrésszerű ablakok
+            \item vastag falak (pl Jáki templom, Városligetben másolata)
+            \item bélletes kapu (befelé szűkülő kapu)
+            \item 1 főhajó + 1 mellékhajó
+        \end{itemize}
+        \item Korai gótika 
+        \begin{itemize}
+            \item Csúcsíves
+            \item Támpillérek
+            \item Rózsaablakok
+            \item Környezeténél magasabb
+            \item keskeny falak
+            \item finom vonások
+            \item pl Notre Dame
+        \end{itemize}
+        \item Késő gótika
+        \begin{itemize}
+            \item kevésbé magas
+            \item vízköpő (díszelem a külső részeken)
+        \end{itemize}
+    \end{itemize}
+    \item Apátság alapítólevele 1045.
+\end{itemize}
+
+\subsubsection{Ciszterciek}
+\begin{itemize}
+    \item Citeaux (Francia tartomány)
+     \item 1098. Szent Róbert
+     \item 1102. Szent Bernát - virágoztatja fel
+     \item Kezdetben fehér $\rightarrow$ barna $\rightarrow$ fekete viselet (csuha)
+     \item Carta Cartiatis (szeretet okirata) rend nűködésének regulája
+     \item pl. Gödöllő
+\end{itemize}
+
+\subsubsection{Egyéb szerzetesrendek}
+\begin{itemize}
+    \item Premontreiek
+    \item Karthauziak
+    \item Ferencesek
+    \item Domonkosok
+    \item Johanniták
+\end{itemize}
+
 
 \end{document}
