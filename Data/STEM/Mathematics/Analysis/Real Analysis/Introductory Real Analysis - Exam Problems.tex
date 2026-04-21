@@ -35,7 +35,7 @@ Evaluate the following: (3 points)
     \]
     First, let $0,36 = \frac{36}{100}$, then split the square root into a product of fractions
     \[
-    =\sqrt{\frac{36}{25}}\cdot \sqrt{\frac{81}{144}}\cdot\sqrt{\frac{36}{100}} = \frac{6}{5}\cdot\frac{9}{12}\frac{6}{10}=\frac{6\cdot9\cdot6}{5\cdot12\cdot10}=\frac{324}{600}=\frac{27}{50}=0,54
+    =\sqrt{\frac{36}{25}}\cdot \sqrt{\frac{81}{144}}\cdot\sqrt{\frac{36}{100}} = \frac{6}{5}\cdot\frac{9}{12}\frac{6}{10}=\frac{6\cdot9\cdot6}{5\cdot12\cdot10}=\frac{324}{600}=\frac{27}{50}=\boxed{0,54}.
     \]
     \vspace{3pt}
     \hrule 
@@ -48,16 +48,19 @@ Evaluate the following: (3 points)
     \]
     Generally,
     \[
-    \sqrt{ab}
+    \sqrt{a}
     \]
-    Eval. $ab$'s prime factorization
+    Evaluate the prime factorization under the root
     \[
-    ab = p_1^{\alpha_1} \cdot p_2^{\alpha_2} ... p_i^{\alpha_i}
+    a = p_1^{\alpha_1} \cdot p_2^{\alpha_2} ... p_i^{\alpha_i}
     \]
-    If all $\alpha_i$ are even, then
+    Where $p_i$ prime.
+    Then all prime factors with even exponents $2\omega_j = \alpha_j$ come out of the square root with half its' exponents, $\omega_j$. All prime factors with odd exponents come out as half of its' exponents minus 1, so for factors with odd exponents $2\beta_k+1 = \alpha_k$, $p_k^{\beta_k}$ comes out of the root, $p_k$ stays in. 
+    Therefore our final result is
     \[
-    \sqrt{ab} = p_1^{\frac{\alpha_1}{2}} \cdot p_2^{\frac{\alpha_2}{2}} ... p_i^{\frac{\alpha_i}{2}}
+    \sqrt{a} = p_1^{\frac{\alpha_1}{2}} \cdot p_2^{\frac{\alpha_2}{2}} \cdot\cdot\cdot p_m^{\frac{\alpha_m}{2}} \cdot q_1^{\frac{\phi_1 - 1}{2}} \cdot q_2^{\frac{\phi_2 - 1}{2}} \cdot\cdot\cdot q_l^{\frac{\phi_l - 1}{2}} \cdot \sqrt{q_1\cdot q_2 \cdot\cdot\cdot q_l}
     \]
+    With  $p_i$ primes with even exponents and $q_l$ primes with odd exponents.
     \vspace{3pt}
     \hrule
     \vspace{8pt}
@@ -177,8 +180,25 @@ Calculate the exact value of the following expression. (3 points)
 \[
 (\sqrt{2 + 2\sqrt{3}} - \sqrt{-2 +2\sqrt{3}})^2
 \]
-We will omit the details here, ask any LLM.
-The final result, for checking purposes, is $4(\sqrt{3} - \sqrt{2})$.
+We notice that our expression is of the form $(A - B)^2$. Thus expanding yields one of form $A^2 - 2AB + B^2$
+\[
+\underbrace{(2 + 2\sqrt{3})}_{A^2}
+-
+\underbrace{2\sqrt{(2 + 2\sqrt{3})(-2 + 2\sqrt{3})}}_{2AB}
++
+\underbrace{(-2 + 2\sqrt{3})}_{B^2}
+\]
+The outer terms combine immediately:
+\[
+4\sqrt{3} - 2\sqrt{(2 + 2\sqrt{3})(-2 + 2\sqrt{3})}
+\]
+Now we simplify the product under the root. We notice that it is a difference of squares $(a + b)(a - b) = a^2 - b^2$ with $a = 2\sqrt{3},\, b=2.$
+\[
+(2\sqrt{3} + 2)(2\sqrt{3} - 2) = 12 - 4 = 8.
+\]
+\[
+4\sqrt{3} - 2\sqrt{8} = 4\sqrt{3} - 4\sqrt{3} - 4\sqrt{2} = \boxed{4(\sqrt{3} - \sqrt{2})}.
+\]
 
 \subsubsection{Problem 6.}
 Calculate the exact value of the following expression. (3 points)

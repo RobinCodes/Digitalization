@@ -9,21 +9,23 @@
 \usepackage{amsfonts}
 
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta, positioning}
+\usetikzlibrary{graphs,graphdrawing, arrows.meta, positioning}
+\usegdlibrary{trees}
 \usepackage{graphicx}
 
-\newtheorem{definition}{Definíció}
+\newtheorem{definition}{Definíció}[section]
 \newtheorem{corollary}{Folyomány}
-\newtheorem{lemma}{Lemma}
-\newtheorem{theorem}{Tétel}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}{Tétel}[section]
 \newtheorem{remark}{Megjegyzés}
 \newtheorem{example}{Példa}
+\newtheorem{proposition}{Propozíció}[section]
 
 \title{Gráfelmélet}
 \author{Rovenszky Robin}
-\date{Legutóbb frissítve: 2026. Április 13.}
+\date{Legutóbb frissítve: 2026. Április 16.}
 
-\begin{document}
+\begin{document} % TODO: Improve the overall flow of this document
 
 \maketitle
 \tableofcontents
@@ -124,7 +126,7 @@ Háromféleképpen fogunk ábrázolni adatokat.
 \end{definition}
 
 \begin{definition}[Összefüggő gráf]
-    Olyan gráf, melynek bármely pontjából bármely másik pontjába vezet út.
+    Olyan gráf, melynek bármely csúcsából bármely másik csúcsába vezet út.
 \end{definition}
 
 \begin{definition}[Komponens]
@@ -176,15 +178,145 @@ Háromféleképpen fogunk ábrázolni adatokat.
 \end{definition}
 
 \begin{lemma}
-    Egy összefüggő gráf komponenseinek száma 1.
+    Egy összefüggő gráf komponenseinek száma $1$, valamint egy gráf, melynek komponenseinek száma $1$, minden esetben összefüggő.
+    \[
+    G \text{ összefüggő } \Leftarrow\Rightarrow G \text{ komponenseinek száma } = 1.
+    \]
 \end{lemma}
 \begin{proof}
-    Tegyük fel, hogy adott gráf $G$ összefüggő. Egy komponens definíció szerint létezik. Válasszunk ki kettő vagy több részgráfot. Válasszunk ki annyi csúcsot, amennyi részgráfot. Mivel a gráf összefüggő, a pontok között léteznek utak, tehát a részgráfok a csúcsok számára nézve nem maximálisak, tehát nem komponensek.
-\end{proof} % TODO: Better proof
+    Legyen $G = (V, E)$ egy összefüggő gráf. A komponens definíció szerint a gráf egy maximális összefüggő részgráfja. Mivel $G$ összefüggő, ő maga egy összefüggő részgráf. Nem létezhet nála bővebb összefüggő részgráf, hiszen nincsenek $G$-n kívüli csúcsok vagy élek, így $G$ maga egy komponens.
+
+    Tegyük fel indirekt módon, hogy létezik egy $G$-től különböző, $C$ komponens is. Ekkor léteznie kell egy $v$ csúcsnak, amely eleme $G$-nek, de nem eleme $C$-nek ($v \in V \setminus V(C)$), ellenkező esetben $C$ nem lenne valódi részgráf, és a maximalitás miatt egybeesne $G$-vel. Válasszunk egy tetszőleges $u \in V(C)$ csúcsot. Mivel $G$ összefüggő, létezik út $u$ és $v$ között. Ha ezt az utat hozzáadjuk $C$-hez, egy $C$-nél bővebb összefüggő részgráfot kapunk. Ez ellentmond annak a feltételezésnek, hogy $C$ egy maximális összefüggő részgráf. Tehát $G$-nek pontosan egy komponense van. A fordítottja: egy gráfnak, melynek komponenseinek száma $1$, összefüggőnek kell lennie. Nevezzük ezt a komponenst $C_2$-nek, ez egybeesik $G$-vel. A gráfnak összefüggőnek kell lennie, ha minden csúcs között létezik út, definíció szerint. Ennek bizonyításához feltételezzük indirekt módon, hogy létezik $K \in G$ csúcs, melyet nem köt össze út semelyik $I \in C_2$ csúccsal sem. Mivel $C_2$ egybeesik $G$-vel, $K \notin G$, ami ellentmond azzal a feltételezésünkkel, hogy létezik ilyen $K$ csúcs.
+\end{proof}
+
+\begin{lemma}
+    $G$ gráfban egy él behúzása vagy csökkenti a komponensek számát, vagy kört hoz létre. 
+\end{lemma}
+\begin{proof}
+    Összekötünk két csúcsot, melyek egy-egy $G$-vel nem egyenlő maximális részgráfokban találhatóak. Ez az az eset, amikor két komponenst kapcsolunk össze. Amennyiben nem létezik legalább kettő $G$-vel nem egyenlő maximális részgráf, a komponensek száma 1, tehát a behúzott él két olyan csúcsot köt össze, melyek ugyan abban a komponensben találhatóak, vagyis már létezik közöttük út (hiszen a gráf ekkor már \emph{összefüggő}, lásd 2.1. Lemma). Mivel összekötöttünk két olyan csúcsot, melyek között már létezett út, kört alakítottunk ki.
+\end{proof}
 
 \section{Fák}
 \begin{definition}[Fa]
     Egyszerű, összefüggő, körmentes gráf.
 \end{definition}
+
+\subsection{Definícióval egyenértékű tulajdonságok}
+
+Bemutatjuk a fának pár, a definícióval egyenértékű tulajdonságát.
+
+\begin{enumerate}
+    \item Minimális élszámot tartalmazó, összefüggő gráf.
+    \begin{proof}
+        Mivel összefüggő, komponenseinek száma 1 (2.1. Lemma); tehát ha éleinek száma minimális, akkor körmentes, mivel egy él behúzása vagy csökkenti a komponensek számát, vagy kört hoz létre (ahogy később látni fogjuk, lásd 4.1. Lemma).
+        Nem szükséges feltétel, hogy egyszerű gráf legyen, hiszen ha lenne benne többszörös él vagy hurokél, az ellentmondana a minimális élszámnak.
+    \end{proof}
+    \item Maximális élszámot tartalmazó, körmentes gráf.
+    \begin{proof}
+        A bizonyítás nagyon hasonló az előzőhöz. Mivel éleinek száma maximális, és nincsen kör a gráfban, komponenseinek száma 1 kell, hogy legyen, mivel minden él behúzása vagy csökkenti a komponensek számát, vagy kört hoz létre (később 4.1. Lemma). Mivel kör nem alakult ki, és ennek figyelembe vételével maximális élszámot tartalmaz a gráf, így a komponensek száma minimális, vagyis 1, tehát a gráf összefüggő.
+        Itt sem szükséges feltétel, hogy egyszerű gráf legyen, mivel ha lenne benne többszörös él vagy hurokél, az azonnal kört alkotna.
+    \end{proof}
+\end{enumerate}
+
+Ezekből láthatjuk, hogy a fa minimális összefüggőség szempontjából, és maximális körmentesség szempontjából.
+
+\subsection{Izomorfizmus}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    every node/.style={circle,draw,inner sep=1.5pt},
+]
+
+% --- Top row ---
+\node (v1) at (-4,2) {$v_1$};
+
+\node (v2) at (-1.5,2) {$v_1$};
+\node (v3) at (-0.3,2) {$v_2$};
+\draw (v2) -- (v3);
+
+\node (v4) at (2,2) {$v_1$};
+\node (v5) at (3.2,2) {$v_2$};
+\node (v6) at (4.4,2) {$v_3$};
+\draw (v4) -- (v5) -- (v6);
+
+% --- Bottom row: P4 ---
+\node (p1) at (-2,0) {$v_1$};
+\node (p2) at (-0.8,0) {$v_2$};
+\node (p3) at (0.4,0) {$v_3$};
+\node (p4) at (1.6,0) {$v_4$};
+\draw (p1) -- (p2) -- (p3) -- (p4);
+\node[draw=none] at (-0.2,-1) {$P_4$};
+
+% --- Bottom row: K1,3 ---
+\node (c) at (4,0) {$v_1$};
+\node (a) at (3,-1) {$v_2$};
+\node (b) at (4,1) {$v_3$};
+\node (d) at (5,-1) {$v_4$};
+\draw (c) -- (a);
+\draw (c) -- (b);
+\draw (c) -- (d);
+\node[draw=none] at (4,-2) {$K_{1,3}$};
+
+\end{tikzpicture}
+
+\caption{Minden 1--4 csúcsú fa, izomorf fákat kihagyva.}
+\end{figure} % TODO: Style this figure better
+
+\begin{definition}
+    Két fa akkor izomorf, ha az egyik csúcsait meg lehet úgy nevezni, hogy a másikban is ugyan azok legyenek összekötve.
+\end{definition}
+
+\begin{proposition}
+Két gráf izomorfizmusának szükséges, de nem elégséges feltétele a fokszámsorozatok egyenlősége.
+\end{proposition}
+\begin{proof}
+\textbf{Szükségesség:} Az izomorfizmus éltartó leképezés, így ha $\phi(v) = u$, akkor $v$ szomszédainak száma meg kell egyezzen $u$ szomszédainak számával.\textbf{ Nem elégségesség:} Tekintsük a $C_6$ összefüggő kört és a $2 \cdot C_3$ diszjunkt uniót. Mindkét gráf reguláris másodfokú, de az egyik összefüggő, a másik nem, így nem létezhet köztük izomorfizmus.
+\end{proof}
+
+\section{Tételek}
+A gráfelmélet általában egyszerű, összefüggő irányítatlan gráfokkal foglalkozik.
+\begin{theorem}[Fokszámtétel]
+    Adott $k$-élű gráf fokszámainak összege $2k$.
+\end{theorem}
+\begin{proof}
+    Minden élnek két végpontja van, tehát amikor felszámoljuk ezeket, a végeredmény $2k$.
+\end{proof}
+
+\begin{theorem}
+    $n$-csúcsú gráfnak minimum $n-1$ éle van, ha összefüggő.
+\end{theorem}
+\begin{proof}
+    Egy gráf akkor összefüggő, ha komponenseinek száma 1 (lásd 2.1. Lemma). Egy él behúzásával a komponensek száma egyel csökkenthető, mivel egy él két komponenst tud összekötni. Tehát legalább $n-1$ élt kell behúznunk, hogy a komponensek számát $n$-ről $1$-re csökkentsük.
+\end{proof}
+\begin{corollary}
+    Mivel egy él vagy kört hoz létre, vagy csökkenti a komponensek számát (lásd 2.2. Lemma), ezért $n-1$ él behúzása után a gráf összefüggővé válik; a következő él behúzásával mindenképpen kört alakítunk ki.
+\end{corollary}
+
+\begin{theorem}
+    $n$-csúcsú egyszerű gráfban maximum $\binom{n-1}{2}$ élt lehet behúzni, hogy ne legyen összefüggő.
+\end{theorem}
+\begin{proof}
+    Legyen $G$ egy $n$ csúcsú, nem összefüggő egyszerű gráf. Ekkor a csúcsok legalább két komponensre bonthatók. Tegyük fel, hogy két komponens mérete $k$ és $n-k$, ahol $1 \le k \le n-1$.
+    
+    Mivel a komponensek között nincs él, az élek maximális száma akkor adódik, ha mindkét komponens teljes gráf. Ekkor az élek száma:
+    \[
+    \binom{k}{2} + \binom{n-k}{2}.
+    \]
+    
+    Tekintsük az
+    \[
+    f(k) = \binom{k}{2} + \binom{n-k}{2}
+    \]
+    függvényt. Ez szimmetrikus $k$ és $n-k$ szerint, és maximumát a szélső értékeknél veszi fel, azaz $k=1$ vagy $k=n-1$ esetén.
+    
+    Ekkor:
+    \[
+    f(1) = \binom{1}{2} + \binom{n-1}{2} = 0 + \binom{n-1}{2}.
+    \]
+    
+    Ezért bármely nem összefüggő $n$ csúcsú egyszerű gráf éleinek száma legfeljebb $\binom{n-1}{2}$.
+    
+\end{proof}
 
 \end{document}
