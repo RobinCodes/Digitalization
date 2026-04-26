@@ -486,6 +486,7 @@
     .pdf-zoom-wrap{display:inline-flex;align-items:center}
 
     .pdf-body{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;align-items:flex-start;justify-content:center;padding:28px 20px;background:var(--bg);overscroll-behavior-x:contain;touch-action:pan-y}
+    #pdfCanvas{touch-action:none}
     /* Only allow horizontal scroll when user has manually zoomed past fit width */
     .pdf-body.pdf-zoomed{overflow-x:auto}
     .pdf-canvas-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -2067,6 +2068,13 @@
             </div>
             <div class="stg-toggle" id="stgFullDocToggle"></div>
           </div>
+          <div class="stg-row">
+            <div>
+              <div class="stg-lbl" data-i18n="stgNativePdf">Native PDF viewer</div>
+              <div class="stg-sublbl" data-i18n="stgNativePdfSub">Open PDFs in browser's built-in viewer</div>
+            </div>
+            <div class="stg-toggle" id="stgNativePdfToggle"></div>
+          </div>
         </div>
         <!-- Precompile -->
         <div class="stg-section">
@@ -2292,6 +2300,8 @@
         stgPdfViewer:   'PDF Viewer',
         stgFullDoc:     'Full document mode',
         stgFullDocSub:  'Scroll through all pages at once',
+        stgNativePdf:    'Native PDF viewer',
+        stgNativePdfSub: "Open PDFs in browser's built-in viewer",
         stgSections:    'Sections',
         stgSectionsHint:'Drag to reorder sections in the archive',
         stgSectionBy:   'Section by',
@@ -2447,6 +2457,8 @@
         stgPdfViewer:   'PDF nézegető',
         stgFullDoc:     'Teljes dokumentum mód',
         stgFullDocSub:  'Görgesd végig az összes oldalt egyszerre',
+        stgNativePdf:    'Natív PDF nézegető',
+        stgNativePdfSub: 'PDF-ek megnyitása a böngésző beépített nézegetőjével',
         stgSections:    'Szekciók',
         stgSectionsHint:'Húzd a szekciók átrendezéséhez',
         stgSectionBy:   'Szekcionálás alapja',
@@ -2675,22 +2687,19 @@
     }
 
     function switchLang(lang) {
-      if (lang === LANG) return Promise.resolve();
+      if (lang === LANG) return;
       LANG = lang;
       localStorage.setItem('ki_lang', lang);
       applyTranslations();
-      // Reload tree for new language
-      selection.clear();
-      document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
-      renderSelPanel();
-      const p = loadTree();
-      // Reload articles if on notes page
+      // Re-render the grid with the new UI language (names, labels)
+      // Do NOT reload tree from server — material language is separate from UI language
+      if (treeData) renderGrid(currentNode);
+      // Reload articles if on notes page (article titles are language-specific)
       const notesPage = document.getElementById('page-notes');
       if (notesPage && notesPage.classList.contains('active')) {
         articlesLoaded = false;
         loadArticles();
       }
-      return p;
     }
 
     /* ── PDF.js worker ─────────────────────────────────────────────── */
@@ -2841,7 +2850,7 @@
     let treeData    = null;
     let pathStack   = [];
     let currentNode = null;
-    let codeModalFile = '';
+    let codeModalFile = '', codeModalLang = '';
     let lastFailPath  = '';
     let lastFailName  = '';
 
@@ -3265,8 +3274,8 @@
 
     function handleClick(item) {
       // Greyed card: primary language not available, open the other language version
-      const _itemGreyed = (MAT_LANG === 'en' && item.enAvailable === false && item.huAvailable)
-                       || (MAT_LANG === 'hu' && item.enAvailable === false && item.huAvailable);
+      // Greyed = primary language unavailable, secondary is available, and we're in single-lang mode
+      const _itemGreyed = MAT_LANG !== 'both' && item.enAvailable === false && item.huAvailable === true;
       if (_itemGreyed) {
         // huPath in HU-primary mode has been remapped to the actual available path
         const altPath = item.huPath || item.enPath;
@@ -3290,13 +3299,20 @@
         return;
       }
       const ext = (item.ext||'').toLowerCase();
-      if (['.tex','.sty','.cls'].includes(ext)) { openPdfViewer(item.path, item.name, item._lang); return; }
-      if (ext==='.pdf') { openPdfDirect('/data/'+encPath(item.path)+'?lang='+(item._lang||LANG), item.name, item._lang); return; }
-      if (['.bib','.md','.txt'].includes(ext)) { openCodeViewer(item.path, item.name, item._lang); return; }
-      if (IMAGE_EXTS_SET.has(ext)) { openMediaModal(item, 'image'); return; }
-      if (AUDIO_EXTS.has(ext))     { openMediaModal(item, 'audio'); return; }
-      if (VIDEO_EXTS.has(ext))     { openMediaModal(item, 'video'); return; }
-      window.open('/data/'+encPath(item.path),'_blank');
+      // Determine which server language to request:
+      // item._lang is set explicitly for split/context-menu opens;
+      // otherwise, derive from MAT_LANG + availability flags.
+      const _fileLang = item._lang
+        || (MAT_LANG === 'hu' && item.enAvailable !== false ? 'hu' : null)
+        || (item.huAvailable && !item.enAvailable ? 'hu' : null)
+        || 'en';
+      if (['.tex','.sty','.cls'].includes(ext)) { openPdfViewer(item.path, item.name, _fileLang); return; }
+      if (ext==='.pdf') { openPdfDirect('/data/'+encPath(item.path)+'?lang='+_fileLang, item.name, _fileLang); return; }
+      if (['.bib','.md','.txt'].includes(ext)) { openCodeViewer(item.path, item.name, _fileLang); return; }
+      if (IMAGE_EXTS_SET.has(ext)) { openMediaModal({...item, _lang: _fileLang}, 'image'); return; }
+      if (AUDIO_EXTS.has(ext))     { openMediaModal({...item, _lang: _fileLang}, 'audio'); return; }
+      if (VIDEO_EXTS.has(ext))     { openMediaModal({...item, _lang: _fileLang}, 'video'); return; }
+      window.open('/data/'+encPath(item.path)+'?lang='+_fileLang, '_blank');
     }
 
     /* ── Load Tree ──────────────────────────────────────────────────── */
@@ -3341,6 +3357,31 @@
     let pdfCurrentPath= '';    // tex path for re-compile / source view
 
     function openPdfViewer(texPath, texName, fileLang) {
+      // Native mode: open the compiled PDF URL directly in the browser
+      if (pdfNativeMode) {
+        const lang = fileLang || LANG;
+        // Trigger compile on server (background), then open cached PDF URL
+        fetch('/api/compile', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: texPath, lang }),
+        }).then(r => {
+          if (r.headers.get('content-type') === 'application/pdf' || r.ok) {
+            // Server compiled it; open via /api/compile as blob URL so browser shows its own viewer
+            return r.blob();
+          }
+          throw new Error('compile failed');
+        }).then(blob => {
+          const objUrl = URL.createObjectURL(blob);
+          window.open(objUrl, '_blank');
+          // Clean up after a delay
+          setTimeout(() => URL.revokeObjectURL(objUrl), 60000);
+        }).catch(() => {
+          // Fall back to custom viewer on failure
+          pdfNativeMode = false;
+          openPdfViewer(texPath, texName, fileLang);
+        });
+        return;
+      }
       pdfCurrentPath = texPath;
       pdfCurrentName = texName;
       lastFailPath   = texPath;
@@ -3363,6 +3404,9 @@
       pdfModal.classList.add('open');
       document.body.style.overflow = 'hidden';
       document.body.classList.add('pdf-open');
+      // Disable browser UI zoom on mobile — PDF has its own pinch handler
+      const vmeta = document.querySelector('meta[name=viewport]');
+      if (vmeta) vmeta.content = 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no';
 
       compileTex(texPath, fileLang || LANG);
     }
@@ -3385,6 +3429,8 @@
       pdfModal.classList.add('open');
       document.body.style.overflow='hidden';
       document.body.classList.add('pdf-open');
+      const vmeta2 = document.querySelector('meta[name=viewport]');
+      if (vmeta2) vmeta2.content = 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no';
 
       fetch(url).then(r=>r.arrayBuffer()).then(buf => {
         pdfBytes = new Uint8Array(buf);
@@ -3440,8 +3486,10 @@
       };
     }
 
-    const PDF_FULL_DOC_KEY = 'ki_pdf_full_doc';
+    const PDF_FULL_DOC_KEY    = 'ki_pdf_full_doc';
+    const PDF_NATIVE_KEY      = 'ki_pdf_native';
     let pdfFullDocMode = localStorage.getItem(PDF_FULL_DOC_KEY) !== '0';
+    let pdfNativeMode  = localStorage.getItem(PDF_NATIVE_KEY)  === '1';
 
     function loadPdfBytes(bytes) {
       pdfjsLib.getDocument({ data: bytes }).promise.then(doc => {
@@ -3464,17 +3512,22 @@
 
     /* ── Helper to render a single page onto a given canvas ──────────── */
     function renderPageToCanvas(page, canvas, zoom) {
-      const vp = page.getViewport({ scale: zoom });
-      canvas.width  = vp.width;
-      canvas.height = vp.height;
+      const dpr = window.devicePixelRatio || 1;
+      const vp  = page.getViewport({ scale: zoom * dpr });
+      // Physical pixel size
+      canvas.width  = Math.floor(vp.width);
+      canvas.height = Math.floor(vp.height);
+      // CSS display size (logical pixels)
+      canvas.style.width  = Math.floor(vp.width  / dpr) + 'px';
+      canvas.style.height = Math.floor(vp.height / dpr) + 'px';
       const ctx = canvas.getContext('2d');
       const isDark = !document.body.classList.contains('light');
       if (isDark) {
         const tmp = document.createElement('canvas');
-        tmp.width = vp.width; tmp.height = vp.height;
+        tmp.width = canvas.width; tmp.height = canvas.height;
         const tmpCtx = tmp.getContext('2d');
         return page.render({ canvasContext: tmpCtx, viewport: vp }).promise.then(() => {
-          const img = tmpCtx.getImageData(0, 0, vp.width, vp.height);
+          const img = tmpCtx.getImageData(0, 0, canvas.width, canvas.height);
           const d = img.data;
           for (let i = 0; i < d.length; i += 4) {
             d[i]   = 235 - Math.round(d[i]   * 0.90);
@@ -3482,7 +3535,7 @@
             d[i+2] = 214 - Math.round(d[i+2] * 0.85);
           }
           ctx.fillStyle = '#1a1812';
-          ctx.fillRect(0, 0, vp.width, vp.height);
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
           tmpCtx.putImageData(img, 0, 0);
           ctx.drawImage(tmp, 0, 0);
         });
@@ -3966,6 +4019,9 @@
       document.body.style.overflow = '';
       document.body.classList.remove('pdf-open');
       document.getElementById('pdfSheet').classList.remove('open');
+      // Restore pinch-to-zoom for the rest of the site
+      const vmeta = document.querySelector('meta[name=viewport]');
+      if (vmeta) vmeta.content = 'width=device-width,initial-scale=1';
     }
 
     /* ── Mobile PDF bar helpers ─────────────────────────────────────── */
@@ -4490,6 +4546,7 @@
     async function openCodeViewer(filePath, fileName, fileLang) {
       document.getElementById('codeModalTitle').textContent = displayFileName(fileName);
       codeModalFile = filePath;
+      codeModalLang = fileLang || LANG;
       const codeEl = document.getElementById('codeContent');
       codeEl.textContent = 'Loading…';
       codeModal.classList.add('open');
@@ -4514,7 +4571,7 @@
     document.getElementById('codeModalClose').addEventListener('click', closeCodeViewer);
     document.getElementById('modalBackdrop').addEventListener('click', closeCodeViewer);
     document.getElementById('codeModalDownload').addEventListener('click', () => {
-      if (codeModalFile) window.open('/data/'+encPath(codeModalFile)+'?download=1','_blank');
+      if (codeModalFile) window.open('/data/'+encPath(codeModalFile)+'?download=1&lang='+codeModalLang,'_blank');
     });
     document.getElementById('codeModalCopy').addEventListener('click', () => {
       const code = document.getElementById('codeContent').textContent;
@@ -5329,6 +5386,7 @@
           lang:         LANG,
           matLang:      MAT_LANG,
           fullDoc:      pdfFullDocMode,
+          nativePdf:    pdfNativeMode,
           sectionBy:    sectionBy,
           sectionOrder: localStorage.getItem('ki_section_order') || 'null',
           childOrders:  localStorage.getItem('ki_child_orders')  || '{}',
@@ -5342,6 +5400,7 @@
             || now.lang        !== _snap.lang
             || now.matLang     !== _snap.matLang
             || now.fullDoc     !== _snap.fullDoc
+            || now.nativePdf   !== _snap.nativePdf
             || now.sectionBy   !== _snap.sectionBy
             || now.sectionOrder !== _snap.sectionOrder
             || now.childOrders  !== _snap.childOrders;
@@ -5366,6 +5425,12 @@
           if (pdfModal.classList.contains('open') && pdfDoc) {
             if (pdfFullDocMode) renderFullDoc(); else exitFullDocMode();
           }
+        }
+        if (pdfNativeMode !== _snap.nativePdf) {
+          pdfNativeMode = _snap.nativePdf;
+          localStorage.setItem(PDF_NATIVE_KEY, pdfNativeMode ? '1' : '0');
+          const nTog2 = document.getElementById('stgNativePdfToggle');
+          if (nTog2) nTog2.classList.toggle('on', pdfNativeMode);
         }
         // Material language
         if (MAT_LANG !== _snap.matLang) {
@@ -5477,11 +5542,10 @@
       /* ── Language segment ──────────────────────────────────────────── */
       document.getElementById('stgLangSeg').querySelectorAll('.stg-seg-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          const p = switchLang(btn.dataset.lang);
+          switchLang(btn.dataset.lang);
           syncSettingsUI();
+          buildSectionList();
           markDirty();
-          // Rebuild section list with the new language's folder structure
-          if (p && p.then) p.then(() => { if (modal.classList.contains('open')) buildSectionList(); });
         });
       });
 
@@ -5516,14 +5580,22 @@
         pdfFullDocMode = !pdfFullDocMode;
         localStorage.setItem(PDF_FULL_DOC_KEY, pdfFullDocMode ? '1' : '0');
         fdToggle.classList.toggle('on', pdfFullDocMode);
-        // Apply live so user sees the preview immediately behind the settings panel
         if (pdfModal.classList.contains('open') && pdfDoc) {
           if (pdfFullDocMode) renderFullDoc(); else exitFullDocMode();
         }
-        // Keep the PDF quick-settings doc-mode button in sync
         if (window._syncPdfQs) window._syncPdfQs();
         markDirty();
       });
+
+      const nativeToggle = document.getElementById('stgNativePdfToggle');
+      if (nativeToggle) {
+        nativeToggle.addEventListener('click', () => {
+          pdfNativeMode = !pdfNativeMode;
+          localStorage.setItem(PDF_NATIVE_KEY, pdfNativeMode ? '1' : '0');
+          nativeToggle.classList.toggle('on', pdfNativeMode);
+          markDirty();
+        });
+      }
 
       /* ── Section list (hierarchical drag-to-reorder) ──────────────── */
       function buildSectionList() {
@@ -5690,6 +5762,9 @@
         });
         // Full-doc
         document.getElementById('stgFullDocToggle').classList.toggle('on', pdfFullDocMode);
+        // Native PDF
+        const nTog = document.getElementById('stgNativePdfToggle');
+        if (nTog) nTog.classList.toggle('on', pdfNativeMode);
         // Material language
         document.querySelectorAll('#stgMatLangSeg .mat-lang-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.matlang === MAT_LANG);
