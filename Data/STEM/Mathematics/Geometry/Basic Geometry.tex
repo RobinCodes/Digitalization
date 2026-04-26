@@ -1,11 +1,13 @@
 \documentclass{article}
 
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{amssymb}
-
 \usepackage[utf8]{inputenc}     % pdfLaTeX
 \usepackage[T1]{fontenc}
+
+\usepackage{amsmath, amsthm, amssymb}
+
+\usepackage{tikz}
+\usetikzlibrary{angles, quotes}
+
 
 \title{Basic Geometry}
 \author{Robin Rovenszky}
@@ -18,6 +20,8 @@
 \maketitle
 \tableofcontents
 \newpage
+
+\section{Theorems}
 
 \begin{theorem}[Pythagorean Theorem]
 In a right triangle with legs of lengths $a$ and $b$, and hypotenuse of length $c$, the following relation holds:
@@ -66,6 +70,83 @@ a^2 + b^2 = c^2.
 \]
 
 This proves the theorem.
+\end{proof}
+
+
+\begin{theorem}[Thales' Theorem]
+Let $A$, $B$, and $C$ be points on a circle such that $AC$ is a diameter. 
+Then $\angle ABC = 90^\circ$.
+\end{theorem}
+
+\begin{center}
+\begin{tikzpicture}[scale=2]
+
+% Points
+\coordinate (A) at (-1,0);
+\coordinate (C) at (1,0);
+\coordinate (B) at (0,0.8);
+\coordinate (O) at (0,0);
+
+% Circle
+\draw (O) circle (1);
+
+% Triangle
+\draw (A) -- (B) -- (C) -- cycle;
+
+% Diameter
+\draw[dashed] (A) -- (C);
+
+% Labels
+\node[left] at (A) {$A$};
+\node[right] at (C) {$C$};
+\node[above] at (B) {$B$};
+\node[below] at (O) {$O$};
+
+% Right angle mark
+\pic [draw, angle radius=0.2cm] {right angle = A--B--C};
+
+\end{tikzpicture}
+\end{center}
+
+\begin{proof}
+Let $O$ be the center of the circle. Since $AC$ is a diameter, $O$ is the midpoint of $AC$.
+
+Because $OA = OB = OC$ (radii of the circle), triangles $OAB$ and $OCB$ are isosceles. 
+Thus,
+\[
+\angle OAB = \angle OBA \quad \text{and} \quad \angle OCB = \angle OBC.
+\]
+
+Now consider triangle $ABC$. The angle at $B$ can be written as
+\[
+\angle ABC = \angle OBA + \angle OBC.
+\]
+
+Using the isosceles triangle relations:
+\[
+\angle OBA = \frac{180^\circ - \angle AOB}{2}, \quad
+\angle OBC = \frac{180^\circ - \angle BOC}{2}.
+\]
+
+Since $A$, $O$, and $C$ are collinear, we have:
+\[
+\angle AOB + \angle BOC = 180^\circ.
+\]
+
+Therefore,
+\[
+\angle ABC 
+= \frac{180^\circ - \angle AOB}{2} + \frac{180^\circ - \angle BOC}{2}
+\]
+\[
+= \frac{360^\circ - (\angle AOB + \angle BOC)}{2}
+= \frac{360^\circ - 180^\circ}{2}
+= \boxed{90^\circ} \, .
+\]
+
+% TODO: Add kerületi és középponti szögek tétele, in Juhász maths notebook
+
+Hence, $\angle ABC$ is a right angle.
 \end{proof}
 
 \newpage

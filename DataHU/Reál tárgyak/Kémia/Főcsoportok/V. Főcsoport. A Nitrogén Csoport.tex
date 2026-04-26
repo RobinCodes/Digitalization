@@ -1,4 +1,7 @@
 \documentclass{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{wrapfig}
 
 % --- Encoding & Language ---
 \usepackage[utf8]{inputenc}     % pdfLaTeX
@@ -6,10 +9,12 @@
 \usepackage[magyar]{babel}
 
 % --- Math & Chemistry ---
-\usepackage{amsmath, amsthm}
+\usepackage{amsmath, amsthm, amssymb}
 \usepackage[version=4]{mhchem} % chemical formulas
-\usepackage{chemfig}            % structural formulas
 \usepackage{siunitx}            % units, temperatures
+\usepackage{tikz}
+\usetikzlibrary{tikzmark, calc}
+\usepackage{mathtools}
 
 % --- Section formatting ---
 \usepackage{titlesec}
@@ -70,8 +75,8 @@
 \makeatother
 
 \title{5. Főcsoport: A Nitrogén csoport}
-\author{Haydu Lőrinc, Lengyel Zoltán Péter, Rovenszky Robin}
-\date{Legutóbb frissítve: 2026. Március 27.}
+\author{\textbf{Rovenszky Robin}, Haydu Lőrinc, Lengyel Zoltán Péter}
+\date{Legutóbb frissítve: 2026. Április 25.}
 
 \newtheorem{definition}{Definíció}
 
@@ -79,48 +84,73 @@
 
 \maketitle
 \tableofcontents
-\newpage
+
+\vspace{14pt}
+\hrule
 
 \section{A Nitrogén csoport}
-% insert relevant part of the periodic table to the left here
-    \begin{enumerate}
-        \item Nitrogén (N)
-        \item Foszfor (P)
-        \item Arzén (As)
-        \item Antimon (Sb)
-        \item Bizmut (Bi)
-    \end{enumerate}
-    5 db vegyérték elektron $\implies$ a nemesgáz elektronszerkezetének eléréséhez:
+
+\noindent
+\begin{minipage}{0.78\textwidth}
+\begin{enumerate}
+    \item Nitrogén (N)
+    \item Foszfor (P)
+    \item Arzén (As)
+    \item Antimon (Sb)
+    \item Bizmut (Bi)
+\end{enumerate}
+
+5 db vegyérték elektron $\implies$ a nemesgáz elektronszerkezetének eléréséhez:
     \begin{itemize}
         \item 3 db kovalens kötés\\
         Pl.: Ammónia 
-
-        % insert figure here
+        \vspace{-10pt}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.3\textwidth]{Assets/Chemistry/Main Group V/NH_3.png}
+        \end{figure}
+        \vspace{-30pt}
+    \end{itemize}
+    
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.1\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Assets/Chemistry/Main Group V/Periodic_Table.png}
+    \end{minipage}
         
+    \begin{itemize}
+    
         \item 3-szoros negatív töltésű anion (pl. $N^{3-}$ - nitrid-ion). \\
         Egyedi, mert lényegében csak a nitrogén tud ennyi iont felvenni, mivel nagyon nagy az elektronegativitása.
         \item Az is lehetséges, hogy a nitrogén 5 db kovalens kötést létesítsen. Pl.: $HNO_3$ - salétromsav
-        
-        % insert figure here
+
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.3\textwidth]{Assets/Chemistry/Main Group V/HNO_3.png}
+        \end{figure}
         
         A nitrogén túllépett a nemesgáz elektroszerkezetén, de ez így is energetikailag kedvező.
     \end{itemize}
-    
+
 \section{Nitrogén}
     \subsection{Atomi jellemzők}
         \begin{itemize}
+            \item $N_2$
             \item Nagy az elektronegativitása (Pauling-skálán 3.0)
         \end{itemize}
         
     \subsection{Molekulaszerkezet}
     
-        %insert figure here
+        \[
+        |\text{N} \equiv \text{N}|
+        \]
         
         Ez egy erős kovalens kötés $\rightarrow$ közönséges körülmények között nem reakcióképes
         $\rightarrow$ apoláris molekula $\rightarrow$ diszperziós kölcsönhatás $\rightarrow$ molekularácsos szilárd halmazállapotban
     \subsection{Fizikai tulajdonságok}
         \begin{itemize}
-            \item Alacsony olvadáspont és forráspont (\SI{-210}{\degreeCelsius} és \SI{-180}{\degreeCelsius})
+            \item Alacsony olvadáspont és forráspont (\SI{-210}{\degreeCelsius} és \SI{-196}{\degreeCelsius})
             \item Vízben rosszul oldódik
             \item Keszonbetegség (búvárbetegség) $\rightarrow$ gázok oldhatósága nagyobb nyomás alatt jobb!
         \end{itemize}
@@ -134,7 +164,7 @@
     \subsection{Biológiai kitekintő: Nitrogén körforgása a környezetben}
         \begin{itemize}
             \item A nitrogén hármas kötése miatt majdnem semmi sem veszi fel, viszont nitrifikáló baktériumok fel tudják venni, ezek pedig szimbiózisban élnek bizonyos növényekkel (pl. bab, borsó, ill. egyéb hüvelyesek).
-            \item Másik mód, amivel a körforgásba kerül a $\SI{3000}{\degreeCelsius}$-n bekövetkező reakció (villámlás).
+            \item Másik mód, amivel a körforgásba kerül a $\SI{3000}{\degreeCelsius}$-on bekövetkező reakció (villámlás).
         \end{itemize}
     
     \subsection{Szervetlen vegyipar legfontosabb folyamatai}
@@ -153,7 +183,7 @@
         \end{enumerate}
         
     \subsection{Előállítás} 
-        A levegő cseppfolyósításával és frakcionális desztillációjával elkülönítik.
+        A levegőt \emph{cseppfolyósítják} és \emph{frakcionált desztillációval} elkülönítik.
         
         \begin{definition}[Frakcionált desztilláció.]
         A forráspontkülönbségen alapuló elválasztási művelet.
@@ -162,7 +192,6 @@
     \subsection{A vegyületei}
         \subsubsection{Oxidjai}
             \subsubsubsection{Dinitrogén-monoxid; $N_2O$}
-            % insert figure here
                 Színtelen, édeskés szagú gáz 
                 \begin{itemize}
                     \item Felhasználása: 
@@ -176,7 +205,6 @@
                 \end{itemize}
             
             \subsubsubsection{Nitrogén-monoxid; $NO$}
-            % insert figure here
                 \[
                 N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO
                 \]
@@ -184,24 +212,25 @@
                 \[
                 2NO + O_2 \rightarrow 2NO_2
                 \]
-                Színtelen, szúrós szagú, mérgező gáz, amely az érfalak rugalmasságát szabályozza az emberi szervezetben, $\implies$ a vérnyomásra hat (nitroglicerin tabletta)
-                % insert nitroglicerin ábra here
+                Színtelen, szúrós szagú, mérgező gáz, amely az érfalak rugalmasságát szabályozza az emberi szervezetben $\implies$ a vérnyomásra hat (nitroglicerin tabletta)
             
             \subsubsubsection{Nitrogén-dioxid; $NO_2$}
-            % insert nitrogén-dioxid ábra here
                 Vörösbarna, szúrós szagú gáz, erősen mérgező. A szennyezett városi levegő egyik mérgező összetevője.
                 
         \subsubsection{Oxosavai}
             \subsubsubsection{Salétromossav}
-            % insert figure here
                     \[
                     2NO_2 + H_2O \rightarrow \underset{\text{salétromossav}}{HNO_2} + \underset{\text{salétromsav}}{HNO_3}
                     \]
-                    Gyenge, bomlékony, egyértékű sav. Csak vizes oldatban létezik. Sói: nitritek, pl.: $KNO_2$ $\leftarrow$ kálium-nitrit $\leftarrow$ pác\textbf{só} $\leftarrow$ tartósítószer\\
+                    Gyenge, bomlékony, egyértékű sav. Csak vizes oldatban létezik. Sói: nitritek, pl.: $KNO_2$ $\leftarrow$ kálium-nitrit $\leftarrow$ pác\hspace{0.5pt}\textbf{só} $\leftarrow$ tartósítószer\\
             
             \subsubsubsection{Salétromsav}
-            % insert figure here
-                    Csak vizes oldatban létezik; erős, egyértékű sav. A koncentrált (tömény) salétromsav-oldat nagyjából 65 w\%-os.
+            $HNO_3$
+            \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.3\textwidth]{Assets/Chemistry/Main Group V/HNO_3.png}
+        \end{figure}
+                    Csak vizes oldatban létezik; erős, egyértékű sav. A koncentrált (tömény) salétromsav oldat nagyjából 65 w\%-os.
             
                     \begin{definition}[Erős sav]
                         A $H^+$-ion leadása híg vizes oldatban 100\%-os.
@@ -223,7 +252,6 @@
                     
                         \begin{enumerate}
                             \item Híg salétromsav ($\approx5$w\%-os) és ezüst
-                        % Hány w%-ig?
                         
                             \setlength\parindent{110pt}
                             Nincs reakció
@@ -233,7 +261,6 @@
                                 3Ag + 4HNO_3 \rightarrow 3AgNO_3 + \underset{\text{színtelen gáz}}{NO} + 2H_2O
                             \]
                             \item Tömény (65w\%-os) salétromsav és ezüst
-                            % >65w%?
                             \[
                             Ag + 2HNO_3 \rightarrow AgNO_3 + \underset{\text{vörösbarna gáz}}{NO_2} + H_2O
                             \]
@@ -241,15 +268,11 @@
                             \hrule
                         
                             \item Híg salétromsav ($\approx$5w\%-os) és vas
-                            % Mennyi w%-ig?
                             \[
                                 Fe + 2HNO_3 \rightarrow Fe(NO_3)_2 + H_2
                             \]
-        
-                            % közepes töménységűvel mizu?
                             
                             \item Tömény (65w\%-os) salétromsav és vas
-                            % >65w%? Honnantól?
                             
                             \setlength\parindent{110pt}
                             Passziválódik!
@@ -267,7 +290,7 @@
                         \begin{enumerate}
                             \item $NaNO_3$; nátrium-nitrát, chilei salétrom
                             \item $KNO_3$; kálium-nitrát, kálisalétrom $\leftarrow$ fekete lőpor
-                            \item $NH_4NO_3$; ammónium-nitrát $\leftarrow$ műtrágya (pétisó - $NH_4NO_3$ és mészkőpor keveréke). Nyílt lángban robbanékony.
+                            \item $NH_4NO_3$; ammónium-nitrát $\leftarrow$ műtrágya $\leftarrow$ pétisó -- $NH_4NO_3$ + dolomitliszt -- és mészkőpor keveréke. Nyílt lángban robbanékony.
                             \item $AgNO_3$; ezüst-nitrát (pokolkő, lápisz). Vízoldható; ezüstvegyület; fényérzékeny anyag
                         \end{enumerate}
 
@@ -276,7 +299,7 @@
                             \item Festék gyártás
                             \item Robbanóanyag gyártás (TNT)
                             \item Műtrágya gyártás
-                            \item Ékszerészek
+                            \item Ékszerészek ("választó víz" -- oldja az ezüstöt, de nem oldja az aranyat)
                             \item Fehérjék kimutatása
                         \end{itemize}
 
@@ -306,25 +329,65 @@
                         \end{enumerate}
 
             \subsubsection{Az Ammónia}
-            % insert figure here
-            \begin{itemize}
-                \item Piramis alakú molekula, $\alpha = 107^\circ.$
+            \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.3\textwidth]{Assets/Chemistry/Main Group V/NH_3.png}
+        \end{figure}
+                Piramis alakú molekula, $\alpha = 107^\circ.$
                 \begin{enumerate}
                     \item Nitrogén - Hidrogén (N-H) kötések polárisak
                     \item A molekula szerkezete nem szimmetrikus
                 \end{enumerate}
                 $\implies$ Poláris molekula; Dipólus-Dipólus kölcsönhatás; Hidrogénkötés
-                \subsubsubsection{Reakciói}
+                \subsubsection{Fizikai tulajdonságai}
+                \begin{itemize}
+                    \item Színtelen, szúrós szagú gáz (állott-vizelet szagú)
+                    \item A levegőnél kisebb sűrűségű
+                    \item Nagyon jól oldódik vízben\\[6pt]
+                    \hspace*{10pt} $\rightarrow$ Vizes oldata: szalmiákszesz ($NH_4OH$)
+                \end{itemize}
+                \subsubsubsection{Kémiai tulajdonságai}
                 \begin{enumerate}
                     \item Reakció vízzel
-                    \item Reakció klórral
+                    
+                    \[
+                      \tikzmarknode{nh3}{\ce{NH3}}
+                      +
+                      \tikzmarknode{h2o}{\ce{H2O}}
+                      \rightleftharpoons
+                      NH_4^+ + \ce{OH-}
+                    \]
+                    
+                    \begin{tikzpicture}[remember picture, overlay]
+                      \draw[->]
+                        (h2o.north)
+                        -- ++(0, 0.20)
+                        -- node[above, font=\small]{$\mathrm{H}^+$} ($(nh3.north) + (0, 0.20)$)
+                        -- (nh3.north);
+                    \end{tikzpicture}
+
+                    \vspace{-14pt}
+                    
+                    \item Reakció sósavval
                     \[
                     NH_3 + HCl \rightarrow \underset{\text{ammónium-klorid}}{NH_4Cl}
                     \]
                     \[
                     \text{bázis} + \text{sav} \rightarrow \text{só}
                     \]
-                    Az ammónium-klorid régies neve szalmióksó.
+                    Az ammónium-klorid régies neve szalmiáksó.
+                    \begin{figure}[H]
+                        \centering
+                        \includegraphics[width=0.8\textwidth]{Assets/Chemistry/Main Group V/HCl+NH_3.png}
+                    \end{figure}
+
+                    Ahol találkoznak, ott kis fehér por fog megjelenni, ami az ammónium-klorid kristályai.
+
+                    Azért nem középen találkoznak, mert \textbf{a részecskék diffúziósebessége fordítottan arányos a moláris tömegükkel (annak a négyzetgyökével)}, és
+                    
+                    \[
+                    \text{HCl:} \;36.5 \frac{\text{g}}{\text{mol}}, \, NH_3\text{:} \; 17 \frac{\text{g}}{\text{mol}}
+                    \]
                 \end{enumerate}
                 \subsubsubsection{Felhasználása}
                 \begin{enumerate}
@@ -340,29 +403,9 @@
                 \[
                 \text{Szintézis}
                 \]
-            \end{itemize}
-           
 
-\section{Kísérletek}
-    \subsection{Kísérlet 1.}
-        % insert kísérlet 1 picture here
-        \textbf{Leírás.} Híg salétromsav (5 w$\%$-os) + Mg-reszelék\\
-        \textbf{Tapasztalat.} Pezsgés, enyhe hőfejlődés, színtelen, szagtalan gáz\\
-        \textbf{Magyarázat:} 
-        \[
-            Mg + 2HNO_3 \rightarrow Mg (NO_3)_2 + H_2
-        \]
-        
-    \subsection{Kísérlet 2: Tömény salétromsav és 5 Forintos érme reakciója.}
-        % insert kísérlet 2 picture here
-        \textbf{Leírás.} Tömény salétromsavba 5 Forintos érmét rakunk.\\
-        \textbf{Tapasztalat.} Vörösbarna, jellegzetes szagú gáz, zöldeskék oldat. A főzőpohár fala forró lett, az érme jóval kisebb lett.\\
-        \textbf{Magyarázat.} 
-        \[
-            Cu + 4HNO_3 \rightarrow \underset{\text{réz-nitrát}}{Cu(NO_3)_2} + 2NO_2 + 2H_2O
-        \]
-    \subsection{A foszfor}
-    \subsubsection{Allotróp módosulatai}
+\section{Foszfor}
+    \subsection{Allotróp módosulatai}
     \begin{enumerate}
         \item Fehér (sárga) foszfor $\rightarrow$ $P_4$-tetraéderekből áll
         \item Vörösfoszfor: A $P_4$-tetraéderből hosszú lánc keletkezik
@@ -370,11 +413,389 @@
     \begin{tabular}{c|c|c}
        & Sárgafoszfor & Vörösfoszfor \\
     \hline 
-    Szerkezet & Pa-molekula & Hosszú tetraéderekből\\
+    Szerkezet & $P_4$-molekula & Hosszú lánc $P_4$ tetraéderekből\\
     \hline
-    Oldhatóság & Alacsony olvadáspont & Magas olvadáspont\\
+    Olvadáspont & Alacsony olvadáspont & Magas olvadáspont\\
+    \hline
+    Oldhatóság & Apoláris anyagokban & Nincs oldószere\\
     \hline 
-    Élettani hatás & Mérgező, bőrön keresztül is felszívódik & Nem mérgező mivel fel sem tud olvadni\\
+    Élettani hatás & Mérgező* & Nem mérgező** \\
     \end{tabular}
+    
+    *Bőrön keresztül is felszívódik, idegkárosodást, halált okoz.
+    
+    **Mivel fel sem tud olvadni\\
+
+    Dohányzás $\rightarrow$ Gyufa. Fehérfoszfort használtak hozzá először, de mivel mérgező, később vörösfoszforra cserélték.
+
+    %Gyufa.\\
+    %Az emberek egyre inkább felismerték, hogy szükségük van egy megbízható és könnyen használható eszközre a tűzgyújtáshoz – különösen a dohányzás elterjedésével.
+    
+    %Ennek az igénynek a hatására jött létre a gyufa.
+    
+    %A korai gyufák azonban komoly veszélyeket rejtettek. Elterjedt öngyilkossági módszer volt, hogy az emberek lekaparták a gyufafejről a fehérfoszfort, majd elfogyasztották, mivel ez az anyag rendkívül mérgező. Emiatt sürgetővé vált egy biztonságosabb megoldás kifejlesztése.
+    
+    %A problémát végül a vörösfoszfor alkalmazása oldotta meg. Ebben az új rendszerben a fehérfoszfor csak a gyújtás pillanatában, kis mennyiségben keletkezik, és azonnal el is ég. Ennek köszönhetően a gyufa használata lényegesen biztonságosabbá vált.
+    
+    \subsection{Kémiai tulajdonságai}
+    \begin{enumerate}
+        \item Égése
+        \[
+        4P + 5O_2 \rightarrow \underset{\text{Foszfor-pentoxid}}{2P_2O_5}
+        \]
+        (Valójában $P_4O_{10}$ keletkezik, a tanár úr pedig nem tudja, hogy milyen okból írunk $2P_2O_5$-öt.)
+    \end{enumerate}
+    
+    \subsection{Foszfor-pentoxid}
+    \begin{itemize}
+        \item Fehér, szilárd anyag
+        \item \emph{Higroszkópos} anyag (nedvszívó)
+        \item A foszfor-pentoxid ($P_2O_5$) reakciója vízzel
+        \[
+        P_2O_5 + 3H_2O \rightarrow \underset{\text{Foszforsav}}{2H_3PO_4}
+        \]
+    \end{itemize}
+
+    \subsection{Foszforsav}
+    \begin{itemize}
+        \item Felhasználása: élelmiszeripar: tartósítószer, savanyúságot szabályozó szer
+        \item Háromértékű, közepesen erős sav
+        \item Reakciói:
+        \begin{enumerate}
+            \item Foszforsav ($H_3PO_4$) reakciója vízzel
+
+            \vspace{10pt}
+                    
+            \[
+            \tikzmarknode{h3po4}{H_3PO_4} + \tikzmarknode{h2o2}{H_2O} \leftrightharpoons \underset{\text{Dihidrogénfoszfát-ion}}{H_2PO_4^-} + H_3O^+
+            \]
+            \begin{tikzpicture}[remember picture, overlay]
+              \draw[->]
+                (h3po4.north)
+                -- ++(0, 0.20)
+                -- node[above, font=\small]{$\mathrm{H}^+$}
+                   (h2o2.north |- {$(h3po4.north)+(0,0.20)$})
+                -- (h2o2.north);
+            \end{tikzpicture}
+
+            
+            \[
+            \tikzmarknode{h2po4-}{H_2PO_4^-} + \tikzmarknode{h2o3}{H_2O} \leftrightharpoons \underset{\text{Hidrogénfoszfát-ion}}{HPO_4^{2-}} + H_3O^+
+            \]
+            \begin{tikzpicture}[remember picture, overlay]
+              \draw[->]
+                (h2po4-.north)
+                -- ++(0, 0.20)
+                -- node[above, font=\small]{$\mathrm{H}^+$}
+                   (h2o3.north |- {$(h2po4-.north)+(0,0.20)$})
+                -- (h2o3.north);
+            \end{tikzpicture}
+
+            
+            \[
+            \tikzmarknode{hpo42-}{HPO_4^{2-}} + \tikzmarknode{h2o4}{H_2O} \leftrightharpoons \underset{\text{Foszfát-ion}}{PO_4^{3-}} + H_3O^+
+            \]
+            \begin{tikzpicture}[remember picture, overlay]
+              \draw[->]
+                (hpo42-.north)
+                -- ++(0, 0.20)
+                -- node[above, font=\small]{$\mathrm{H}^+$}
+                   (h2o4.north |- {$(hpo42-.north)+(0,0.20)$})
+                -- (h2o4.north);
+            \end{tikzpicture}
+
+            \vspace{-10pt}
+            
+        \end{enumerate}
+        \item Fontosabb sói
+        \begin{enumerate}
+            \item $Na_3PO_4$ nátrium-foszfát, trisó. Vízlágyításra használták\\
+            $\implies$ \textbf{Eutrofizációt} okozott.
+            \item Apatitok
+            \[
+            Ca_5(PO_4)_3X
+            \]
+            Itt X lehet
+            \begin{itemize}
+                \item $X = F$ $\implies$ (fluor)apatit $\rightarrow$ Fogzománc (ezért fontos fluorid-alapú fogkrémet használni)
+                \item $X = OH$ $\implies$ (hidroxi)apatit.
+            \end{itemize}
+        \end{enumerate}
+    \end{itemize}
+
+\section{Kísérletek}
+    \subsection{Kísérlet 1.}
+    \vspace{-18pt}
+    \begin{minipage}{0.6\textwidth}
+        \textbf{Leírás.} Híg salétromsav (5 w$\%$-os) + Mg-reszelék\\
+        \textbf{Tapasztalat.} Pezsgés, enyhe hőfejlődés, színtelen, szagtalan gáz\\
+        \textbf{Magyarázat:} 
+        \[
+            Mg + 2HNO_3 \rightarrow \underset{\text{Magnézium-nitrát}}{Mg (NO_3)_2} + H_2
+        \]
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Assets/Chemistry/Main Group V/Experiment_1.png}
+    \end{minipage}
+
+    \subsection{Kísérlet 2: Tömény salétromsav és 5 Forintos érme reakciója.}
+    \vspace{-18pt}
+    \begin{minipage}{0.6\textwidth}
+        \textbf{Leírás.} Tömény salétromsavba 5 Forintos érmét rakunk.\\
+        \textbf{Tapasztalat.} Vörösbarna, jellegzetes szagú gáz, zöldeskék oldat. A főzőpohár fala forró lett, az érme jóval kisebb lett.\\
+        \textbf{Magyarázat.} 
+        \[
+            Cu + 4HNO_3 \rightarrow \underset{\text{réz-nitrát}}{Cu(NO_3)_2} + 2NO_2 + 2H_2O
+        \]
+        \end{minipage}
+    \hfill
+    \begin{minipage}{0.35\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Assets/Chemistry/Main Group V/Experiment_2.png}
+    \end{minipage}
+
+    \subsection{Kísérlet 3: Ammónia-szökőkút}
+    \begin{figure}[H]
+            \centering
+            \includegraphics[width=\textwidth]{Assets/Chemistry/Main Group V/Experiment_3.png}
+        \end{figure}
+    \textbf{Leírás.} Közepes töménységű $NH_3$ oldatot Bunsen-égő segítségével forraltunk, $NH_{3\,(g)}$ keletkezett. Ezt fejjel lefelé fordított kémcsővel felfogtuk, majd egy kapillárissal ellátott dugóval bedugtuk a kémcső száját. Ezután a kapilláris segítségével egy kevés (Fenolftaleines) vizet engedtünk a rendszerbe, ami rázás hatására feloldotta az ammóniát. Amikor ezután vízbe helyeztük a kémcsövet és kihúztuk a dugót, szökőkút-szerű jelenség jött létre, ahogy a víz betolult a kémcsőbe, továbbá a víz ciklámen színüvé színeződött (Fenolftalein indikátor).\\
+    \textbf{Tapasztalat.}
+    Szökőkút-szerű jelenség, ciklámen színüvé színeződött a víz (Fenolftalein indikátor).\\
+    \textbf{Magyarázat.}
+    \begin{itemize}
+        \item Ammónia oldatát melegítve: $NH_{3\,\text{(g)}}$ keletkezik, mert az $NH_3$ oldhatósága kisebb lesz magasabb hőmérsékleten
+        \item $NH_3$ gyűjtése:
+        \[
+        \rho(NH_3) < \rho(\text{levegő), mert M(}NH_3) < \text{M(levegő)}
+        \]
+        \[
+        \implies \text{Szájával lefelé tartott lombikban gyűjtjük}
+        \]
+        \[
+        \text{(M(levegő)} = 29 \frac{\text{g}}{\text{mol}})
+        \]
+        \item 2-3 csepp víz szerepe: feloldódik az $NH_3$ gáz zöme, kisebb nyomás lesz a lombikban, mert befogtuk az üvegcső végét
+        \item A kádba rakva: A külső légnyomás benyomja a vizet, a fenolftalein ciklámenszínűre változik
+    \end{itemize}
+    
+
+\section{Összefoglalás}
+\subsection{Kísérletek}
+\begin{enumerate}
+    \item 5Ft-os oldása koncentrált salétromsavban: Tapasztalatok, reakcióegyenlet
+    \begin{itemize}
+        \item Tapasztalat: Vörösbarna, jellegzetes szagú gáz, zöldeskék oldat. A főzőpohár fala forró lett, az érme jóval kisebb lett.
+        \item Reakcióegyenlet
+        \[
+            Cu + 4HNO_3 \rightarrow \underset{\text{réz-nitrát}}{Cu(NO_3)_2} + 2NO_2 + 2H_2O
+        \]
+    \end{itemize}
+    \item Ammónia szökőkút kísérlet
+    \begin{itemize}
+        \item $NH_3$ előállítása
+        \[
+            \ce{N2 + 3 H2 <=>[Fe-kat][\SI{450}{\degreeCelsius}\text{; 40MPa}] 2 NH3}
+        \]
+        \item $NH_3$ felfogása
+        \item A szökőkút jelenség
+        \item Az indikátor szerepe
+        \item Reakcióegyenlet: 
         
+                    \[
+                      \tikzmarknode{nh3}{\ce{NH3}}
+                      +
+                      \tikzmarknode{h2o}{\ce{H2O}}
+                      \rightleftharpoons
+                      \ce{NH4+} + \mathrlap{\smash{\underset{\substack{\hspace{-36pt}\uparrow\\ \text{Lúgos kémhatás}}}{}}}{\ce{OH-}}
+                    \]
+                    
+                    \begin{tikzpicture}[remember picture, overlay]
+                      \draw[->]
+                        (h2o.north)
+                        -- ++(0, 0.20)
+                        -- node[above, font=\small]{$\mathrm{H}^+$} ($(nh3.north) + (0, 0.20)$)
+                        -- (nh3.north);
+                    \end{tikzpicture}
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Fogalmak}
+\begin{enumerate}
+    \item \textbf{Higroszkópos anyag}: Olyan anyag, amely a levegő nedvességtartalmát magába szívja és megköti. (Pl.: $\text{CaCl}_2$, tömény $\text{H}_2\text{SO}_4$)
+    \item \textbf{Allotrópia}: Ugyanazon elem különböző szerkezetű (és ezért különböző tulajdonságú) módosulatainak jelensége. (Pl.: gyémánt és grafit – mindkettő szén)
+    \item \textbf{Háromértékű sav}: Olyan sav, mely egy molekulájából három $\text{H}^+$ ion leadására képes. (Pl.: $\text{H}_3\text{PO}_4$)
+    \item \textbf{Indikátor}: Olyan anyag, amely a közeg kémhatásától (pH értékétől) függően megváltoztatja valamilyen tulajdonságát, leggyakrabban a színét, jelezve, hogy az oldat savas, semleges vagy lúgos. (Pl.: lakmusz, fenolftalein)
+    \item \textbf{Inert gáz}: Nem reakcióképes gáz. Pl.: $N_2, He$
+    \item \textbf{Szintézis}: Két vagy több egyszerűbb anyagból egyetlen összetettebb anyag keletkezését eredményező kémiai reakció. (Pl.: $\text{N}_2 + 3\text{H}_2 \rightarrow 2\text{NH}_3$)
+    \item \textbf{Katalizátor}: Olyan anyag, amely felgyorsítja a kémiai reakciót, de maga a reakció során nem alakul át és nem fogy el.
+    \item \textbf{Gyök}: Párosítatlan elektront tartalmazó molekula vagy atom. (Pl.: $NO_2, O$, nem kell tudni őket)
+    \item \textbf{Passziválódás}: Ugyan a reakció beindul, azonban egy atomnyi vastagságú védőréteg alakul ki a fém felszínén (nitrátból és oxidból), ezért a reakció megáll. (Pl.: Fe tömény $HNO_3$-ban)
+\end{enumerate}
+
+\subsection{Képletek}
+Pl. $N_2$, $NH_3$. Lehet azt kérdezi, mi az $NH_3$, de lehet, hogy az kérdezi, mi az ammónia képlete.
+\begin{itemize}
+    \item $N_2$ - Nitrogén
+    \item $N_2O$ - Dinitrogén-monoxid
+    \item $NO$ - Nitrogén-monoxid
+    \item $NO_2$ - Nitrogén-dioxid
+    \item $HNO_2$ - Salétromossav
+    \item $HNO_3$ - Salétromsav
+    \item $NaNO_3$ - Nátrium-nitrát (chilei salétrom)
+    \item $KNO_3$ - Kálium-nitrát (kálisalétrom)
+    \item $NH_4NO_3$ - Ammónium-nitrát
+    \item $AgNO_3$ - Ezüst-nitrát (pokolkő, lápisz)
+    \item $NH_3$ - Ammónia
+    \item $NH_4OH$ - Szalmiákszesz
+    \item $NH_4Cl$ - Ammónium-klorid (Szalmiáksó)
+    \item $P$ - Foszfor atom
+    \item $P_4$ - Fehérfoszfor (vagy sárgafoszfor)
+    \item $P_2O_5$ - Foszfor-pentoxid
+    \item $H_3PO_4$ - Foszforsav
+    \item $H_2PO_4^-$ - Dihidrogénfoszfát-ion
+    \item $HPO_4^{2-}$ - Hidrogénfoszfát-ion
+    \item $PO_4^{3-}$ - Foszfát-ion
+    \item $Na_3PO_4$ - Nátrium-foszfát (trisó)
+    \item $Ca_5(PO_4)_3F$ - Fluorapatit
+    \item $Ca_5(PO_4)_3OH$ - Hidroxiapatit
+    
+\end{itemize}
+
+\subsection{Felhasználások}
+\begin{itemize}
+    \item Nitrogén ($N_2$)
+    \begin{itemize}
+        \item Ammónia gyártás
+        \item Védőgáz (csomagolás, hegesztés)
+        \item Hűtés (folyékony nitrogénnel)
+    \end{itemize}
+    \item Dinitrogén-monoxid ($N_2O$)
+    \begin{itemize}
+        \item Tejszínhab készítése (szifon)
+        \item Érzéstelenítés orvostudományban (szülési fájdalmak csökkentése)
+        \item Méhészet (elbódítja a méheket, mielőtt beavatkozik)
+        \item Autóversenyek (nitro)
+    \end{itemize}
+    \item Salétromsav ($HNO_3$)
+    \begin{itemize}
+        \item Festék gyártás
+        \item Robbanóanyag gyártás (TNT)
+        \item Műtrágya gyártás
+        \item Ékszerészek ("választó víz" -- oldja az ezüstöt, de nem oldja az aranyat)
+        \item Fehérjék kimutatása
+    \end{itemize}
+    \item Ammónia ($NH_3$)
+    \begin{itemize}
+        \item Salétromsav gyártás
+        \item Műtrágya gyártás
+        \item Hűtés - jégpályák, ipari hűtőkamrák
+    \end{itemize}
+    \item Foszfor, fehérfoszfor, vörösfoszfor
+    \begin{itemize}
+        \item Gyufa
+    \end{itemize}
+    \item Foszforsav
+    \begin{itemize}
+        \item Élelmiszeripar: tartósítószer, savanyúságot szabályozó szer
+    \end{itemize}
+\end{itemize}
+
+\subsection{Reakcióegyenletek}
+\begin{itemize}
+    \item A nitrogén reakciói
+    \begin{itemize}
+        \item A salétromsav gyártásának 4 lépése
+        \begin{enumerate}
+            \item $N_2 + 3H_2 \rightleftharpoons 2NH_3$
+            \item $2NH_3 + 2,5O_2 \rightarrow 2NO + 3H_2O$
+            \item $NO + \frac{1}{2}O_2 \rightarrow NO_2$
+            \item $2NO_2 + H_2O + \frac{1}{2}O_2 \rightarrow 2HNO_3$
+        \end{enumerate}
+        
+        \item $N_2 + O_2 \xrightarrow{\SI{3000}{\degreeCelsius}} 2NO$
+        \item $2NO_2 + H_2O \rightarrow HNO_2 + HNO_3$
+    \end{itemize}
+
+    \item Salétromsavval való reakciók
+    \begin{enumerate}
+        \item Vas (Fe) + híg salétromsav
+        \[
+            Fe + 2HNO_3 \rightarrow Fe(NO_3)_2 + H_2
+        \]
+        \item Ezüst (Ag) + híg salétromsav
+        \[
+        \text{Nincs reakció}
+        \]
+        \item Ezüst (Ag) + közepes töménységű salétromsav
+        \[
+            3Ag + 4HNO_3 \rightarrow 3AgNO_3 + NO + 2H_2O
+        \]
+        \item Tömény salétromsav és vas (Fe): Passziválódik.
+        \item Tömény salétromsav és ezüst (Ag):
+        \[
+            Ag + 2HNO_3 \rightarrow AgNO_3 + NO_2 + H_2O
+        \]
+        \item Tömény salétromsav és réz (Cu):
+        \[
+            Cu + 4HNO_3 \rightarrow Cu(NO_3)_2 + 2NO_2 + 2H_2O
+        \]
+    \end{enumerate}
+
+    \item A foszfor reakciói
+    \begin{itemize}
+        \item Foszforsav ($H_3PO_4$) reakciója vízzel
+
+            \vspace{10pt}
+                    
+            \[
+            \tikzmarknode{h3po4}{H_3PO_4} + \tikzmarknode{h2o2}{H_2O} \leftrightharpoons \underset{\text{Dihidrogénfoszfát-ion}}{H_2PO_4^-} + H_3O^+
+            \]
+            \begin{tikzpicture}[remember picture, overlay]
+              \draw[->]
+                (h3po4.north)
+                -- ++(0, 0.20)
+                -- node[above, font=\small]{$\mathrm{H}^+$}
+                   (h2o2.north |- {$(h3po4.north)+(0,0.20)$})
+                -- (h2o2.north);
+            \end{tikzpicture}
+
+            
+            \[
+            \tikzmarknode{h2po4-}{H_2PO_4^-} + \tikzmarknode{h2o3}{H_2O} \leftrightharpoons \underset{\text{Hidrogénfoszfát-ion}}{HPO_4^{2-}} + H_3O^+
+            \]
+            \begin{tikzpicture}[remember picture, overlay]
+              \draw[->]
+                (h2po4-.north)
+                -- ++(0, 0.20)
+                -- node[above, font=\small]{$\mathrm{H}^+$}
+                   (h2o3.north |- {$(h2po4-.north)+(0,0.20)$})
+                -- (h2o3.north);
+            \end{tikzpicture}
+
+            
+            \[
+            \tikzmarknode{hpo42-}{HPO_4^{2-}} + \tikzmarknode{h2o4}{H_2O} \leftrightharpoons \underset{\text{Foszfát-ion}}{PO_4^{3-}} + H_3O^+
+            \]
+            \begin{tikzpicture}[remember picture, overlay]
+              \draw[->]
+                (hpo42-.north)
+                -- ++(0, 0.20)
+                -- node[above, font=\small]{$\mathrm{H}^+$}
+                   (h2o4.north |- {$(hpo42-.north)+(0,0.20)$})
+                -- (h2o4.north);
+            \end{tikzpicture}
+
+            \vspace{-10pt}
+        \item A foszforsav égése
+        \[
+        4P + 5O_2 \rightarrow \underset{\text{Foszfor-pentoxid}}{2P_2O_5}
+        \]
+    \end{itemize}
+    
+    
+\end{itemize}
+
 \end{document}
