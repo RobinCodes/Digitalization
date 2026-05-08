@@ -1,0 +1,319 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+\usepackage{amsmath}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+%for arrows
+\usepackage{textcomp}
+
+% --- more levels stuff begins here, dont touch
+% --- Section formatting ---
+\usepackage{titlesec}
+
+% Allow deep section numbering and TOC
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+\makeatletter
+
+% ------------------------
+% LEVEL 4: subsubsubsection
+% ------------------------
+\titleclass{\subsubsubsection}{straight}[\subsubsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+
+\renewcommand\subsubsubsection{%
+  \@startsection{subsubsubsection}{4}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 4
+\newcommand*\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+
+% --------------------------
+% LEVEL 5: subsubsubsubsection
+% --------------------------
+\titleclass{\subsubsubsubsection}{straight}[\subsubsubsection]
+\newcounter{subsubsubsubsection}[subsubsubsection]
+\renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
+
+\renewcommand\subsubsubsubsection{%
+  \@startsection{subsubsubsubsection}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 5
+% Use level 4 internally for safety (LaTeX only knows TOC levels 1-4)
+\newcommand*\l@subsubsubsubsection{\@dottedtocline{4}{10em}{5em}}
+
+% --------------------------
+% LEVEL 6: subsubsubsubsubsection
+% --------------------------
+\titleclass{\subsubsubsubsubsection}{straight}[\subsubsubsubsection]
+
+\newcounter{subsubsubsubsubsection}[subsubsubsubsection]
+\renewcommand\thesubsubsubsubsubsection{%
+  \thesubsubsubsubsection.\arabic{subsubsubsubsubsection}}
+
+\renewcommand\subsubsubsubsubsection{%
+  \@startsection{subsubsubsubsubsection}{6}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry (still forced into level 4)
+\newcommand*\l@subsubsubsubsubsection{\@dottedtocline{4}{13em}{6em}}
+
+% --- more levels stuff ends here
+
+\title{Mássalhangzótörvények}
+\author{Lengyel Zoltán Péter\thanks{Csukás Ibolya tanítása alapján}}
+\date{Legutóbb frissítve: 2026. Május 05.}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\begin{itemize}
+    \item Egymás mellé kerülő mássalhangzók gyakran hatnak egymás képzésére: módosítják vagy megváltoztatják azt; többnyire kiejtésben, ritkábban írásban is
+\end{itemize}
+
+\section{Hasonulás}
+\begin{itemize}
+    \item Két szomszédos mássalhangzó közül az egyik részben vagy teljesen hasonul a másikhoz
+\end{itemize}
+
+\subsection{Részleges hasonulás}
+\subsubsection{Zöngésség szerinti részleges hasonulás}
+
+\begin{itemize}
+    \item zöngés + zöngétlen = zöngétlen  \begin{itemize}
+     \item zse\textbf{b}\textit{k}endő $\rightarrow$ [zse\textbf{p}\textit{k}endő] \begin{itemize}
+         \item \textbf{b: zöngés} 
+         \item \textit{k: zöngétlen}
+         \item zöngés + zöngétlen = zöngétlen
+         \item \textbf{b $\rightarrow$ p}
+     \end{itemize}
+ \end{itemize}
+
+    \item zöngétlen + zöngés = zöngés
+     \begin{itemize}
+     \item mo\textbf{s}\textit{d}ó $\rightarrow$ [mo\textbf{zs}\textit{d}ó] \begin{itemize}
+         \item \textbf{s: zöngétlen} 
+         \item \textit{d: zöngés}
+         \item zöngétlen + zöngés = zöngés
+         \item \textbf{s $\rightarrow$ zs}
+     \end{itemize}
+ \end{itemize}
+\end{itemize}
+
+\subsubsection{Képzés helye szerinti részleges hasonulás}
+
+\begin{itemize}
+    \item nb $\rightarrow$ mb\begin{itemize}
+        \item azo\textbf{n}\textit{b}an $\rightarrow$ [azo\textbf{m}\textit{b}an] \begin{itemize}
+            \item \textbf{n: foghang}
+            \item \textit{b: ajakhang}
+            \item \textbf{n $\rightarrow$ m (ajakhang)}
+        \end{itemize}
+    \end{itemize}
+    \item np $\rightarrow$ mp \begin{itemize}
+        \item szí\textbf{n}\textit{p}ad $\rightarrow$ [szí\textbf{m}\textit{p}ad] \begin{itemize}
+            \item \textbf{n: foghang}
+            \item \textit{p: ajakhang}
+            \item \textbf{n $\rightarrow$ m (ajakhang)}
+        \end{itemize}
+    \end{itemize}
+    \item ngy $\rightarrow$ nygy \begin{itemize}
+        \item ro\textbf{n}\textit{gy}os $\rightarrow$ [ro\textbf{ny}\textit{gy}os] \begin{itemize}
+            \item \textbf{n: foghang}
+            \item \textit{gy: szájpadláshang}
+            \item \textbf{n $\rightarrow$ ny (szájpadláshang)}
+        \end{itemize}
+    \end{itemize}
+    \item nty $\rightarrow$ nyty \begin{itemize}
+        \item po\textbf{n}\textit{ty} $\rightarrow$ [po\textbf{ny}\textit{ty}] \begin{itemize}
+            \item \textbf{n: foghang}
+            \item \textit{ty: szájpadláshang}
+            \item \textbf{n $\rightarrow$ ny (szájpadláshang)}
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+
+
+
+\subsection{Teljes hasonulás}
+
+
+\subsubsection{Írásban jelöletlen teljes hasonulás}
+\begin{itemize}
+    \item Két szomszédos mássalhangzó közül az egyik teljesen hasonul a másikhoz, de csak kiejtésben! \begin{itemize}
+        \item pl. teljes $\rightarrow$ [tejjes]
+        \item adta $\rightarrow$ [atta]
+        \item tanmenet $\rightarrow$ [tammenet]
+        \item egészség $\rightarrow$ [egésség]
+        \item évforduló $\rightarrow$ [évforduló]
+        \item fogkrém $\rightarrow$ [fokkrém]
+        \item mesélj $\rightarrow$ [meséjj]
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{Írásban jelölt teljes hasonulás}
+\begin{itemize}
+    \item Két szomszédos mássalhangzó közül az egyik teljesen hasonul a másikhoz, kiejtésben és írásban is
+\end{itemize}
+
+\subsubsubsection{-val/-vel, -vá/vé}
+\begin{itemize}
+    \item Mássalhagzóra végződő szóhoz -val/-vel/-vá/-vé rag járul; a rag v hangja teljesen hasonul a szó utolsó mássalhangzójához
+    \begin{itemize}
+        \item Gábor + -val = Gáborral
+        \item sajt + -vá = satjjá
+    \end{itemize}
+\end{itemize}
+\subsubsubsubsection{Két különböző mássalhangzóra vegződő szavak} \begin{itemize}
+        \item Ha két különböző mássalhangzóra végződik a szó; a hasonult mássalhangzót röviden ejtjük \begin{itemize}
+        \item Zsolttal $\rightarrow$ [Zsoltal]
+    \end{itemize}
+\end{itemize}
+\subsubsubsubsection{Hosszú mássalhangzóra végződő szavak} \begin{itemize}
+    \item Ha hosszú mássalhangzóra végződik a szó  egyszerűsítünk \begin{itemize}
+        \item sakk + -val = sakkal 
+    \end{itemize}
+    \item DE! Hosszú mássalhangzóra végződő családnevekben és tulajdonnevekben nem egyszerűsíthetünk! Az ellentmondást kötőjellel oldjuk \begin{itemize}
+        \item Mariann + -nal = Mariann-nal
+        \item Papp + -val = Papp-pal
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsubsubsection{Régies betűre végződő nevek}  \begin{itemize}
+        \item Régies betűre végződő nevekben kiejtés szerint kapcsoljuk a ragot
+    \begin{itemize}
+        \item Kossuth + -val = Kossuthtal
+        \item Damjanich + -val = Damjaichcsal
+    \end{itemize}
+\end{itemize}
+
+\subsubsubsubsection{Néma hangra végződő nevek}
+\begin{itemize}
+    \item Néma hangra végződő nevekhez kötőjellel kapcsoljuk a kiejtés szerint hasonult ragot \begin{itemize}
+        \item Joe + val = Joe-val
+        \item Anne + -vel = Anne-nel
+        \item Shakespeare + -vel = Shakespeare-rel
+    \end{itemize}
+\end{itemize}
+
+\subsubsubsubsection{Számok, rövidítések}
+\begin{itemize}
+    \item Számokhoz, rövidítésekhez kötőjellel kapcsoljuk a kiejtés szerint hasonult ragot \begin{itemize}
+        \item 3 + -val = 3-mal
+        \item km + -vel = km-rel
+        \item \% + -val = \%-kal
+    \end{itemize}
+\end{itemize}
+
+\subsubsubsubsection{h-ra végződő szavak}
+\begin{itemize}
+    \item Néhány h-ra végződő szót kétféleképpen is toldalékolhatunk \begin{itemize}
+        \item juh + -val = juhhal/juhval
+        \item cseh + -vel = csehhel/csehvel
+        \item még + -vel = méhhel/mével
+    \end{itemize}
+\end{itemize}
+
+\subsubsubsection{s, sz, z, dz végű ige + j}
+\begin{itemize}
+    \item s, sz, z, dz végű igéhez járul: \begin{itemize}
+    \item a felszólító mód jele -j \begin{itemize}
+        \item mos + -j = moss!
+        \item húz + -j = húzz!
+        \item edz + -j = eddz!
+        \item játsz + -j = játssz!
+    \end{itemize}
+    \item -j-vel kezdődő személyrag \begin{itemize}
+        \item mos + -ja = mossa
+        \item játsz + -juk = játsszuk
+        \item húz + -játok = húzzátok
+        \item edz + -jük = eddzük
+    \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsubsubsection{ez/az mutató névmás + mássalhangzóval kezdődő toldalék}
+\begin{itemize}
+    \item Ha ez/az  utató névmáshoz mássalhangzóval kezdődő toldalék járul; a z teljesen hasonul a toldalék első mássalhangzójához
+    \begin{itemize}
+        \item ez + -ben = ebben
+        \item az + -tól = attól
+    \end{itemize}
+\end{itemize}
+
+
+
+
+\subsection{Összeolvadás}
+\begin{itemize}
+    \item Két szomszédos mássalhangzó helyezz egy harmadik mássalhangzót ejtünk
+    \item leggyakrabban összeolvadó mássalhangzók: \begin{itemize}
+        \item ts [cs] pl. tatíts, gyógyítson
+        \item ds [cs] pl. szabadság
+        \item tj [ty] pl. gyógyítja, takarítjuk
+        \item dj [gy] pl. maradj, adjuk
+        \item ny [ny] pl. fonja, kenjétek
+        \item tsz [c] pl. metsz, ötször
+        \item dsz [c] pl. adsz, maradsz
+    \end{itemize}
+\end{itemize}
+
+\subsection{Mássalhangzó-rövidülés}
+\begin{itemize}
+    \item Ha egy hosszú mássalhangzó előtt vagy után egy másik mássalhangzó áll, a hosszú mássalhangzót röviden ejtjük \begin{itemize}
+        \item Zso\underline{l}\textbf{tt}al
+        \item vo\underline{n}\textbf{zz}a
+        \item o\textbf{tt}\underline{h}on
+    \end{itemize}
+\end{itemize}
+
+\subsection{Mássalhangzó-kiesés}
+\begin{itemize}
+    \item Három szomszédos mássalhangzó közül a középső d kiejtésben kiesik \begin{itemize}
+        \item mon\underline{d}tam $\rightarrow$ [montam]
+        \item kül\underline{d}tétek $\rightarrow$ [kültétek]
+    \end{itemize}
+\end{itemize}
+
+\end{document}

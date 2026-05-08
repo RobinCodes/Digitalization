@@ -9,8 +9,7 @@
 \usepackage{amsfonts}
 
 \usepackage{tikz}
-\usetikzlibrary{graphs,graphdrawing, arrows.meta, positioning}
-\usegdlibrary{trees}
+\usetikzlibrary{arrows.meta, positioning}
 \usepackage{graphicx}
 
 \newtheorem{definition}{Definíció}[section]
@@ -62,14 +61,16 @@ Háromféleképpen fogunk ábrázolni adatokat.
 
 \item Mátrixos forma: \\ \\
 \begin{center}
-    $\begin{matrix}
-     & A & B & C & D & E \\
-     A & 0 & 1 & 1 & 0 & 0\\
-     B & 1 & 0 & 1 & 0 & 0\\
-     C & 1 & 1 & 0 & 0 & 0\\
-     D & 0 & 0 & 0 & 0 & 1\\
-     E & 0 & 0 & 0 & 1 & 1
-    \end{matrix}$
+    \[
+        \begin{matrix}
+         & A & B & C & D & E \\
+         A & 0 & 1 & 1 & 0 & 0\\
+         B & 1 & 0 & 1 & 0 & 0\\
+         C & 1 & 1 & 0 & 0 & 0\\
+         D & 0 & 0 & 0 & 0 & 1\\
+         E & 0 & 0 & 0 & 1 & 1
+        \end{matrix}
+    \]
 \end{center}
 \end{enumerate}
 
@@ -318,5 +319,10 @@ A gráfelmélet általában egyszerű, összefüggő irányítatlan gráfokkal f
     Ezért bármely nem összefüggő $n$ csúcsú egyszerű gráf éleinek száma legfeljebb $\binom{n-1}{2}$.
     
 \end{proof}
+
+\begin{lemma}
+    Ha egy gráfban minden pont foka 2, akkor van benne kör.
+\end{lemma}
+
 
 \end{document}
