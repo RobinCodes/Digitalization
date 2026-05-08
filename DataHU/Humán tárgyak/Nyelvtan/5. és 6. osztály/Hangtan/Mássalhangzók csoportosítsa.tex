@@ -1,0 +1,48 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+\usepackage{amsmath}
+
+\usepackage[table]{xcolor}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+%for arrows
+\usepackage{textcomp}
+
+\title{Mássalhangzók csoportosítása}
+\author{Lengyel Zoltán Péter\thanks{Csukás Ibolya tanítása alapján}}
+\date{Legutóbb frissítve: 2026. Május 05.}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Időtartam szerint}
+\begin{itemize}
+    \item rövid pl. b, sz, dzs
+    \item hosszú pl. bb, ssz, ddzs
+\end{itemize}
+
+\section{Zöngésség szerint}
+ \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|} \hline
+      zöngés & \cellcolor{red!25}b & \cellcolor{blue!25}d & \cellcolor{yellow!25}g & \cellcolor{red!25}m & \cellcolor{blue!25}n & \cellcolor{yellow!25}ny & \cellcolor{red!25}v & \cellcolor{blue!25}z & \cellcolor{blue!25}zs & \cellcolor{blue!25}l & \cellcolor{yellow!25}j = ly & / & \cellcolor{blue!25}dz & \cellcolor{blue!25}dzs & \cellcolor{yellow!25}gy & \cellcolor{blue!25}r \\ \hline
+      zöngétlen & \cellcolor{red!25}p & \cellcolor{blue!25}t & \cellcolor{yellow!25}k & / & / & / & \cellcolor{red!25}f & \cellcolor{blue!25}sz & \cellcolor{blue!25}s & / & / & \cellcolor{green!25}h & \cellcolor{blue!25}c & \cellcolor{blue!25}cs & \cellcolor{yellow!25}ty & / \\ \hline
+ \end{tabular}
+
+ \section{Az akadály helye szerint}
+
+ \begin{itemize}
+     \color{red!100}\item ajakhangok: b-p, m, v-f 
+    \color{blue!100} \item foghangok: d-t, n, z-sz, s-zs, l, dz-c, dzs-cs, r
+     \color{yellow!100}\item szájpadláshangok: g-k, ny, j=ly, gy-ty
+     \color{green!100}\item gégehang: h 
+ \end{itemize} \color{black!100}
+
+
+\end{document}

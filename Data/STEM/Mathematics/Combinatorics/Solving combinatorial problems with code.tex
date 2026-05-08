@@ -1,0 +1,40 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+\usepackage{graphicx}
+
+\title{Solving combinatorial problems with code}
+\author{Robin Rovenszky}
+\date{Last updated: March 23, 2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+\section{First problem}
+In how many ways can we write ten as the sum of three non-negative integers, if the order of the addends matters?
+
+\section{Second problem}
+In how many ways can twenty be written as the sum of three positive integers, if the order of the addends matters?
+
+In general, a number $n \in \mathbb{N}^+$ can be written as the sum of $k \in \mathbb{N}^+$ numbers in
+\[
+\binom{n-1}{k-1}
+\]
+ways, where $1 \le k \le n$.\\\\
+If $k \in \mathbb{N}$, then it can be written in
+\[
+\binom{n + k - 1}{k - 1}
+\]
+ways.
+
+\end{document}
