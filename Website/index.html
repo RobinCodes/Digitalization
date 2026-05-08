@@ -3127,6 +3127,12 @@
       const coveringFolder = getCoveringFolder(item.path); // always check, folder wins
       const isCovered = !!coveringFolder;
 
+      // Bilingual / greyed state
+      const isBilingual = MAT_LANG === 'both' && item.enAvailable && item.huAvailable;
+      // After server-side remapping, item.enAvailable always means "primary lang available"
+      // isGreyed = primary not available but alternate is
+      const isGreyed = (item.enAvailable === false && item.huAvailable === true);
+
       // If covered by a folder, show covered style (even if also individually selected)
       card.className = 'card'
         + (isSel && !isCovered ? ' selected' : '')
@@ -3156,11 +3162,7 @@
           tagsHtml = `<div class="card-tags">${visible.join('')}${moreHtml}</div>`;
         }
       }
-      // Bilingual / greyed state
-      const isBilingual = MAT_LANG === 'both' && item.enAvailable && item.huAvailable;
-      // After server-side remapping, item.enAvailable always means "primary lang available"
-      // isGreyed = primary not available but alternate is
-      const isGreyed = (item.enAvailable === false && item.huAvailable === true);
+      
       let splitOverlayHtml = '';
       if (isBilingual) {
         splitOverlayHtml = `<div class="card-split-overlay">
