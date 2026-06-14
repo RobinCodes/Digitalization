@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "title": "Added the universe viewer",
+    "body": "A beautiful universum was added.",
+    "authors": [
+      "Robin Rovenszky",
+      "Zoltán Lengyel"
+    ],
+    "type": "note",
+    "date": "2026-06-14",
+    "important": true,
+    "id": "005528a2-1bde-4d1e-a06f-bddbb6d90ffc"
+  }
+]

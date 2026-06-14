@@ -1,0 +1,7 @@
+# Managed by Digitalization DevTools.
+# Each [Section] header is a note display name (filename without extension or {tags}).
+# Keys: tags, authors, date, important, visibility (public|members), description, alt-hu, alt-en
+
+[Gráfelmélet]
+alt-en: Graph Theory
+

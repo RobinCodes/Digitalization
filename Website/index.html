@@ -40,6 +40,16 @@
       --red:#a03030; --blue:#2a5a96; --teal:#1a7a68; --green:#2a7040; --purple:#5a3898;
       --hdr-bg:rgba(245,240,232,.92);
     }
+    /* ── TEAL (dark, teal-blue) THEME ───────────────── */
+    body.theme-teal {
+      --bg:#06090b; --bg2:#0a1014; --bg3:#0f181d; --bg4:#152229;
+      --border:rgba(150,205,210,0.07); --border-md:rgba(150,205,210,0.12);
+      --text:#d7e4e3; --text2:#7c918f; --text3:#3a4745;
+      --accent:#3fb6ac; --accent2:#6fe0d3;
+      --accent-glow:rgba(63,182,172,0.20); --accent-dim:rgba(63,182,172,0.09);
+      --red:#d07070; --blue:#5fa8d8; --teal:#4fd0c0; --green:#5fc98f; --purple:#9a86d8;
+      --hdr-bg:rgba(6,9,11,.88);
+    }
     ::-webkit-scrollbar{width:5px;height:5px}
     ::-webkit-scrollbar-track{background:var(--bg2)}
     ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:999px;opacity:.7}
@@ -1051,6 +1061,10 @@
       /* CSS transform scale applied during pinch — doesn't change layout */
       transform-origin:top center;
     }
+    /* When zoomed past fit width, the wrap must grow with the pages so the
+       body's horizontal scrollbar can reach both edges (flex centering would
+       otherwise clip the overflow symmetrically). */
+    .pdf-body.full-doc-mode .pdf-canvas-wrap{min-width:100%;width:max-content}
 
     /* ── SETTINGS MODAL ──────────────────────────────────────────────── */
     #settingsModal{
@@ -1529,6 +1543,52 @@
       #selPanel{bottom:env(safe-area-inset-bottom,16px);right:12px;left:12px;width:auto;max-height:55vh}
     }
   </style>
+  <style id="authStyles">
+    #authModal{position:fixed;inset:0;z-index:8600;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+    #authModal.open{opacity:1;pointer-events:all}
+    .auth-bd{position:absolute;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    .auth-box{position:relative;z-index:1;width:min(400px,100%);background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);box-shadow:0 0 0 1px var(--accent-dim),0 32px 80px rgba(0,0,0,.7);transform:scale(.97) translateY(8px);transition:transform .3s var(--tr-spring);overflow:hidden}
+    #authModal.open .auth-box{transform:scale(1) translateY(0)}
+    .auth-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+    .auth-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+    .auth-x{width:30px;height:30px;border:none;background:var(--bg3);color:var(--text2);border-radius:8px;cursor:none;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s}
+    .auth-x:hover{background:var(--bg4);color:var(--text)}
+    .auth-box>div:not(.auth-hd){padding:20px 18px}
+    .auth-h{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--text);margin-bottom:6px}
+    .auth-h em{color:var(--accent2);font-style:italic}
+    .auth-sub{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:16px}
+    .auth-fld{display:block;margin-bottom:12px}
+    .auth-fld span{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+    .auth-fld input{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--border-md);border-radius:8px;color:var(--text);font-family:var(--font-ui);font-size:16px;outline:none;transition:border-color .2s}
+    .auth-pass-wrap{position:relative;display:block}
+    .auth-pass-wrap input{padding-right:42px}
+    .auth-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--text3);border-radius:6px;padding:0}
+    .auth-eye:hover{color:var(--accent);background:var(--bg3)}
+    .auth-eye svg{width:18px;height:18px;pointer-events:none}
+    .auth-link{display:block;width:100%;margin-top:10px;background:none;border:none;color:var(--accent);font-family:var(--font-ui);font-size:13px;cursor:pointer;text-align:center;padding:6px}
+    .auth-link:hover{text-decoration:underline}
+    .auth-divider{height:1px;background:var(--border-md);margin:16px 0}
+    .auth-h4{font-family:var(--font-ui);font-size:14px;font-weight:600;color:var(--text);margin:0 0 10px}
+    .auth-ok{color:var(--green);font-size:13px;margin:4px 0}
+    .pdf-qs-lang-btn.qs-disabled,.pdf-tbtn.qs-disabled{opacity:.35;cursor:not-allowed}
+    .auth-fld input:focus{border-color:var(--accent)}
+    .auth-err{color:var(--red);font-size:12.5px;min-height:16px;margin-bottom:10px}
+    .auth-submit{width:100%;padding:11px;background:linear-gradient(180deg,var(--accent2),var(--accent));color:#1a1408;border:none;border-radius:8px;font-family:var(--font-ui);font-weight:600;font-size:14px;cursor:none;transition:opacity .2s,transform .1s}
+    .auth-submit:hover{opacity:.92}
+    .auth-submit:active{transform:scale(.99)}
+    .auth-submit:disabled{opacity:.5}
+    .auth-submit.ghost{background:transparent;border:1px solid var(--border-md);color:var(--text)}
+    .auth-submit.ghost:hover{border-color:var(--red);color:var(--red);opacity:1}
+    #authBtn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;background:var(--bg3);border:1px solid var(--border-md);border-radius:8px;color:var(--text2);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;cursor:none;transition:background .2s,color .2s,border-color .2s;white-space:nowrap}
+    #authBtn:hover{background:var(--bg4);color:var(--text);border-color:var(--accent)}
+    #authBtn .auth-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .2s}
+    body.logged-in #authBtn{color:var(--text);border-color:var(--accent-dim)}
+    body.logged-in #authBtn .auth-dot{background:var(--green)}
+    @media(max-width:480px){#authBtn{display:none}}
+    .mob-auth-btn{margin-top:10px;width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border-md);border-radius:8px;color:var(--text);font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;cursor:none}
+    .mob-auth-btn:hover{border-color:var(--accent)}
+    .card-members{font-size:10px;opacity:.75;margin-left:2px}
+  </style>
 </head>
 <body>
   <div id="cursorDot"></div>
@@ -1546,7 +1606,7 @@
       <nav class="nav">
         <a class="nav-link active" href="#" data-page="home" data-i18n="navHome">Home</a>
         <a class="nav-link" href="#" data-page="story" data-i18n="navStory">Story</a>
-        <a class="nav-link" href="#" data-page="notes" data-i18n="navNotes">Notes</a>
+        <a class="nav-link" href="#" data-page="notes" data-i18n="navNotes">Articles</a>
         <a class="nav-link" href="#" data-page="changelog" data-i18n="navChangelog">Log</a>
       </nav>
       <div class="header-right">
@@ -1554,6 +1614,7 @@
           <button id="langEN" class="lang-btn">EN</button>
           <button id="langHU" class="lang-btn">HU</button>
         </div>
+        <button id="authBtn" aria-label="Sign in"><span class="auth-dot"></span><span class="auth-label">Sign in</span></button>
         <button id="settingsBtn" aria-label="Settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
@@ -1575,7 +1636,7 @@
     <div class="mob-drawer-inner">
       <a class="mob-nav-link active" href="#" data-mob-page="home" data-i18n="navHome">Home</a>
       <a class="mob-nav-link" href="#" data-mob-page="story" data-i18n="navStory">Story</a>
-      <a class="mob-nav-link" href="#" data-mob-page="notes" data-i18n="navNotes">Notes</a>
+      <a class="mob-nav-link" href="#" data-mob-page="notes" data-i18n="navNotes">Articles</a>
       <a class="mob-nav-link" href="#" data-mob-page="changelog" data-i18n="navChangelog">Log</a>
       <div class="mob-drawer-sep"></div>
       <div class="mob-drawer-controls">
@@ -1587,10 +1648,63 @@
           <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg class="ti-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
+        <button class="mob-auth-btn" id="authBtnMob">Sign in</button>
       </div>
     </div>
   </div>
-
+  <!-- MEMBER SIGN-IN MODAL -->
+  <div id="authModal">
+    <div class="auth-bd" id="authBd"></div>
+    <div class="auth-box">
+      <div class="auth-hd">
+        <span class="auth-eyebrow" data-i18n="authTitle">Members</span>
+        <button class="auth-x" id="authClose" aria-label="Close">✕</button>
+      </div>
+      <div id="authViewOut">
+        <h3 class="auth-h" data-i18n="authHeading">Sign in</h3>
+        <p class="auth-sub" data-i18n="authSub">Some notes are visible only to signed-in members. Sign in to read them.</p>
+        <label class="auth-fld"><span data-i18n="authUser">Username</span><input type="text" id="authUserInput" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        <label class="auth-fld"><span data-i18n="authPass">Password</span>
+          <span class="auth-pass-wrap"><input type="password" id="authPassInput" autocomplete="current-password"><button type="button" class="auth-eye" data-eye="authPassInput" aria-label="Show password"></button></span>
+        </label>
+        <div class="auth-err" id="authErr"></div>
+        <button class="auth-submit" id="authSubmit" data-i18n="authSignIn">Sign in</button>
+        <button type="button" class="auth-link" id="authToReg" data-i18n="authCreateLink">Create an account</button>
+      </div>
+      <div id="authViewReg" style="display:none">
+        <h3 class="auth-h" data-i18n="authRegHeading">Create account</h3>
+        <p class="auth-sub" data-i18n="authRegSub">Anyone can create a free account to read member-only notes.</p>
+        <label class="auth-fld"><span data-i18n="authUser">Username</span><input type="text" id="regUserInput" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        <label class="auth-fld"><span data-i18n="authPass">Password</span>
+          <span class="auth-pass-wrap"><input type="password" id="regPassInput" autocomplete="new-password"><button type="button" class="auth-eye" data-eye="regPassInput" aria-label="Show password"></button></span>
+        </label>
+        <label class="auth-fld"><span data-i18n="authConfirm">Confirm password</span>
+          <span class="auth-pass-wrap"><input type="password" id="regPass2Input" autocomplete="new-password"><button type="button" class="auth-eye" data-eye="regPass2Input" aria-label="Show password"></button></span>
+        </label>
+        <div class="auth-err" id="regErr"></div>
+        <button class="auth-submit" id="regSubmit" data-i18n="authRegBtn">Create account</button>
+        <button type="button" class="auth-link" id="authToSignin" data-i18n="authHaveAccount">Have an account? Sign in</button>
+      </div>
+      <div id="authViewIn" style="display:none">
+        <h3 class="auth-h"><span data-i18n="authSignedAs">Signed in as</span> <em id="authWho"></em></h3>
+        <p class="auth-sub" data-i18n="authInSub">You can now read member-only notes across the archive.</p>
+        <div id="acpBlock">
+          <div class="auth-divider"></div>
+          <h4 class="auth-h4" data-i18n="authChangePw">Change password</h4>
+          <label class="auth-fld"><span data-i18n="authOldPw">Current password</span>
+            <span class="auth-pass-wrap"><input type="password" id="acpOld" autocomplete="current-password"><button type="button" class="auth-eye" data-eye="acpOld" aria-label="Show password"></button></span>
+          </label>
+          <label class="auth-fld"><span data-i18n="authNewPw">New password</span>
+            <span class="auth-pass-wrap"><input type="password" id="acpNew" autocomplete="new-password"><button type="button" class="auth-eye" data-eye="acpNew" aria-label="Show password"></button></span>
+          </label>
+          <div class="auth-err" id="acpMsg"></div>
+          <button class="auth-submit" id="acpSubmit" data-i18n="authChangePwBtn">Update password</button>
+        </div>
+        <div class="auth-divider"></div>
+        <button class="auth-submit ghost" id="authSignOut" data-i18n="authSignOut">Sign out</button>
+      </div>
+    </div>
+  </div>
   <!-- MAIN -->
   <main id="main">
 
@@ -1659,7 +1773,7 @@
     <section class="page" id="page-notes">
       <div class="notes-hero">
         <span class="page-label" data-i18n="notesLabel">/ notes</span>
-        <h1 class="page-title" data-i18n="notesTitle">Notes &amp;<br><em>Articles</em></h1>
+        <h1 class="page-title" data-i18n="notesTitle">The <em>Articles</em></h1>
         <p class="page-subtitle" data-i18n="notesSubtitle">Written explorations, proofs, and ideas from across the archive.</p>
       </div>
       <div class="articles-container">
@@ -1695,7 +1809,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           <span data-i18n="clFilterImportant">Important</span>
         </button>
-        <button class="cl-add-btn" id="clAddBtn">
+        <button class="cl-add-btn" id="clAddBtn" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span data-i18n="clAdd">Add Entry</span>
         </button>
@@ -2032,6 +2146,7 @@
             <div class="stg-seg" id="stgThemeSeg">
               <button class="stg-seg-btn" data-theme="dark" data-i18n="stgDark">Dark</button>
               <button class="stg-seg-btn" data-theme="light" data-i18n="stgLight">Light</button>
+              <button class="stg-seg-btn" data-theme="teal" data-i18n="stgTeal">Teal</button>
             </div>
           </div>
         </div>
@@ -2233,12 +2348,12 @@
     const T = {
       en: {
         logoText:     'Knowledge\u00a0Index',
-        navHome:      'Home', navStory: 'Story', navNotes: 'Notes',
+        navHome:      'Home', navStory: 'Story', navNotes: 'Articles',
         homeLabel:    '/ index',
         homeTitle:    'Knowledge<br><em>Archive</em>',
         homeSubtitle: 'Browse the complete collection of mathematical and scientific notes, organized by subject and topic.',
         notesLabel:   '/ notes',
-        notesTitle:   'Notes &amp;<br><em>Articles</em>',
+        notesTitle:   'The <em>Articles</em>',
         notesSubtitle:'Written explorations, proofs, and ideas from across the archive.',
         storyLabel:   '/ story',
         storyTitleHtml:'The <em>Story</em>',
@@ -2252,6 +2367,35 @@
         loadingLabel: 'Loading PDF\u2026',
         noArticles:   'No articles yet.',
         failedLoad:   'Failed to load. Is the server running?',
+        authTitle:    'Members',
+        authHeading:  'Sign in',
+        authSub:      'Some notes are visible only to signed-in members. Sign in to read them.',
+        authUser:     'Username',
+        authPass:     'Password',
+        authSignIn:   'Sign in',
+        authSignOut:  'Sign out',
+        authSignedAs: 'Signed in as',
+        authInSub:    'You can now read member-only notes across the archive.',
+        authBadInput: 'Enter a username and password.',
+        authBadCreds: 'Incorrect username or password.',
+        authToastIn:  (u) => `Signed in as ${u}`,
+        authToastOut: 'Signed out',
+        authCreateLink: 'Create an account',
+        authHaveAccount:'Have an account? Sign in',
+        authRegHeading: 'Create account',
+        authRegSub:     'Anyone can create a free account to read member-only notes.',
+        authConfirm:    'Confirm password',
+        authRegBtn:     'Create account',
+        authRegMismatch:"Passwords don't match.",
+        authPwShort:    'Password must be at least 8 characters.',
+        authChangePw:   'Change password',
+        authChangePwBtn:'Update password',
+        authOldPw:      'Current password',
+        authNewPw:      'New password',
+        authPwChanged:  'Password updated.',
+        pdfLangUnavail: 'No other-language version of this document.',
+        ctxOpenEn:      'Open English version',
+        ctxOpenHu:      'Open Hungarian version',
         failedArticles:'Failed to load articles.',
         gridRoot:     '\u220e root',
         compileWarning: 'pdflatex returned an error \u2014 see log below',
@@ -2287,6 +2431,7 @@
         stgTheme:       'Theme',
         stgDark:        'Dark',
         stgLight:       'Light',
+        stgTeal:        'Teal',
         stgLanguage:    'Language',
         stgLangLabel:   'Interface language',
         stgPdfViewer:   'PDF Viewer',
@@ -2349,6 +2494,9 @@
         toastPrintFailed:   (msg)  => `⚠ Print failed: ${msg}`,
         toastRenderingPrint:'Rendering pages for print…',
         toastCodeCopied:    'Code copied',
+        toastEntryAdded:    '✓ Entry added',
+        toastEntrySaveFailed: '⚠ Failed to save entry',
+        toastPrecompileQueued: '⟳ Precompilation queued',
 
         // Changelog
         navChangelog: 'Log',
@@ -2388,12 +2536,12 @@
       },
       hu: {
         logoText:     'Tudás\u00a0Archívum',
-        navHome:      'Főoldal', navStory: 'Történet', navNotes: 'jegyzetek',
+        navHome:      'Főoldal', navStory: 'Történet', navNotes: 'Cikkek',
         homeLabel:    '/ index',
         homeTitle:    'Tudás<br><em>Archívum</em>',
         homeSubtitle: 'Böngésszen a matematikai és természettudományos jegyzetek teljes gyűjteményében, témák és tárgyak szerint rendezve.',
         notesLabel:   '/ jegyzetek',
-        notesTitle:   'jegyzetek &amp;<br><em>Cikkek</em>',
+        notesTitle:   'A <em>Cikkek</em>',
         notesSubtitle:'Írott gondolatok, bizonyítások és ötletek az archívumból.',
         storyLabel:   '/ történet',
         storyTitleHtml:'A <em>Történet</em>',
@@ -2407,6 +2555,35 @@
         loadingLabel: 'PDF betöltése\u2026',
         noArticles:   'Még nincsenek cikkek.',
         failedLoad:   'Betöltés sikertelen. Fut a szerver?',
+        authTitle:    'Tagok',
+        authHeading:  'Bejelentkezés',
+        authSub:      'Egyes jegyzetek csak bejelentkezett tagok számára láthatók. Jelentkezz be az olvasásukhoz.',
+        authUser:     'Felhasználónév',
+        authPass:     'Jelszó',
+        authSignIn:   'Bejelentkezés',
+        authSignOut:  'Kijelentkezés',
+        authSignedAs: 'Bejelentkezve mint',
+        authInSub:    'Mostantól elérheted a csak tagoknak szóló jegyzeteket az archívumban.',
+        authBadInput: 'Adj meg felhasználónevet és jelszót.',
+        authBadCreds: 'Hibás felhasználónév vagy jelszó.',
+        authToastIn:  (u) => `Bejelentkezve mint ${u}`,
+        authToastOut: 'Kijelentkezve',
+        authCreateLink: 'Fiók létrehozása',
+        authHaveAccount:'Van már fiókod? Jelentkezz be',
+        authRegHeading: 'Fiók létrehozása',
+        authRegSub:     'Bárki létrehozhat ingyenes fiókot a tagoknak szóló jegyzetek olvasásához.',
+        authConfirm:    'Jelszó megerősítése',
+        authRegBtn:     'Fiók létrehozása',
+        authRegMismatch:'A jelszavak nem egyeznek.',
+        authPwShort:    'A jelszónak legalább 8 karakteresnek kell lennie.',
+        authChangePw:   'Jelszó módosítása',
+        authChangePwBtn:'Jelszó frissítése',
+        authOldPw:      'Jelenlegi jelszó',
+        authNewPw:      'Új jelszó',
+        authPwChanged:  'A jelszó frissítve.',
+        pdfLangUnavail: 'Ehhez a dokumentumhoz nincs másik nyelvű változat.',
+        ctxOpenEn:      'Angol változat megnyitása',
+        ctxOpenHu:      'Magyar változat megnyitása',
         failedArticles:'A cikkek betöltése sikertelen.',
         gridRoot:     '\u220e főkönyvtár',
         compileWarning:'A pdflatex hibát jelzett \u2014 lásd a fordítási naplót',
@@ -2442,6 +2619,7 @@
         stgTheme:       'Téma',
         stgDark:        'Sötét',
         stgLight:       'Világos',
+        stgTeal:        'Türkiz',
         stgLanguage:    'Nyelv',
         stgLangLabel:   'Felhasználói felület nyelve',
         stgPdfViewer:   'PDF nézegető',
@@ -2504,6 +2682,9 @@
         toastPrintFailed:   (msg)  => `⚠ Nyomtatás sikertelen: ${msg}`,
         toastRenderingPrint:'Oldalak előkészítése nyomtatáshoz…',
         toastCodeCopied:    'Kód másolva',
+        toastEntryAdded:    '✓ Bejegyzés hozzáadva',
+        toastEntrySaveFailed: '⚠ A bejegyzés mentése sikertelen',
+        toastPrecompileQueued: '⟳ Előfordítás sorba állítva',
 
         // Napló
         navChangelog: 'Napló',
@@ -2548,89 +2729,62 @@
     const STORY = {
       en: `
         <div class="story-section">
-          <h2>On the impulse to record</h2>
-          <p>There is a moment every student of mathematics knows — the moment a proof finally closes, when the last line follows inexorably from the first, and the whole argument stands before you like a cathedral: complete, load-bearing, impossible to improve. The instinct that follows is almost physical: write it down. Not because you fear forgetting — though you will forget — but because the thing deserves to exist somewhere outside your own head, in a form that will outlast the urgency of the afternoon.</p>
-          <p>But that same impulse — the need to fix the fleeting, to make the fragile permanent — is not mathematics' alone. The poet writes a line not to publish it but to catch it before it dissolves. The painter sketches not to produce a finished work but to arrest an observation before it leaves. The biologist names a species to make a private perception into a public fact. Recording is one of the most distinctly human acts: it converts experience into knowledge, knowledge into tradition, and tradition into civilization itself.</p>
-          <div class="story-pull">&ldquo;Mathematics is the art of giving the same name to different things.&rdquo; &mdash; Henri Poincar&eacute;</div>
-          <p>This archive began as exactly that impulse, repeated across years and subjects. A note here, a derivation there. A proof that took three weeks to understand compressed into two careful pages. A theorem whose statement I had seen a hundred times but whose proof I had never truly seen — until I sat down and wrote it myself, line by line, in my own notation. What surprised me was how much the act of writing changed the act of understanding. To write a proof is to interrogate it; every elision you allow yourself in reading becomes a gap you must close in writing.</p>
+          <h2>On the beauty of the world</h2>
+          <p>Begin with the plain, astonishing fact that there is something rather than nothing &mdash; and that the something is beautiful. Light bends through a raindrop and the whole spectrum falls out of it. A nautilus grows its shell in a logarithmic spiral without ever having read a textbook. Snow organizes itself into six-fold symmetry on the way down. The night sky, if you leave the city and actually look, is not decoration; it is the deep past arriving as light &mdash; photons that left their stars before there were eyes to receive them. To be alive and paying attention is to be handed, free of charge, the most extravagant gift imaginable.</p>
+          <div class="story-pull">&ldquo;The most beautiful thing we can experience is the mysterious.&rdquo; &mdash; Albert Einstein</div>
+          <p>And the deepest beauty is that the world is legible. It did not have to be. The same handful of laws that govern a falling apple steer the galaxies; the same code that spells a bacterium spells a blue whale and the person reading this sentence. The universe is written in a language we can, with effort, learn to read &mdash; and every theorem proved, every spectrum measured, every fossil dated is one more word translated. Understanding is not a way of escaping the world's wonder. It is the way the wonder deepens.</p>
         </div>
         <div class="story-section">
-          <h2>On the beauty of mathematics</h2>
-          <p>I did not always believe that mathematics was beautiful. Early on it seemed merely difficult — a discipline of rules and exceptions, of techniques to memorise and procedures to execute. It was only later, when the techniques became fluent enough to recede into the background, that the actual structure of mathematics became visible. And that structure was startling.</p>
-          <div class="story-pull">&ldquo;The mathematician does not study pure mathematics because it is useful; he studies it because he delights in it, and he delights in it because it is beautiful.&rdquo; &mdash; Henri Poincar&eacute;</div>
-          <p>There is the beauty of pure surprise: that the sum of the reciprocals of the perfect squares converges to exactly &pi;&sup2;/6, a fact that connects the integers to the circle with no obvious reason why it should. There is the beauty of deep unity: that the same group-theoretic structures govern the symmetries of a crystal, the solutions of a polynomial, and the fundamental particles of matter. There is the beauty of unexpected contact: Euler's identity e<sup>i&pi;</sup> + 1 = 0 assembles five fundamental constants — e, i, &pi;, 1, 0 — into a single equation that looks, on first encounter, like a miracle, and on hundredth encounter, like inevitability. There is the beauty of irreducibility: a prime number cannot be anything other than what it is, and yet the distribution of the primes refuses to behave — growing sparser without end, in a pattern that still contains one of the great unsolved problems of all mathematics.</p>
-          <div class="story-pull">&ldquo;It is not knowledge, but the act of learning — not possession, but the act of getting there — which grants the greatest enjoyment.&rdquo; &mdash; Carl Friedrich Gauss</div>
-          <p>The Riemann Hypothesis asks whether the non-trivial zeros of the zeta function &zeta;(s) all lie on the critical line Re(s) = 1/2. It was posed in 1859. It remains open. The Clay Mathematics Institute has offered one million dollars for its proof. More striking than the prize is the depth of the question itself: it reaches from number theory to complex analysis to physics, suggesting that the primes — those elementary facts of arithmetic — encode something about the universe that we do not yet understand.</p>
+          <h2>Knowledge becomes a currency</h2>
+          <p>For most of history, knowledge was scarce because it was hard to copy. A single manuscript could hold the only record of a proof; a guild could keep a technique secret for generations; a library could burn and take a civilization's memory with it. Then came writing for the many, then printing, then the network &mdash; and the cost of copying a true thing fell, century by century, toward zero. We are alive now at the strangest moment of that long descent: the moment when knowledge is becoming the medium of exchange itself.</p>
+          <div class="story-pull">&ldquo;Knowledge is power.&rdquo; &mdash; Francis Bacon</div>
+          <p>Watch what is actually traded at the frontier of the economy, and it is no longer chiefly land, or labour, or even capital in the old sense. It is models, datasets, weights, patents, pipelines &mdash; distilled and operational understanding. Artificial intelligence is the engine of this shift: a technology whose entire substance is compressed knowledge, and whose output is more of the same, on demand, at scale. When a machine can hold the gist of nearly every paper ever written and reason over it in seconds, knowing is no longer merely virtuous. It is, quite literally, valuable &mdash; the thing that buys time, leverage, freedom, and power.</p>
+          <p>This is, on its face, a magnificent inheritance. A student in any village with a connection can now summon a patient tutor that has read the whole library. A researcher can offload the drudgery and keep the insight. A person who simply wonders can ask, and be answered. For the first time, the scarcest resource in human history &mdash; expert understanding &mdash; is on the verge of becoming abundant.</p>
         </div>
         <div class="story-section">
-          <h2>On the beauty of the sciences</h2>
-          <p>The sciences share with mathematics the pursuit of a structure beneath appearances, but they add something mathematics alone cannot offer: the shock of contact with the real. When Galileo dropped two spheres from the Leaning Tower of Pisa, or aimed his telescope at Jupiter and found four moons orbiting a body that was not Earth, he was doing something new in the history of thought — he was insisting that the universe had the final vote, and that no argument, however elegant, could override it.</p>
-          <div class="story-pull">&ldquo;The most beautiful thing we can experience is the mysterious. It is the source of all true art and science.&rdquo; &mdash; Albert Einstein</div>
-          <p>The periodic table, that grid of elements from hydrogen to oganesson, is one of the most compressed and generative objects in the history of knowledge. Mendeleev arranged it in 1869 and left gaps — not in ignorance, but in confidence, predicting three elements not yet discovered. When gallium, scandium, and germanium were isolated and matched his predictions almost exactly, it was one of the purest confirmations science has ever produced: a theory predicting, not just explaining. The table is beautiful for the same reason a well-composed piece of music is beautiful — it reveals, in the arrangement of its parts, a pattern that was always there, waiting to be seen.</p>
-          <p>DNA's double helix, the geodesics of general relativity, the Carnot cycle, the action potential — each of these is not merely useful but aesthetically compelling. They have the signature of deep truth: simplicity on the surface, inexhaustible complexity underneath.</p>
+          <h2>The dystopia at the door</h2>
+          <p>But a currency can be hoarded, debased, and counterfeited &mdash; and so can this one. The very forces that promise to democratize knowledge can, with a slight turn, concentrate it more tightly than any guild ever managed. If understanding is power, then whoever owns the models that hold it owns a great deal of the future &mdash; and the machines that read the whole library are not cheap to build. The danger is not that the lights go out. It is that they are switched on for some and quietly dimmed for others.</p>
+          <div class="story-pull">&ldquo;Those who would give up essential liberty to purchase a little temporary safety deserve neither.&rdquo; &mdash; Benjamin Franklin</div>
+          <p>Picture the failure modes, because they are not science fiction; they are the straight-line extrapolation of trends already visible. Knowledge enclosed behind walls and paywalls until curiosity becomes a subscription. A handful of systems mediating what billions are permitted to know, their reasoning opaque, their incentives unstated, their errors propagating at the speed of the network. People outsourcing not just their arithmetic but their judgement, until the muscle of independent thought atrophies from disuse. Surveillance dressed as convenience. Truth decided by whoever trains the largest model. A world in which the answer to every question is instantly available and almost no one remembers how to check it.</p>
+          <p>The cruelest version is the quietest. Not a boot on a face, but a soft and total dependence &mdash; a civilization that can no longer derive its own results, repair its own tools, or remember its own reasons, and so must simply trust the oracle and hope it stays kind. A people that has forgotten how to know is not free, however comfortable. It is owned.</p>
         </div>
         <div class="story-section">
-          <h2>On the beauty of the arts</h2>
-          <p>It would be wrong to separate the sciences and mathematics too sharply from the arts. The history of human expression is not a history of two cultures but of one restless, pattern-seeking mind working in different registers. Bach's counterpoint and Euler's analysis share the same obsession with structure and transformation. A fugue and a proof both ask: given these constraints, what follows necessarily? The answer in both cases should seem, at the end, both surprising and inevitable.</p>
-          <div class="story-pull">&ldquo;Without music, life would be a mistake.&rdquo; &mdash; Friedrich Nietzsche</div>
-          <p>Shakespeare's sonnets are not merely declarations of feeling; they are arguments — the volta at line nine turns the poem, just as a lemma turns a proof. Vermeer's use of light in the Girl with a Pearl Earring involves, implicitly, an understanding of physics that predated Newton. The proportions of the Parthenon encode geometric relationships that still reward analysis. Architecture, at its best, is applied mathematics made habitable. Music, at its best, is time structured by ratio.</p>
-          <div class="story-pull">&ldquo;Art is the lie that enables us to realize the truth.&rdquo; &mdash; Pablo Picasso</div>
-          <p>What the arts offer that equations cannot is embodied knowledge — understanding that arrives not through argument but through experience. A theorem about harmony can tell you everything about an interval and nothing about what a chord feels like to hear for the first time after a period of silence. Both kinds of knowledge are real. Both kinds are incomplete without the other.</p>
-        </div>
-        <div class="story-section">
-          <h2>On the method of LaTeX</h2>
-          <p>Every document in this archive is written in LaTeX — not out of convention or inertia, but because the medium shapes the thought. To typeset a formula properly, you must understand its structure. The discipline of the source file is a discipline of precision. There is also something right about the permanence of plain text. A LaTeX source file written in 1990 compiles today, unchanged. The mathematics does not decay. The theorems that Euler, Gauss, and Riemann established remain as true now as the day they were proved — as true as the day Shakespeare wrote a sonnet, or Beethoven sketched the opening of the Fifth.</p>
-          <div class="story-pull">&ldquo;Pure mathematics is, in its way, the poetry of logical ideas.&rdquo; &mdash; Albert Einstein</div>
-        </div>
-        <div class="story-section">
-          <h2>On what an archive is for</h2>
-          <p>Hermann Weyl described mathematics as the science of the infinite — the discipline through which the human mind, finite and mortal, reaches toward structures that transcend it. But the same description applies, I think, to the whole project of human knowledge. Every poem is an attempt to say something that resists saying. Every proof is an attempt to establish something that exceeds the prover. Every scientific theory is a model of a reality too large to hold entirely in the mind.</p>
+          <h2>An archive is a refusal</h2>
+          <p>So what does one person do, standing at the hinge between the abundance and the enclosure? The same thing humans have always done when something precious was at risk of being lost or captured: write it down, in the open, in a form that can be checked. This archive is small and the forces are large, and that asymmetry is exactly the point. Every proof here is worked out in full, line by line, so it can be verified rather than believed. Every source is plain text that will still compile in fifty years. Nothing here asks you to trust it. Everything here invites you to follow the argument and see for yourself.</p>
           <div class="story-pull">&ldquo;The essence of mathematics lies in its freedom.&rdquo; &mdash; Georg Cantor</div>
-          <p>The archive is the record of a process. Not a monument to conclusions, but a map of a journey still in progress. It contains mathematics because mathematics is where I began — and because mathematics has the property, unique among disciplines, of absolute proof. But it also gestures toward science, toward literature, toward the full range of what a person who loves knowledge might want to understand. If someone else reads these notes and finds them useful, that is a gift I did not anticipate. The primary reader was always a future version of myself — one who has forgotten the details, but not the conviction that the details are worth knowing.</p>
-          <div class="story-pull">&ldquo;Tell me and I forget, teach me and I may remember, involve me and I learn.&rdquo; &mdash; Benjamin Franklin</div>
-        </div>`,
+          <p>That is the wager: that the antidote to knowledge-as-enclosure is knowledge-as-commons &mdash; understanding that is open, legible, and held in human hands rather than rented from a black box. Use the machines; they are extraordinary, and refusing them would be its own kind of foolishness. But keep the capacity to reason without them. Keep proofs you can read. Keep notes you actually understand. Keep, somewhere, a record that belongs to you.</p>
+          <p>The world is beautiful, and it is becoming legible faster than at any moment in history. Whether that legibility liberates us or captures us will not be decided by the technology. It will be decided by how many people insist on understanding for themselves &mdash; and by whether the knowledge that is fast becoming the currency of everything stays, in the end, a thing that is shared. This is one small vote for the open door.</p>
+        </div>
+      `,
       hu: `
         <div class="story-section">
-          <h2>A feljegyzés ösztönéről</h2>
-          <p>Van egy pillanat, amelyet minden matematikával foglalkozó ember ismer — az a pillanat, amikor egy bizonyítás végre bezárul, amikor az utolsó sor elkerülhetetlenül következik az elsőből, és az egész érvelés úgy áll előtted, mint egy katedrális: teljes, teherhordó, javíthatatlan. Az ezt követő ösztön szinte testi: írd le. Nem azért, mert félsz elfelejteni — pedig el fogod felejteni —, hanem mert a dolog megérdemli, hogy a saját fejedtől függetlenül is létezzen, olyan formában, amely túléli a délután sürgősségét.</p>
-          <p>De ugyanez az ösztön — a múlandó rögzítésének vágya, a törékenynek állandóvá tétele — nem csak a matematikáé. A költő azért ír le egy sort, hogy megfogja, mielőtt eloszlik. A festő azért vázol, hogy megállítson egy megfigyelést, mielőtt eltávozik. A biológus azért nevez el egy fajt, hogy egy személyes észlelésből közös tényt csináljon. A feljegyzés az egyik legemberibb cselekedet: az élményt tudássá, a tudást hagyománnyá, a hagyományt civilizációvá alakítja.</p>
-          <div class="story-pull">&bdquo;A matematika művészete abban áll, hogy különböző dolgoknak ugyanazt a nevet adjuk.&rdquo; &mdash; Henri Poincaré</div>
-          <p>Ez az archívum pontosan abból az ösztönből született, amely éveken és tantárgyakon át ismétlődött. Egy lejegyzet itt, egy levezetés ott. Egy bizonyítás, amelynek megértéséhez három hét kellett, de két gondos oldalra sűrítve. Egy tétel, amelynek állítását százszor láttam, de amelynek bizonyítását sohasem láttam igazán — egészen addig, amíg le nem ültem és magam nem írtam meg, sorról sorra, a saját jelölésrendszeremben. Ami meglepett, az volt, mennyire megváltoztatja az írás aktusa a megértés aktusát. Egy bizonyítást leírni annyi, mint vallatóra fogni; minden kihagyás, amelyet olvasáskor megengedsz magadnak, olyan hézag, amelyet írásban be kell töltened.</p>
+          <h2>A világ szépségéről</h2>
+          <p>Kezdjük a kézzelfogható, mégis lélegzetelállító ténnyel: van valami a semmi helyett &mdash; és ez a valami gyönyörű. A fény megtörik egy esőcseppben, és kihullik belőle a teljes színkép. A nautilusz logaritmikus spirálban növeszti a házát, anélkül, hogy valaha tankönyvet olvasott volna. A hó hatszöges szimmetriába rendeződik, miközben aláhullik. Az éjszakai égbolt &mdash; ha elhagyod a várost, és valóban felnézel &mdash; nem díszlet: a mély múlt, amely fényként érkezik meg, fotonokként, amelyek még azelőtt indultak el a csillagaikról, hogy lettek volna szemek, amelyek befogadják őket. Élni és figyelni annyi, mint ingyen megkapni a leghihetetlenebb ajándékot.</p>
+          <div class="story-pull">&bdquo;A legszebb dolog, amit átélhetünk, a titokzatosság.&rdquo; &mdash; Albert Einstein</div>
+          <p>És a legmélyebb szépség az, hogy a világ olvasható. Pedig nem kellett volna annak lennie. Ugyanaz a néhány törvény, amely a lehulló almát mozgatja, irányítja a galaxisokat is; ugyanaz a kód, amely egy baktériumot leír, leír egy kék bálnát és az embert is, aki épp ezt a mondatot olvassa. A világegyetem olyan nyelven íródott, amelyet erőfeszítéssel megtanulhatunk olvasni &mdash; és minden bebizonyított tétel, minden megmért színkép, minden kormeghatározott kövület egy újabb lefordított szó. A megértés nem a világ csodájából való menekülés. A megértés az a mód, ahogyan a csoda elmélyül.</p>
         </div>
         <div class="story-section">
-          <h2>A matematika szépségéről</h2>
-          <p>Nem mindig hittem abban, hogy a matematika szép. Eleinte csupán nehéznek tűnt — szabályok és kivételek tudománya, megjegyzendő technikák és végrehajtandó eljárások. Csak később, amikor a technikák annyira folyékonnyá váltak, hogy a háttérbe húzódhattak, vált láthatóvá a matematika valódi szerkezete. És az a szerkezet megdöbbentő volt.</p>
-          <div class="story-pull">&bdquo;A matematikus nem azért tanulmányozza a tiszta matematikát, mert hasznos; azért tanulmányozza, mert gyönyörűséget lel benne, és azért lel benne gyönyörűséget, mert szép.&rdquo; &mdash; Henri Poincaré</div>
-          <p>Ott van a tiszta meglepetés szépsége: hogy a négyzetszámok reciprokösszege pontosan &pi;&sup2;/6-hoz konvergál — egy tény, amely az egész számokat a körrel kapcsolja össze, látszólag minden ok nélkül. Ott van a mély egység szépsége: hogy ugyanazok a csoportelméleti struktúrák irányítják egy kristály szimmetriáit, egy polinom megoldásait és az anyag alapvető részecskéit. Ott van a váratlan találkozás szépsége: Euler-azonossága, e<sup>i&pi;</sup> + 1 = 0, öt alapvető konstanst — e-t, i-t, &pi;-t, 1-et, 0-t — egyetlen egyenletbe sűrít, amely első találkozásra csodának, századikra elkerülhetetlennek tűnik.</p>
-          <div class="story-pull">&bdquo;Nem a tudás, hanem a tanulás aktusa — nem a birtok, hanem az odaérés aktusa — nyújtja a legnagyobb örömöt.&rdquo; &mdash; Carl Friedrich Gauss</div>
-          <p>A Riemann-sejtés azt kérdezi, hogy a zéta-függvény &zeta;(s) összes nem-triviális zérusa a Re(s) = 1/2 kritikus egyenesen fekszik-e. 1859-ben fogalmazták meg. Ma is megoldatlan. A Clay Matematikai Intézet egymillió dollárt kínál a bizonyításáért. Még megdöbbentőbb a kérdés mélysége: számelméletből komplex analízisen át fizikáig nyúlik, azt sejtetve, hogy a prímszámok — az aritmetika eme elemi tényei — valami olyasmit kódolnak a világegyetemről, amit még nem értünk.</p>
+          <h2>A tudás pénznemmé válik</h2>
+          <p>A történelem nagy részében a tudás azért volt szűkös, mert nehéz volt lemásolni. Egyetlen kézirat őrizhette egy bizonyítás egyetlen feljegyzését; egy céh nemzedékeken át titokban tarthatott egy eljárást; egy könyvtár leéghetett, és magával vihette egy civilizáció emlékezetét. Aztán jött a sokak számára való írás, majd a nyomtatás, majd a hálózat &mdash; és egy igaz dolog lemásolásának költsége évszázadról évszázadra a nulla felé zuhant. Most ennek a hosszú zuhanásnak a legkülönösebb pillanatát éljük: azt, amikor maga a tudás válik a csere közegévé.</p>
+          <div class="story-pull">&bdquo;A tudás hatalom.&rdquo; &mdash; Francis Bacon</div>
+          <p>Figyeld meg, mivel kereskednek valójában a gazdaság peremén, és többé nem elsősorban földdel, munkával vagy a régi értelemben vett tőkével. Modellekkel, adathalmazokkal, súlyokkal, szabadalmakkal, folyamatokkal &mdash; lepárolt és működőképes megértéssel. A mesterséges intelligencia ennek a váltásnak a motorja: olyan technológia, amelynek teljes szubsztanciája tömörített tudás, és amelynek kimenete ugyanebből még több, igény szerint, méretarányosan. Amikor egy gép képes magában tartani szinte minden valaha megírt tanulmány lényegét, és másodpercek alatt érvelni róla, a tudás többé nem pusztán erény. Szó szerint értékes &mdash; az, ami időt, mozgásteret, szabadságot és hatalmat vásárol.</p>
+          <p>Ez első pillantásra pompás örökség. Egy diák bármelyik faluban, internetkapcsolattal, most megidézhet egy türelmes tanárt, aki az egész könyvtárat elolvasta. Egy kutató leadhatja a robotmunkát, és megtarthatja a felismerést. Aki egyszerűen csak rácsodálkozik valamire, kérdezhet, és választ kaphat. A történelem legszűkösebb erőforrása &mdash; a szakértői megértés &mdash; először van azon a ponton, hogy bőségessé váljon.</p>
         </div>
         <div class="story-section">
-          <h2>A természettudományok szépségéről</h2>
-          <p>A természettudományok a matematikával együtt a jelenségek mögötti struktúra felkutatásával foglalkoznak, de hozzátesznek valamit, amit a matematika egyedül nem tud megadni: a valósággal való érintkezés sokkját. Amikor Galilei két gömböt dobott le a Pisai Ferde Toronyból, vagy teleszkópját Jupiterre irányítva négy holdat talált, amelyek nem a Föld körül keringenek, valami újat tett a gondolkodás történetében: ragaszkodott ahhoz, hogy az univerzumnak van végső szava, és hogy egyetlen érv, bármilyen elegáns is, nem írhatja felül.</p>
-          <div class="story-pull">&bdquo;A legszebb dolog, amit átélhetünk, a titokzatos. Ez minden igaz művészet és tudomány forrása.&rdquo; &mdash; Albert Einstein</div>
-          <p>A periódusos rendszer — az elemek rácsozata hidrogéntől az oganezszonig — a tudástörténet egyik legsűrűbb és legtermékennyebb tárgya. Mengyelejev 1869-ben rendezte el, és hézagokat hagyott — nem tudatlanságból, hanem bizalomból, megjósolva három még felfedezetlen elemet. Amikor a galliumot, szkandiumot és germániumot izolálták, és szinte pontosan illeszkedtek az előrejelzéseihez, ez volt az egyik legtisztább megerősítés, amelyet a tudomány valaha kapott: egy elmélet, amely nem csak magyaráz, hanem megjósol. A táblázat ugyanolyan okból szép, mint egy jól megkomponált zenei mű: az elemek elrendezésében egy mintát tár fel, amely mindig is ott volt, csak meg kellett látni.</p>
+          <h2>A küszöbön álló disztópia</h2>
+          <p>De egy pénznemet fel lehet halmozni, el lehet értékteleníteni és hamisítani lehet &mdash; és ezzel sincs másként. Éppen azok az erők, amelyek a tudás demokratizálását ígérik, egy apró fordulattal szorosabban összpontosíthatják azt, mint bármely céh valaha. Ha a megértés hatalom, akkor aki a megértést hordozó modelleket birtokolja, a jövő nagy részét birtokolja &mdash; és azokat a gépeket, amelyek az egész könyvtárat olvassák, nem olcsó megépíteni. A veszély nem az, hogy kialszanak a fények. Hanem az, hogy egyeseknek felkapcsolják, másoknak pedig csendben lehalványítják őket.</p>
+          <div class="story-pull">&bdquo;Aki feladja a lényegi szabadságot egy kis átmeneti biztonságért, egyiket sem érdemli.&rdquo; &mdash; Benjamin Franklin</div>
+          <p>Képzeld el a kudarc forgatókönyveit, mert nem tudományos-fantasztikum; a már most látható tendenciák egyenes vonalú meghosszabbításai. Falak és fizetőkapuk mögé zárt tudás, amíg a kíváncsiság előfizetéssé nem válik. Néhány rendszer, amely megszabja, mit szabad tudnia milliárdoknak, miközben az érvelésük átláthatatlan, az ösztönzőik kimondatlanok, a hibáik pedig a hálózat sebességével terjednek. Emberek, akik nemcsak a számolásukat, hanem az ítélőképességüket is kiszervezik, amíg a független gondolkodás izma el nem sorvad a használat hiányától. Kényelemnek álcázott megfigyelés. Igazság, amelyet az dönt el, aki a legnagyobb modellt tanítja be. Egy világ, amelyben minden kérdésre azonnal elérhető a válasz, és szinte senki sem emlékszik már, hogyan kell ellenőrizni.</p>
+          <p>A legkegyetlenebb változat a legcsendesebb. Nem csizma egy arcon, hanem lágy és teljes függőség &mdash; egy civilizáció, amely már nem tudja levezetni a saját eredményeit, megjavítani a saját eszközeit, vagy felidézni a saját okait, és így csak bíznia kell a jósdában, remélve, hogy kegyes marad. Egy nép, amely elfelejtett tudni, nem szabad, bármilyen kényelmesen él is. Birtokolják.</p>
         </div>
         <div class="story-section">
-          <h2>A művészetek szépségéről</h2>
-          <p>Téves lenne a természettudományokat és a matematikát túl élesen elválasztani a művészetektől. Az emberi kifejezés történelme nem két kultúra, hanem egy nyugtalan, mintákat kereső elme történelme, amely különböző regiszterekben dolgozik. Bach ellenpont-technikája és Euler analízise ugyanazt a struktúra és transzformáció iránti megszállottságot osztja. A fúga és a bizonyítás egyaránt azt kérdezi: adottak ezek a kényszerek — mi következik szükségszerűen? A válasz mindkét esetben meglepőnek és elkerülhetetlennek kell tűnnie egyszerre.</p>
-          <div class="story-pull">&bdquo;Zene nélkül az élet tévedés lenne.&rdquo; &mdash; Friedrich Nietzsche</div>
-          <p>Shakespeare szonettjei nem csupán érzések kinyilvánításai; érvelések — a kilencedik sorban forduló volta ugyanúgy fordít, ahogy egy lemma fordul a bizonyításban. Vermeer fényhasználata a Gyöngyös fülbevalós lányban egy Newton előtt fizikafelfogást feltételez implicit módon. A Parthenon arányai geometriai összefüggéseket kódolnak, amelyek ma is jutalmazzák az elemzést. Az építészet a legjobb formájában alkalmazott matematika, amelybe be lehet lakni. A zene a legjobb formájában arányok által tagolt idő.</p>
-          <div class="story-pull">&bdquo;A művészet az a hazugság, amelynek segítségével felismerjük az igazságot.&rdquo; &mdash; Pablo Picasso</div>
-          <p>Amit a művészetek kínálnak, amit az egyenletek nem tudnak megadni, az a megtestesített tudás — megértés, amely nem érvelésen, hanem tapasztalaton át érkezik. Egy összhangzatról szóló tétel mindent el tud mondani egy intervallumról, de semmit arról, hogyan hat egy akkord, amelyet egy csendes időszak után hallunk először. Mindkét fajta tudás valódi. Mindkettő hiányos a másik nélkül.</p>
-        </div>
-        <div class="story-section">
-          <h2>A LaTeX módszeréről</h2>
-          <p>Az archívum minden dokumentumát LaTeX-ben írtam — nem szokásból vagy tehetetlenségből, hanem mert a médium alakítja a gondolatot. Egy képletet helyesen szedni annyi, mint megérteni a szerkezetét. A forrásfájl fegyelme a pontosság fegyelme. Van valami helyes a sima szöveg állandóságában is: egy 1990-ben írt LaTeX forrásfájl ma, változatlanul, lefordul. A matematika nem bomlik el. Az Euler, Gauss és Riemann által felállított tételek ugyanolyan igazak ma, mint a bizonyításuk napján — ugyanolyan igazak, mint amilyen napon Shakespeare megírt egy szonettet, vagy Beethoven felvázolta az Ötödik szimfónia nyitányát.</p>
-          <div class="story-pull">&bdquo;A tiszta matematika a maga módján a logikai eszmék költészete.&rdquo; &mdash; Albert Einstein</div>
-        </div>
-        <div class="story-section">
-          <h2>Mire való egy archívum</h2>
-          <p>Hermann Weyl a matematikát a végtelen tudományaként írta le — azt a diszciplínát, amelyen keresztül a véges és halandó emberi elme olyan struktúrák felé nyúl, amelyek meghaladják azt. De ugyanez a leírás érvényes, úgy gondolom, az emberi tudás egész projektjére. Minden vers kísérlet arra, hogy kimondjon valamit, ami ellenáll a kimondásnak. Minden bizonyítás kísérlet arra, hogy megállapítson valamit, ami meghaladja a bizonyítót. Minden tudományos elmélet egy valóság modellje, amely túl nagy ahhoz, hogy teljesen a fejben tarthassuk.</p>
+          <h2>Az archívum egy elutasítás</h2>
+          <p>Mit tesz hát egyetlen ember, ott állva a bőség és a bekerítés közötti fordulóponton? Ugyanazt, amit az emberek mindig is tettek, amikor valami értékes elveszhetett vagy fogságba eshetett: leírja, nyíltan, olyan formában, amely ellenőrizhető. Ez az archívum kicsi, az erők pedig nagyok, és pontosan ez az aszimmetria a lényeg. Itt minden bizonyítás teljesen ki van dolgozva, sorról sorra, hogy ellenőrizni lehessen, ne pedig elhinni. Minden forrás egyszerű szöveg, amely ötven év múlva is lefordítható. Itt semmi sem kéri, hogy higgy neki. Itt minden arra hív, hogy kövesd az érvelést, és lásd a saját szemeddel.</p>
           <div class="story-pull">&bdquo;A matematika lényege a szabadságában rejlik.&rdquo; &mdash; Georg Cantor</div>
-          <p>Az archívum egy folyamat leírata. Nem a következtetések emlékműve, hanem egy még folyamatban lévő utazás térképe. Matematikát tartalmaz, mert a matematikával kezdtem — és mert a matematikának megvan az a tulajdonsága, amely egyedülálló a diszciplínák között: az abszolút bizonyítás. De gesztikulál a természettudomány, az irodalom, az emberi tudás teljes spektruma felé is. Ha valaki más is olvassa ezeket a feljegyzéseket és hasznosnak találja, az egy váratlan ajándék. Az elsődleges olvasó mindig egy jövőbeli önmagam volt — olyan valaki, aki elfelejtette a részleteket, de nem azt a meggyőződést, hogy a részletek megismerése érdemes.</p>
-          <div class="story-pull">&bdquo;Mondd el és elfelejtem, taníts meg és talán emlékezni fogok, vonj be és megtanulom.&rdquo; &mdash; Benjamin Franklin</div>
-        </div>`,
+          <p>Ez a tét: hogy a tudás-mint-bekerítés ellenszere a tudás-mint-közjó &mdash; olyan megértés, amely nyílt, olvasható, és emberi kézben van, nem pedig egy fekete dobozból bérelt. Használd a gépeket; rendkívüliek, és elutasításuk a maga módján ostobaság lenne. De őrizd meg a képességet, hogy nélkülük is gondolkodj. Őrizz meg bizonyításokat, amelyeket el tudsz olvasni. Őrizz meg jegyzeteket, amelyeket valóban értesz. Őrizz meg valahol egy feljegyzést, amely a tiéd.</p>
+          <p>A világ gyönyörű, és gyorsabban válik olvashatóvá, mint a történelem bármely pillanatában. Hogy ez az olvashatóság felszabadít vagy fogságba ejt minket, azt nem a technológia fogja eldönteni. Azt fogja eldönteni, hányan ragaszkodnak ahhoz, hogy maguk értsék meg a dolgokat &mdash; és hogy a tudás, amely sebesen mindennek a pénznemévé válik, a végén megosztott dolog marad-e. Ez egy szerény szavazat a nyitott ajtó mellett.</p>
+        </div>
+      `
     };
 
     function applyTranslations() {
@@ -2679,6 +2833,7 @@
       LANG = lang;
       localStorage.setItem('ki_lang', lang);
       applyTranslations();
+      updateAuthUI();
       // Reload tree for new language
       selection.clear();
       document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
@@ -2711,15 +2866,20 @@
 
     /* ── Theme toggle ─────────────────────────────────────────────── */
     const THEME_KEY = 'ki_theme';
+    const THEMES = ['dark', 'light', 'teal'];
+    function currentThemeName() {
+      if (document.body.classList.contains('light'))      return 'light';
+      if (document.body.classList.contains('theme-teal')) return 'teal';
+      return 'dark';
+    }
     function applyTheme(theme) {
-      if (theme === 'light') document.body.classList.add('light');
-      else                   document.body.classList.remove('light');
+      if (!THEMES.includes(theme)) theme = 'dark';
+      document.body.classList.remove('light', 'theme-teal');
+      if (theme === 'light')     document.body.classList.add('light');
+      else if (theme === 'teal') document.body.classList.add('theme-teal');
       localStorage.setItem(THEME_KEY, theme);
-      // Re-render current PDF page so dark/light filter applies immediately
-      /*if (typeof renderPage === 'function' && typeof pdfDoc !== 'undefined' && pdfDoc) {
-        pdfRendering = false; // allow re-render even if last was pending
-        renderPage(pdfPage);
-      }*/
+      // Re-render the open PDF so the dark/light page treatment updates immediately.
+      if (window._rerenderPdfTheme) window._rerenderPdfTheme();
     }
     // Load persisted theme — fall back to OS preference
     const osPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -2732,7 +2892,8 @@
       });
     }
     document.getElementById('themeToggle').addEventListener('click', () => {
-      applyTheme(document.body.classList.contains('light') ? 'dark' : 'light');
+      // The standard toggle only flips light/dark; Teal is selectable in Settings.
+      applyTheme(currentThemeName() === 'light' ? 'dark' : 'light');
     });
 
     /* ── Cursor ─────────────────────────────────────────────────────── */
@@ -2897,7 +3058,7 @@
     let sectionOrder = JSON.parse(localStorage.getItem('ki_section_order') || 'null');
     let sectionBy    = localStorage.getItem('ki_section_by') || 'type'; // 'type' | 'subject'
     // Material language: 'en' | 'both' | 'hu'
-    let MAT_LANG = localStorage.getItem('ki_mat_lang') || 'en';
+    let MAT_LANG = localStorage.getItem('ki_mat_lang') || (LANG === 'hu' ? 'hu' : 'en');
 
     /* ── Media extension helpers ────────────────────────────────────────────── */
     const AUDIO_EXTS = new Set(['.mp3','.ogg','.wav','.flac','.m4a','.aac']);
@@ -3131,7 +3292,7 @@
       const isBilingual = MAT_LANG === 'both' && item.enAvailable && item.huAvailable;
       // After server-side remapping, item.enAvailable always means "primary lang available"
       // isGreyed = primary not available but alternate is
-      const isGreyed = (item.enAvailable === false && item.huAvailable === true);
+      const isGreyed = MAT_LANG === 'both' && (!!item.enAvailable !== !!item.huAvailable);
 
       // If covered by a folder, show covered style (even if also individually selected)
       card.className = 'card'
@@ -3183,6 +3344,7 @@
           <div class="card-meta">
             <span class="card-badge" style="color:var(--${cv})">${badge}</span>
             <span class="card-count">${meta}</span>
+            ${item.visibility === 'members' ? '<span class="card-members" title="Members only">\uD83D\uDD12</span>' : ''}
           </div>
           ${tagsHtml}
         </div>
@@ -3214,15 +3376,9 @@
           e.stopPropagation();
           const splitLang = half.dataset.splitLang;
           if (splitLang === 'hu') {
-            const p = item.huPath || item.path;
-            const n = item.huName || item.name;
-            const huItem = { ...item, path: p, name: n, _lang: 'hu', enAvailable: true };
-            handleClick(huItem);
+            handleClick({ ...item, path: item.huPath || item.path, name: item.huName || item.name, _forceLang: 'hu' });
           } else {
-            const p = item.enPath || item.path;
-            const n = item.enName || item.name;
-            const enItem = { ...item, path: p, name: n, _lang: 'en', enAvailable: true };
-            handleClick(enItem);
+            handleClick({ ...item, path: item.enPath || item.path, name: item.enName || item.name, _forceLang: 'en' });
           }
         });
       });
@@ -3267,20 +3423,6 @@
     }
 
     function handleClick(item) {
-      // Greyed card: primary language not available, open the other language version
-      const _itemGreyed = (MAT_LANG === 'en' && item.enAvailable === false && item.huAvailable)
-                       || (MAT_LANG === 'hu' && item.enAvailable === false && item.huAvailable);
-      if (_itemGreyed) {
-        // huPath in HU-primary mode has been remapped to the actual available path
-        const altPath = item.huPath || item.enPath;
-        const altName = item.huName || item.enName || item.name;
-        const altLang = MAT_LANG === 'hu' ? 'en' : 'hu';
-        if (altPath) {
-          const altItem = { ...item, path: altPath, name: altName, _lang: altLang };
-          return handleClick(altItem);
-        }
-        return;
-      }
       if (item.type==='folder') {
         clearSearch();
         pathStack.push(item); currentNode = item;
@@ -3292,14 +3434,28 @@
         }
         return;
       }
+      // EN and HU are equal. Decide path + language to open:
+      //  • _forceLang (split-card half / context menu) wins;
+      //  • in 'both' mode open the available primary (prefer EN);
+      //  • in a solo mode the node carries its own `lang`.
+      let openPath = item.path, openName = item.name, openLang;
+      if (item._forceLang) {
+        openLang = item._forceLang;
+      } else if (MAT_LANG === 'both') {
+        if (item.enAvailable && item.enPath)      { openLang = 'en'; openPath = item.enPath; openName = item.enName || item.name; }
+        else if (item.huAvailable && item.huPath) { openLang = 'hu'; openPath = item.huPath; openName = item.huName || item.name; }
+        else openLang = item.lang || LANG;
+      } else {
+        openLang = item.lang || (MAT_LANG === 'hu' ? 'hu' : 'en');
+      }
       const ext = (item.ext||'').toLowerCase();
-      if (['.tex','.sty','.cls'].includes(ext)) { openPdfViewer(item.path, item.name, item._lang); return; }
-      if (ext==='.pdf') { openPdfDirect('/data/'+encPath(item.path)+'?lang='+(item._lang||LANG), item.name, item._lang); return; }
-      if (['.bib','.md','.txt'].includes(ext)) { openCodeViewer(item.path, item.name, item._lang); return; }
+      if (['.tex','.sty','.cls'].includes(ext)) { openPdfViewer(openPath, openName, openLang, item); return; }
+      if (ext==='.pdf') { openPdfDirect('/data/'+encPath(openPath)+'?lang='+openLang, openName); return; }
+      if (['.bib','.md','.txt'].includes(ext)) { openCodeViewer(openPath, openName, openLang); return; }
       if (IMAGE_EXTS_SET.has(ext)) { openMediaModal(item, 'image'); return; }
       if (AUDIO_EXTS.has(ext))     { openMediaModal(item, 'audio'); return; }
       if (VIDEO_EXTS.has(ext))     { openMediaModal(item, 'video'); return; }
-      window.open('/data/'+encPath(item.path),'_blank');
+      window.open('/data/'+encPath(openPath)+'?lang='+openLang,'_blank');
     }
 
     /* ── Load Tree ──────────────────────────────────────────────────── */
@@ -3323,6 +3479,148 @@
       }
     }
 
+    /* ── Member sign-in ─────────────────────────────────────────────── */
+    const AUTH = { user: null, role: null };
+    const authModal = document.getElementById('authModal');
+    function updateAuthUI() {
+      const lbl = document.querySelector('#authBtn .auth-label');
+      if (lbl) lbl.textContent = AUTH.user || t('authSignIn');
+      const mob = document.getElementById('authBtnMob');
+      if (mob) mob.textContent = AUTH.user ? t('authSignOut') : t('authSignIn');
+      document.body.classList.toggle('logged-in', !!AUTH.user);
+    }
+    async function refreshAuth() {
+      try {
+        const res = await fetch('/api/me');
+        const data = await res.json();
+        AUTH.user = data && data.ok ? data.username : null;
+        AUTH.role = data ? data.role : null;
+      } catch { AUTH.user = null; AUTH.role = null; }
+      updateAuthUI();
+    }
+    function showAuthView(which) {
+      const out = document.getElementById('authViewOut');
+      const reg = document.getElementById('authViewReg');
+      const inv = document.getElementById('authViewIn');
+      if (out) out.style.display = which === 'signin'   ? '' : 'none';
+      if (reg) reg.style.display = which === 'register' ? '' : 'none';
+      if (inv) inv.style.display = which === 'in'       ? '' : 'none';
+    }
+    function openAuthModal() {
+      if (AUTH.user) {
+        showAuthView('in');
+        document.getElementById('authWho').textContent = AUTH.user;
+        const acp = document.getElementById('acpBlock');
+        if (acp) acp.style.display = AUTH.role === 'admin' ? 'none' : '';
+        ['acpOld','acpNew'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        const m = document.getElementById('acpMsg'); if (m) { m.textContent = ''; m.className = 'auth-err'; }
+      } else {
+        showAuthView('signin');
+        document.getElementById('authErr').textContent = '';
+        document.getElementById('authUserInput').value = '';
+        document.getElementById('authPassInput').value = '';
+      }
+      applyTranslations();
+      if (authModal) authModal.classList.add('open');
+      // Never auto-focus on touch devices — prevents the iOS keyboard popping up and zooming.
+      const fine = window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+      if (!AUTH.user && fine) setTimeout(() => { const el = document.getElementById('authUserInput'); if (el) el.focus(); }, 60);
+    }
+    function closeAuthModal() { if (authModal) authModal.classList.remove('open'); }
+    async function submitLogin() {
+      const u = document.getElementById('authUserInput').value.trim();
+      const p = document.getElementById('authPassInput').value;
+      const err = document.getElementById('authErr');
+      const btn = document.getElementById('authSubmit');
+      if (!u || !p) { err.textContent = t('authBadInput'); return; }
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, password: p }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) { err.textContent = t('authBadCreds'); btn.disabled = false; return; }
+        AUTH.user = data.username; AUTH.role = data.role;
+        updateAuthUI(); closeAuthModal();
+        showToast(t('authToastIn')(AUTH.user));
+        loadTree();
+      } catch { err.textContent = t('authBadCreds'); }
+      finally { btn.disabled = false; }
+    }
+    async function signOut() {
+      try { await fetch('/api/logout', { method: 'POST' }); } catch {}
+      AUTH.user = null; AUTH.role = null;
+      updateAuthUI(); closeAuthModal();
+      showToast(t('authToastOut'));
+      loadTree();
+    }
+    async function submitRegister() {
+      const u = document.getElementById('regUserInput').value.trim();
+      const p = document.getElementById('regPassInput').value;
+      const p2 = document.getElementById('regPass2Input').value;
+      const err = document.getElementById('regErr'); err.className = 'auth-err';
+      if (!u || !p) { err.textContent = t('authBadInput'); return; }
+      if (p !== p2) { err.textContent = t('authRegMismatch'); return; }
+      if (p.length < 8) { err.textContent = t('authPwShort'); return; }
+      const btn = document.getElementById('regSubmit'); btn.disabled = true;
+      try {
+        const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, password: p }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) { err.textContent = data.error || t('authBadInput'); btn.disabled = false; return; }
+        AUTH.user = data.username; AUTH.role = data.role;
+        updateAuthUI(); closeAuthModal();
+        showToast(t('authToastIn')(AUTH.user));
+        loadTree();
+      } catch { err.textContent = t('authBadCreds'); }
+      finally { btn.disabled = false; }
+    }
+    async function submitChangePw() {
+      const oldp = document.getElementById('acpOld').value;
+      const newp = document.getElementById('acpNew').value;
+      const msg = document.getElementById('acpMsg'); msg.className = 'auth-err';
+      if (!oldp || !newp) { msg.textContent = t('authBadInput'); return; }
+      if (newp.length < 8) { msg.textContent = t('authPwShort'); return; }
+      const btn = document.getElementById('acpSubmit'); btn.disabled = true;
+      try {
+        const res = await fetch('/api/account/password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ oldPassword: oldp, newPassword: newp }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) { msg.textContent = data.error || t('authBadInput'); btn.disabled = false; return; }
+        msg.className = 'auth-ok'; msg.textContent = t('authPwChanged');
+        document.getElementById('acpOld').value = ''; document.getElementById('acpNew').value = '';
+      } catch { msg.textContent = t('authBadCreds'); }
+      finally { btn.disabled = false; }
+    }
+    function wireAuthEyes() {
+      const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+      const OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+      document.querySelectorAll('.auth-eye').forEach(btn => {
+        if (btn._wired) return; btn._wired = true;
+        btn.innerHTML = EYE;
+        btn.addEventListener('click', () => {
+          const inp = document.getElementById(btn.dataset.eye);
+          if (!inp) return;
+          const reveal = inp.type === 'password';
+          inp.type = reveal ? 'text' : 'password';
+          btn.innerHTML = reveal ? OFF : EYE;
+          btn.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+        });
+      });
+    }
+    (function() {
+      const ab = document.getElementById('authBtn');      if (ab) ab.addEventListener('click', openAuthModal);
+      const am = document.getElementById('authBtnMob');   if (am) am.addEventListener('click', openAuthModal);
+      const ax = document.getElementById('authClose');    if (ax) ax.addEventListener('click', closeAuthModal);
+      const bd = document.getElementById('authBd');       if (bd) bd.addEventListener('click', closeAuthModal);
+      const sub = document.getElementById('authSubmit');  if (sub) sub.addEventListener('click', submitLogin);
+      const so = document.getElementById('authSignOut');  if (so) so.addEventListener('click', signOut);
+      const pi = document.getElementById('authPassInput'); if (pi) pi.addEventListener('keydown', e => { if (e.key === 'Enter') submitLogin(); });
+      const toReg = document.getElementById('authToReg');     if (toReg) toReg.addEventListener('click', () => { showAuthView('register'); const re = document.getElementById('regErr'); if (re) re.textContent = ''; });
+      const toSi  = document.getElementById('authToSignin');  if (toSi) toSi.addEventListener('click', () => showAuthView('signin'));
+      const rsub  = document.getElementById('regSubmit');     if (rsub) rsub.addEventListener('click', submitRegister);
+      const rp2   = document.getElementById('regPass2Input'); if (rp2) rp2.addEventListener('keydown', e => { if (e.key === 'Enter') submitRegister(); });
+      const acps  = document.getElementById('acpSubmit');     if (acps) acps.addEventListener('click', submitChangePw);
+      const acpn  = document.getElementById('acpNew');        if (acpn) acpn.addEventListener('keydown', e => { if (e.key === 'Enter') submitChangePw(); });
+      wireAuthEyes();
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && authModal && authModal.classList.contains('open')) closeAuthModal(); });
+    })();
     /* ════════════════════════════════════════════════════════════════
        PDF VIEWER
     ═════════════════════════════════════════════════════════════════ */
@@ -3339,10 +3637,56 @@
     let pdfBytes      = null;  // stored for download/print
     let pdfCurrentName= '';
     let pdfCurrentPath= '';    // tex path for re-compile / source view
+    let pdfCurrentLang= 'en';  // material language of the open document
+    let pdfViewerCtx  = null;  // { enPath,enName,huPath,huName,enAvailable,huAvailable,curLang }
 
-    function openPdfViewer(texPath, texName, fileLang) {
+    // Build the viewer's language context from the clicked item so the EN/HU
+    // toggle inside the viewer can recompile the counterpart document.
+    function setPdfViewerCtx(item, texPath, texName, lang) {
+      if (item) {
+        pdfViewerCtx = {
+          enPath: item.enPath || (item.lang === 'en' ? item.path : null),
+          enName: item.enName || (item.lang === 'en' ? item.name : null),
+          huPath: item.huPath || (item.lang === 'hu' ? item.path : null),
+          huName: item.huName || (item.lang === 'hu' ? item.name : null),
+          enAvailable: item.enAvailable !== undefined ? !!item.enAvailable : (lang === 'en'),
+          huAvailable: item.huAvailable !== undefined ? !!item.huAvailable : (lang === 'hu'),
+          curLang: lang,
+        };
+      } else {
+        pdfViewerCtx = {
+          enPath: lang === 'en' ? texPath : null, enName: lang === 'en' ? texName : null,
+          huPath: lang === 'hu' ? texPath : null, huName: lang === 'hu' ? texName : null,
+          enAvailable: lang !== 'hu', huAvailable: lang === 'hu', curLang: lang,
+        };
+      }
+    }
+
+    // Switch the open document to its counterpart in the other language.
+    function switchPdfMaterialLang(targetLang) {
+      if (!pdfViewerCtx || targetLang === pdfViewerCtx.curLang) return;
+      const tgtPath  = targetLang === 'en' ? pdfViewerCtx.enPath : pdfViewerCtx.huPath;
+      const tgtName  = targetLang === 'en' ? pdfViewerCtx.enName : pdfViewerCtx.huName;
+      const tgtAvail = targetLang === 'en' ? pdfViewerCtx.enAvailable : pdfViewerCtx.huAvailable;
+      if (!tgtAvail || !tgtPath) return;
+      pdfViewerCtx.curLang = targetLang;
+      pdfCurrentPath = tgtPath; pdfCurrentName = tgtName; pdfCurrentLang = targetLang;
+      lastFailPath = tgtPath; lastFailName = tgtName;
+      document.getElementById('pdfFilename').textContent = displayFileName(tgtName);
+      document.getElementById('pmbFilename').textContent = displayFileName(tgtName);
+      compLabel.textContent = t('compilingLabel');
+      compLog.style.display = 'none'; compLog.textContent = '';
+      pdfOverlay.classList.remove('hidden');
+      pdfDoc = null;
+      compileTex(tgtPath, targetLang);
+      if (window._syncPdfQs) window._syncPdfQs();
+    }
+
+    function openPdfViewer(texPath, texName, fileLang, item) {
       pdfCurrentPath = texPath;
       pdfCurrentName = texName;
+      pdfCurrentLang = fileLang || (item && item.lang) || LANG;
+      setPdfViewerCtx(item, texPath, texName, pdfCurrentLang);
       lastFailPath   = texPath;
       lastFailName   = texName;
       document.getElementById('pdfFilename').textContent = displayFileName(texName);
@@ -3553,6 +3897,16 @@
         }
       }).catch(e => { pdfRendering = false; pdfCanvas.classList.remove('loading-page'); });
     }
+
+    // Re-render the open PDF when the theme changes (window hook so applyTheme
+    // can call it safely before the viewer state exists at page load).
+    window._rerenderPdfTheme = function() {
+      if (!pdfDoc) return;
+      if (pdfFullDocMode) { renderFullDoc(); return; }
+      pdfRendering = false;
+      const cur = parseInt(document.getElementById('pdfPageInput').value, 10) || pdfPage || 1;
+      renderPage(cur);
+    };
 
     function updateSideNavState() {
       const prev = document.getElementById('pdfNavPrev');
@@ -3885,19 +4239,25 @@
     /* ── PDF Quick Settings wiring ──────────────────────────────────── */
     (function() {
       function syncPdfQs() {
-        // Desktop topbar
-        const qsEN = document.getElementById('pdfQsEN');
-        const qsHU = document.getElementById('pdfQsHU');
+        // Highlight by the open document's MATERIAL language; disable a side when
+        // this document has no counterpart there.
+        const cur  = (pdfViewerCtx && pdfViewerCtx.curLang) || pdfCurrentLang || LANG;
+        const enOK = pdfViewerCtx ? pdfViewerCtx.enAvailable : true;
+        const huOK = pdfViewerCtx ? pdfViewerCtx.huAvailable : true;
+        const set = (el, lang, okFlag) => {
+          if (!el) return;
+          el.classList.toggle('active', cur === lang);
+          el.disabled = !okFlag;
+          el.classList.toggle('qs-disabled', !okFlag);
+          el.title = okFlag ? '' : t('pdfLangUnavail');
+        };
+        set(document.getElementById('pdfQsEN'), 'en', enOK);
+        set(document.getElementById('pdfQsHU'), 'hu', huOK);
+        set(document.getElementById('pshQsEN'), 'en', enOK);
+        set(document.getElementById('pshQsHU'), 'hu', huOK);
         const qsDM = document.getElementById('pdfQsDocMode');
-        if (qsEN) qsEN.classList.toggle('active', LANG === 'en');
-        if (qsHU) qsHU.classList.toggle('active', LANG === 'hu');
         if (qsDM) qsDM.classList.toggle('on', pdfFullDocMode);
-        // Mobile sheet
-        const pshEN = document.getElementById('pshQsEN');
-        const pshHU = document.getElementById('pshQsHU');
         const pshDM = document.getElementById('pshQsDocMode');
-        if (pshEN) pshEN.classList.toggle('active', LANG === 'en');
-        if (pshHU) pshHU.classList.toggle('active', LANG === 'hu');
         if (pshDM) pshDM.style.borderColor = pdfFullDocMode ? 'rgba(196,161,60,.4)' : '';
       }
 
@@ -3913,12 +4273,13 @@
       wirePdfTheme('pdfQsTheme');
       wirePdfTheme('pshQsTheme');
 
-      // Language buttons in PDF
+      // Material-language buttons in PDF — switch the DOCUMENT's language
+      // (recompile the counterpart), independent of the interface language.
       function wirePdfLang(enId, huId) {
         const en = document.getElementById(enId);
         const hu = document.getElementById(huId);
-        if (en) en.addEventListener('click', () => { switchLang('en'); syncPdfQs(); });
-        if (hu) hu.addEventListener('click', () => { switchLang('hu'); syncPdfQs(); });
+        if (en) en.addEventListener('click', () => switchPdfMaterialLang('en'));
+        if (hu) hu.addEventListener('click', () => switchPdfMaterialLang('hu'));
       }
       wirePdfLang('pdfQsEN', 'pdfQsHU');
       wirePdfLang('pshQsEN', 'pshQsHU');
@@ -4560,11 +4921,12 @@
       html += `<div class="ctx-separator"></div>`;
       // Bilingual / alternate language options
       if (!isFolder) {
-        if (item.huPath && item.huAvailable) {
-          html += `<div class="ctx-item" data-action="open-hu">${I.folder} Open HU version</div>`;
+        const curLang = item._forceLang || item.lang || (MAT_LANG === 'hu' ? 'hu' : (MAT_LANG === 'en' ? 'en' : null));
+        if (item.enAvailable && item.enPath && curLang !== 'en') {
+          html += `<div class="ctx-item" data-action="open-en">${I.folder} ${t('ctxOpenEn')}</div>`;
         }
-        if (item.enPath && item.enPath !== item.path && item.enAvailable !== false) {
-          html += `<div class="ctx-item" data-action="open-en">${I.folder} Open EN version</div>`;
+        if (item.huAvailable && item.huPath && curLang !== 'hu') {
+          html += `<div class="ctx-item" data-action="open-hu">${I.folder} ${t('ctxOpenHu')}</div>`;
         }
       }
       html += `<div class="ctx-separator"></div>`;
@@ -4587,7 +4949,7 @@
         el.addEventListener('click', () => {
           const a = el.dataset.action; closeCtx();
           if (a==='open')             handleClick(item);
-          if (a==='compile')          openPdfViewer(item.path, item.name);
+          if (a==='compile')          openPdfViewer(item.path, item.name, item.lang, item);
           if (a==='open-pdf')         openPdfDirect('/data/'+encPath(item.path), item.name);
           if (a==='open-tab')    window.open('/data/'+encPath(item.path),'_blank');
           if (a==='open-media') {
@@ -4597,13 +4959,13 @@
           }
           if (a==='view-code')        openCodeViewer(item.path, item.name, item._lang);
           if (a==='select')           toggleSelectByPath(item);
-          if (a==='open-hu' && item.huPath) { const hi={...item,path:item.huPath,name:item.huName||item.name,_lang:'hu',enAvailable:true}; handleClick(hi); }
-          if (a==='open-en' && item.enPath) { const ei={...item,path:item.enPath,name:item.enName||item.name,_lang:'en',enAvailable:true}; handleClick(ei); }
+          if (a==='open-hu' && item.huPath) handleClick({ ...item, path:item.huPath, name:item.huName||item.name, _forceLang:'hu' });
+          if (a==='open-en' && item.enPath) handleClick({ ...item, path:item.enPath, name:item.enName||item.name, _forceLang:'en' });
           if (a==='deselect-parent')  toggleSelectByPath(coveringFolder);
           if (a==='share')            shareItem(item);
           if (a==='download') {
             window.open('/data/'+encPath(item.path)+'?download=1','_blank');
-            showToast(t('toastDownloading')(item.name));
+            showToast(t('toastDownloading')(displayFileName(item.name)));
           }
         });
       });
@@ -5009,7 +5371,7 @@
 
     function shareItem(item) {
       const url = buildShareUrl(item);
-      copyToClipboard(url, t('toastLinkCopied')(item.name));
+      copyToClipboard(url, t('toastLinkCopied')(displayFileName(item.name)));
     }
 
     function shareSelection() {
@@ -5325,7 +5687,7 @@
 
       function takeSnapshot() {
         return {
-          theme:        document.body.classList.contains('light') ? 'light' : 'dark',
+          theme:        currentThemeName(),
           lang:         LANG,
           matLang:      MAT_LANG,
           fullDoc:      pdfFullDocMode,
@@ -5680,9 +6042,9 @@
 
       function syncSettingsUI() {
         // Theme
-        const isLight = document.body.classList.contains('light');
+        const _theme = currentThemeName();
         document.querySelectorAll('#stgThemeSeg .stg-seg-btn').forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.theme === (isLight ? 'light' : 'dark'));
+          btn.classList.toggle('active', btn.dataset.theme === _theme);
         });
         // Language
         document.querySelectorAll('#stgLangSeg .stg-seg-btn').forEach(btn => {
@@ -5959,8 +6321,8 @@
           document.getElementById('clmAuthors').value = '';
           document.getElementById('clmImportant').checked = false;
           closeCl();
-          showToast('✓ Entry added');
-        } catch { showToast('Failed to save entry'); }
+          showToast(t('toastEntryAdded'));
+        } catch { showToast(t('toastEntrySaveFailed')); }
       });
     })();
 
@@ -5985,7 +6347,7 @@
       try {
         await fetch('/api/precompile/folder', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ folderPath:'', lang: LANG }) });
         if (LANG !== 'hu') await fetch('/api/precompile/folder', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ folderPath:'', lang:'hu' }) });
-        showToast('⟳ Precompilation queued');
+        showToast(t('toastPrecompileQueued'));
         setTimeout(fetchPrecompileStatus, 500);
       } catch {}
     });
@@ -6006,6 +6368,7 @@
     window.addEventListener('beforeunload', () => clearInterval(precompPollTimer));
 
 
+        refreshAuth();
         loadTree().then(handleHashOnLoad).catch(() => setTimeout(handleHashOnLoad, 800));
   })();
   </script>

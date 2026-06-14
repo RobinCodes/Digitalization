@@ -1,2 +1,0 @@
-- Darkish teal blue theme (appears when turning on Dark Reader when in dark mode already.)
-- Rename Notes & Articles to Articles

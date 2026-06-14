@@ -1,0 +1,27 @@
+# ── Secrets & runtime state — NEVER commit these ──────────────────────────────
+# Account stores hold salted scrypt hashes, but they should still never be public.
+admins.json
+users.json
+
+# Server-side PDF render cache
+.pdf-cache/
+
+# ── Node ──
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# ── OS / editor cruft ──
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+Tests/
+
+# ── Your real content (optional) ──────────────────────────────────────────────
+# Demo content ships under sample-data/. If you keep your *real* notes inside the
+# repository folder, uncomment these so your library stays private on GitHub:
+# /Data/
+# /DataHU/
+# /Music/
