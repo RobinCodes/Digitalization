@@ -1425,6 +1425,14 @@
     .cl-feed{padding:24px 40px 80px;max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
     @media(max-width:768px){.cl-feed{padding:16px 20px 80px}}
     .cl-entry{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;display:flex;flex-direction:column;gap:10px;animation:cardIn .35s var(--tr) both;position:relative;transition:border-color .2s}
+    .cl-entry.cl-clickable{cursor:pointer}
+    .cl-entry.cl-clickable:hover{border-color:rgba(196,161,60,.4);box-shadow:0 0 0 1px rgba(196,161,60,.08)}
+    .cl-ref{color:var(--accent);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+    .cl-ref:hover{color:var(--accent2)}
+    .cl-ref-hint{display:inline-flex;align-items:center;gap:6px;margin-top:2px;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--accent);text-transform:uppercase}
+    .cl-ref-arrow{font-size:13px;line-height:1}
+    @keyframes clFlash{0%,100%{box-shadow:0 0 0 0 rgba(196,161,60,0)}30%{box-shadow:0 0 0 3px rgba(196,161,60,.5)}}
+    .cl-flash{animation:clFlash 1.2s var(--tr)}
     .cl-entry:hover{border-color:var(--border-md)}
     .cl-entry.important{border-left:3px solid var(--accent)}
     .cl-entry-header{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
@@ -2515,6 +2523,7 @@
         clAuthors:    'Authors',
         clDate:       'Date',
         clType:       'Type',
+        clOpenRef:    'Open reference',
         clImportant:  'Important',
         clSubmit:     'Add Entry',
         clEmpty:      'No entries yet.',
@@ -2703,6 +2712,7 @@
         clAuthors:    'Szerzők',
         clDate:       'Dátum',
         clType:       'Típus',
+        clOpenRef:    'Hivatkozás megnyitása',
         clImportant:  'Fontos',
         clSubmit:     'Hozzáadás',
         clEmpty:      'Még nincs bejegyzés.',
@@ -6209,6 +6219,44 @@
        CHANGELOG PAGE
     ═════════════════════════════════════════════════════════════════ */
     let clLoaded = false, clEntries = [], clFilter = 'all';
+    let clScrollToId = null;
+
+    // Open a note directly in the right viewer (used by changelog references).
+    function openNoteByPath(notePath, lang) {
+      const name = String(notePath).split('/').pop();
+      const ext  = ('.' + (name.split('.').pop() || '')).toLowerCase();
+      const ln   = lang || 'en';
+      const item = { type: 'file', path: notePath, name, ext, lang: ln, _forceLang: ln };
+      if (['.tex', '.sty', '.cls'].includes(ext)) { openPdfViewer(notePath, name, ln, item); return; }
+      if (ext === '.pdf') { openPdfDirect('/data/' + encPath(notePath) + '?lang=' + ln, name); return; }
+      if (['.bib', '.md', '.txt'].includes(ext)) { openCodeViewer(notePath, name, ln); return; }
+      window.open('/data/' + encPath(notePath) + '?lang=' + ln, '_blank');
+    }
+
+    // Jump to whatever a changelog entry references.
+    function navigateToRef(ref) {
+      if (!ref || !ref.kind) return;
+      if (ref.kind === 'url')     { window.open(ref.target, '_blank', 'noopener'); return; }
+      if (ref.kind === 'article') { window.location.href = '/articles/' + ref.target + (ref.lang === 'hu' ? '?lang=hu' : ''); return; }
+      if (ref.kind === 'note')    { openNoteByPath(ref.target, ref.lang || 'en'); return; }
+      if (ref.kind === 'log')     { clScrollToId = ref.target; navigateTo('changelog'); return; }
+    }
+
+    // Render changelog body text, turning [label](ki://kind/target?lang=xx) tokens into links.
+    function renderRefText(raw) {
+      if (!raw) return '';
+      const re = /\[([^\]]+)\]\(ki:\/\/(\w+)\/([^)?]*)(?:\?lang=(\w+))?\)/g;
+      let out = '', last = 0, m;
+      while ((m = re.exec(raw)) !== null) {
+        out += esc(raw.slice(last, m.index)).replace(/\n/g, '<br>');
+        const label = m[1], kind = m[2], target = decodeURIComponent(m[3] || ''), lang = m[4] || '';
+        const data = esc(JSON.stringify({ kind, target, lang, label }));
+        out += '<a class="cl-ref" href="#" data-ref="' + data + '">' + esc(label) + '</a>';
+        last = re.lastIndex;
+      }
+      out += esc(raw.slice(last)).replace(/\n/g, '<br>');
+      return out;
+    }
 
     async function loadChangelog() {
       if (clLoaded) { renderChangelog(); return; }
@@ -6238,7 +6286,8 @@
       feed.innerHTML = '';
       filtered.forEach((entry, i) => {
         const el = document.createElement('div');
-        el.className = 'cl-entry' + (entry.important ? ' important' : '');
+        el.id = 'cl-' + entry.id;
+        el.className = 'cl-entry' + (entry.important ? ' important' : '') + (entry.ref ? ' cl-clickable' : '');
         el.style.animationDelay = (i * 30) + 'ms';
         const typeClass = entry.type || 'website';
         el.innerHTML = `
@@ -6246,17 +6295,30 @@
             <span class="cl-date">${entry.date || ''}</span>
             <span class="cl-type-chip ${typeClass}">${t('clFilter'+typeClass.charAt(0).toUpperCase()+typeClass.slice(1)) || typeClass}</span>
             ${entry.important ? `<span class="cl-important-chip">★ ${t('clFilterImportant')}</span>` : ''}
-            ${entry.authors && entry.authors.length ? `<span class="cl-authors">${entry.authors.join(', ')}</span>` : ''}
+            ${entry.authors && entry.authors.length ? `<span class="cl-authors">${esc(entry.authors.join(', '))}</span>` : ''}
           </div>
           <div class="cl-title">${esc(entry.title || '')}</div>
-          ${entry.body ? `<div class="cl-body">${esc(entry.body).replace(/\n/g,'<br>')}</div>` : ''}
+          ${entry.body ? `<div class="cl-body">${renderRefText(entry.body)}</div>` : ''}
+          ${entry.ref ? `<div class="cl-ref-hint"><span class="cl-ref-arrow">\u2192</span> ${esc(entry.ref.label || t('clOpenRef'))}</div>` : ''}
           <button class="cl-delete" data-id="${entry.id}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         `;
-        el.querySelector('.cl-delete').addEventListener('click', () => deleteChangelogEntry(entry.id, el));
+        el.querySelector('.cl-delete').addEventListener('click', (e) => { e.stopPropagation(); deleteChangelogEntry(entry.id, el); });
+        el.querySelectorAll('.cl-ref').forEach(a => a.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          try { navigateToRef(JSON.parse(a.dataset.ref)); } catch {}
+        }));
+        if (entry.ref) el.addEventListener('click', (e) => {
+          if (e.target.closest('.cl-delete') || e.target.closest('.cl-ref')) return;
+          navigateToRef(entry.ref);
+        });
         feed.appendChild(el);
       });
+      if (clScrollToId) {
+        const tgt = document.getElementById('cl-' + clScrollToId); clScrollToId = null;
+        if (tgt) requestAnimationFrame(() => { tgt.scrollIntoView({ behavior: 'smooth', block: 'center' }); tgt.classList.add('cl-flash'); setTimeout(() => tgt.classList.remove('cl-flash'), 1500); });
+      }
     }
 
     async function deleteChangelogEntry(id, el) {

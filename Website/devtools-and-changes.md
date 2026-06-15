@@ -269,3 +269,70 @@ beside the site folder to try dual-language mode.
   place to adjust.
 - The in-viewer EN/HU switch only offers the other language when a counterpart exists.
 - Per-device settings (theme, language, layout) remain in `localStorage`, not tied to an account.
+
+
+---
+
+## Articles & changelog references (this round)
+
+Two additions: clickable references in the changelog, and a full **Create an article** flow in DevTools.
+
+### Changelog: main reference + inline references
+
+Each changelog entry can now carry a **main reference** and **inline references** inside its details.
+
+- **Main reference** — in the Changelog tab there is a *Main reference* row (Choose… / None).
+  Pick a **note**, an **article**, **another log entry**, or a **URL**. On the public **Log**
+  page the whole entry becomes clickable and shows a small "→ label" hint; clicking it jumps to
+  the target (opens the note viewer, navigates to the article, scrolls to and flashes the other
+  log entry, or opens the URL in a new tab).
+- **Inline references** — the "↗ Insert reference into details" button opens the same picker and
+  drops a link token at the cursor. Tokens look like `[label](ki://kind/target?lang=xx)` and render
+  as inline links on the Log (each jumps the same way). `kind` is `note` / `article` / `log` / `url`;
+  `target` is URL-encoded; `lang` is appended only for notes/articles.
+
+No data migration is needed — the changelog stays free-form JSON; entries simply gain an optional
+`ref` object and may contain reference tokens in `body`. Old entries render unchanged.
+
+### Create an article (DevTools → Articles tab)
+
+A new **Articles** tab lists every article (standalone `.html` files **and** project folders) for the
+language you're editing, each with **Edit / View / Delete**. "New article" offers two methods:
+
+- **Paste HTML** — give it a name, paste a complete HTML document, save. Stored verbatim as
+  `Articles/<name>.html` (or `ArticlesHU/…`). Editing a standalone file reopens it here, so it
+  round-trips exactly.
+- **✨ Magic Editor** —
+  - *Template builder*: fill Title / Date / Description / Tags and a Body. A toolbar inserts
+    template-styled blocks (H2, paragraph, math block, definition, theorem, proof, blockquote, code)
+    and references. On save the server fills `template.html` with your content, so the result matches
+    the template exactly (KaTeX, light/dark theme, the same boxes).
+  - *Project folder*: flip **"As a folder"** to host a whole project. The article is saved as
+    `<slug>/index.html` and a file manager appears to add/edit/delete additional files
+    (CSS, JS, JSON, SVG, …). Folder articles appear on the public Articles page via their `index.html`,
+    and their assets are served from `/articles/<slug>/…`.
+
+### New server endpoints (all admin-only)
+
+- `GET  /api/admin/article/list?lang=` — files + folders (with each folder's file list and parsed metadata)
+- `GET  /api/admin/article/read?lang=&path=` — raw contents of one article file
+- `POST /api/admin/article/save` — body `{lang, target, mode, html|content, meta, body}`;
+  `mode:"template"` fills `template.html`, otherwise the content is written verbatim
+- `POST /api/admin/article/delete` — deletes a file or (recursively) a folder
+- `GET  /api/articles` now also lists folder articles (any sub-folder containing `index.html`)
+
+### Security
+
+Article authoring is **admin-only** and confined to the `Articles` / `ArticlesHU` directories
+(`safePath` traversal guard). Every path segment must match `[A-Za-z0-9 ._-]+` with no leading dot,
+the final extension must be on an allowlist (`.html .htm .css .js .mjs .md .txt .json .svg .csv .xml
+.webmanifest`), and writes are capped at 4 MB. Article HTML is authored by a trusted admin and served
+verbatim under `/articles/` — the usual CMS trust model. `template.html` gained two invisible markers
+(`<!-- ARTICLE-BODY-START/END -->`) that delimit the region the template builder replaces.
+
+### Tests
+
+The suite is now **115 assertions** (`node tests/run.js`). New coverage: template-mode save (served
+HTML keeps the template chrome and replaces the body), raw-HTML save, folder articles (index + asset
+served, admin list shows the folder's files), validation (bad extension / traversal / dotfile / anon
+all rejected), file + recursive folder delete, and changelog `ref` + inline-token round-tripping.

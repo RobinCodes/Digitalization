@@ -645,6 +645,72 @@ function handleCompile(req, res) {
 function readChangelog()  { try { return JSON.parse(fs.readFileSync(__CHANGELOG, 'utf8')); } catch { return []; } }
 function writeChangelog(e){ fs.writeFileSync(__CHANGELOG, JSON.stringify(e, null, 2), 'utf8'); }
 
+// ── Articles ─────────────────────────────────────────────────────────────────
+// Files served publicly under /articles/. Authoring is admin-only and confined to
+// the Articles / ArticlesHU directories with a safe extension allowlist.
+const ARTICLE_EXTS = new Set(['.html', '.htm', '.css', '.js', '.mjs', '.md', '.txt', '.json', '.svg', '.csv', '.xml', '.webmanifest']);
+function htmlAttr(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function htmlText(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function articlesDirFor(lang, create) {
+  const dir = (lang === 'hu') ? __ARTICLES_HU : __ARTICLES;
+  if (create && !fs.existsSync(dir)) { try { fs.mkdirSync(dir, { recursive: true }); } catch {} }
+  return dir;
+}
+function articleMetaFromHtml(raw, fallbackTitle) {
+  let title = fallbackTitle, date = null, description = '', tags = [];
+  try {
+    const tm = raw.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const dm = raw.match(/data-date="([^"]+)"/), ds = raw.match(/data-description="([^"]+)"/), tg = raw.match(/data-tags="([^"]+)"/);
+    if (tm) title = tm[1].trim(); if (dm) date = dm[1]; if (ds) description = ds[1];
+    if (tg) tags = tg[1].split(',').map(x => x.trim()).filter(Boolean);
+  } catch {}
+  return { title, date, description, tags };
+}
+function walkArticleFolder(absDir, rel) {
+  const out = [];
+  let ents = []; try { ents = fs.readdirSync(absDir, { withFileTypes: true }); } catch { return out; }
+  for (const e of ents) {
+    const r = rel ? rel + '/' + e.name : e.name;
+    if (e.isDirectory()) out.push(...walkArticleFolder(path.join(absDir, e.name), r));
+    else out.push(r);
+  }
+  return out;
+}
+// Fill template.html with article metadata + body so generated articles match it exactly.
+function buildArticleFromTemplate(meta, bodyHtml, lang) {
+  const title = meta.title || 'Untitled';
+  const date  = meta.date || '';
+  const desc  = meta.description || '';
+  const tags  = (meta.tags || []).filter(Boolean);
+  let tpl;
+  try { tpl = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8'); }
+  catch {
+    return '<!DOCTYPE html><html lang="' + (lang === 'hu' ? 'hu' : 'en') + '"><head><meta charset="UTF-8">'
+      + '<title>' + htmlText(title) + '</title><meta data-date="' + htmlAttr(date) + '">'
+      + '<meta data-description="' + htmlAttr(desc) + '"><meta data-tags="' + htmlAttr(tags.join(', ')) + '">'
+      + '</head><body><article><h1 class="title">' + htmlText(title) + '</h1>' + (bodyHtml || '') + '</article></body></html>';
+  }
+  const metaHtml = (date ? '<span class="article-date">' + htmlText(date) + '</span>' : '')
+    + tags.map(tt => '<span class="article-tag">' + htmlText(tt) + '</span>').join('');
+  tpl = tpl.replace(/<title[^>]*>[\s\S]*?<\/title>/i, '<title>' + htmlText(title) + '</title>');
+  tpl = tpl.replace(/(<meta\s+data-date=")[^"]*(")/i, '$1' + htmlAttr(date) + '$2');
+  tpl = tpl.replace(/(<meta\s+data-description=")[^"]*(")/i, '$1' + htmlAttr(desc) + '$2');
+  tpl = tpl.replace(/(<meta\s+data-tags=")[^"]*(")/i, '$1' + htmlAttr(tags.join(', ')) + '$2');
+  tpl = tpl.replace(/<html\s+lang="[^"]*"/i, '<html lang="' + (lang === 'hu' ? 'hu' : 'en') + '"');
+  tpl = tpl.replace(/(<span class="bar-title">)[\s\S]*?(<\/span>)/i, '$1' + htmlText(title) + '$2');
+  tpl = tpl.replace(/(<a class="back-btn"[^>]*>)[\s\S]*?(<\/a>)/i, '$1' + (lang === 'hu' ? '\u2190 Vissza' : '\u2190 Back') + '$2');
+  tpl = tpl.replace(/(<h1 class="title">)[\s\S]*?(<\/h1>)/i, '$1' + htmlText(title) + '$2');
+  tpl = tpl.replace(/(<div class="article-meta">)[\s\S]*?(<\/div>)/i, '$1' + metaHtml + '$2');
+  tpl = tpl.replace(/(<p class="article-intro">)[\s\S]*?(<\/p>)/i, '$1' + htmlText(desc) + '$2');
+  if (/<!-- ARTICLE-BODY-START -->/.test(tpl)) {
+    tpl = tpl.replace(/<!-- ARTICLE-BODY-START -->[\s\S]*?<!-- ARTICLE-BODY-END -->/,
+      '<!-- ARTICLE-BODY-START -->\n' + (bodyHtml || '') + '\n  <!-- ARTICLE-BODY-END -->');
+  } else {
+    tpl = tpl.replace(/(<\/article>)/i, (bodyHtml || '') + '\n$1');
+  }
+  return tpl;
+}
+
 // ── Admin auth (scrypt + in-memory sessions) ──────────────────────────────────
 // Admins live in admins.json:  [{ "username": "...", "salt": "<hex>", "hash": "<hex>" }]
 // Create/seed entries with:  node make-admin.js <username> <password>
@@ -891,19 +957,22 @@ const server = http.createServer((req, res) => {
   // Articles
   if (pathname === '/api/articles') {
     const articlesDir = (query.lang === 'hu' && fs.existsSync(__ARTICLES_HU)) ? __ARTICLES_HU : __ARTICLES;
-    let files = []; try { files = fs.readdirSync(articlesDir); } catch {}
-    const articles = files.filter(f => f.endsWith('.html')).map(f => {
-      let title = f.replace('.html','').replace(/[-_]/g,' '), date = null, description = '', tags = [];
-      try {
-        const raw = fs.readFileSync(path.join(articlesDir, f), 'utf8');
-        const tm = raw.match(/<title[^>]*>([^<]+)<\/title>/i);
-        const dm = raw.match(/data-date="([^"]+)"/), ds = raw.match(/data-description="([^"]+)"/), tg = raw.match(/data-tags="([^"]+)"/);
-        if (tm) title = tm[1]; if (dm) date = dm[1]; if (ds) description = ds[1];
-        if (tg) tags = tg[1].split(',').map(s => s.trim());
-      } catch {}
-      return { file: f, title, date, description, tags };
-    }).sort((a, b) => (b.date||'').localeCompare(a.date||''));
-    return sendJSON(res, articles);
+    const out = [];
+    let entries = []; try { entries = fs.readdirSync(articlesDir, { withFileTypes: true }); } catch {}
+    for (const e of entries) {
+      if (e.isFile() && /\.html?$/i.test(e.name)) {
+        let raw = ''; try { raw = fs.readFileSync(path.join(articlesDir, e.name), 'utf8'); } catch {}
+        out.push({ file: e.name, kind: 'file', ...articleMetaFromHtml(raw, e.name.replace(/\.html?$/i, '').replace(/[-_]/g, ' ')) });
+      } else if (e.isDirectory()) {
+        const idx = path.join(articlesDir, e.name, 'index.html');
+        if (fs.existsSync(idx)) {
+          let raw = ''; try { raw = fs.readFileSync(idx, 'utf8'); } catch {}
+          out.push({ file: e.name + '/index.html', kind: 'folder', folder: e.name, ...articleMetaFromHtml(raw, e.name.replace(/[-_]/g, ' ')) });
+        }
+      }
+    }
+    out.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    return sendJSON(res, out);
   }
 
   // File source
@@ -975,6 +1044,80 @@ const server = http.createServer((req, res) => {
       try { const { id } = JSON.parse(body); writeChangelog(readChangelog().filter(e => e.id !== id)); sendJSON(res, { ok: true }); }
       catch { res.writeHead(400); res.end('Bad JSON'); }
     }); return;
+  }
+
+  // ── Admin: articles (create / edit / delete) ───────────────────────────────
+  if (pathname === '/api/admin/article/list' && req.method === 'GET') {
+    if (!requireAdmin(req, res)) return;
+    const lang = query.lang === 'hu' ? 'hu' : 'en';
+    const dir = (lang === 'hu') ? __ARTICLES_HU : __ARTICLES;
+    const items = [];
+    let entries = []; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch {}
+    for (const e of entries) {
+      if (e.isFile() && /\.html?$/i.test(e.name)) {
+        let raw = ''; try { raw = fs.readFileSync(path.join(dir, e.name), 'utf8'); } catch {}
+        items.push({ kind: 'file', path: e.name, ...articleMetaFromHtml(raw, e.name) });
+      } else if (e.isDirectory()) {
+        const files = walkArticleFolder(path.join(dir, e.name), e.name);
+        const idx = files.find(f => /(^|\/)index\.html$/i.test(f));
+        let meta = { title: e.name, date: null, description: '', tags: [] };
+        if (idx) { let raw = ''; try { raw = fs.readFileSync(path.join(dir, idx), 'utf8'); } catch {} meta = articleMetaFromHtml(raw, e.name); }
+        items.push({ kind: 'folder', path: e.name, hasIndex: !!idx, files, ...meta });
+      }
+    }
+    return sendJSON(res, { ok: true, lang, exists: fs.existsSync(dir), items });
+  }
+  if (pathname === '/api/admin/article/read' && req.method === 'GET') {
+    if (!requireAdmin(req, res)) return;
+    const lang = query.lang === 'hu' ? 'hu' : 'en';
+    const dir = (lang === 'hu') ? __ARTICLES_HU : __ARTICLES;
+    let full; try { full = safePath(dir, query.path || ''); } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
+    let content = ''; try { content = fs.readFileSync(full, 'utf8'); } catch { return sendJSON(res, { ok: false, error: 'not found' }, 404); }
+    return sendJSON(res, { ok: true, content });
+  }
+  if (pathname === '/api/admin/article/save' && req.method === 'POST') {
+    if (!requireAdmin(req, res)) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4194304) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const lang = j.lang === 'hu' ? 'hu' : 'en';
+      const dir = articlesDirFor(lang, true);
+      const target = String(j.target || '').trim().replace(/\\/g, '/').replace(/^\/+/, '');
+      if (!target) return sendJSON(res, { ok: false, error: 'Missing target path.' }, 400);
+      const segs = target.split('/').filter(Boolean);
+      if (segs.some(g => g === '.' || g === '..' || g.startsWith('.') || !/^[A-Za-z0-9 ._-]+$/.test(g)))
+        return sendJSON(res, { ok: false, error: 'Names may use letters, numbers, spaces, dot, dash, underscore (no leading dot).' }, 400);
+      const ext = (target.match(/\.[^.\/]+$/) || [''])[0].toLowerCase();
+      if (!ARTICLE_EXTS.has(ext)) return sendJSON(res, { ok: false, error: 'File type not allowed: ' + (ext || '(none)') }, 400);
+      let full; try { full = safePath(dir, target); } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
+      let outHtml;
+      if (j.mode === 'template') outHtml = buildArticleFromTemplate(j.meta || {}, j.body || '', lang);
+      else outHtml = String(j.content != null ? j.content : (j.html || ''));
+      try {
+        fs.mkdirSync(path.dirname(full), { recursive: true });
+        fs.writeFileSync(full, outHtml, 'utf8');
+      } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, file: target });
+    });
+    return;
+  }
+  if (pathname === '/api/admin/article/delete' && req.method === 'POST') {
+    if (!requireAdmin(req, res)) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const lang = j.lang === 'hu' ? 'hu' : 'en';
+      const dir = (lang === 'hu') ? __ARTICLES_HU : __ARTICLES;
+      let full; try { full = safePath(dir, String(j.path || '')); } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
+      if (full === path.normalize(dir)) return sendJSON(res, { ok: false, error: 'refusing to delete the articles root' }, 400);
+      try {
+        const st = fs.statSync(full);
+        if (st.isDirectory()) fs.rmSync(full, { recursive: true, force: true });
+        else fs.unlinkSync(full);
+      } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
   }
 
   // ── Admin: auth ─────────────────────────────────────────────────────────────

@@ -209,6 +209,14 @@
 
   /* ── Changelog ──────────────────────────────────────── */
   .cl-form{background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);padding:20px 22px;margin-bottom:26px}
+  .tb{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .tb button{padding:5px 10px;border:1px solid var(--border-md);border-radius:6px;background:var(--bg2);color:var(--text2);font-size:11.5px;font-weight:600;cursor:pointer;transition:.15s;font-family:var(--font-ui)}
+  .tb button:hover{color:var(--accent);border-color:var(--accent)}
+  .art-builder{border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;background:var(--bg)}
+  .art-meta-line{font-family:var(--font-mono);font-size:10.5px;color:var(--text3)}
+  a.mini-btn{text-decoration:none;display:inline-flex;align-items:center}
+  .mini-btn.danger{color:var(--red);border-color:rgba(196,92,92,.4)}
+  .mini-btn.danger:hover{background:var(--red-dim);border-color:var(--red)}
   .cl-feed{display:flex;flex-direction:column;gap:12px}
   .cl-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:15px 17px;display:flex;gap:14px;align-items:flex-start}
   .cl-card.note{border-left-color:var(--blue)}
@@ -278,6 +286,7 @@
     <button class="tab active" data-tab="notes">Notes</button>
     <button class="tab" data-tab="changelog">Changelog</button>
     <button class="tab" data-tab="accounts">Accounts</button>
+    <button class="tab" data-tab="articles">Articles</button>
   </div>
 
   <!-- NOTES TAB -->
@@ -306,16 +315,37 @@
         <label class="fld" style="margin:0"><span>Date</span><div class="dtdate" id="clDateWrap"><input type="text" id="clDate" class="dtdate-input" readonly placeholder="YYYY-MM-DD" autocomplete="off"><button type="button" class="dtdate-btn" aria-label="Pick date">📅</button><div class="dtdate-pop"></div></div></label>
       </div>
       <label class="fld"><span>Details (TL;DR)</span><textarea id="clBody" placeholder="One or two sentences — what changed and why it matters."></textarea></label>
+      <div class="tb" style="margin:-6px 0 14px"><button type="button" id="clInsertRef" class="mini-btn">↗ Insert reference into details</button></div>
       <div class="grid2">
         <label class="fld" style="margin:0"><span>Authors</span><input type="text" id="clAuthors" placeholder="comma, separated"></label>
         <label class="fld" style="margin:0"><span>Type</span>
           <select id="clType"><option value="website">Website</option><option value="note">Note</option><option value="fix">Fix</option></select>
         </label>
       </div>
+      <label class="fld" style="margin-bottom:6px"><span>Main reference <span style="color:var(--text3)">— clicking the entry on the public Log jumps here</span></span></label>
+      <div class="counter" id="clRefRow">
+        <span class="val none" id="clRefVal">None</span>
+        <div class="counter-btns">
+          <button class="mini-btn" id="clRefPick">Choose…</button>
+          <button class="mini-btn" id="clRefClear">None</button>
+        </div>
+      </div>
+      <div class="field-note" style="margin:5px 0 16px">A note, an article, another log entry, or a URL.</div>
       <div class="row-toggle" id="clImpToggle" style="margin:6px 0 16px"><div class="switch"></div><span>Mark as important</span></div>
       <button class="btn-primary" id="clAddBtn">Add entry</button>
     </div>
     <div class="cl-feed" id="clFeed"></div>
+  </main>
+
+  <main id="tab-articles" class="hidden">
+    <span class="panel-label">/ articles</span>
+    <h1>Create <em>articles</em></h1>
+    <p class="sub">Publish standalone HTML pages or whole project folders. They appear on the public Articles page.</p>
+    <div style="display:flex;gap:10px;margin-bottom:22px">
+      <button class="btn-primary" id="artNewPaste">Paste HTML</button>
+      <button class="btn-secondary" id="artNewMagic">✨ Magic Editor</button>
+    </div>
+    <div class="rows" id="artList"></div>
   </main>
 
   <!-- ACCOUNTS TAB -->
@@ -408,6 +438,105 @@
         None — this note has no counterpart
       </button>
       <div class="rows" id="pickerList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- == REFERENCE PICKER MODAL == -->
+<div class="ov" id="refOv">
+  <div class="sheet" style="max-width:560px">
+    <div class="sheet-hd">
+      <h3>Pick a reference</h3>
+      <button class="icon-btn" id="refClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="sheet-bd">
+      <div class="seg" id="refKindSeg" style="margin-bottom:14px">
+        <button data-rkind="note" class="active">Note</button>
+        <button data-rkind="article">Article</button>
+        <button data-rkind="log">Changelog</button>
+        <button data-rkind="url">URL</button>
+      </div>
+      <div id="refBrowseWrap">
+        <div class="crumbs" id="refCrumbs" style="margin-bottom:12px"></div>
+        <div class="rows" id="refList" style="max-height:300px;overflow:auto"></div>
+      </div>
+      <div id="refUrlWrap" style="display:none">
+        <label class="fld"><span>URL</span><input type="text" id="refUrl" placeholder="https://example.com" spellcheck="false"></label>
+      </div>
+      <div class="counter" style="margin-top:14px"><span class="val none" id="refPicked">Nothing selected</span></div>
+      <label class="fld" style="margin-top:14px"><span>Link text</span><input type="text" id="refLabel" placeholder="e.g. the lattice note"></label>
+    </div>
+    <div class="sheet-ft">
+      <button class="btn-secondary" id="refCancel">Cancel</button>
+      <button class="btn-primary" id="refUse">Use reference</button>
+    </div>
+  </div>
+</div>
+
+<!-- == ARTICLE EDITOR MODAL == -->
+<div class="ov" id="artOv">
+  <div class="sheet" style="max-width:780px">
+    <div class="sheet-hd">
+      <h3 id="artTitle">New article</h3>
+      <button class="icon-btn" id="artClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="sheet-bd">
+      <div class="seg" id="artModeSeg" style="margin-bottom:18px">
+        <button data-amode="paste" class="active">Paste HTML</button>
+        <button data-amode="magic">Magic Editor</button>
+      </div>
+
+      <div id="artPaste">
+        <label class="fld"><span>File name <span style="color:var(--text3)">&mdash; saved as &lt;name&gt;.html</span></span><input type="text" id="artPasteName" placeholder="my-article" spellcheck="false" autocapitalize="off"></label>
+        <label class="fld"><span>HTML</span><textarea id="artPasteHtml" rows="14" spellcheck="false" placeholder="Paste your complete HTML document here."></textarea></label>
+        <div class="field-note">Include &lt;title&gt;, &lt;meta data-date&gt;, &lt;meta data-description&gt; and &lt;meta data-tags&gt; so it lists nicely.</div>
+      </div>
+
+      <div id="artMagic" style="display:none">
+        <div class="grid2">
+          <label class="fld" style="margin:0"><span>Article name (slug)</span><input type="text" id="artSlug" placeholder="lattices-intro" spellcheck="false" autocapitalize="off"></label>
+          <div class="fld" style="margin:0"><span>Project folder</span><div class="row-toggle" id="artFolderToggle" style="margin:0"><div class="switch"></div><span>As a folder &mdash; host a whole project</span></div></div>
+        </div>
+        <div class="field-note" id="artDestNote" style="margin-bottom:14px"></div>
+
+        <div class="art-builder">
+          <span class="panel-label">/ article content (styled like template.html)</span>
+          <div class="grid2">
+            <label class="fld" style="margin:0"><span>Title</span><input type="text" id="artTitleFld" placeholder="An Introduction to Lattices"></label>
+            <label class="fld" style="margin:0"><span>Date</span><div class="dtdate" id="artDateWrap"><input type="text" id="artDate" class="dtdate-input" readonly placeholder="YYYY-MM-DD" autocomplete="off"><button type="button" class="dtdate-btn" aria-label="Pick date">CAL</button><div class="dtdate-pop"></div></div></label>
+          </div>
+          <label class="fld"><span>Description / intro</span><textarea id="artDesc" rows="2" placeholder="A short intro paragraph - also shown on the article card."></textarea></label>
+          <label class="fld" style="margin-bottom:6px"><span>Tags <span style="color:var(--text3)">&mdash; comma separated</span></span><input type="text" id="artTags" placeholder="mathematics, lattices"></label>
+          <label class="fld" style="margin-bottom:6px"><span>Body</span></label>
+          <div class="tb" id="artTb">
+            <button type="button" data-ins="h2">H2</button>
+            <button type="button" data-ins="p">Text</button>
+            <button type="button" data-ins="math">Math</button>
+            <button type="button" data-ins="def">Definition</button>
+            <button type="button" data-ins="thm">Theorem</button>
+            <button type="button" data-ins="proof">Proof</button>
+            <button type="button" data-ins="quote">Quote</button>
+            <button type="button" data-ins="code">Code</button>
+            <button type="button" data-ins="ref">Reference</button>
+          </div>
+          <textarea id="artBody" rows="12" spellcheck="false" placeholder="Write the body as HTML. Use the buttons to insert template blocks. Inline math $...$, display math $$...$$."></textarea>
+        </div>
+
+        <div id="artFiles" style="display:none;margin-top:20px">
+          <span class="panel-label">/ project files</span>
+          <div class="field-note" id="artFilesNote" style="margin:6px 0 10px"></div>
+          <div class="rows" id="artFileList"></div>
+          <div class="grid2" style="margin-top:12px">
+            <label class="fld" style="margin:0"><span>New file (e.g. styles.css, app.js)</span><input type="text" id="artNewFileName" placeholder="styles.css" spellcheck="false" autocapitalize="off"></label>
+            <div class="fld" style="margin:0"><span>&nbsp;</span><button class="mini-btn" id="artAddFileBtn" style="width:100%">Add / open file</button></div>
+          </div>
+          <div class="fld" id="artFileEditWrap" style="display:none"><span id="artFileEditLabel">File contents</span><textarea id="artFileContent" rows="10" spellcheck="false"></textarea><div style="margin-top:8px"><button class="mini-btn" id="artFileSave">Save file</button></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-ft">
+      <button class="btn-secondary" id="artCancel">Cancel</button>
+      <button class="btn-primary" id="artSave">Save article</button>
     </div>
   </div>
 </div>
@@ -530,6 +659,7 @@
   }
   makeDatePicker($('clDate'));
   makeDatePicker($('edDate'));
+  makeDatePicker($('artDate'));
 
   // Reveal-eye buttons inside password inputs.
   (function () {
@@ -599,7 +729,9 @@
     $('tab-notes').classList.toggle('hidden', tab !== 'notes');
     $('tab-changelog').classList.toggle('hidden', tab !== 'changelog');
     $('tab-accounts').classList.toggle('hidden', tab !== 'accounts');
+    $('tab-articles').classList.toggle('hidden', tab !== 'articles');
     if (tab === 'accounts') loadAccounts();
+    if (tab === 'articles') loadArticlesAdmin();
   }));
 
   // ── language toggle ────────────────────────────────
@@ -608,6 +740,7 @@
     lang = b.dataset.lang; dir = '';
     $('langSeg').querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
     loadBrowse();
+    if (!$('tab-articles').classList.contains('hidden')) loadArticlesAdmin();
   });
 
   // ── browser ────────────────────────────────────────
@@ -892,12 +1025,13 @@
       authors: splitList($('clAuthors').value),
       type: $('clType').value, date: $('clDate').value || undefined,
       important: $('clImpToggle').classList.contains('on'),
+      ref: clRefObj || undefined,
     };
     $('clAddBtn').disabled = true; $('clAddBtn').textContent = 'Adding…';
     try {
       await api('/api/changelog/add', { method: 'POST', body: entry });
       $('clTitle').value = ''; $('clBody').value = ''; $('clAuthors').value = '';
-      $('clImpToggle').classList.remove('on');
+      $('clImpToggle').classList.remove('on'); setClRef(null);
       toast('Entry added'); loadChangelog();
     } catch (e) { toast('Couldn\u2019t add entry: ' + e.message, true); }
     finally { $('clAddBtn').disabled = false; $('clAddBtn').textContent = 'Add entry'; }
@@ -947,14 +1081,270 @@
     $('confirmOv').classList.add('open');
   }
 
+  // == reference picker (shared by changelog + article builder) ==
+  let refPickCb = null, refKind = 'note', refNoteDir = '', refSelected = null;
+  function refToken(ref) {
+    let url = 'ki://' + ref.kind + '/' + encodeURIComponent(ref.target);
+    if (ref.lang && (ref.kind === 'note' || ref.kind === 'article')) url += '?lang=' + ref.lang;
+    return '[' + (ref.label || ref.target) + '](' + url + ')';
+  }
+  function insertAtCursor(ta, text) {
+    const a = ta.selectionStart || 0, b = ta.selectionEnd || 0;
+    ta.value = ta.value.slice(0, a) + text + ta.value.slice(b);
+    const pos = a + text.length; ta.selectionStart = ta.selectionEnd = pos; ta.focus();
+  }
+  function openRefPicker(cb) {
+    refPickCb = cb; refNoteDir = ''; refSelected = null;
+    $('refLabel').value = ''; $('refUrl').value = '';
+    setRefKind('note'); $('refOv').classList.add('open');
+  }
+  function closeRefPicker() { $('refOv').classList.remove('open'); refPickCb = null; }
+  function showRefPicked() {
+    const el = $('refPicked');
+    if (refSelected) { el.textContent = (refSelected.label || refSelected.target) + ' \u00b7 ' + refSelected.kind; el.className = 'val set'; }
+    else { el.textContent = 'Nothing selected'; el.className = 'val none'; }
+  }
+  function setRefKind(k) {
+    refKind = k; refSelected = null; showRefPicked();
+    $('refKindSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.rkind === k));
+    $('refUrlWrap').style.display = k === 'url' ? '' : 'none';
+    $('refBrowseWrap').style.display = k === 'url' ? 'none' : '';
+    if (k === 'note') loadRefNotes();
+    else if (k === 'article') loadRefArticles();
+    else if (k === 'log') loadRefLogs();
+  }
+  async function loadRefNotes() {
+    const list = $('refList'); list.innerHTML = '<div class="empty">Loading\u2026</div>';
+    renderCrumbs($('refCrumbs'), (lang === 'hu' ? 'DataHU' : 'Data'), refNoteDir ? refNoteDir.split('/') : [], d => { refNoteDir = d; loadRefNotes(); });
+    let data; try { data = await api('/api/admin/browse?lang=' + lang + '&dir=' + encodeURIComponent(refNoteDir)); }
+    catch (e) { list.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    if (data.missing || !data.items.length) { list.innerHTML = '<div class="empty">Nothing here.</div>'; return; }
+    list.innerHTML = '';
+    data.items.forEach(it => {
+      const row = document.createElement('div'); row.className = 'row ' + (it.type === 'folder' ? 'folder' : 'file');
+      row.innerHTML = '<div class="ico">' + (it.type === 'folder' ? FOLDER_SVG : fileSvg(it.ext)) + '</div><div class="body"><div class="nm">' + esc(it.display || it.name) + '</div></div>';
+      row.onclick = () => {
+        if (it.type === 'folder') { refNoteDir = it.path; loadRefNotes(); }
+        else { refSelected = { kind: 'note', target: it.path, lang, label: (it.display || it.name.replace(/\.[^.]+$/, '')) }; if (!$('refLabel').value) $('refLabel').value = refSelected.label; showRefPicked(); }
+      };
+      list.appendChild(row);
+    });
+  }
+  async function loadRefArticles() {
+    $('refCrumbs').innerHTML = ''; const list = $('refList'); list.innerHTML = '<div class="empty">Loading\u2026</div>';
+    let data; try { data = await api('/api/admin/article/list?lang=' + lang); }
+    catch (e) { list.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    const items = (data.items || []).filter(i => i.kind === 'file' || i.hasIndex);
+    if (!items.length) { list.innerHTML = '<div class="empty">No articles yet.</div>'; return; }
+    list.innerHTML = '';
+    items.forEach(it => {
+      const target = it.kind === 'folder' ? (it.path + '/index.html') : it.path;
+      const row = document.createElement('div'); row.className = 'row file';
+      row.innerHTML = '<div class="ico">' + (it.kind === 'folder' ? FOLDER_SVG : fileSvg('.html')) + '</div><div class="body"><div class="nm">' + esc(it.title || it.path) + '</div><div class="meta"><span class="art-meta-line">' + esc(target) + '</span></div></div>';
+      row.onclick = () => { refSelected = { kind: 'article', target, lang, label: (it.title || it.path) }; if (!$('refLabel').value) $('refLabel').value = refSelected.label; showRefPicked(); };
+      list.appendChild(row);
+    });
+  }
+  async function loadRefLogs() {
+    $('refCrumbs').innerHTML = ''; const list = $('refList'); list.innerHTML = '<div class="empty">Loading\u2026</div>';
+    let entries; try { entries = await api('/api/changelog', { auth: false }); }
+    catch (e) { list.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    entries = Array.isArray(entries) ? entries : [];
+    if (!entries.length) { list.innerHTML = '<div class="empty">No entries yet.</div>'; return; }
+    list.innerHTML = '';
+    entries.forEach(en => {
+      const row = document.createElement('div'); row.className = 'row file';
+      row.innerHTML = '<div class="ico">' + fileSvg('.txt') + '</div><div class="body"><div class="nm">' + esc(en.title || '(untitled)') + '</div><div class="meta"><span class="art-meta-line">' + esc(en.date || '') + '</span></div></div>';
+      row.onclick = () => { refSelected = { kind: 'log', target: en.id, label: (en.title || 'entry') }; if (!$('refLabel').value) $('refLabel').value = refSelected.label; showRefPicked(); };
+      list.appendChild(row);
+    });
+  }
+  $('refKindSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setRefKind(b.dataset.rkind)));
+  $('refClose').onclick = closeRefPicker; $('refCancel').onclick = closeRefPicker;
+  $('refUse').onclick = () => {
+    let ref;
+    if (refKind === 'url') { const u = $('refUrl').value.trim(); if (!u) { toast('Enter a URL', true); return; } ref = { kind: 'url', target: u, label: $('refLabel').value.trim() || u }; }
+    else { if (!refSelected) { toast('Pick something first', true); return; } ref = Object.assign({}, refSelected, { label: $('refLabel').value.trim() || refSelected.label || refSelected.target }); }
+    const cb = refPickCb; closeRefPicker(); if (cb) cb(ref);
+  };
+
+  // == changelog: main reference + insert into details ==
+  let clRefObj = null;
+  function setClRef(ref) {
+    clRefObj = ref || null;
+    const el = $('clRefVal');
+    el.textContent = clRefObj ? ((clRefObj.label || clRefObj.target) + ' \u00b7 ' + clRefObj.kind) : 'None';
+    el.className = 'val ' + (clRefObj ? 'set' : 'none');
+  }
+  $('clRefPick').onclick = () => openRefPicker(ref => setClRef(ref));
+  $('clRefClear').onclick = () => setClRef(null);
+  $('clInsertRef').onclick = () => openRefPicker(ref => insertAtCursor($('clBody'), refToken(ref)));
+
+  // == articles tab + magic editor ==
+  const ART_SNIPPETS = {
+    h2: '\n<h2>Section title</h2>\n',
+    p: '\n<p>Paragraph text.</p>\n',
+    math: '\n<div class="math-block">\n  $$ \\int_0^1 x^2\\,dx = \\tfrac{1}{3} $$\n</div>\n',
+    def: '\n<div class="def-box">\n  <span class="def-label">Definition</span>\n  <p>State the definition here.</p>\n</div>\n',
+    thm: '\n<div class="theorem-box">\n  <span class="thm-label">Theorem</span>\n  <p>State the theorem here.</p>\n</div>\n',
+    proof: '\n<div class="proof-box">\n  <span class="proof-label">Proof</span>\n  <p>Argument here. <span class="qed">\u25a1</span></p>\n</div>\n',
+    quote: '\n<blockquote>A quotation worth setting apart.</blockquote>\n',
+    code: '\n<pre><code>code here</code></pre>\n',
+  };
+  let artMode = 'paste', artFolderMode = false, artEditTarget = null, artCurFile = null;
+  function setArtMode(m) {
+    artMode = m;
+    $('artModeSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.amode === m));
+    $('artPaste').style.display = m === 'paste' ? '' : 'none';
+    $('artMagic').style.display = m === 'magic' ? '' : 'none';
+  }
+  function updateArtDestNote() {
+    const slug = $('artSlug').value.trim() || '(slug)';
+    $('artDestNote').textContent = artFolderMode ? ('Saved as ' + slug + '/index.html \u2014 add project files below.') : ('Saved as ' + slug + '.html');
+  }
+  function setFolderMode(on) {
+    artFolderMode = on; $('artFolderToggle').classList.toggle('on', on);
+    $('artFiles').style.display = on ? '' : 'none'; updateArtDestNote();
+  }
+  function openArtOv(mode) {
+    artEditTarget = null; artCurFile = null;
+    $('artPasteName').disabled = false; $('artSlug').disabled = false;
+    $('artPasteName').value = ''; $('artPasteHtml').value = '';
+    $('artSlug').value = ''; $('artTitleFld').value = ''; $('artDate').value = '';
+    $('artDesc').value = ''; $('artTags').value = ''; $('artBody').value = '';
+    $('artFileEditWrap').style.display = 'none'; $('artFileList').innerHTML = ''; $('artNewFileName').value = '';
+    $('artTitle').textContent = 'New article';
+    setFolderMode(false); setArtMode(mode || 'paste');
+    $('artOv').classList.add('open');
+  }
+  function closeArtOv() { $('artOv').classList.remove('open'); }
+  $('artModeSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setArtMode(b.dataset.amode)));
+  $('artFolderToggle').onclick = () => setFolderMode(!artFolderMode);
+  $('artSlug').addEventListener('input', updateArtDestNote);
+  $('artClose').onclick = closeArtOv; $('artCancel').onclick = closeArtOv;
+  $('artNewPaste').onclick = () => openArtOv('paste');
+  $('artNewMagic').onclick = () => openArtOv('magic');
+  $('artTb').addEventListener('click', e => {
+    const b = e.target.closest('button[data-ins]'); if (!b) return;
+    if (b.dataset.ins === 'ref') { openRefPicker(ref => insertAtCursor($('artBody'), refToken(ref))); return; }
+    insertAtCursor($('artBody'), ART_SNIPPETS[b.dataset.ins] || '');
+  });
+  $('artSave').onclick = async () => {
+    let target, payload;
+    if (artMode === 'paste') {
+      if (!artEditTarget && !$('artPasteName').value.trim()) { toast('Give the file a name', true); return; }
+      target = artEditTarget || ($('artPasteName').value.trim() + '.html');
+      payload = { lang, target, mode: 'raw', content: $('artPasteHtml').value };
+    } else {
+      const slug = $('artSlug').value.trim();
+      if (!slug) { toast('Give the article a name', true); return; }
+      target = artFolderMode ? (slug + '/index.html') : (slug + '.html');
+      payload = { lang, target, mode: 'template', meta: {
+        title: $('artTitleFld').value.trim() || slug, date: $('artDate').value || '',
+        description: $('artDesc').value.trim(), tags: splitList($('artTags').value),
+      }, body: $('artBody').value };
+    }
+    $('artSave').disabled = true; $('artSave').textContent = 'Saving\u2026';
+    try {
+      await api('/api/admin/article/save', { method: 'POST', body: payload });
+      toast('Article saved'); loadArticlesAdmin();
+      if (artMode === 'magic' && artFolderMode) {
+        artEditTarget = target; $('artSlug').disabled = true; loadArtFolderFiles($('artSlug').value.trim());
+      } else { closeArtOv(); }
+    } catch (e) { toast('Save failed: ' + e.message, true); }
+    finally { $('artSave').disabled = false; $('artSave').textContent = 'Save article'; }
+  };
+  async function loadArtFolderFiles(slug) {
+    $('artFiles').style.display = '';
+    let data; try { data = await api('/api/admin/article/list?lang=' + lang); } catch { return; }
+    const folder = (data.items || []).find(i => i.kind === 'folder' && i.path === slug);
+    const files = (folder && folder.files) || [];
+    const list = $('artFileList'); list.innerHTML = '';
+    $('artFilesNote').textContent = files.length ? 'Click Open to edit a file. Add CSS, JS or other assets below.' : 'Save the article to create index.html, then add files here.';
+    files.forEach(f => {
+      const rel = f.indexOf(slug + '/') === 0 ? f.slice(slug.length + 1) : f;
+      const row = document.createElement('div'); row.className = 'row';
+      row.innerHTML = '<div class="ico">' + fileSvg('.' + (rel.split('.').pop() || '')) + '</div><div class="body"><div class="nm">' + esc(rel) + '</div></div><div class="acts"></div>';
+      const acts = row.querySelector('.acts');
+      const open = document.createElement('button'); open.className = 'mini-btn'; open.textContent = 'Open'; open.onclick = () => openArtFile(slug, rel);
+      const del = document.createElement('button'); del.className = 'mini-btn danger'; del.textContent = 'Delete'; del.onclick = () => deleteArtFile(slug, rel);
+      acts.append(open, del); list.appendChild(row);
+    });
+  }
+  async function openArtFile(slug, rel) {
+    artCurFile = rel;
+    let r; try { r = await api('/api/admin/article/read?lang=' + lang + '&path=' + encodeURIComponent(slug + '/' + rel)); } catch (e) { toast(e.message, true); return; }
+    $('artFileEditLabel').textContent = rel;
+    $('artFileContent').value = (r && r.content) || '';
+    $('artFileEditWrap').style.display = '';
+  }
+  $('artAddFileBtn').onclick = () => {
+    const nm = $('artNewFileName').value.trim();
+    if (!nm) { toast('Type a file name (e.g. styles.css)', true); return; }
+    artCurFile = nm; $('artFileEditLabel').textContent = nm + '  (new)';
+    $('artFileContent').value = ''; $('artFileEditWrap').style.display = '';
+  };
+  $('artFileSave').onclick = async () => {
+    const slug = $('artSlug').value.trim();
+    if (!slug || !artCurFile) return;
+    try { await api('/api/admin/article/save', { method: 'POST', body: { lang, target: slug + '/' + artCurFile, mode: 'raw', content: $('artFileContent').value } }); toast('File saved'); $('artNewFileName').value = ''; loadArtFolderFiles(slug); }
+    catch (e) { toast('Save failed: ' + e.message, true); }
+  };
+  function deleteArtFile(slug, rel) {
+    $('cfTitle').textContent = 'Delete file?'; $('cfMsg').innerHTML = 'Delete <b>' + esc(rel) + '</b> from ' + esc(slug) + '?';
+    confirmFn = async () => { try { await api('/api/admin/article/delete', { method: 'POST', body: { lang, path: slug + '/' + rel } }); toast('Deleted'); $('artFileEditWrap').style.display = 'none'; loadArtFolderFiles(slug); } catch (e) { toast(e.message, true); } };
+    $('confirmOv').classList.add('open');
+  }
+  async function openArticleForEdit(it) {
+    if (it.kind === 'file') {
+      openArtOv('paste'); $('artTitle').textContent = 'Edit article';
+      $('artPasteName').value = it.path.replace(/\.html?$/i, ''); $('artPasteName').disabled = true; artEditTarget = it.path;
+      try { const r = await api('/api/admin/article/read?lang=' + lang + '&path=' + encodeURIComponent(it.path)); $('artPasteHtml').value = (r && r.content) || ''; } catch (e) { toast(e.message, true); }
+    } else {
+      openArtOv('magic'); $('artTitle').textContent = 'Edit article'; setFolderMode(true);
+      $('artSlug').value = it.path; $('artSlug').disabled = true; artEditTarget = it.path + '/index.html';
+      $('artTitleFld').value = it.title || ''; $('artDate').value = it.date || '';
+      $('artDesc').value = it.description || ''; $('artTags').value = (it.tags || []).join(', ');
+      loadArtFolderFiles(it.path);
+    }
+  }
+  function askDeleteArticle(it) {
+    $('cfTitle').textContent = 'Delete article?';
+    $('cfMsg').innerHTML = 'Permanently delete <b>' + esc(it.title || it.path) + '</b>' + (it.kind === 'folder' ? ' and all its files' : '') + '? This cannot be undone.';
+    confirmFn = async () => { try { await api('/api/admin/article/delete', { method: 'POST', body: { lang, path: it.path } }); toast('Deleted'); loadArticlesAdmin(); } catch (e) { toast('Delete failed: ' + e.message, true); } };
+    $('confirmOv').classList.add('open');
+  }
+  async function loadArticlesAdmin() {
+    const wrap = $('artList'); wrap.innerHTML = '<div class="empty">Loading\u2026</div>';
+    let data; try { data = await api('/api/admin/article/list?lang=' + lang); }
+    catch (e) { wrap.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    const items = (data && data.items) || [];
+    if (!items.length) { wrap.innerHTML = '<div class="empty"><b>No articles yet</b>Create one with Paste HTML or the Magic Editor.</div>'; return; }
+    wrap.innerHTML = '';
+    items.forEach(it => {
+      const row = document.createElement('div'); row.className = 'row';
+      const badge = it.kind === 'folder' ? 'FOLDER' : 'HTML';
+      const sub = (it.date ? it.date + ' \u00b7 ' : '') + (it.kind === 'folder' ? ((it.files ? it.files.length : 0) + ' files') : it.path);
+      row.innerHTML = '<div class="ico">' + (it.kind === 'folder' ? FOLDER_SVG : fileSvg('.html')) + '</div><div class="body"><div class="nm">' + esc(it.title || it.path) + '</div><div class="meta"><span class="badge">' + badge + '</span> <span class="art-meta-line">' + esc(sub) + '</span></div></div><div class="acts"></div>';
+      const acts = row.querySelector('.acts');
+      const edit = document.createElement('button'); edit.className = 'mini-btn'; edit.textContent = 'Edit'; edit.onclick = () => openArticleForEdit(it);
+      const view = document.createElement('a'); view.className = 'mini-btn'; view.textContent = 'View'; view.target = '_blank';
+      view.href = '/articles/' + (it.kind === 'folder' ? (it.path + '/index.html') : it.path) + (lang === 'hu' ? '?lang=hu' : '');
+      const del = document.createElement('button'); del.className = 'mini-btn danger'; del.textContent = 'Delete'; del.onclick = () => askDeleteArticle(it);
+      acts.append(edit, view, del); wrap.appendChild(row);
+    });
+  }
+
   // ── esc to close modals ────────────────────────────
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
+    if ($('refOv').classList.contains('open')) return closeRefPicker();
+    if ($('artOv').classList.contains('open')) return closeArtOv();
     if ($('pickerOv').classList.contains('open')) return closePicker();
     if ($('confirmOv').classList.contains('open')) { $('confirmOv').classList.remove('open'); confirmFn = null; return; }
     if ($('editorOv').classList.contains('open')) return closeEditor();
   });
-  [['editorOv', closeEditor], ['pickerOv', closePicker], ['confirmOv', () => { $('confirmOv').classList.remove('open'); confirmFn = null; }]]
+  [['editorOv', closeEditor], ['pickerOv', closePicker], ['refOv', closeRefPicker], ['artOv', closeArtOv], ['confirmOv', () => { $('confirmOv').classList.remove('open'); confirmFn = null; }]]
     .forEach(([id, fn]) => $(id).addEventListener('mousedown', e => { if (e.target === $(id)) fn(); }));
 
   // ── boot ───────────────────────────────────────────
