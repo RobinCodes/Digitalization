@@ -20,6 +20,9 @@ const __CACHE       = path.join(__dirname, '.pdf-cache');
 const __CHANGELOG   = path.join(__dirname, 'changelog.json');
 const __ADMINS      = path.join(__dirname, 'admins.json');
 const __USERS       = path.join(__dirname, 'users.json');
+const __SETTINGS    = path.join(__dirname, 'settings.json');
+const __GRANTS      = path.join(__dirname, 'grants.json');
+const __MESSAGES    = path.join(__dirname, 'messages.json');
 
 fs.mkdirSync(__CACHE, { recursive: true });
 
@@ -55,7 +58,7 @@ function safePath(base, relPath) {
 
 // Never expose server source, credential files, dotfiles (.git, .pdf-cache), or tests
 // over HTTP — important once the repo is public on GitHub.
-const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'server.js',
+const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'settings.json', 'grants.json', 'messages.json', 'server.js',
   'make-admin.js', 'make-user.js', 'package.json', 'package-lock.json']);
 function isProtectedStatic(rel) {
   const parts = String(rel).split('/').filter(Boolean);
@@ -170,7 +173,7 @@ function fileMeta(dir, name, sections) {
     description: meta.description || null,
     altHu:       meta.alt_hu      || null,
     altEn:       meta.alt_en      || null,
-    visibility:  meta.visibility === 'members' ? 'members' : 'public',
+    visibility:  (meta.visibility === 'members' || meta.visibility === 'request') ? meta.visibility : 'public',
     whitelist:   meta.allow ? meta.allow.split(',').map(s => s.trim().toLowerCase()).filter(Boolean) : [],
   };
 }
@@ -236,7 +239,7 @@ function buildMergedTree(enDir, huDir, rel = '') {
     if (huM) huMatched.add(huM.name);
     const huRelPath = huM ? (rel ? `${rel}/${huM.name}` : huM.name) : null;
     const m = fileMeta(enDir, e.name, enSecs);
-    if (huM) { const hv = findMeta(huM.name, huSecs) || {}; if (hv.visibility === 'members') m.visibility = 'members'; }
+    if (huM) { const hv = findMeta(huM.name, huSecs) || {}; if (hv.visibility === 'members') m.visibility = 'members'; else if (hv.visibility === 'request' && m.visibility !== 'members') m.visibility = 'request'; }
     result.push({ ...m, name: e.name, path: childRelEn,
       enAvailable: true, huAvailable: !!huM,
       enPath: childRelEn, huPath: huRelPath,
@@ -298,6 +301,13 @@ function canSeeNode(node, viewer) {
   if (viewer.role === 'admin') return true;
   return wl.includes(String(viewer.username).toLowerCase());
 }
+// Mark request-to-read notes the viewer cannot currently open (for the locked card UI).
+function annotateLocks(items, req, matLang) {
+  for (const it of items || []) {
+    if (it.type === 'folder') annotateLocks(it.children || [], req, matLang);
+    else if (it.visibility === 'request') it.locked = !canViewNote(req, it.path, it.lang || matLang);
+  }
+}
 // Drop notes the viewer may not see; prune folders left empty.
 function filterTreeForVisibility(items, viewer) {
   const out = [];
@@ -314,17 +324,17 @@ function filterTreeForVisibility(items, viewer) {
 // Effective visibility of one note from disk (its own data.txt, plus its
 // same-folder counterpart in dual-language mode — either being members wins).
 function noteVisibility(relPath, lang) {
-  const isMembers = (base, rel) => {
+  const visOf = (base, rel) => {
     try {
       const full = safePath(base, rel);
-      const meta = findMeta(path.basename(full), parseDataTxt(path.dirname(full))) || {};
-      return meta.visibility === 'members';
-    } catch { return false; }
+      const v = (findMeta(path.basename(full), parseDataTxt(path.dirname(full))) || {}).visibility;
+      return (v === 'members' || v === 'request') ? v : 'public';
+    } catch { return 'public'; }
   };
   const huPrimary = (lang === 'hu' && HAS_DUAL_LANG);
   const base = huPrimary ? __DATA_HU : __DATA;
-  if (isMembers(base, relPath)) return 'members';
-  if (HAS_DUAL_LANG) {
+  let vis = visOf(base, relPath);
+  if (vis !== 'members' && HAS_DUAL_LANG) {
     const other = huPrimary ? __DATA : __DATA_HU;
     try {
       const baseFull = safePath(base, relPath);
@@ -333,10 +343,10 @@ function noteVisibility(relPath, lang) {
       const display  = stripDisplayName(path.basename(baseFull)).toLowerCase();
       let ents = []; try { ents = fs.readdirSync(otherDir); } catch {}
       const match = ents.find(n => stripDisplayName(n).toLowerCase() === display);
-      if (match && (findMeta(match, parseDataTxt(otherDir)) || {}).visibility === 'members') return 'members';
+      if (match) { const ov = visOf(otherDir, match); if (ov === 'members') return 'members'; if (ov === 'request') vis = 'request'; }
     } catch {}
   }
-  return 'public';
+  return vis;
 }
 // Whitelist (lowercased usernames) declared on a note's own data.txt.
 function noteWhitelist(relPath, lang) {
@@ -349,10 +359,16 @@ function noteWhitelist(relPath, lang) {
 }
 // Authoritative content-access check used by /api/file, /data and /api/compile.
 function canViewNote(req, relPath, lang) {
-  if (noteVisibility(relPath, lang) !== 'members') return true;
+  const vis = noteVisibility(relPath, lang);
+  if (vis === 'public') return true;
   const s = siteSession(req);
   if (!s) return false;
   if (s.role === 'admin') return true;
+  if (vis === 'request') {
+    const owners = noteWhitelist(relPath, lang);
+    if (owners.includes(String(s.username).toLowerCase())) return true;
+    return hasGrant(s.username, lang, relPath);
+  }
   const wl = noteWhitelist(relPath, lang);
   if (!wl.length) return true;
   return wl.includes(String(s.username).toLowerCase());
@@ -403,7 +419,7 @@ function buildSoloTree(primaryDir, otherDir, primaryLang, rel = '') {
       }
     }
     const counterRel = counter ? (rel ? `${rel}/${counter.name}` : counter.name) : null;
-    if (counter) { const cm = findMeta(counter.name, otherSecs) || {}; if (cm.visibility === 'members') m.visibility = 'members'; }
+    if (counter) { const cm = findMeta(counter.name, otherSecs) || {}; if (cm.visibility === 'members') m.visibility = 'members'; else if (cm.visibility === 'request' && m.visibility !== 'members') m.visibility = 'request'; }
     const node = { ...m, name: e.name, path: childRel, lang: primaryLang };
     if (primaryLang === 'en') {
       node.enAvailable = true;       node.enPath = childRel;   node.enName = e.name;
@@ -733,6 +749,42 @@ function loadUsers() {
   } catch { return []; }
 }
 function saveUsers(list) { fs.writeFileSync(__USERS, JSON.stringify(list, null, 2) + '\n', 'utf8'); }
+// Per-account UI settings (theme, language, layout) keyed by username.
+function loadSettings() { try { const o = JSON.parse(fs.readFileSync(__SETTINGS, 'utf8')); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch { return {}; } }
+function saveSettings(o) { fs.writeFileSync(__SETTINGS, JSON.stringify(o, null, 2) + '\n', 'utf8'); }
+function cleanSettings(j) {
+  const out = {};
+  if (j && typeof j === 'object') {
+    if (j.lang === 'en' || j.lang === 'hu') out.lang = j.lang;
+    if (j.matLang === 'en' || j.matLang === 'hu' || j.matLang === 'both') out.matLang = j.matLang;
+    if (j.theme === 'dark' || j.theme === 'light' || j.theme === 'teal') out.theme = j.theme;
+    if (j.sectionBy === 'type' || j.sectionBy === 'subject') out.sectionBy = j.sectionBy;
+    if (typeof j.sectionOrder === 'string' && j.sectionOrder.length <= 8192) out.sectionOrder = j.sectionOrder;
+    if (typeof j.childOrders === 'string' && j.childOrders.length <= 65536) out.childOrders = j.childOrders;
+  }
+  return out;
+}
+// ── Access grants (who may read which request-to-read note) ───────────────────
+function loadGrants() { try { const o = JSON.parse(fs.readFileSync(__GRANTS, 'utf8')); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch { return {}; } }
+function saveGrants(o) { fs.writeFileSync(__GRANTS, JSON.stringify(o, null, 2) + '\n', 'utf8'); }
+function grantKey(lang, relPath) { return (lang === 'hu' ? 'hu' : 'en') + ':' + relPath; }
+function hasGrant(username, lang, relPath) { const g = loadGrants()[String(username).toLowerCase()]; return Array.isArray(g) && g.includes(grantKey(lang, relPath)); }
+function addGrant(username, lang, relPath) { const all = loadGrants(); const u = String(username).toLowerCase(); const k = grantKey(lang, relPath); if (!Array.isArray(all[u])) all[u] = []; if (!all[u].includes(k)) { all[u].push(k); saveGrants(all); } }
+function resolveUsername(name) {
+  const n = String(name || '').toLowerCase();
+  const u = loadUsers().find(x => String(x.username).toLowerCase() === n); if (u) return u.username;
+  const a = loadAdmins().find(x => String(x.username).toLowerCase() === n); if (a) return a.username;
+  return null;
+}
+// Who receives a read-request for a note: its `allow` owners, else all admins.
+function requestRecipients(relPath, lang) {
+  const owners = noteWhitelist(relPath, lang).map(resolveUsername).filter(Boolean);
+  if (owners.length) return [...new Set(owners)];
+  return loadAdmins().map(a => a.username);
+}
+// ── Messages (per-user inbox; text only) ──────────────────────────────────────
+function loadMessages() { try { const o = JSON.parse(fs.readFileSync(__MESSAGES, 'utf8')); return Array.isArray(o) ? o : (o && Array.isArray(o.list) ? o.list : []); } catch { return []; } }
+function saveMessages(list) { fs.writeFileSync(__MESSAGES, JSON.stringify(list, null, 2) + '\n', 'utf8'); }
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.scryptSync(String(password), salt, 32).toString('hex');
@@ -830,7 +882,8 @@ function rateOk(req, bucket, limit, windowMs) {
 const DATA_TXT_HEADER =
   '# Managed by Digitalization DevTools.\n' +
   '# Each [Section] header is a note display name (filename without extension or {tags}).\n' +
-  '# Keys: tags, authors, date, important, visibility (public|members), description, alt-hu, alt-en\n';
+  '# Keys: tags, authors, date, important, visibility (public|members|request), allow, description, alt-hu, alt-en\n' +
+  '#   visibility=request: note is visible but content is locked; allow = owner usernames who receive read-requests.\n';
 
 function serializeDataTxt(sections) {
   let out = DATA_TXT_HEADER + '\n';
@@ -844,7 +897,7 @@ function serializeDataTxt(sections) {
       if (v == null || v === '' || (Array.isArray(v) && v.length === 0)) continue;
       if (Array.isArray(v)) v = v.join(', ');
       if (k === 'important') { if (v === true || v === 'true') v = 'true'; else continue; }
-      if (k === 'visibility') { if (v === 'members') v = 'members'; else continue; }
+      if (k === 'visibility') { if (v !== 'members' && v !== 'request') continue; }
       if (k === 'allow') { if (v && String(v).trim()) v = String(v).trim(); else continue; }
       out += `${keyName[k] || k}: ${String(v).replace(/\r?\n/g, ' ').trim()}\n`;
     }
@@ -951,6 +1004,7 @@ const server = http.createServer((req, res) => {
     }
     const _viewer = siteSession(req);
     children = filterTreeForVisibility(children, _viewer);
+    annotateLocks(children, req, matLang);
     return sendJSON(res, { name: 'root', type: 'folder', path: '', children, count: children.length, hasDualLang: HAS_DUAL_LANG, loggedIn: !!_viewer });
   }
 
@@ -1272,6 +1326,144 @@ const server = http.createServer((req, res) => {
     if (s) for (const [tok, v] of SESSIONS) if (v === s) SESSIONS.delete(tok);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': clearCookie(req), 'Access-Control-Allow-Origin': '*' });
     return res.end(JSON.stringify({ ok: true }));
+  }
+
+  // ── Per-account settings (signed-in users; the site falls back to localStorage) ──
+  if (pathname === '/api/settings' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    const all = loadSettings();
+    return sendJSON(res, { ok: true, settings: all[s.username] || {} });
+  }
+  if (pathname === '/api/settings' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 131072) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const all = loadSettings();
+      all[s.username] = cleanSettings(j);
+      try { saveSettings(all); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+
+  // ── Messages (text only) ────────────────────────────────────────────────────
+  if (pathname === '/api/messages/unread' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, unread: 0 });
+    const unread = loadMessages().filter(m => m.to === s.username && !m.read).length;
+    return sendJSON(res, { ok: true, unread });
+  }
+  if (pathname === '/api/messages' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    const me = s.username, all = loadMessages();
+    const byDate = (a, b) => (b.date || '').localeCompare(a.date || '');
+    const inbox = all.filter(m => m.to === me).sort(byDate);
+    const sent  = all.filter(m => m.from === me).sort(byDate);
+    return sendJSON(res, { ok: true, inbox, sent, unread: inbox.filter(m => !m.read).length });
+  }
+  if (pathname === '/api/messages/send' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const to = resolveUsername(j.to);
+      let text = String(j.body || '').trim();
+      if (!to) return sendJSON(res, { ok: false, error: 'Unknown recipient.' }, 400);
+      if (!text) return sendJSON(res, { ok: false, error: 'Message is empty.' }, 400);
+      if (text.length > 8000) text = text.slice(0, 8000);
+      const list = loadMessages();
+      list.push({ id: crypto.randomUUID(), from: s.username, to, date: new Date().toISOString(), read: false, kind: 'text', body: text, replyTo: j.replyTo || null });
+      try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+  if (pathname === '/api/messages/read' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 65536) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, list = loadMessages();
+      const ids = j.all ? null : (Array.isArray(j.ids) ? j.ids : (j.id ? [j.id] : []));
+      let n = 0;
+      for (const m of list) if (m.to === me && !m.read && (j.all || ids.includes(m.id))) { m.read = true; n++; }
+      if (n) try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, marked: n });
+    });
+    return;
+  }
+  if (pathname === '/api/messages/delete' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, list = loadMessages();
+      const idx = list.findIndex(m => m.id === j.id && (m.to === me || m.from === me));
+      if (idx < 0) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      list.splice(idx, 1);
+      try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+
+  // ── Access requests for request-to-read notes ────────────────────────────────
+  if (pathname === '/api/access/info' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    const lang = query.lang === 'hu' ? 'hu' : 'en', p = query.path || '';
+    if (noteVisibility(p, lang) !== 'request') return sendJSON(res, { ok: true, applicable: false });
+    const me = s.username;
+    const pending = loadMessages().some(m => m.kind === 'access-request' && m.from === me && m.status === 'pending' && m.note && m.note.path === p && m.note.lang === lang);
+    return sendJSON(res, { ok: true, applicable: true, granted: canViewNote(req, p, lang), pending, recipients: requestRecipients(p, lang) });
+  }
+  if (pathname === '/api/access/request' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const lang = j.lang === 'hu' ? 'hu' : 'en', p = String(j.path || '');
+      if (noteVisibility(p, lang) !== 'request') return sendJSON(res, { ok: false, error: 'This note does not require a request.' }, 400);
+      if (canViewNote(req, p, lang)) return sendJSON(res, { ok: true, status: 'granted' });
+      const recipients = requestRecipients(p, lang);
+      if (!recipients.length) return sendJSON(res, { ok: false, error: 'No one can grant access to this note.' }, 400);
+      const me = s.username, list = loadMessages();
+      if (list.some(m => m.kind === 'access-request' && m.from === me && m.status === 'pending' && m.note && m.note.path === p && m.note.lang === lang))
+        return sendJSON(res, { ok: true, status: 'pending', recipients });
+      const note = { path: p, lang, label: stripDisplayName(path.basename(p)) };
+      const msg = String(j.body || '').slice(0, 2000);
+      for (const to of recipients) if (to !== me) list.push({ id: crypto.randomUUID(), from: me, to, date: new Date().toISOString(), read: false, kind: 'access-request', status: 'pending', note, body: msg });
+      try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, status: 'requested', recipients });
+    });
+    return;
+  }
+  if (pathname === '/api/access/respond' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, list = loadMessages();
+      const msg = list.find(m => m.id === j.id && m.to === me && m.kind === 'access-request' && m.status === 'pending');
+      if (!msg) return sendJSON(res, { ok: false, error: 'Request not found.' }, 404);
+      const accept = j.decision === 'accept';
+      const reason = String(j.reason || '').slice(0, 2000);
+      msg.status = accept ? 'accepted' : 'declined'; msg.read = true;
+      if (accept) addGrant(msg.from, msg.note.lang, msg.note.path);
+      list.push({ id: crypto.randomUUID(), from: me, to: msg.from, date: new Date().toISOString(), read: false, kind: 'access-result', decision: accept ? 'accepted' : 'declined', reason, note: msg.note, body: reason });
+      try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
   }
 
   // ── Public: register a viewer account ───────────────────────────────────────

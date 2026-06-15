@@ -336,3 +336,87 @@ The suite is now **115 assertions** (`node tests/run.js`). New coverage: templat
 HTML keeps the template chrome and replaces the body), raw-HTML save, folder articles (index + asset
 served, admin list shows the folder's files), validation (bad extension / traversal / dotfile / anon
 all rejected), file + recursive folder delete, and changelog `ref` + inline-token round-tripping.
+
+
+---
+
+## Fixes: light-mode header, device-language defaults, per-account settings
+
+**DevTools light mode now restyles the header.** The sticky header had a hard-coded dark
+background with only a teal override; a `body.theme-light header` rule was added so the bar
+matches the light palette (everything else in the header already used theme variables).
+
+**Default language follows the device (interface *and* material).** This was already the
+behaviour and is unchanged: the interface language is `navigator.language` (Hungarian if the
+browser locale starts with `hu`, otherwise English), and the material language follows it on
+first visit. A saved per-account preference, or a previous per-device choice, always takes
+precedence over the device default.
+
+**Settings are saved per-account when signed in, otherwise per-device.** Theme, interface
+language, material language, section ordering and the section grouping mode now sync to the
+signed-in account; signed-out visitors keep using `localStorage` exactly as before.
+
+- New endpoints (site session required): `GET /api/settings` returns the current user's saved
+  settings; `POST /api/settings` stores them. Values are validated against an allowlist
+  (`lang`, `matLang`, `theme`, `sectionBy`, `sectionOrder`, `childOrders`) and unknown keys are
+  dropped; the body is capped at 128 KB. Settings live in `settings.json`, keyed by username
+  (works for viewer and admin accounts alike); the file is git-ignored and never served statically.
+- On the site, every change to a synced preference is pushed (debounced) when signed in;
+  on sign-in (and page load while authenticated) the account's settings are pulled and applied;
+  registering a new account seeds it with the current device settings. The change is captured
+  centrally by wrapping `localStorage.setItem`, so all existing preference writes participate
+  without per-setting plumbing.
+
+The suite is now **122 assertions**: added coverage for `GET`/`POST /api/settings` requiring a
+session (401), an empty-on-first-use account, a save→reload round-trip, unknown-key stripping,
+and rejection of invalid values.
+
+
+---
+
+## Request-to-read notes + per-user messages
+
+### A third visibility tier: "Request to read"
+
+Notes can now be **public**, **members only**, or **request to read**. A request-to-read note is
+**visible in the folder** (it shows on the card with an X-shaped chain badge) but its **content is
+locked** until the author approves a request. Set it in DevTools via the new three-way *Visibility*
+control on the note editor; the whitelist field becomes **Owners** — the usernames who receive the
+read-requests and can grant access (blank = any admin).
+
+- In `data.txt` this is `visibility: request`; `allow` carries the owner usernames.
+- The note stays in the tree for everyone (`canSeeNode`), and each request-tier node is annotated
+  `locked: true/false` for the current viewer. Content endpoints (`/api/file`, `/data`, compile)
+  return 403 unless the viewer is an admin, an owner, or has been **granted** access.
+- Grants are stored in `grants.json` (git-ignored), keyed by username.
+
+### Asking for access
+
+Tapping a locked card opens a small **"May I read it?"** dialog that names the author(s) the
+request will go to and offers an optional message. Sending it places a request in each owner's
+message panel. The owner sees **Accept / Decline** with a reason box; accepting writes the grant
+(so the requester can open the note) and sends the requester a result message; declining just sends
+the result. Duplicate pending requests are de-duplicated.
+
+### Message panels (text only)
+
+Every signed-in user has a **message panel**. There are no push notifications — a small **bell**
+appears in the header **only when there are unread messages** (it's also reachable any time from the
+account menu → *Open messages*). The panel has an Inbox/Sent toggle, opening a message marks it read,
+and supports **reply**, **delete**, and composing a **new message** to any user. Messages are
+**text only** (no images, no calls) and may embed **references** to notes via the *+ Note reference*
+picker; reference tokens render as clickable links that jump to the note, exactly like the changelog
+references.
+
+New endpoints (all require a site session): `GET /api/messages`, `GET /api/messages/unread`,
+`POST /api/messages/send`, `POST /api/messages/read`, `POST /api/messages/delete`,
+`GET /api/access/info`, `POST /api/access/request`, `POST /api/access/respond`. Messages live in
+`messages.json` (git-ignored). Bodies are capped and recipients are validated against real accounts.
+
+The suite is now **150 assertions**, covering the locked-but-visible tier, content gating for
+anon/owner/granted/admin, the full request → accept/decline → grant flow (with de-duplication), and
+the message send / list / unread / mark-read / delete / validation paths.
+
+> Note: the message-panel and request dialog UI is in English; the rest of the site remains fully
+> bilingual. The folder file manager for the Magic Editor and these panels were kept English to stay
+> compact — they can be localized later via the existing i18n dictionaries.

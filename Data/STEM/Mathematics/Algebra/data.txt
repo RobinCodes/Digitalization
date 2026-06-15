@@ -1,7 +1,15 @@
+# Managed by Digitalization DevTools.
+# Each [Section] header is a note display name (filename without extension or {tags}).
+# Keys: tags, authors, date, important, visibility (public|members|request), allow, description, alt-hu, alt-en
+#   visibility=request: note is visible but content is locked; allow = owner usernames who receive read-requests.
+
 [Applied Algebra]
 tags: algebra
 authors: Robin Rovenszky
 date: 2024-09-15
-alt_hu: Alkalmazott Algebra
 important: true
+visibility: request
+allow: TestAccount
 description: Covers group theory, rings, and field extensions
+alt-hu: Alkalmazott Algebra
+

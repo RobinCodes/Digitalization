@@ -82,6 +82,7 @@
     padding:14px 22px;background:rgba(7,7,10,.9);backdrop-filter:blur(14px);
     border-bottom:1px solid var(--border)}
   body.theme-teal header{background:rgba(7,13,16,.9)}
+  body.theme-light header{background:rgba(251,249,244,.85)}
   .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:.01em;font-size:17px}
   .brand .glyph{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
     border:1px solid var(--border-md);border-radius:7px;color:var(--accent);font-size:17px}
@@ -158,6 +159,7 @@
   .chip.author{color:var(--blue);border-color:rgba(92,143,196,.25);background:rgba(92,143,196,.1)}
   .chip.imp{color:var(--red);border-color:rgba(196,92,92,.3)}
   .chip.members{color:var(--accent2);border-color:rgba(232,201,106,.35);background:rgba(232,201,106,.08)}
+  .chip.request{color:#6fa8dc;border-color:rgba(111,168,220,.35);background:rgba(111,168,220,.08)}
   .chip.muted{color:var(--text3)}
   .row .acts{display:flex;gap:7px;flex:none}
   .icon-btn{width:34px;height:34px;border:1px solid var(--border-md);border-radius:8px;background:var(--bg2);color:var(--text2);
@@ -412,8 +414,16 @@
       <div class="field-note" id="edCounterNote">Pick the matching note in the other language. Store just the note name — the path is resolved automatically.</div>
 
       <div class="row-toggle" id="edImpToggle" style="margin-top:18px"><div class="switch"></div><span>Mark this note as important</span></div>
-      <div class="row-toggle" id="edMembersToggle" style="margin-top:10px"><div class="switch"></div><span>Members only &mdash; hide from visitors who aren't signed in</span></div>
-      <label class="fld" id="edWhitelistFld" style="margin-top:10px;display:none"><span>Whitelist <span style="color:var(--text3)">— only these usernames may read it (comma-separated; blank = any signed-in member)</span></span>
+      <div style="margin-top:16px">
+        <div class="panel-label" style="margin-bottom:8px">/ visibility</div>
+        <div class="seg" id="edVisSeg">
+          <button type="button" data-vis="public" class="active">Public</button>
+          <button type="button" data-vis="members">Members only</button>
+          <button type="button" data-vis="request">Request to read</button>
+        </div>
+        <div class="field-note" id="edVisNote" style="margin-top:6px"></div>
+      </div>
+      <label class="fld" id="edWhitelistFld" style="margin-top:10px;display:none"><span id="edWhitelistLabel"></span>
         <input type="text" id="edWhitelist" placeholder="alice, bob" spellcheck="false" autocapitalize="off">
       </label>
     </div>
@@ -796,6 +806,7 @@
         (it.authors || []).slice(0, 3).forEach(a => chips.push('<span class="chip author">' + esc(a) + '</span>'));
         if (it.important) chips.push('<span class="chip imp">important</span>');
         if (it.visibility === 'members') chips.push('<span class="chip members">members</span>');
+        else if (it.visibility === 'request') chips.push('<span class="chip request">locked</span>');
         if (it.date) chips.push('<span class="chip muted">' + esc(it.date) + '</span>');
         const counter = it.altHu || it.altEn;
         if (counter) chips.push('<span class="chip muted">\u21c4 ' + esc(counter) + '</span>');
@@ -852,10 +863,8 @@
     $('edDate').value    = isNew ? '' : (item.date || '');
     $('edDesc').value    = isNew ? '' : (item.description || '');
     $('edImpToggle').classList.toggle('on', !isNew && !!item.important);
-    $('edMembersToggle').classList.toggle('on', !isNew && item.visibility === 'members');
-    const _mem = !isNew && item.visibility === 'members';
+    setEdVis(isNew ? 'public' : (item.visibility || 'public'));
     $('edWhitelist').value = isNew ? '' : (item.whitelist || []).join(', ');
-    $('edWhitelistFld').style.display = _mem ? '' : 'none';
 
     // counterpart label + value
     $('edCounterLabel').textContent = counterpartLabel();
@@ -886,10 +895,18 @@
   function closeEditor() { $('editorOv').classList.remove('open'); document.body.style.overflow = ''; editing = null; }
   $('edClose').onclick = closeEditor; $('edCancel').onclick = closeEditor;
   $('edImpToggle').onclick = () => $('edImpToggle').classList.toggle('on');
-  $('edMembersToggle').onclick = () => {
-    const on = $('edMembersToggle').classList.toggle('on');
-    $('edWhitelistFld').style.display = on ? '' : 'none';
-  };
+  function setEdVis(v) {
+    if (!['public', 'members', 'request'].includes(v)) v = 'public';
+    $('edVisSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.vis === v));
+    $('edWhitelistFld').style.display = (v === 'members' || v === 'request') ? '' : 'none';
+    $('edWhitelistLabel').innerHTML = v === 'request'
+      ? 'Owners <span style="color:var(--text3)">&mdash; usernames who receive read-requests and can grant access (comma-separated; blank = any admin)</span>'
+      : 'Whitelist <span style="color:var(--text3)">&mdash; only these usernames may read it (comma-separated; blank = any signed-in member)</span>';
+    $('edVisNote').textContent = v === 'request'
+      ? 'Everyone sees the note in the folder, but the content stays locked until you approve a read-request.'
+      : v === 'members' ? 'Hidden from visitors who are not signed in.' : 'Visible and readable by everyone.';
+  }
+  $('edVisSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setEdVis(b.dataset.vis)));
   $('edCounterClear').onclick = () => setCounter('');
 
   function splitList(s) { return s.split(',').map(x => x.trim()).filter(Boolean); }
@@ -907,8 +924,8 @@
       authors: splitList($('edAuthors').value),
       date: $('edDate').value || '',
       important: $('edImpToggle').classList.contains('on'),
-      visibility: $('edMembersToggle').classList.contains('on') ? 'members' : 'public',
-      allow: $('edMembersToggle').classList.contains('on') ? $('edWhitelist').value.trim() : '',
+      visibility: $('edVisSeg').querySelector('button.active').dataset.vis,
+      allow: ($('edVisSeg').querySelector('button.active').dataset.vis !== 'public') ? $('edWhitelist').value.trim() : '',
       description: $('edDesc').value.trim(),
     };
     // A note's counterpart lives in the opposite language: EN notes carry alt-hu,

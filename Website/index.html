@@ -1557,6 +1557,57 @@
     .auth-bd{position:absolute;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
     .auth-box{position:relative;z-index:1;width:min(400px,100%);background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);box-shadow:0 0 0 1px var(--accent-dim),0 32px 80px rgba(0,0,0,.7);transform:scale(.97) translateY(8px);transition:transform .3s var(--tr-spring);overflow:hidden}
     #authModal.open .auth-box{transform:scale(1) translateY(0)}
+    #msgBell{position:relative}
+    #msgBell .msg-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red,#b03b3b);border:1.5px solid var(--bg)}
+    #msgModal,#accessModal{position:fixed;inset:0;z-index:8600;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+    #msgModal.open,#accessModal.open{opacity:1;pointer-events:all}
+    .msg-sheet{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:84vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.45);transform:scale(.96) translateY(8px);transition:transform .25s}
+    #msgModal.open .msg-sheet,#accessModal.open .msg-sheet{transform:scale(1) translateY(0)}
+    .msg-head{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--border)}
+    .msg-head h2{font-size:16px;margin:0;flex:1}
+    .msg-tabs{display:flex;gap:4px}
+    .msg-tab{padding:5px 12px;border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer}
+    .msg-tab.active{background:var(--accent-glow,rgba(196,161,60,.12));color:var(--accent);border-color:transparent}
+    .msg-x,.msg-mini{background:transparent;border:0;color:var(--text2);cursor:pointer}
+    .msg-mini{border:1px solid var(--border);border-radius:99px;padding:5px 12px;font-weight:600;font-size:12px}
+    .msg-x{font-size:22px;line-height:1;width:30px}
+    .msg-x:hover,.msg-mini:hover{color:var(--accent)}
+    .msg-list{overflow:auto;padding:10px 12px;flex:1;min-height:80px}
+    .msg-empty{padding:40px 10px;text-align:center;color:var(--text3)}
+    .msg-item{border:1px solid var(--border);border-radius:12px;padding:11px 14px;margin-bottom:9px;cursor:pointer;transition:border-color .2s}
+    .msg-item:hover{border-color:var(--accent)}
+    .msg-item.unread{border-color:rgba(196,161,60,.45)}
+    .msg-row{display:flex;align-items:center;gap:8px}
+    .msg-undot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+    .msg-from{font-weight:700;font-size:13.5px}
+    .msg-date{margin-left:auto;font-family:var(--font-mono,monospace);font-size:10.5px;color:var(--text3)}
+    .msg-snip{color:var(--text2);font-size:12.5px;margin-top:5px}
+    .msg-badge{font-family:var(--font-mono,monospace);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;border:1px solid var(--border);color:var(--text2)}
+    .msg-badge.req{color:#6fa8dc;border-color:rgba(111,168,220,.4)}
+    .msg-badge.ok{color:var(--green,#3a8a52);border-color:rgba(58,138,82,.4)}
+    .msg-badge.no{color:var(--red,#b03b3b);border-color:rgba(176,59,59,.4)}
+    .msg-full{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:13.5px;line-height:1.55}
+    .msg-full .cl-ref{color:var(--accent);text-decoration:underline;cursor:pointer}
+    .msg-noteref{margin:8px 0}
+    .msg-muted{color:var(--text3);font-size:12px}
+    .msg-actrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .msg-reason,#msgBodyInput,#msgToInput,#accessMsg{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 10px;font:inherit;font-size:13px;resize:vertical;margin-top:6px}
+    .msg-primary{background:var(--accent);color:#1a1408;border:0;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer}
+    .msg-primary:disabled{opacity:.5;cursor:not-allowed}
+    .msg-ghost{background:transparent;border:1px solid var(--border);border-radius:8px;padding:7px 14px;color:var(--text2);font-weight:600;cursor:pointer}
+    .msg-ghost:hover{color:var(--accent);border-color:var(--accent)}
+    .msg-compose{border-top:1px solid var(--border);padding:14px 16px;background:var(--bg)}
+    .msg-compose h4{margin:0 0 4px;font-size:13px}
+    .msg-compose-row{display:flex;gap:8px;margin-top:10px;align-items:center}
+    .msg-reflist{display:none;max-height:160px;overflow:auto;border:1px solid var(--border);border-radius:8px;margin-top:8px}
+    .msg-reflist button{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--border);color:var(--text);padding:8px 10px;cursor:pointer;font-size:12.5px}
+    .msg-reflist button:hover{background:var(--accent-glow,rgba(196,161,60,.12));color:var(--accent)}
+    .access-box{padding:18px}
+    .access-note{font-weight:700;margin-bottom:8px}
+    .access-recip{color:var(--text2);font-size:13px}
+    .access-state{color:var(--accent);font-size:12.5px;margin-top:10px}
+    .card-locked{display:inline-flex;align-items:center;color:#6fa8dc;margin-left:2px}
+    .card-locked svg{width:14px;height:14px}
     .auth-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
     .auth-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
     .auth-x{width:30px;height:30px;border:none;background:var(--bg3);color:var(--text2);border-radius:8px;cursor:none;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s}
@@ -1622,6 +1673,7 @@
           <button id="langEN" class="lang-btn">EN</button>
           <button id="langHU" class="lang-btn">HU</button>
         </div>
+        <button id="msgBell" aria-label="Messages" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="msg-dot" id="msgDot"></span></button>
         <button id="authBtn" aria-label="Sign in"><span class="auth-dot"></span><span class="auth-label">Sign in</span></button>
         <button id="settingsBtn" aria-label="Settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1709,7 +1761,38 @@
           <button class="auth-submit" id="acpSubmit" data-i18n="authChangePwBtn">Update password</button>
         </div>
         <div class="auth-divider"></div>
+        <button class="auth-submit ghost" id="authMessagesBtn" style="margin-bottom:10px">Open messages</button>
         <button class="auth-submit ghost" id="authSignOut" data-i18n="authSignOut">Sign out</button>
+      </div>
+    </div>
+  </div>
+  <div id="msgModal">
+    <div class="msg-sheet">
+      <div class="msg-head">
+        <h2>Messages</h2>
+        <div class="msg-tabs"><button class="msg-tab active" id="msgTabInbox" type="button">Inbox</button><button class="msg-tab" id="msgTabSent" type="button">Sent</button></div>
+        <button class="msg-mini" id="msgNewBtn" type="button">New</button>
+        <button class="msg-x" id="msgClose" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div class="msg-list" id="msgList"></div>
+      <div class="msg-compose" id="msgCompose" style="display:none">
+        <h4 id="msgComposeTitle">New message</h4>
+        <input type="text" id="msgToInput" placeholder="recipient username" spellcheck="false" autocapitalize="off">
+        <textarea id="msgBodyInput" rows="3" placeholder="Write a message (text only)"></textarea>
+        <div class="msg-reflist" id="msgRefList"></div>
+        <div class="msg-compose-row"><button class="msg-ghost" id="msgRefBtn" type="button">+ Note reference</button><span style="flex:1"></span><button class="msg-ghost" id="msgComposeCancel" type="button">Cancel</button><button class="msg-primary" id="msgSendBtn" type="button">Send</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="accessModal">
+    <div class="msg-sheet" style="max-width:440px">
+      <div class="msg-head"><h2>Request to read</h2><button class="msg-x" id="accessClose" type="button" aria-label="Close">&times;</button></div>
+      <div class="access-box">
+        <div class="access-note" id="accessNote"></div>
+        <div class="access-recip" id="accessRecipients"></div>
+        <textarea id="accessMsg" rows="3" placeholder="Optional message to the author"></textarea>
+        <div class="access-state" id="accessState"></div>
+        <div class="msg-compose-row"><span style="flex:1"></span><button class="msg-ghost" id="accessCancel" type="button">Cancel</button><button class="msg-primary" id="accessSend" type="button">May I read it?</button></div>
       </div>
     </div>
   </div>
@@ -3355,6 +3438,7 @@
             <span class="card-badge" style="color:var(--${cv})">${badge}</span>
             <span class="card-count">${meta}</span>
             ${item.visibility === 'members' ? '<span class="card-members" title="Members only">\uD83D\uDD12</span>' : ''}
+            ${item.visibility === 'request' && item.locked ? '<span class="card-locked" title="Locked — request to read">'+CHAIN_X_SVG+'</span>' : ''}
           </div>
           ${tagsHtml}
         </div>
@@ -3458,6 +3542,7 @@
       } else {
         openLang = item.lang || (MAT_LANG === 'hu' ? 'hu' : 'en');
       }
+      if (item.visibility === 'request' && item.locked) { openAccessRequest(openPath, openLang, openName); return; }
       const ext = (item.ext||'').toLowerCase();
       if (['.tex','.sty','.cls'].includes(ext)) { openPdfViewer(openPath, openName, openLang, item); return; }
       if (ext==='.pdf') { openPdfDirect('/data/'+encPath(openPath)+'?lang='+openLang, openName); return; }
@@ -3491,6 +3576,59 @@
 
     /* ── Member sign-in ─────────────────────────────────────────────── */
     const AUTH = { user: null, role: null };
+
+    /* ── Per-account settings sync (falls back to per-device localStorage) ──── */
+    let _applyingSettings = false, _pushTimer = null;
+    const _SETTINGS_KEYS = new Set(['ki_lang', 'ki_mat_lang', 'ki_theme', 'ki_section_by', 'ki_section_order', 'ki_child_orders']);
+    (function () {
+      const orig = localStorage.setItem.bind(localStorage);
+      localStorage.setItem = function (k, v) { orig(k, v); if (_SETTINGS_KEYS.has(k)) scheduleSettingsPush(); };
+    })();
+    function collectSettings() {
+      return {
+        lang:         localStorage.getItem('ki_lang')          || undefined,
+        matLang:      localStorage.getItem('ki_mat_lang')      || undefined,
+        theme:        localStorage.getItem('ki_theme')         || undefined,
+        sectionBy:    localStorage.getItem('ki_section_by')    || undefined,
+        sectionOrder: localStorage.getItem('ki_section_order') || undefined,
+        childOrders:  localStorage.getItem('ki_child_orders')  || undefined,
+      };
+    }
+    function scheduleSettingsPush() {
+      if (_applyingSettings || !AUTH.user) return;
+      clearTimeout(_pushTimer);
+      _pushTimer = setTimeout(pushSettings, 700);
+    }
+    async function pushSettings() {
+      if (!AUTH.user) return;
+      try { await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(collectSettings()) }); } catch {}
+    }
+    async function pullSettings() {
+      if (!AUTH.user) return;
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        if (data && data.ok && data.settings && Object.keys(data.settings).length) applyAccountSettings(data.settings);
+      } catch {}
+    }
+    function applyAccountSettings(s) {
+      if (!s || typeof s !== 'object') return;
+      _applyingSettings = true;
+      try {
+        if (s.theme) applyTheme(s.theme);
+        if (s.lang === 'en' || s.lang === 'hu') { LANG = s.lang; localStorage.setItem('ki_lang', LANG); }
+        if (s.matLang === 'en' || s.matLang === 'hu' || s.matLang === 'both') {
+          MAT_LANG = s.matLang; localStorage.setItem('ki_mat_lang', MAT_LANG);
+          document.querySelectorAll('#stgMatLangSeg .mat-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.matlang === MAT_LANG));
+        }
+        if (s.sectionBy === 'type' || s.sectionBy === 'subject') { sectionBy = s.sectionBy; localStorage.setItem('ki_section_by', sectionBy); }
+        if (typeof s.sectionOrder === 'string') { try { sectionOrder = JSON.parse(s.sectionOrder); } catch { sectionOrder = null; } localStorage.setItem('ki_section_order', s.sectionOrder); }
+        if (typeof s.childOrders === 'string') localStorage.setItem('ki_child_orders', s.childOrders);
+        applyTranslations();
+        updateAuthUI();
+        loadTree();
+      } finally { _applyingSettings = false; }
+    }
     const authModal = document.getElementById('authModal');
     function updateAuthUI() {
       const lbl = document.querySelector('#authBtn .auth-label');
@@ -3507,6 +3645,7 @@
         AUTH.role = data ? data.role : null;
       } catch { AUTH.user = null; AUTH.role = null; }
       updateAuthUI();
+      if (AUTH.user) { pullSettings(); pollUnread(); } else updateMsgBell(0);
     }
     function showAuthView(which) {
       const out = document.getElementById('authViewOut');
@@ -3552,16 +3691,237 @@
         updateAuthUI(); closeAuthModal();
         showToast(t('authToastIn')(AUTH.user));
         loadTree();
+        pullSettings();
+        pollUnread();
       } catch { err.textContent = t('authBadCreds'); }
       finally { btn.disabled = false; }
     }
     async function signOut() {
       try { await fetch('/api/logout', { method: 'POST' }); } catch {}
       AUTH.user = null; AUTH.role = null;
-      updateAuthUI(); closeAuthModal();
+      updateAuthUI(); closeAuthModal(); updateMsgBell(0);
       showToast(t('authToastOut'));
       loadTree();
     }
+
+    /* ── Messages & access requests (text only; UI in English) ──────── */
+    const CHAIN_X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 9.5 6.5 11.5a3 3 0 0 0 4.2 4.2l1-1"/><path d="M15.5 14.5l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><line x1="4.5" y1="4.5" x2="19.5" y2="19.5"/></svg>';
+    let MSG = { inbox: [], sent: [], unread: 0, view: 'inbox', openId: null, replyTo: null };
+    let _accessCtx = null, _msgPollTimer = null;
+    function updateMsgBell(n) {
+      MSG.unread = n || 0;
+      const bell = document.getElementById('msgBell');
+      if (bell) bell.style.display = (AUTH.user && MSG.unread > 0) ? '' : 'none';
+    }
+    async function pollUnread() {
+      if (!AUTH.user) { updateMsgBell(0); return; }
+      try { const r = await fetch('/api/messages/unread'); const d = await r.json(); updateMsgBell(d && d.ok ? d.unread : 0); } catch {}
+    }
+    async function refreshMessages() {
+      if (!AUTH.user) return;
+      try { const r = await fetch('/api/messages'); const d = await r.json(); if (d && d.ok) { MSG.inbox = d.inbox || []; MSG.sent = d.sent || []; updateMsgBell(d.unread || 0); renderMessages(); } } catch {}
+    }
+    function openMessages() {
+      if (!AUTH.user) { openAuthModal(); return; }
+      MSG.view = 'inbox'; MSG.openId = null; hideCompose();
+      document.getElementById('msgModal').classList.add('open');
+      refreshMessages();
+    }
+    function closeMessages() { document.getElementById('msgModal').classList.remove('open'); }
+    function fmtDate(iso) { try { return new Date(iso).toLocaleString(); } catch { return iso || ''; } }
+    function plainSnippet(s) {
+      s = String(s || '').replace(/\[([^\]]+)\]\(ki:\/\/[^)]*\)/g, '$1').replace(/\s+/g, ' ').trim();
+      return s.length > 90 ? s.slice(0, 90) + '\u2026' : s;
+    }
+    function bindRefs(container) {
+      container.querySelectorAll('.cl-ref').forEach(a => a.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        try { navigateToRef(JSON.parse(a.dataset.ref)); closeMessages(); } catch {}
+      }));
+    }
+    function msgKindBadge(m) {
+      if (m.kind === 'access-request') {
+        const lab = m.status === 'accepted' ? 'Accepted' : m.status === 'declined' ? 'Declined' : 'Access request';
+        const cls = m.status === 'accepted' ? 'ok' : m.status === 'declined' ? 'no' : 'req';
+        return '<span class="msg-badge ' + cls + '">' + lab + '</span>';
+      }
+      if (m.kind === 'access-result') return '<span class="msg-badge ' + (m.decision === 'accepted' ? 'ok' : 'no') + '">' + (m.decision === 'accepted' ? 'Accepted' : 'Declined') + '</span>';
+      return '';
+    }
+    function noteRefHtml(m) {
+      if (!m.note || !m.note.path) return '';
+      const ref = esc(JSON.stringify({ kind: 'note', target: m.note.path, lang: m.note.lang, label: m.note.label }));
+      return '<div class="msg-noteref"><a class="cl-ref" href="#" data-ref="' + ref + '">' + esc(m.note.label || m.note.path) + '</a> <span class="msg-muted">(' + esc((m.note.lang || 'en').toUpperCase()) + ')</span></div>';
+    }
+    function renderMessages() {
+      const list = document.getElementById('msgList');
+      const rows = (MSG.view === 'sent' ? MSG.sent : MSG.inbox);
+      document.getElementById('msgTabInbox').classList.toggle('active', MSG.view === 'inbox');
+      document.getElementById('msgTabSent').classList.toggle('active', MSG.view === 'sent');
+      if (!rows.length) { list.innerHTML = '<div class="msg-empty">No messages.</div>'; return; }
+      list.innerHTML = '';
+      rows.forEach(m => {
+        const who = MSG.view === 'sent' ? ('To ' + esc(m.to)) : esc(m.from);
+        const open = MSG.openId === m.id;
+        const unread = MSG.view === 'inbox' && !m.read;
+        const item = document.createElement('div');
+        item.className = 'msg-item' + (open ? ' open' : '') + (unread ? ' unread' : '');
+        let actions = '';
+        if (open) {
+          const nr = noteRefHtml(m);
+          if (m.kind === 'access-request' && MSG.view === 'inbox' && m.status === 'pending') {
+            actions = nr + '<textarea class="msg-reason" id="rsn-' + m.id + '" rows="2" placeholder="Optional reason"></textarea>'
+              + '<div class="msg-actrow"><button class="msg-primary" data-act="accept" data-id="' + m.id + '">Accept</button>'
+              + '<button class="msg-ghost" data-act="decline" data-id="' + m.id + '">Decline</button></div>';
+          } else if (m.kind === 'access-request') {
+            actions = nr + '<div class="msg-muted">' + (m.status === 'accepted' ? 'You granted access.' : m.status === 'declined' ? 'You declined.' : '') + '</div>';
+          } else if (m.kind === 'access-result') {
+            actions = nr;
+          }
+          if (MSG.view === 'inbox') {
+            actions += '<div class="msg-actrow">' + (m.kind === 'text' ? '<button class="msg-ghost" data-act="reply" data-id="' + m.id + '" data-to="' + esc(m.from) + '">Reply</button>' : '')
+              + '<button class="msg-ghost" data-act="del" data-id="' + m.id + '">Delete</button></div>';
+          }
+        }
+        const full = open ? ('<div class="msg-full">' + renderRefText(m.body || '') + actions + '</div>') : '';
+        item.innerHTML = '<div class="msg-row">' + (unread ? '<span class="msg-undot"></span>' : '')
+          + '<span class="msg-from">' + who + '</span>' + msgKindBadge(m)
+          + '<span class="msg-date">' + esc(fmtDate(m.date)) + '</span></div>'
+          + (open ? '' : '<div class="msg-snip">' + esc(plainSnippet(m.body)) + '</div>') + full;
+        item.querySelector('.msg-row').addEventListener('click', () => {
+          const willOpen = MSG.openId !== m.id;
+          MSG.openId = willOpen ? m.id : null;
+          if (willOpen && MSG.view === 'inbox' && !m.read) { m.read = true; markRead(m.id); }
+          renderMessages();
+        });
+        list.appendChild(item);
+        if (open) {
+          bindRefs(item);
+          item.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', ev => {
+            ev.stopPropagation();
+            const id = b.dataset.id, act = b.dataset.act;
+            if (act === 'accept' || act === 'decline') {
+              const rsn = (document.getElementById('rsn-' + id) || {}).value || '';
+              respondAccess(id, act, rsn);
+            } else if (act === 'reply') { openCompose(b.dataset.to, id); }
+            else if (act === 'del') { delMessage(id); }
+          }));
+        }
+      });
+    }
+    async function markRead(id) { try { await fetch('/api/messages/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); pollUnread(); } catch {} }
+    async function respondAccess(id, decision, reason) {
+      try {
+        const r = await fetch('/api/access/respond', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, decision, reason }) });
+        const d = await r.json();
+        if (d && d.ok) { showToast(decision === 'accept' ? 'Access granted' : 'Request declined'); MSG.openId = null; refreshMessages(); }
+        else showToast((d && d.error) || 'Error', true);
+      } catch { showToast('Error', true); }
+    }
+    async function delMessage(id) { try { await fetch('/api/messages/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); MSG.openId = null; refreshMessages(); } catch {} }
+    function showCompose() { document.getElementById('msgCompose').style.display = ''; }
+    function hideCompose() { const c = document.getElementById('msgCompose'); if (c) c.style.display = 'none'; const rl = document.getElementById('msgRefList'); if (rl) rl.style.display = 'none'; }
+    function openCompose(to, replyTo) {
+      MSG.replyTo = replyTo || null;
+      document.getElementById('msgToInput').value = to || '';
+      document.getElementById('msgBodyInput').value = '';
+      document.getElementById('msgComposeTitle').textContent = to ? ('Reply to ' + to) : 'New message';
+      showCompose();
+      setTimeout(() => { const el = document.getElementById('msgBodyInput'); if (el) el.focus(); }, 50);
+    }
+    async function sendComposed() {
+      const to = document.getElementById('msgToInput').value.trim();
+      const body = document.getElementById('msgBodyInput').value.trim();
+      if (!to) { showToast('Enter a recipient', true); return; }
+      if (!body) { showToast('Write a message', true); return; }
+      try {
+        const r = await fetch('/api/messages/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to, body, replyTo: MSG.replyTo }) });
+        const d = await r.json();
+        if (d && d.ok) { showToast('Message sent'); hideCompose(); MSG.view = 'sent'; refreshMessages(); }
+        else showToast((d && d.error) || 'Error', true);
+      } catch { showToast('Error', true); }
+    }
+    function flattenNotes(node, out) {
+      out = out || [];
+      ((node && node.children) || []).forEach(ch => {
+        if (ch.type === 'folder') flattenNotes(ch, out);
+        else {
+          const p = ch.enPath || ch.huPath || ch.path;
+          const lg = ch.enPath ? 'en' : (ch.huPath ? 'hu' : (ch.lang || (MAT_LANG === 'hu' ? 'hu' : 'en')));
+          out.push({ label: (ch.name || '').replace(/\{[^}]*\}/g, '').replace(/\.[^.]+$/, '').trim() || ch.name, path: p, lang: lg });
+        }
+      });
+      return out;
+    }
+    function toggleRefList() {
+      const rl = document.getElementById('msgRefList');
+      if (rl.style.display === 'block') { rl.style.display = 'none'; return; }
+      const notes = flattenNotes(treeData);
+      if (!notes.length) { showToast('No notes to reference', true); return; }
+      rl.innerHTML = notes.map((n, i) => '<button type="button" data-i="' + i + '">' + esc(n.label) + '</button>').join('');
+      rl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        const n = notes[+b.dataset.i];
+        const tok = '[' + n.label + '](ki://note/' + encodeURIComponent(n.path) + '?lang=' + n.lang + ')';
+        const ta = document.getElementById('msgBodyInput');
+        const a = ta.selectionStart || ta.value.length, e = ta.selectionEnd || ta.value.length;
+        ta.value = ta.value.slice(0, a) + tok + ta.value.slice(e); ta.focus();
+        rl.style.display = 'none';
+      }));
+      rl.style.display = 'block';
+    }
+    async function openAccessRequest(path, lang, name) {
+      if (!AUTH.user) { showToast('Sign in to request access'); openAuthModal(); return; }
+      _accessCtx = { path, lang, name };
+      const mEl = document.getElementById('accessModal');
+      document.getElementById('accessNote').textContent = name || path;
+      document.getElementById('accessRecipients').textContent = '';
+      document.getElementById('accessState').textContent = '';
+      document.getElementById('accessMsg').value = '';
+      const send = document.getElementById('accessSend'); send.disabled = false; send.style.display = '';
+      mEl.classList.add('open');
+      try {
+        const r = await fetch('/api/access/info?lang=' + lang + '&path=' + encodeURIComponent(path));
+        const d = await r.json();
+        if (d && d.ok && d.applicable) {
+          if (d.granted) { mEl.classList.remove('open'); showToast('You already have access'); loadTree(); handleClick({ path: path, name: name, ext: (String(name).match(/\.[^.]+$/) || [''])[0], lang: lang, _forceLang: lang, visibility: 'public' }); return; }
+          document.getElementById('accessRecipients').innerHTML = 'Your request will be sent to <b>' + (d.recipients || []).map(esc).join(', ') + '</b>.';
+          if (d.pending) { document.getElementById('accessState').textContent = 'You already have a pending request for this note.'; send.disabled = true; }
+        } else { document.getElementById('accessRecipients').textContent = 'This note does not require a request.'; send.style.display = 'none'; }
+      } catch {}
+    }
+    function closeAccessModal() { document.getElementById('accessModal').classList.remove('open'); }
+    async function sendAccessRequest() {
+      if (!_accessCtx) return;
+      const send = document.getElementById('accessSend'); send.disabled = true;
+      try {
+        const r = await fetch('/api/access/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: _accessCtx.path, lang: _accessCtx.lang, body: document.getElementById('accessMsg').value.trim() }) });
+        const d = await r.json();
+        if (d && d.ok) {
+          if (d.status === 'granted') { showToast('You already have access'); loadTree(); }
+          else { showToast('Request sent to ' + (d.recipients || []).join(', ')); }
+          closeAccessModal();
+        } else { showToast((d && d.error) || 'Error', true); send.disabled = false; }
+      } catch { showToast('Error', true); send.disabled = false; }
+    }
+    (function () {
+      const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+      on('msgBell', openMessages);
+      on('authMessagesBtn', () => { closeAuthModal(); openMessages(); });
+      on('msgClose', closeMessages);
+      on('msgTabInbox', () => { MSG.view = 'inbox'; MSG.openId = null; renderMessages(); });
+      on('msgTabSent', () => { MSG.view = 'sent'; MSG.openId = null; renderMessages(); });
+      on('msgNewBtn', () => openCompose('', null));
+      on('msgSendBtn', sendComposed);
+      on('msgComposeCancel', hideCompose);
+      on('msgRefBtn', toggleRefList);
+      on('accessClose', closeAccessModal);
+      on('accessCancel', closeAccessModal);
+      on('accessSend', sendAccessRequest);
+      const mm = document.getElementById('msgModal'); if (mm) mm.addEventListener('click', e => { if (e.target.id === 'msgModal') closeMessages(); });
+      const am = document.getElementById('accessModal'); if (am) am.addEventListener('click', e => { if (e.target.id === 'accessModal') closeAccessModal(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMessages(); closeAccessModal(); } });
+      _msgPollTimer = setInterval(pollUnread, 45000);
+    })();
     async function submitRegister() {
       const u = document.getElementById('regUserInput').value.trim();
       const p = document.getElementById('regPassInput').value;
@@ -3579,6 +3939,7 @@
         updateAuthUI(); closeAuthModal();
         showToast(t('authToastIn')(AUTH.user));
         loadTree();
+        pushSettings();
       } catch { err.textContent = t('authBadCreds'); }
       finally { btn.disabled = false; }
     }
