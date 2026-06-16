@@ -1423,6 +1423,7 @@ const server = http.createServer((req, res) => {
         c = ensureDM(chats, me, to);
       }
       const msg = { id: crypto.randomUUID(), from: me, body: text, date: new Date().toISOString(), kind: 'text' };
+      if (j.replyTo) { const src = (c.messages || []).find(m => m.id === j.replyTo); if (src) { msg.replyTo = src.id; msg.replyFrom = src.from; msg.replyText = (src.kind === 'text' ? (src.body || '') : chatPreview(src)).slice(0, 160); } }
       c.messages.push(msg);
       c.reads = c.reads || {}; c.reads[meLc] = msg.date;
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }

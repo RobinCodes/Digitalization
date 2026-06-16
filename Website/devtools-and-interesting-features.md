@@ -499,3 +499,31 @@ button, and the `<html lang>` attribute) according to the article's chosen langu
 Hungarian *example* text never appears in generated articles. (And after the styling fix, the template
 is embedded in the server too, so generation is fully styled even if the file isn't on disk.) DevTools
 itself remains English-only, as requested.
+
+
+---
+
+## Chain realism + compact chat header
+- The locked-card chains are now rendered as **interlocking 3-D metal links** (shaded steel tube with
+  a top highlight and inner-curvature shadow, oval links woven over/under) instead of flat outlines —
+  forming a believable chain X across a dimmed card.
+- The Chat tab now uses a **compact header** (a small titled bar with a chat glyph) rather than the
+  full-size page hero, since chat is a different kind of surface. Same palette and type, taller and
+  cleaner conversation shell (sticky list header, softer bubbles, subtle depth).
+
+
+---
+
+## Chat: badge, replies, notifications, mobile/tablet (six changes)
+1. **Unread count moved to the Chat tab.** The header bell is gone; the unread message count now shows as a small pill on the "Chat" nav item (desktop nav + mobile drawer). `updateMsgBell` sets both badges.
+2. **`outline:none` on chat inputs** — composer, group-name, user filter, access message, and the inline reply/reason field; focus is shown with an accent border instead.
+3. **Reply to a message.** Hover a message for a ↩ button; a quoted preview sits above the composer (cancel with ✕), and the sent message shows the quoted snippet (click it to scroll to the original). Server `/api/chat/send` accepts `replyTo` and stores `replyTo`/`replyFrom`/`replyText`.
+4. **Taller conversation panel** — `.chat-shell` height raised to `min(82vh, 940px)` (mobile `min(82vh, 720px)`).
+5. **Tablet + mobile fixes.** The hamburger drawer now kicks in at ≤820px (covers tablets), and it carries everything: Home/Story/Articles/Log/**Chat** plus language, theme, **Settings** (gear → opens settings modal), and Sign in (account + password change). Redundant header buttons are hidden at that width.
+6. **Opt-in notifications (off by default).** New Settings → Notifications toggle. When enabled (and the browser grants permission) you get desktop notifications for new messages and access granted/declined. Pref stored in `ki_notify` and synced per account; polling drives the alerts, with the currently-open conversation suppressed.
+
+
+---
+
+## DevTools: account autocomplete on the note whitelist
+When editing a note's **whitelist / owners** field (visibility = members or request), an account picker now drops down as you type — the same idea as starting a new chat. It lists viewer accounts (from `/api/admin/users`), filters by the token under the caret, hides ones already added, and inserts the chosen username into the comma-separated list. Click or use ↑/↓ + Enter; Esc closes. No server changes.

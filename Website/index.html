@@ -612,7 +612,7 @@
       max-height:0;
       transition:max-height .4s cubic-bezier(0.16,1,0.3,1), border-color .4s;
     }
-    #mobileMenuDrawer.open{max-height:280px}
+    #mobileMenuDrawer.open{max-height:min(76vh,460px);overflow-y:auto}
     .mob-drawer-inner{
       padding:14px 20px 20px;
       display:flex;flex-direction:column;gap:6px;
@@ -797,11 +797,14 @@
     .pdm-chk svg{width:9px;height:9px;color:#fff}
     .pdm-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:11px 18px;border-top:1px solid var(--border);flex-shrink:0}
 
-    @media(max-width:480px){
-      /* Hide inline nav and lang switcher — replaced by drawer */
+    @media(max-width:820px){
+      /* Hide the inline nav + header controls — everything moves into the drawer */
       .nav{display:none}
       .header-right .lang-sw{display:none}
+      #authBtn,#settingsBtn,#themeToggle{display:none}
       #mobileMenuBtn{display:inline-flex}
+    }
+    @media(max-width:480px){
       /* Keep sel panel behind drawer */
       #selPanel{bottom:16px;right:16px;width:calc(100vw - 32px);max-height:60vh}
       #selPanelTab{bottom:16px}
@@ -1624,7 +1627,7 @@
     .chat-topbar-ico{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:9px;background:var(--accent-glow,rgba(196,161,60,.14));color:var(--accent);flex:none}
     .chat-topbar-ico svg{width:17px;height:17px}
     .chat-topbar-title{font-family:var(--font-display);font-size:23px;font-weight:500;letter-spacing:-.01em;color:var(--text);line-height:1}
-    .chat-shell{display:flex;max-width:1180px;margin:0 auto 30px;border:1px solid var(--border);border-radius:16px;overflow:hidden;height:min(76vh,760px);background:var(--bg2);box-shadow:0 18px 50px -24px rgba(0,0,0,.55)}
+    .chat-shell{display:flex;max-width:1180px;margin:0 auto 30px;border:1px solid var(--border);border-radius:16px;overflow:hidden;height:min(82vh,940px);background:var(--bg2);box-shadow:0 18px 50px -24px rgba(0,0,0,.55)}
     .chat-list-pane{width:300px;flex:none;border-right:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
     .chat-list-head{display:flex;align-items:center;gap:8px;padding:13px 14px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:1}
     .chat-list-head>span{font-weight:700;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);flex:1}
@@ -1670,10 +1673,43 @@
     .chat-areq .ar-status.ok{color:var(--green,#3a8a52)}
     .chat-areq .ar-status.no{color:var(--red,#b03b3b)}
     .chat-compose{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);align-items:flex-end}
-    .chat-compose textarea{flex:1;resize:none;background:var(--bg);border:1px solid var(--border);border-radius:18px;color:var(--text);padding:9px 14px;font:inherit;font-size:13.5px;max-height:120px;line-height:1.4}
+    .chat-compose textarea{flex:1;resize:none;background:var(--bg);border:1px solid var(--border);border-radius:18px;color:var(--text);padding:9px 14px;font:inherit;font-size:13.5px;max-height:120px;line-height:1.4;overflow-y:hidden}
     .chat-send{flex:none;width:38px;height:38px;border-radius:50%;border:0;background:var(--accent);color:#1a1408;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:filter .12s,transform .12s}
     .chat-send:hover{filter:brightness(1.08)}
     .chat-send:active{transform:scale(.92)}
+    /* unread badge on the Chat tab */
+    .nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;margin-left:6px;border-radius:99px;background:var(--accent);color:#1a1408;font-family:var(--font-mono);font-size:10px;font-weight:700;line-height:1;vertical-align:middle}
+    .nav-badge[hidden]{display:none}
+    /* chat inputs: no focus outline */
+    .chat-compose textarea,#chatGroupName,#chatUserFilter,#accessMsg,.ar-reason{outline:none}
+    .chat-compose textarea:focus,#chatGroupName:focus,#chatUserFilter:focus,#accessMsg:focus{border-color:var(--accent)}
+    /* per-message reply control */
+    .chat-row{display:flex;align-items:center;gap:6px;max-width:86%}
+    .chat-row.me{flex-direction:row-reverse;align-self:flex-end}
+    .chat-row.them{align-self:flex-start}
+    .chat-row .chat-bubble{align-self:auto;max-width:100%}
+    .chat-reply-btn{flex:none;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .12s,color .12s,border-color .12s;font-size:13px}
+    .chat-row:hover .chat-reply-btn{opacity:1}
+    .chat-reply-btn:hover{color:var(--accent);border-color:var(--accent)}
+    @media (hover:none){.chat-reply-btn{opacity:.5}}
+    /* quoted reply inside a bubble */
+    .chat-quote{display:block;border-left:3px solid currentColor;padding:3px 8px;margin:0 0 6px;border-radius:5px;background:rgba(255,255,255,.10);font-size:12px;line-height:1.4;cursor:pointer}
+    .chat-bubble.them .chat-quote{background:rgba(255,255,255,.05)}
+    .chat-quote .cq-from{display:block;font-weight:700;font-size:10.5px;opacity:.85}
+    .chat-quote .cq-snip{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;opacity:.8}
+    /* reply preview bar above the composer */
+    .chat-compose-wrap{border-top:1px solid var(--border)}
+    .chat-compose-wrap .chat-compose{border-top:0}
+    .chat-reply-bar{display:flex;align-items:center;gap:9px;padding:9px 12px 0}
+    .chat-reply-bar[hidden]{display:none}
+    .chat-reply-bar .crb-bar{width:3px;align-self:stretch;min-height:26px;background:var(--accent);border-radius:2px;flex:none}
+    .crb-text{flex:1;min-width:0;font-size:12px;line-height:1.35}
+    .crb-to{display:block;font-weight:700;color:var(--accent);font-size:11px}
+    .crb-snip{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2)}
+    .crb-x{flex:none;width:24px;height:24px;border:0;background:transparent;color:var(--text3);font-size:13px;cursor:pointer;border-radius:6px;outline:none}
+    .crb-x:hover{color:var(--text);background:var(--bg3)}
+    .chat-flash{animation:chatFlash 1.1s ease}
+    @keyframes chatFlash{0%,100%{box-shadow:0 1px 2px rgba(0,0,0,.12)}35%{box-shadow:0 0 0 2px var(--accent)}}
     .chat-signin{max-width:420px;margin:40px auto;text-align:center;color:var(--text2)}
     .chat-signin p{margin-bottom:14px}
     .chat-userlist{max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:10px;margin-top:10px}
@@ -1688,7 +1724,7 @@
     #chatPicker.open .msg-sheet{transform:scale(1)}
     #chatGroupName,#chatUserFilter{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font:inherit;font-size:13px;margin-bottom:6px}
     @media (max-width:760px){
-      .chat-shell{height:min(76vh,680px)}
+      .chat-shell{height:min(82vh,720px)}
       .chat-list-pane{width:100%}
       .chat-shell .chat-thread-pane{display:none}
       .chat-shell.thread-open .chat-list-pane{display:none}
@@ -1754,14 +1790,13 @@
         <a class="nav-link" href="#" data-page="story" data-i18n="navStory">Story</a>
         <a class="nav-link" href="#" data-page="notes" data-i18n="navNotes">Articles</a>
         <a class="nav-link" href="#" data-page="changelog" data-i18n="navChangelog">Log</a>
-        <a class="nav-link" href="#" data-page="chat" data-i18n="navChat">Chat</a>
+        <a class="nav-link" href="#" data-page="chat"><span data-i18n="navChat">Chat</span><span class="nav-badge" id="chatNavBadge" hidden></span></a>
       </nav>
       <div class="header-right">
         <div class="lang-sw">
           <button id="langEN" class="lang-btn">EN</button>
           <button id="langHU" class="lang-btn">HU</button>
         </div>
-        <button id="msgBell" aria-label="Messages" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="msg-dot" id="msgDot"></span></button>
         <button id="authBtn" aria-label="Sign in"><span class="auth-dot"></span><span class="auth-label">Sign in</span></button>
         <button id="settingsBtn" aria-label="Settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1786,6 +1821,7 @@
       <a class="mob-nav-link" href="#" data-mob-page="story" data-i18n="navStory">Story</a>
       <a class="mob-nav-link" href="#" data-mob-page="notes" data-i18n="navNotes">Articles</a>
       <a class="mob-nav-link" href="#" data-mob-page="changelog" data-i18n="navChangelog">Log</a>
+      <a class="mob-nav-link" href="#" data-mob-page="chat"><span data-i18n="navChat">Chat</span><span class="nav-badge" id="chatNavBadgeMob" hidden></span></a>
       <div class="mob-drawer-sep"></div>
       <div class="mob-drawer-controls">
         <div class="lang-sw">
@@ -1796,6 +1832,7 @@
           <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg class="ti-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
+        <button class="mob-theme-btn" id="mobSettingsBtn" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         <button class="mob-auth-btn" id="authBtnMob">Sign in</button>
       </div>
     </div>
@@ -2020,9 +2057,16 @@
               <button class="chat-mini" id="chatAddMember" type="button" style="display:none">+ Add</button>
             </div>
             <div class="chat-msgs" id="chatMsgs"></div>
-            <div class="chat-compose">
-              <textarea id="chatInput" rows="1" placeholder="Write a message"></textarea>
-              <button class="chat-send" id="chatSend" type="button" aria-label="Send">➤</button>
+            <div class="chat-compose-wrap">
+              <div class="chat-reply-bar" id="chatReplyBar" hidden>
+                <span class="crb-bar"></span>
+                <div class="crb-text"><span class="crb-to" id="chatReplyTo"></span><span class="crb-snip" id="chatReplyText"></span></div>
+                <button class="crb-x" id="chatReplyCancel" type="button" aria-label="Cancel reply">✕</button>
+              </div>
+              <div class="chat-compose">
+                <textarea id="chatInput" rows="1" placeholder="Write a message"></textarea>
+                <button class="chat-send" id="chatSend" type="button" aria-label="Send">➤</button>
+              </div>
             </div>
           </div>
         </main>
@@ -2360,6 +2404,17 @@
             </div>
           </div>
         </div>
+        <!-- Notifications -->
+        <div class="stg-section">
+          <span class="stg-sec-title" data-i18n="stgNotif">Notifications</span>
+          <div class="stg-row">
+            <div>
+              <div class="stg-lbl" data-i18n="stgNotifLbl">Desktop notifications</div>
+              <div class="stg-sublbl" data-i18n="stgNotifSub">Alerts for new messages and access decisions</div>
+            </div>
+            <div class="stg-toggle" id="stgNotifToggle"></div>
+          </div>
+        </div>
         <!-- Language -->
         <div class="stg-section">
           <span class="stg-sec-title" data-i18n="stgLanguage">Language</span>
@@ -2639,6 +2694,9 @@
         settingsTitle:  'Settings',
         stgAppearance:  'Appearance',
         stgTheme:       'Theme',
+        stgNotif:       'Notifications',
+        stgNotifLbl:    'Desktop notifications',
+        stgNotifSub:    'Alerts for new messages and access decisions',
         stgDark:        'Dark',
         stgLight:       'Light',
         stgTeal:        'Teal',
@@ -2829,6 +2887,9 @@
         settingsTitle:  'Beállítások',
         stgAppearance:  'Megjelenés',
         stgTheme:       'Téma',
+        stgNotif:       'Értesítések',
+        stgNotifLbl:    'Asztali értesítések',
+        stgNotifSub:    'Szólás új üzenetekről és hozzáférési döntésekről',
         stgDark:        'Sötét',
         stgLight:       'Világos',
         stgTeal:        'Türkiz',
@@ -3710,7 +3771,7 @@
 
     /* ── Per-account settings sync (falls back to per-device localStorage) ──── */
     let _applyingSettings = false, _pushTimer = null;
-    const _SETTINGS_KEYS = new Set(['ki_lang', 'ki_mat_lang', 'ki_theme', 'ki_section_by', 'ki_section_order', 'ki_child_orders']);
+    const _SETTINGS_KEYS = new Set(['ki_lang', 'ki_mat_lang', 'ki_theme', 'ki_section_by', 'ki_section_order', 'ki_child_orders', 'ki_notify']);
     (function () {
       const orig = localStorage.setItem.bind(localStorage);
       localStorage.setItem = function (k, v) { orig(k, v); if (_SETTINGS_KEYS.has(k)) scheduleSettingsPush(); };
@@ -3864,17 +3925,53 @@
     const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 
     let _accessCtx = null, _msgPollTimer = null;
-    let CHAT = { me: null, convos: [], curId: null, cur: null, users: [], pickMode: null, pickSel: new Set(), pendingTo: null };
+    let CHAT = { me: null, convos: [], curId: null, cur: null, users: [], pickMode: null, pickSel: new Set(), pendingTo: null, replyTo: null, seen: {}, _seeded: false };
 
     function MSGT(en, hu) { return LANG === 'hu' ? hu : en; }
     function chatFmtTime(iso) { try { const d = new Date(iso), now = new Date(); return (d.toDateString() === now.toDateString()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString(); } catch { return ''; } }
     function chatInitials(name) { const t = String(name || '?').trim(); return t ? t.slice(0, 2).toUpperCase() : '?'; }
     function plainChat(t) { return String(t || '').replace(/\[([^\]]+)\]\(ki:\/\/[^)]*\)/g, '$1').replace(/\s+/g, ' ').trim(); }
 
-    function updateMsgBell(n) { const bell = document.getElementById('msgBell'); if (bell) bell.style.display = (AUTH.user && n > 0) ? '' : 'none'; }
+    function updateMsgBell(n) {
+      const txt = n > 99 ? '99+' : String(n);
+      ['chatNavBadge', 'chatNavBadgeMob'].forEach(id => { const el = document.getElementById(id); if (!el) return; if (AUTH.user && n > 0) { el.textContent = txt; el.hidden = false; } else { el.hidden = true; } });
+    }
+    function runChatNotifications(convos, me) {
+      const meLc = String(me).toLowerCase();
+      if (!CHAT._seeded) { convos.forEach(c => { if (c.last) CHAT.seen[c.id] = c.last.date; }); CHAT._seeded = true; return; }
+      const enabled = (localStorage.getItem('ki_notify') === '1') && ('Notification' in window) && Notification.permission === 'granted';
+      convos.forEach(c => {
+        const last = c.last; if (!last) return;
+        if (last.date <= (CHAT.seen[c.id] || '')) return;
+        CHAT.seen[c.id] = last.date;
+        const fromMe = String(last.from).toLowerCase() === meLc;
+        if (!enabled || fromMe || last.kind === 'system') return;
+        if (c.id === CHAT.curId && document.visibilityState === 'visible') return;
+        let title, bodyTxt;
+        if (last.kind === 'access-request') { title = MSGT('Access request', 'Hozzáférési kérelem'); bodyTxt = last.from + ' · ' + plainChat(last.body); }
+        else if (last.kind === 'access-result') { const okk = /accepted/.test(last.body || ''); title = okk ? MSGT('Access granted', 'Hozzáférés megadva') : MSGT('Access declined', 'Hozzáférés elutasítva'); bodyTxt = c.title; }
+        else { title = c.type === 'group' ? c.title : last.from; bodyTxt = plainChat(last.body); }
+        try { const nt = new Notification(title, { body: bodyTxt, tag: 'ki-chat-' + c.id }); nt.onclick = () => { window.focus(); navigateTo('chat'); openConversation(c.id); nt.close(); }; } catch {}
+      });
+    }
+    async function requestNotifyPermission() {
+      if (!('Notification' in window)) { showToast(MSGT('Notifications are not supported in this browser.', 'Ez a böngésző nem támogatja az értesítéseket.'), true); return false; }
+      let perm = Notification.permission;
+      if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch {} }
+      if (perm === 'granted') return true;
+      showToast(MSGT('Notifications are blocked in your browser settings.', 'Az értesítések le vannak tiltva a böngésző beállításaiban.'), true);
+      return false;
+    }
     async function pollUnread() {
       if (!AUTH.user) { updateMsgBell(0); return; }
-      try { const r = await fetch('/api/chat/unread'); const d = await r.json(); updateMsgBell(d && d.ok ? d.unread : 0); } catch {}
+      try {
+        const r = await fetch('/api/chat/list'); const d = await r.json();
+        if (!d || !d.ok) return;
+        const convos = d.conversations || [];
+        updateMsgBell(convos.reduce((a, c) => a + (c.unread || 0), 0));
+        runChatNotifications(convos, d.me);
+        if (document.getElementById('page-chat').classList.contains('active')) { CHAT.me = d.me; CHAT.convos = convos; renderConvList(); }
+      } catch {}
     }
 
     function localizeMsgUI() {
@@ -3901,7 +3998,7 @@
       loadConversations();
     }
     async function loadConversations() {
-      try { const r = await fetch('/api/chat/list'); const d = await r.json(); if (d && d.ok) { CHAT.me = d.me; CHAT.convos = d.conversations || []; renderConvList(); updateMsgBell(CHAT.convos.reduce((a, c) => a + (c.unread || 0), 0)); } } catch {}
+      try { const r = await fetch('/api/chat/list'); const d = await r.json(); if (d && d.ok) { CHAT.me = d.me; CHAT.convos = d.conversations || []; renderConvList(); updateMsgBell(CHAT.convos.reduce((a, c) => a + (c.unread || 0), 0)); runChatNotifications(CHAT.convos, CHAT.me); } } catch {}
     }
     function renderConvList() {
       const box = document.getElementById('chatList'); if (!box) return;
@@ -3922,7 +4019,7 @@
     }
 
     async function openConversation(id) {
-      CHAT.curId = id; CHAT.pendingTo = null;
+      CHAT.curId = id; CHAT.pendingTo = null; cancelReply();
       document.getElementById('chatThreadEmpty').style.display = 'none';
       document.getElementById('chatThreadWrap').style.display = '';
       document.getElementById('chatShell').classList.add('thread-open');
@@ -3965,10 +4062,15 @@
           return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-status ' + (ok ? 'ok' : 'no') + '">' + (mine ? MSGT('You ', 'Te ') : esc(m.from) + ' ') + txt + '<b>' + noteLbl + '</b></div>' + reason + '</div>';
         }
         const sender = (type === 'group' && !mine) ? '<div class="chat-sender">' + esc(m.from) + '</div>' : '';
-        return '<div class="chat-bubble ' + (mine ? 'me' : 'them') + '">' + sender + '<div>' + renderRefText(m.body) + '</div><div class="chat-time">' + esc(chatFmtTime(m.date)) + '</div></div>';
+        const quote = m.replyTo ? '<div class="chat-quote" data-goto="' + esc(m.replyTo) + '"><span class="cq-from">' + esc(m.replyFrom || '') + '</span><span class="cq-snip">' + esc(String(m.replyText || '').slice(0, 140)) + '</span></div>' : '';
+        const bubble = '<div class="chat-bubble ' + (mine ? 'me' : 'them') + '" data-mid="' + esc(m.id) + '">' + sender + quote + '<div>' + renderRefText(m.body) + '</div><div class="chat-time">' + esc(chatFmtTime(m.date)) + '</div></div>';
+        const rbtn = '<button class="chat-reply-btn" type="button" data-reply="' + esc(m.id) + '" title="' + MSGT('Reply', 'Válasz') + '" aria-label="Reply">↩</button>';
+        return '<div class="chat-row ' + (mine ? 'me' : 'them') + '">' + rbtn + bubble + '</div>';
       }).join('');
       box.querySelectorAll('.cl-ref').forEach(a => a.addEventListener('click', e => { e.preventDefault(); try { navigateToRef(JSON.parse(a.getAttribute('data-ref'))); } catch {} }));
       box.querySelectorAll('.ar-act').forEach(b => b.addEventListener('click', () => { const id = b.dataset.id, dec = b.dataset.act; const ri = box.querySelector('.ar-reason[data-id="' + id + '"]'); respondAccess(id, dec, ri ? ri.value.trim() : ''); }));
+      box.querySelectorAll('.chat-reply-btn').forEach(b => b.addEventListener('click', () => setReplyTarget(b.dataset.reply)));
+      box.querySelectorAll('.chat-quote').forEach(q => q.addEventListener('click', () => { const t = box.querySelector('[data-mid="' + q.dataset.goto + '"]'); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('chat-flash'); setTimeout(() => t.classList.remove('chat-flash'), 1100); } }));
       box.scrollTop = box.scrollHeight;
     }
 
@@ -3981,17 +4083,30 @@
       } catch { showToast(MSGT('Error', 'Hiba'), true); }
     }
 
-    function chatAutosize() { const t = document.getElementById('chatInput'); if (!t) return; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; }
+    function setReplyTarget(id) {
+      if (!CHAT.cur) return;
+      const m = (CHAT.cur.messages || []).find(x => x.id === id); if (!m) return;
+      CHAT.replyTo = id;
+      const mine = String(m.from).toLowerCase() === String(CHAT.me).toLowerCase();
+      const snip = m.kind === 'text' ? m.body : (m.note ? ('🔒 ' + (m.note.label || '')) : (m.body || ''));
+      document.getElementById('chatReplyTo').textContent = MSGT('Replying to ', 'Válasz neki: ') + (mine ? MSGT('yourself', 'magadnak') : m.from);
+      document.getElementById('chatReplyText').textContent = String(snip).slice(0, 140);
+      document.getElementById('chatReplyBar').hidden = false;
+      const inp = document.getElementById('chatInput'); if (inp) inp.focus();
+    }
+    function cancelReply() { CHAT.replyTo = null; const b = document.getElementById('chatReplyBar'); if (b) b.hidden = true; }
+    function chatAutosize() { const t = document.getElementById('chatInput'); if (!t) return; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; t.style.overflowY = t.scrollHeight > 120 ? 'auto' : 'hidden'; }
     async function sendChatMessage() {
       const inp = document.getElementById('chatInput'); if (!inp) return;
       const text = inp.value.trim(); if (!text) return;
       if (!CHAT.curId && !CHAT.pendingTo) return;
       inp.value = ''; chatAutosize();
       const payload = CHAT.curId ? { id: CHAT.curId, body: text } : { to: CHAT.pendingTo, body: text };
+      if (CHAT.replyTo) payload.replyTo = CHAT.replyTo;
       try {
         const r = await fetch('/api/chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         const d = await r.json();
-        if (d && d.ok) { CHAT.pendingTo = null; await loadConversations(); openConversation(d.id); }
+        if (d && d.ok) { CHAT.pendingTo = null; cancelReply(); await loadConversations(); openConversation(d.id); }
         else { showToast((d && d.error) || MSGT('Error', 'Hiba'), true); inp.value = text; chatAutosize(); }
       } catch { showToast(MSGT('Error', 'Hiba'), true); inp.value = text; chatAutosize(); }
     }
@@ -4095,19 +4210,20 @@
 
     (function () {
       const on = (id, fn, ev) => { const el = document.getElementById(id); if (el) el.addEventListener(ev || 'click', fn); };
-      on('msgBell', () => navigateTo('chat'));
       on('authMessagesBtn', () => { closeAuthModal(); navigateTo('chat'); });
       on('chatSigninBtn', () => openAuthModal());
       on('chatNewDm', () => openPicker('dm'));
       on('chatNewGroup', () => openPicker('group'));
       on('chatAddMember', () => openPicker('add'));
-      on('chatBack', () => { document.getElementById('chatShell').classList.remove('thread-open'); CHAT.curId = null; CHAT.pendingTo = null; renderConvList(); });
+      on('chatBack', () => { document.getElementById('chatShell').classList.remove('thread-open'); CHAT.curId = null; CHAT.pendingTo = null; cancelReply(); renderConvList(); });
       on('chatSend', sendChatMessage);
       on('chatInput', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }, 'keydown');
       on('chatInput', chatAutosize, 'input');
       on('chatPickClose', closePicker);
       on('chatPickCancel', closePicker);
       on('chatPickGo', pickerGo);
+      on('chatReplyCancel', cancelReply);
+      on('mobSettingsBtn', () => { const dr = document.getElementById('mobileMenuDrawer'); const mb = document.getElementById('mobileMenuBtn'); if (dr) dr.classList.remove('open'); if (mb) mb.classList.remove('open'); const sb = document.getElementById('settingsBtn'); if (sb) sb.click(); });
       on('chatUserFilter', renderPickerUsers, 'input');
       on('accessClose', closeAccessModal);
       on('accessCancel', closeAccessModal);
@@ -6439,6 +6555,13 @@
         });
       });
 
+      const notifToggle = document.getElementById('stgNotifToggle');
+      if (notifToggle) notifToggle.addEventListener('click', async () => {
+        const turningOn = !notifToggle.classList.contains('on');
+        if (turningOn) { const okp = await requestNotifyPermission(); if (!okp) return; localStorage.setItem('ki_notify', '1'); }
+        else localStorage.setItem('ki_notify', '0');
+        notifToggle.classList.toggle('on');
+      });
       const fdToggle = document.getElementById('stgFullDocToggle');
       fdToggle.addEventListener('click', () => {
         pdfFullDocMode = !pdfFullDocMode;
@@ -6618,6 +6741,7 @@
         });
         // Full-doc
         document.getElementById('stgFullDocToggle').classList.toggle('on', pdfFullDocMode);
+        document.getElementById('stgNotifToggle').classList.toggle('on', localStorage.getItem('ki_notify') === '1');
         // Material language
         document.querySelectorAll('#stgMatLangSeg .mat-lang-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.matlang === MAT_LANG);
