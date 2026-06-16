@@ -496,6 +496,13 @@
         <button data-amode="magic">Magic Editor</button>
       </div>
 
+      <div class="fld" style="margin-bottom:18px"><span>Article language <span style="color:var(--text3)">&mdash; which site language this article belongs to</span></span>
+        <div class="seg" id="artLangSeg">
+          <button type="button" data-alang="en" class="active">English &mdash; Articles/</button>
+          <button type="button" data-alang="hu">Magyar &mdash; ArticlesHU/</button>
+        </div>
+      </div>
+
       <div id="artPaste">
         <label class="fld"><span>File name <span style="color:var(--text3)">&mdash; saved as &lt;name&gt;.html</span></span><input type="text" id="artPasteName" placeholder="my-article" spellcheck="false" autocapitalize="off"></label>
         <label class="fld"><span>HTML</span><textarea id="artPasteHtml" rows="14" spellcheck="false" placeholder="Paste your complete HTML document here."></textarea></label>
@@ -658,6 +665,7 @@
     input.addEventListener('click', toggle);
     wrap.querySelector('.dtdate-btn').addEventListener('click', toggle);
     pop.addEventListener('click', e => {
+      e.stopPropagation();
       const nav = e.target.closest('[data-nav]');
       if (nav) { view = new Date(view.getFullYear(), view.getMonth() + (+nav.dataset.nav), 1); render(); return; }
       const day = e.target.closest('[data-day]');
@@ -1208,7 +1216,7 @@
     quote: '\n<blockquote>A quotation worth setting apart.</blockquote>\n',
     code: '\n<pre><code>code here</code></pre>\n',
   };
-  let artMode = 'paste', artFolderMode = false, artEditTarget = null, artCurFile = null;
+  let artMode = 'paste', artFolderMode = false, artEditTarget = null, artCurFile = null, artLang = 'en';
   function setArtMode(m) {
     artMode = m;
     $('artModeSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.amode === m));
@@ -1231,11 +1239,13 @@
     $('artDesc').value = ''; $('artTags').value = ''; $('artBody').value = '';
     $('artFileEditWrap').style.display = 'none'; $('artFileList').innerHTML = ''; $('artNewFileName').value = '';
     $('artTitle').textContent = 'New article';
-    setFolderMode(false); setArtMode(mode || 'paste');
+    setFolderMode(false); setArtMode(mode || 'paste'); setArtLang(lang);
     $('artOv').classList.add('open');
   }
   function closeArtOv() { $('artOv').classList.remove('open'); }
   $('artModeSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setArtMode(b.dataset.amode)));
+  function setArtLang(l) { artLang = (l === 'hu') ? 'hu' : 'en'; $('artLangSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.alang === artLang)); }
+  $('artLangSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setArtLang(b.dataset.alang)));
   $('artFolderToggle').onclick = () => setFolderMode(!artFolderMode);
   $('artSlug').addEventListener('input', updateArtDestNote);
   $('artClose').onclick = closeArtOv; $('artCancel').onclick = closeArtOv;
@@ -1251,12 +1261,12 @@
     if (artMode === 'paste') {
       if (!artEditTarget && !$('artPasteName').value.trim()) { toast('Give the file a name', true); return; }
       target = artEditTarget || ($('artPasteName').value.trim() + '.html');
-      payload = { lang, target, mode: 'raw', content: $('artPasteHtml').value };
+      payload = { lang: artLang, target, mode: 'raw', content: $('artPasteHtml').value };
     } else {
       const slug = $('artSlug').value.trim();
       if (!slug) { toast('Give the article a name', true); return; }
       target = artFolderMode ? (slug + '/index.html') : (slug + '.html');
-      payload = { lang, target, mode: 'template', meta: {
+      payload = { lang: artLang, target, mode: 'template', meta: {
         title: $('artTitleFld').value.trim() || slug, date: $('artDate').value || '',
         description: $('artDesc').value.trim(), tags: splitList($('artTags').value),
       }, body: $('artBody').value };
@@ -1273,7 +1283,7 @@
   };
   async function loadArtFolderFiles(slug) {
     $('artFiles').style.display = '';
-    let data; try { data = await api('/api/admin/article/list?lang=' + lang); } catch { return; }
+    let data; try { data = await api('/api/admin/article/list?lang=' + artLang); } catch { return; }
     const folder = (data.items || []).find(i => i.kind === 'folder' && i.path === slug);
     const files = (folder && folder.files) || [];
     const list = $('artFileList'); list.innerHTML = '';
@@ -1290,7 +1300,7 @@
   }
   async function openArtFile(slug, rel) {
     artCurFile = rel;
-    let r; try { r = await api('/api/admin/article/read?lang=' + lang + '&path=' + encodeURIComponent(slug + '/' + rel)); } catch (e) { toast(e.message, true); return; }
+    let r; try { r = await api('/api/admin/article/read?lang=' + artLang + '&path=' + encodeURIComponent(slug + '/' + rel)); } catch (e) { toast(e.message, true); return; }
     $('artFileEditLabel').textContent = rel;
     $('artFileContent').value = (r && r.content) || '';
     $('artFileEditWrap').style.display = '';
@@ -1304,19 +1314,19 @@
   $('artFileSave').onclick = async () => {
     const slug = $('artSlug').value.trim();
     if (!slug || !artCurFile) return;
-    try { await api('/api/admin/article/save', { method: 'POST', body: { lang, target: slug + '/' + artCurFile, mode: 'raw', content: $('artFileContent').value } }); toast('File saved'); $('artNewFileName').value = ''; loadArtFolderFiles(slug); }
+    try { await api('/api/admin/article/save', { method: 'POST', body: { lang: artLang, target: slug + '/' + artCurFile, mode: 'raw', content: $('artFileContent').value } }); toast('File saved'); $('artNewFileName').value = ''; loadArtFolderFiles(slug); }
     catch (e) { toast('Save failed: ' + e.message, true); }
   };
   function deleteArtFile(slug, rel) {
     $('cfTitle').textContent = 'Delete file?'; $('cfMsg').innerHTML = 'Delete <b>' + esc(rel) + '</b> from ' + esc(slug) + '?';
-    confirmFn = async () => { try { await api('/api/admin/article/delete', { method: 'POST', body: { lang, path: slug + '/' + rel } }); toast('Deleted'); $('artFileEditWrap').style.display = 'none'; loadArtFolderFiles(slug); } catch (e) { toast(e.message, true); } };
+    confirmFn = async () => { try { await api('/api/admin/article/delete', { method: 'POST', body: { lang: artLang, path: slug + '/' + rel } }); toast('Deleted'); $('artFileEditWrap').style.display = 'none'; loadArtFolderFiles(slug); } catch (e) { toast(e.message, true); } };
     $('confirmOv').classList.add('open');
   }
   async function openArticleForEdit(it) {
     if (it.kind === 'file') {
       openArtOv('paste'); $('artTitle').textContent = 'Edit article';
       $('artPasteName').value = it.path.replace(/\.html?$/i, ''); $('artPasteName').disabled = true; artEditTarget = it.path;
-      try { const r = await api('/api/admin/article/read?lang=' + lang + '&path=' + encodeURIComponent(it.path)); $('artPasteHtml').value = (r && r.content) || ''; } catch (e) { toast(e.message, true); }
+      try { const r = await api('/api/admin/article/read?lang=' + artLang + '&path=' + encodeURIComponent(it.path)); $('artPasteHtml').value = (r && r.content) || ''; } catch (e) { toast(e.message, true); }
     } else {
       openArtOv('magic'); $('artTitle').textContent = 'Edit article'; setFolderMode(true);
       $('artSlug').value = it.path; $('artSlug').disabled = true; artEditTarget = it.path + '/index.html';

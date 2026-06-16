@@ -1606,8 +1606,90 @@
     .access-note{font-weight:700;margin-bottom:8px}
     .access-recip{color:var(--text2);font-size:13px}
     .access-state{color:var(--accent);font-size:12.5px;margin-top:10px}
-    .card-locked{display:inline-flex;align-items:center;color:#6fa8dc;margin-left:2px}
-    .card-locked svg{width:14px;height:14px}
+.card.locked{overflow:hidden}
+    .card.locked .card-icon,.card.locked .card-body,.card.locked .card-arrow{filter:grayscale(1) brightness(.55);opacity:.5}
+    .lock-wrap{position:absolute;inset:0;z-index:5;border-radius:inherit;overflow:hidden;pointer-events:none}
+    .lock-dim{position:absolute;inset:0;background:rgba(8,8,11,.5)}
+    .chain-x{position:absolute;inset:0}
+    .chain-strip-pos{position:absolute;left:50%;top:50%;line-height:0}
+    .chain-strip-pos.a{transform:translate(-50%,-50%) rotate(34deg)}
+    .chain-strip-pos.b{transform:translate(-50%,-50%) rotate(-34deg)}
+    .chain-strip-pos svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.65))}
+    .lock-actions{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;z-index:6}
+    .lock-btn{display:inline-flex;align-items:center;gap:7px;background:rgba(18,18,24,.93);border:1px solid var(--accent);color:var(--accent);font-family:var(--font-ui);font-size:12px;font-weight:600;padding:8px 15px;border-radius:99px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+    .lock-btn:hover{background:var(--accent);color:#1a1408}
+    .lock-btn svg{width:13px;height:13px}
+    /* ── Chat page ─────────────────────────────────────────────────── */
+    .chat-shell{display:flex;max-width:1100px;margin:0 auto;border:1px solid var(--border);border-radius:14px;overflow:hidden;height:min(70vh,640px);background:var(--bg2)}
+    .chat-list-pane{width:300px;flex:none;border-right:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
+    .chat-list-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}
+    .chat-list-head>span{font-weight:700;font-size:14px;flex:1}
+    .chat-list-actions{display:flex;gap:6px}
+    .chat-mini{border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--text2);font-size:11px;font-weight:600;padding:4px 9px;cursor:pointer;white-space:nowrap}
+    .chat-mini:hover{color:var(--accent);border-color:var(--accent)}
+    .chat-list{overflow:auto;flex:1}
+    .chat-empty-list{padding:30px 14px;text-align:center;color:var(--text3);font-size:12.5px}
+    .chat-conv{display:flex;gap:10px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+    .chat-conv:hover{background:var(--bg3)}
+    .chat-conv.active{background:var(--accent-glow,rgba(196,161,60,.12))}
+    .chat-av{width:34px;height:34px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;background:var(--bg3);color:var(--accent);border:1px solid var(--border);text-transform:uppercase}
+    .chat-av.group{border-radius:9px}
+    .chat-conv-main{flex:1;min-width:0}
+    .chat-conv-top{display:flex;align-items:center;gap:6px}
+    .chat-conv-name{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+    .chat-conv-time{font-family:var(--font-mono);font-size:10px;color:var(--text3);flex:none}
+    .chat-conv-snip{color:var(--text2);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+    .chat-unread{background:var(--accent);color:#1a1408;font-size:10px;font-weight:700;border-radius:99px;padding:1px 7px;flex:none}
+    .chat-thread-pane{flex:1;display:flex;flex-direction:column;min-width:0}
+    .chat-thread-empty{margin:auto;color:var(--text3);font-size:13px;padding:20px;text-align:center}
+    .chat-thread-wrap{display:flex;flex-direction:column;height:100%}
+    .chat-thread-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}
+    .chat-thread-title{font-weight:700;font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chat-thread-title small{display:block;font-weight:400;font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chat-back{display:none;background:transparent;border:0;color:var(--text2);font-size:26px;line-height:1;cursor:pointer;width:26px;flex:none}
+    .chat-msgs{flex:1;overflow:auto;padding:16px 14px;display:flex;flex-direction:column;gap:8px}
+    .chat-bubble{max-width:78%;padding:8px 12px;border-radius:14px;font-size:13.5px;line-height:1.5;overflow-wrap:anywhere}
+    .chat-bubble.me{align-self:flex-end;background:var(--accent);color:#1a1408;border-bottom-right-radius:4px}
+    .chat-bubble.them{align-self:flex-start;background:var(--bg3);color:var(--text);border-bottom-left-radius:4px}
+    .chat-bubble .cl-ref{color:inherit;text-decoration:underline;cursor:pointer;font-weight:600}
+    .chat-sender{font-size:10.5px;font-weight:700;color:var(--accent);margin-bottom:2px}
+    .chat-bubble.me .chat-sender{display:none}
+    .chat-time{font-size:9.5px;opacity:.6;margin-top:3px;text-align:right}
+    .chat-sys{align-self:center;color:var(--text3);font-size:11px;font-style:italic;padding:2px 8px;text-align:center}
+    .chat-areq{max-width:82%;background:var(--bg3);border:1px solid var(--border);border-radius:13px;padding:11px 13px;font-size:13px;align-self:flex-start}
+    .chat-areq.me{align-self:flex-end}
+    .chat-areq .ar-h{font-size:10.5px;font-weight:700;color:#6fa8dc;text-transform:uppercase;letter-spacing:.05em}
+    .chat-areq .ar-note{font-weight:600;margin:5px 0}
+    .chat-areq .ar-note .cl-ref{color:var(--accent);text-decoration:underline;cursor:pointer}
+    .chat-areq .ar-row{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+    .chat-areq .ar-status{margin-top:6px;font-size:12px}
+    .chat-areq .ar-status.ok{color:var(--green,#3a8a52)}
+    .chat-areq .ar-status.no{color:var(--red,#b03b3b)}
+    .chat-compose{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);align-items:flex-end}
+    .chat-compose textarea{flex:1;resize:none;background:var(--bg);border:1px solid var(--border);border-radius:18px;color:var(--text);padding:9px 14px;font:inherit;font-size:13.5px;max-height:120px;line-height:1.4}
+    .chat-send{flex:none;width:38px;height:38px;border-radius:50%;border:0;background:var(--accent);color:#1a1408;font-size:14px;cursor:pointer}
+    .chat-send:hover{filter:brightness(1.08)}
+    .chat-signin{max-width:420px;margin:40px auto;text-align:center;color:var(--text2)}
+    .chat-signin p{margin-bottom:14px}
+    .chat-userlist{max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:10px;margin-top:10px}
+    .chat-uitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer}
+    .chat-uitem:hover{background:var(--bg3)}
+    .chat-uitem.sel{background:var(--accent-glow,rgba(196,161,60,.12))}
+    .chat-uitem .chk{margin-left:auto;color:var(--accent);font-weight:700;opacity:0}
+    .chat-uitem.sel .chk{opacity:1}
+    #chatPicker{position:fixed;inset:0;z-index:8650;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+    #chatPicker.open{opacity:1;pointer-events:all}
+    #chatPicker .msg-sheet{transform:scale(.96);transition:transform .25s}
+    #chatPicker.open .msg-sheet{transform:scale(1)}
+    #chatGroupName,#chatUserFilter{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font:inherit;font-size:13px;margin-bottom:6px}
+    @media (max-width:760px){
+      .chat-shell{height:min(76vh,680px)}
+      .chat-list-pane{width:100%}
+      .chat-shell .chat-thread-pane{display:none}
+      .chat-shell.thread-open .chat-list-pane{display:none}
+      .chat-shell.thread-open .chat-thread-pane{display:flex}
+      .chat-back{display:block}
+    }
     .auth-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
     .auth-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
     .auth-x{width:30px;height:30px;border:none;background:var(--bg3);color:var(--text2);border-radius:8px;cursor:none;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s}
@@ -1667,6 +1749,7 @@
         <a class="nav-link" href="#" data-page="story" data-i18n="navStory">Story</a>
         <a class="nav-link" href="#" data-page="notes" data-i18n="navNotes">Articles</a>
         <a class="nav-link" href="#" data-page="changelog" data-i18n="navChangelog">Log</a>
+        <a class="nav-link" href="#" data-page="chat" data-i18n="navChat">Chat</a>
       </nav>
       <div class="header-right">
         <div class="lang-sw">
@@ -1761,26 +1844,8 @@
           <button class="auth-submit" id="acpSubmit" data-i18n="authChangePwBtn">Update password</button>
         </div>
         <div class="auth-divider"></div>
-        <button class="auth-submit ghost" id="authMessagesBtn" style="margin-bottom:10px">Open messages</button>
+        <button class="auth-submit ghost" id="authMessagesBtn" style="margin-bottom:10px">Open chat</button>
         <button class="auth-submit ghost" id="authSignOut" data-i18n="authSignOut">Sign out</button>
-      </div>
-    </div>
-  </div>
-  <div id="msgModal">
-    <div class="msg-sheet">
-      <div class="msg-head">
-        <h2>Messages</h2>
-        <div class="msg-tabs"><button class="msg-tab active" id="msgTabInbox" type="button">Inbox</button><button class="msg-tab" id="msgTabSent" type="button">Sent</button></div>
-        <button class="msg-mini" id="msgNewBtn" type="button">New</button>
-        <button class="msg-x" id="msgClose" type="button" aria-label="Close">&times;</button>
-      </div>
-      <div class="msg-list" id="msgList"></div>
-      <div class="msg-compose" id="msgCompose" style="display:none">
-        <h4 id="msgComposeTitle">New message</h4>
-        <input type="text" id="msgToInput" placeholder="recipient username" spellcheck="false" autocapitalize="off">
-        <textarea id="msgBodyInput" rows="3" placeholder="Write a message (text only)"></textarea>
-        <div class="msg-reflist" id="msgRefList"></div>
-        <div class="msg-compose-row"><button class="msg-ghost" id="msgRefBtn" type="button">+ Note reference</button><span style="flex:1"></span><button class="msg-ghost" id="msgComposeCancel" type="button">Cancel</button><button class="msg-primary" id="msgSendBtn" type="button">Send</button></div>
       </div>
     </div>
   </div>
@@ -1793,6 +1858,17 @@
         <textarea id="accessMsg" rows="3" placeholder="Optional message to the author"></textarea>
         <div class="access-state" id="accessState"></div>
         <div class="msg-compose-row"><span style="flex:1"></span><button class="msg-ghost" id="accessCancel" type="button">Cancel</button><button class="msg-primary" id="accessSend" type="button">May I read it?</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="chatPicker">
+    <div class="msg-sheet" style="max-width:460px">
+      <div class="msg-head"><h2 id="chatPickTitle">New chat</h2><button class="msg-x" id="chatPickClose" type="button" aria-label="Close">&times;</button></div>
+      <div class="access-box">
+        <input type="text" id="chatGroupName" placeholder="Group name" style="display:none" maxlength="80">
+        <input type="text" id="chatUserFilter" placeholder="Search people" spellcheck="false" autocapitalize="off">
+        <div class="chat-userlist" id="chatUserList"></div>
+        <div class="msg-compose-row"><span style="flex:1"></span><button class="msg-ghost" id="chatPickCancel" type="button">Cancel</button><button class="msg-primary" id="chatPickGo" type="button">Start</button></div>
       </div>
     </div>
   </div>
@@ -1907,6 +1983,44 @@
       </div>
       <div class="cl-feed" id="clFeed">
         <div class="state-box"><div class="spinner"></div></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-chat">
+      <div class="page-hero">
+        <span class="page-label" data-i18n="navChat">Chat</span>
+        <h1 class="page-title" id="chatHeroTitle">Chat</h1>
+      </div>
+      <div class="chat-signin" id="chatSignin" style="display:none">
+        <p id="chatSigninMsg">Sign in to use chat.</p>
+        <button class="msg-primary" id="chatSigninBtn" type="button">Sign in</button>
+      </div>
+      <div class="chat-shell" id="chatShell" style="display:none">
+        <aside class="chat-list-pane">
+          <div class="chat-list-head">
+            <span id="chatListTitle">Conversations</span>
+            <div class="chat-list-actions">
+              <button class="chat-mini" id="chatNewDm" type="button">+ Chat</button>
+              <button class="chat-mini" id="chatNewGroup" type="button">+ Group</button>
+            </div>
+          </div>
+          <div class="chat-list" id="chatList"></div>
+        </aside>
+        <main class="chat-thread-pane">
+          <div class="chat-thread-empty" id="chatThreadEmpty">Select a conversation</div>
+          <div class="chat-thread-wrap" id="chatThreadWrap" style="display:none">
+            <div class="chat-thread-head">
+              <button class="chat-back" id="chatBack" type="button" aria-label="Back">‹</button>
+              <div class="chat-thread-title" id="chatThreadTitle"></div>
+              <button class="chat-mini" id="chatAddMember" type="button" style="display:none">+ Add</button>
+            </div>
+            <div class="chat-msgs" id="chatMsgs"></div>
+            <div class="chat-compose">
+              <textarea id="chatInput" rows="1" placeholder="Write a message"></textarea>
+              <button class="chat-send" id="chatSend" type="button" aria-label="Send">➤</button>
+            </div>
+          </div>
+        </main>
       </div>
     </section>
 
@@ -2591,6 +2705,7 @@
 
         // Changelog
         navChangelog: 'Log',
+        navChat: 'Chat',
         clLabel:      '/ log',
         clTitle2:     'Change<br><em>Log</em>',
         clSubtitle:   'Website and note history — features, fixes, and additions.',
@@ -2780,6 +2895,7 @@
 
         // Napló
         navChangelog: 'Napló',
+        navChat: 'Csevegés',
         clLabel:      '/ napló',
         clTitle2:     'Változás<br><em>Napló</em>',
         clSubtitle:   'Weboldal és szemeszter-napló — funkciók, javítások, hozzáadott anyagok.',
@@ -3043,6 +3159,7 @@
       if (pageEl) pageEl.classList.add('active');
       if (page === 'notes')     loadArticles();
       if (page === 'changelog') { clLoaded = false; clEntries = []; loadChangelog(); }
+      if (page === 'chat')      openChatPage();
 
       // Selection panel only lives on the Home page
       const panel = document.getElementById('selPanel');
@@ -3388,11 +3505,13 @@
       const isGreyed = MAT_LANG === 'both' && (!!item.enAvailable !== !!item.huAvailable);
 
       // If covered by a folder, show covered style (even if also individually selected)
+      const isLocked = item.visibility === 'request' && item.locked;
       card.className = 'card'
         + (isSel && !isCovered ? ' selected' : '')
         + (isCovered ? ' covered' : '')
         + (isBilingual ? ' bilingual' : '')
-        + (isGreyed    ? ' greyed'    : '');
+        + (isGreyed    ? ' greyed'    : '')
+        + (isLocked    ? ' locked'    : '');
       card.dataset.path = item.path; card.dataset.type = item.type; card.dataset.ext = item.ext||''; card.dataset.name = item.name;
 
       const badge = item.type==='folder' ? 'DIR' : (item.ext||'FILE').replace('.','').toUpperCase();
@@ -3425,8 +3544,13 @@
         </div>`;
       }
 
+      const lockOverlayHtml = isLocked ? `
+        <div class="lock-wrap" aria-hidden="true"><div class="lock-dim"></div><div class="chain-x"><span class="chain-strip-pos a">${CHAIN_STRIP_SVG}</span><span class="chain-strip-pos b">${CHAIN_STRIP_SVG}</span></div></div>
+        <div class="lock-actions"><button class="lock-btn" type="button">${LOCK_SVG}<span>${MSGT('Request access', 'Hozzáférés kérése')}</span></button></div>` : '';
+
       card.innerHTML = `
         ${splitOverlayHtml}
+        ${lockOverlayHtml}
         <div class="card-cb">
           <svg class="card-cb-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           <svg class="card-cb-icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -3438,7 +3562,6 @@
             <span class="card-badge" style="color:var(--${cv})">${badge}</span>
             <span class="card-count">${meta}</span>
             ${item.visibility === 'members' ? '<span class="card-members" title="Members only">\uD83D\uDD12</span>' : ''}
-            ${item.visibility === 'request' && item.locked ? '<span class="card-locked" title="Locked — request to read">'+CHAIN_X_SVG+'</span>' : ''}
           </div>
           ${tagsHtml}
         </div>
@@ -3452,6 +3575,9 @@
           addTagFilter(chip.dataset.tag);
         });
       });
+
+      const _lockBtn = card.querySelector('.lock-btn');
+      if (_lockBtn) _lockBtn.addEventListener('click', e => { e.stopPropagation(); const lg = item.lang || (MAT_LANG === 'hu' ? 'hu' : 'en'); openAccessRequest(item.path, lg, getDisplayName(item)); });
 
       // Checkbox click — always look up current coverage state at click time
       card.querySelector('.card-cb').addEventListener('click', e => {
@@ -3704,173 +3830,207 @@
       loadTree();
     }
 
-    /* ── Messages & access requests (text only; UI in English) ──────── */
+    /* ── Chat (DMs + group chats) & access requests ─────────────────── */
     const CHAIN_X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 9.5 6.5 11.5a3 3 0 0 0 4.2 4.2l1-1"/><path d="M15.5 14.5l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><line x1="4.5" y1="4.5" x2="19.5" y2="19.5"/></svg>';
-    let MSG = { inbox: [], sent: [], unread: 0, view: 'inbox', openId: null, replyTo: null };
+    const CHAIN_STRIP_SVG = (function () { let l = ''; for (let x = 8, i = 0; x < 360; x += 24, i++) { l += (i % 2 === 0) ? '<ellipse cx="' + x + '" cy="14" rx="8" ry="12"/>' : '<ellipse cx="' + x + '" cy="14" rx="12" ry="8"/>'; } return '<svg width="360" height="28" viewBox="0 0 360 28" fill="none" stroke="#aeb6bf" stroke-width="3">' + l + '</svg>'; })();
+    const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+
     let _accessCtx = null, _msgPollTimer = null;
-    function updateMsgBell(n) {
-      MSG.unread = n || 0;
-      const bell = document.getElementById('msgBell');
-      if (bell) bell.style.display = (AUTH.user && MSG.unread > 0) ? '' : 'none';
-    }
+    let CHAT = { me: null, convos: [], curId: null, cur: null, users: [], pickMode: null, pickSel: new Set(), pendingTo: null };
+
+    function MSGT(en, hu) { return LANG === 'hu' ? hu : en; }
+    function chatFmtTime(iso) { try { const d = new Date(iso), now = new Date(); return (d.toDateString() === now.toDateString()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString(); } catch { return ''; } }
+    function chatInitials(name) { const t = String(name || '?').trim(); return t ? t.slice(0, 2).toUpperCase() : '?'; }
+    function plainChat(t) { return String(t || '').replace(/\[([^\]]+)\]\(ki:\/\/[^)]*\)/g, '$1').replace(/\s+/g, ' ').trim(); }
+
+    function updateMsgBell(n) { const bell = document.getElementById('msgBell'); if (bell) bell.style.display = (AUTH.user && n > 0) ? '' : 'none'; }
     async function pollUnread() {
       if (!AUTH.user) { updateMsgBell(0); return; }
-      try { const r = await fetch('/api/messages/unread'); const d = await r.json(); updateMsgBell(d && d.ok ? d.unread : 0); } catch {}
+      try { const r = await fetch('/api/chat/unread'); const d = await r.json(); updateMsgBell(d && d.ok ? d.unread : 0); } catch {}
     }
-    async function refreshMessages() {
-      if (!AUTH.user) return;
-      try { const r = await fetch('/api/messages'); const d = await r.json(); if (d && d.ok) { MSG.inbox = d.inbox || []; MSG.sent = d.sent || []; updateMsgBell(d.unread || 0); renderMessages(); } } catch {}
+
+    function localizeMsgUI() {
+      const hu = LANG === 'hu';
+      const setT = (id, en, h) => { const el = document.getElementById(id); if (el) el.textContent = hu ? h : en; };
+      const setP = (id, en, h) => { const el = document.getElementById(id); if (el) el.placeholder = hu ? h : en; };
+      const ah = document.querySelector('#accessModal .msg-head h2'); if (ah) ah.textContent = hu ? 'Olvas\u00e1si k\u00e9relem' : 'Request to read';
+      setP('accessMsg', 'Optional message to the author', '\u00dczenet a szerz\u0151nek (opcion\u00e1lis)');
+      setT('accessCancel', 'Cancel', 'M\u00e9gse'); setT('accessSend', 'May I read it?', 'Elolvashatom?');
+      setT('chatHeroTitle', 'Chat', 'Cseveg\u00e9s'); setT('chatListTitle', 'Conversations', 'Besz\u00e9lget\u00e9sek');
+      setT('chatNewDm', '+ Chat', '+ \u00dczenet'); setT('chatNewGroup', '+ Group', '+ Csoport');
+      setP('chatInput', 'Write a message', '\u00cdrj \u00fczenetet'); setT('chatThreadEmpty', 'Select a conversation', 'V\u00e1lassz egy besz\u00e9lget\u00e9st');
+      setT('chatSigninMsg', 'Sign in to use chat.', 'Jelentkezz be a cseveg\u00e9shez.'); setT('chatSigninBtn', 'Sign in', 'Bejelentkez\u00e9s');
+      setT('chatAddMember', '+ Add', '+ Tag'); setT('authMessagesBtn', 'Open chat', 'Cseveg\u00e9s megnyit\u00e1sa');
+      setP('chatUserFilter', 'Search people', 'Keres\u00e9s a felhaszn\u00e1l\u00f3k k\u00f6zt'); setP('chatGroupName', 'Group name', 'Csoport neve');
+      setT('chatPickCancel', 'Cancel', 'M\u00e9gse');
     }
-    function openMessages() {
-      if (!AUTH.user) { openAuthModal(); return; }
-      MSG.view = 'inbox'; MSG.openId = null; hideCompose();
-      document.getElementById('msgModal').classList.add('open');
-      refreshMessages();
+
+    function openChatPage() {
+      localizeMsgUI();
+      const signin = document.getElementById('chatSignin'), shell = document.getElementById('chatShell');
+      if (!AUTH.user) { if (signin) signin.style.display = ''; if (shell) shell.style.display = 'none'; return; }
+      if (signin) signin.style.display = 'none'; if (shell) shell.style.display = '';
+      loadConversations();
     }
-    function closeMessages() { document.getElementById('msgModal').classList.remove('open'); }
-    function fmtDate(iso) { try { return new Date(iso).toLocaleString(); } catch { return iso || ''; } }
-    function plainSnippet(s) {
-      s = String(s || '').replace(/\[([^\]]+)\]\(ki:\/\/[^)]*\)/g, '$1').replace(/\s+/g, ' ').trim();
-      return s.length > 90 ? s.slice(0, 90) + '\u2026' : s;
+    async function loadConversations() {
+      try { const r = await fetch('/api/chat/list'); const d = await r.json(); if (d && d.ok) { CHAT.me = d.me; CHAT.convos = d.conversations || []; renderConvList(); updateMsgBell(CHAT.convos.reduce((a, c) => a + (c.unread || 0), 0)); } } catch {}
     }
-    function bindRefs(container) {
-      container.querySelectorAll('.cl-ref').forEach(a => a.addEventListener('click', e => {
-        e.preventDefault(); e.stopPropagation();
-        try { navigateToRef(JSON.parse(a.dataset.ref)); closeMessages(); } catch {}
-      }));
+    function renderConvList() {
+      const box = document.getElementById('chatList'); if (!box) return;
+      if (!CHAT.convos.length) { box.innerHTML = '<div class="chat-empty-list">' + MSGT('No conversations yet. Start one with \u201c+ Chat\u201d.', 'M\u00e9g nincs besz\u00e9lget\u00e9s. Ind\u00edts egyet a \u201e+ \u00dczenet\u201d gombbal.') + '</div>'; return; }
+      const me = String(CHAT.me).toLowerCase();
+      box.innerHTML = CHAT.convos.map(c => {
+        const isG = c.type === 'group';
+        const av = '<div class="chat-av' + (isG ? ' group' : '') + '">' + (isG ? '\uD83D\uDC65' : esc(chatInitials(c.title))) + '</div>';
+        const time = c.last ? '<span class="chat-conv-time">' + esc(chatFmtTime(c.last.date)) + '</span>' : '';
+        const unread = c.unread ? '<span class="chat-unread">' + (c.unread > 99 ? '99+' : c.unread) + '</span>' : '';
+        let snip = '';
+        if (c.last) { const mineLast = String(c.last.from).toLowerCase() === me; snip = (c.last.kind === 'text' && mineLast ? MSGT('You: ', 'Te: ') : '') + plainChat(c.last.body); }
+        return '<div class="chat-conv' + (c.id === CHAT.curId ? ' active' : '') + '" data-id="' + esc(c.id) + '">' + av +
+          '<div class="chat-conv-main"><div class="chat-conv-top"><span class="chat-conv-name">' + esc(c.title) + '</span>' + time + '</div>' +
+          '<div class="chat-conv-snip">' + esc(snip) + '</div></div>' + unread + '</div>';
+      }).join('');
+      box.querySelectorAll('.chat-conv').forEach(el => el.addEventListener('click', () => openConversation(el.dataset.id)));
     }
-    function msgKindBadge(m) {
-      if (m.kind === 'access-request') {
-        const lab = m.status === 'accepted' ? 'Accepted' : m.status === 'declined' ? 'Declined' : 'Access request';
-        const cls = m.status === 'accepted' ? 'ok' : m.status === 'declined' ? 'no' : 'req';
-        return '<span class="msg-badge ' + cls + '">' + lab + '</span>';
-      }
-      if (m.kind === 'access-result') return '<span class="msg-badge ' + (m.decision === 'accepted' ? 'ok' : 'no') + '">' + (m.decision === 'accepted' ? 'Accepted' : 'Declined') + '</span>';
-      return '';
+
+    async function openConversation(id) {
+      CHAT.curId = id; CHAT.pendingTo = null;
+      document.getElementById('chatThreadEmpty').style.display = 'none';
+      document.getElementById('chatThreadWrap').style.display = '';
+      document.getElementById('chatShell').classList.add('thread-open');
+      renderConvList();
+      try {
+        const r = await fetch('/api/chat/messages?id=' + encodeURIComponent(id)); const d = await r.json();
+        if (!d || !d.ok) { showToast(MSGT('Conversation not found.', 'A besz\u00e9lget\u00e9s nem tal\u00e1lhat\u00f3.'), true); return; }
+        CHAT.cur = d;
+        const sub = d.type === 'group' ? (d.participants || []).join(', ') : '';
+        document.getElementById('chatThreadTitle').innerHTML = esc(d.title) + (sub ? '<small>' + esc(sub) + '</small>' : '');
+        document.getElementById('chatAddMember').style.display = d.type === 'group' ? '' : 'none';
+        renderThread(d.messages || [], d.type);
+        fetch('/api/chat/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).then(() => { const c = CHAT.convos.find(x => x.id === id); if (c) c.unread = 0; renderConvList(); pollUnread(); }).catch(() => {});
+      } catch {}
     }
-    function noteRefHtml(m) {
-      if (!m.note || !m.note.path) return '';
-      const ref = esc(JSON.stringify({ kind: 'note', target: m.note.path, lang: m.note.lang, label: m.note.label }));
-      return '<div class="msg-noteref"><a class="cl-ref" href="#" data-ref="' + ref + '">' + esc(m.note.label || m.note.path) + '</a> <span class="msg-muted">(' + esc((m.note.lang || 'en').toUpperCase()) + ')</span></div>';
-    }
-    function renderMessages() {
-      const list = document.getElementById('msgList');
-      const rows = (MSG.view === 'sent' ? MSG.sent : MSG.inbox);
-      document.getElementById('msgTabInbox').classList.toggle('active', MSG.view === 'inbox');
-      document.getElementById('msgTabSent').classList.toggle('active', MSG.view === 'sent');
-      if (!rows.length) { list.innerHTML = '<div class="msg-empty">No messages.</div>'; return; }
-      list.innerHTML = '';
-      rows.forEach(m => {
-        const who = MSG.view === 'sent' ? ('To ' + esc(m.to)) : esc(m.from);
-        const open = MSG.openId === m.id;
-        const unread = MSG.view === 'inbox' && !m.read;
-        const item = document.createElement('div');
-        item.className = 'msg-item' + (open ? ' open' : '') + (unread ? ' unread' : '');
-        let actions = '';
-        if (open) {
-          const nr = noteRefHtml(m);
-          if (m.kind === 'access-request' && MSG.view === 'inbox' && m.status === 'pending') {
-            actions = nr + '<textarea class="msg-reason" id="rsn-' + m.id + '" rows="2" placeholder="Optional reason"></textarea>'
-              + '<div class="msg-actrow"><button class="msg-primary" data-act="accept" data-id="' + m.id + '">Accept</button>'
-              + '<button class="msg-ghost" data-act="decline" data-id="' + m.id + '">Decline</button></div>';
-          } else if (m.kind === 'access-request') {
-            actions = nr + '<div class="msg-muted">' + (m.status === 'accepted' ? 'You granted access.' : m.status === 'declined' ? 'You declined.' : '') + '</div>';
-          } else if (m.kind === 'access-result') {
-            actions = nr;
-          }
-          if (MSG.view === 'inbox') {
-            actions += '<div class="msg-actrow">' + (m.kind === 'text' ? '<button class="msg-ghost" data-act="reply" data-id="' + m.id + '" data-to="' + esc(m.from) + '">Reply</button>' : '')
-              + '<button class="msg-ghost" data-act="del" data-id="' + m.id + '">Delete</button></div>';
-          }
+
+    function renderThread(msgs, type) {
+      const box = document.getElementById('chatMsgs'); if (!box) return;
+      const me = String(CHAT.me).toLowerCase();
+      box.innerHTML = msgs.map(m => {
+        const mine = String(m.from).toLowerCase() === me;
+        if (m.kind === 'system') return '<div class="chat-sys">' + esc(plainChat(m.body)) + '</div>';
+        if (m.kind === 'access-request') {
+          const noteRef = JSON.stringify({ kind: 'note', target: (m.note && m.note.path) || '', lang: (m.note && m.note.lang) || 'en', label: (m.note && m.note.label) || '' });
+          const noteLink = '<a class="cl-ref" href="#" data-ref="' + esc(noteRef) + '">' + esc((m.note && m.note.label) || (m.note && m.note.path) || '') + '</a>';
+          let foot = '';
+          if (m.status === 'pending' && !mine) foot = '<div class="ar-row"><button class="msg-primary ar-act" data-act="accept" data-id="' + esc(m.id) + '">' + MSGT('Accept', 'Elfogadom') + '</button><button class="msg-ghost ar-act" data-act="decline" data-id="' + esc(m.id) + '">' + MSGT('Decline', 'Elutas\u00edtom') + '</button><input class="ar-reason" data-id="' + esc(m.id) + '" placeholder="' + MSGT('Optional reason', 'Indokl\u00e1s (opcion\u00e1lis)') + '" style="flex:1;min-width:120px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:6px 9px;font:inherit;font-size:12px"></div>';
+          else if (m.status === 'pending' && mine) foot = '<div class="ar-status">' + MSGT('Waiting for a response\u2026', 'V\u00e1laszra v\u00e1r\u2026') + '</div>';
+          else if (m.status === 'accepted') foot = '<div class="ar-status ok">' + MSGT('Access granted', 'Hozz\u00e1f\u00e9r\u00e9s megadva') + '</div>';
+          else if (m.status === 'declined') foot = '<div class="ar-status no">' + MSGT('Declined', 'Elutas\u00edtva') + '</div>';
+          const intro = mine ? MSGT('You requested access to', 'Hozz\u00e1f\u00e9r\u00e9st k\u00e9rt\u00e9l ehhez:') : (esc(m.from) + ' ' + MSGT('requested access to', 'hozz\u00e1f\u00e9r\u00e9st k\u00e9rt ehhez:'));
+          const extra = m.body ? '<div>' + renderRefText(m.body) + '</div>' : '';
+          return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-h">\uD83D\uDD12 ' + MSGT('Access request', 'Hozz\u00e1f\u00e9r\u00e9si k\u00e9relem') + '</div><div>' + intro + '</div><div class="ar-note">' + noteLink + '</div>' + extra + foot + '</div>';
         }
-        const full = open ? ('<div class="msg-full">' + renderRefText(m.body || '') + actions + '</div>') : '';
-        item.innerHTML = '<div class="msg-row">' + (unread ? '<span class="msg-undot"></span>' : '')
-          + '<span class="msg-from">' + who + '</span>' + msgKindBadge(m)
-          + '<span class="msg-date">' + esc(fmtDate(m.date)) + '</span></div>'
-          + (open ? '' : '<div class="msg-snip">' + esc(plainSnippet(m.body)) + '</div>') + full;
-        item.querySelector('.msg-row').addEventListener('click', () => {
-          const willOpen = MSG.openId !== m.id;
-          MSG.openId = willOpen ? m.id : null;
-          if (willOpen && MSG.view === 'inbox' && !m.read) { m.read = true; markRead(m.id); }
-          renderMessages();
-        });
-        list.appendChild(item);
-        if (open) {
-          bindRefs(item);
-          item.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', ev => {
-            ev.stopPropagation();
-            const id = b.dataset.id, act = b.dataset.act;
-            if (act === 'accept' || act === 'decline') {
-              const rsn = (document.getElementById('rsn-' + id) || {}).value || '';
-              respondAccess(id, act, rsn);
-            } else if (act === 'reply') { openCompose(b.dataset.to, id); }
-            else if (act === 'del') { delMessage(id); }
-          }));
+        if (m.kind === 'access-result') {
+          const ok = m.decision === 'accepted';
+          const noteLbl = esc((m.note && m.note.label) || '');
+          const txt = ok ? MSGT('granted access to ', 'hozz\u00e1f\u00e9r\u00e9st adott ehhez: ') : MSGT('declined the request for ', 'elutas\u00edtotta a k\u00e9relmet ehhez: ');
+          const reason = m.reason ? '<div style="margin-top:5px;color:var(--text2)">\u201c' + esc(m.reason) + '\u201d</div>' : '';
+          return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-status ' + (ok ? 'ok' : 'no') + '">' + (mine ? MSGT('You ', 'Te ') : esc(m.from) + ' ') + txt + '<b>' + noteLbl + '</b></div>' + reason + '</div>';
         }
-      });
+        const sender = (type === 'group' && !mine) ? '<div class="chat-sender">' + esc(m.from) + '</div>' : '';
+        return '<div class="chat-bubble ' + (mine ? 'me' : 'them') + '">' + sender + '<div>' + renderRefText(m.body) + '</div><div class="chat-time">' + esc(chatFmtTime(m.date)) + '</div></div>';
+      }).join('');
+      box.querySelectorAll('.cl-ref').forEach(a => a.addEventListener('click', e => { e.preventDefault(); try { navigateToRef(JSON.parse(a.getAttribute('data-ref'))); } catch {} }));
+      box.querySelectorAll('.ar-act').forEach(b => b.addEventListener('click', () => { const id = b.dataset.id, dec = b.dataset.act; const ri = box.querySelector('.ar-reason[data-id="' + id + '"]'); respondAccess(id, dec, ri ? ri.value.trim() : ''); }));
+      box.scrollTop = box.scrollHeight;
     }
-    async function markRead(id) { try { await fetch('/api/messages/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); pollUnread(); } catch {} }
+
     async function respondAccess(id, decision, reason) {
       try {
         const r = await fetch('/api/access/respond', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, decision, reason }) });
         const d = await r.json();
-        if (d && d.ok) { showToast(decision === 'accept' ? 'Access granted' : 'Request declined'); MSG.openId = null; refreshMessages(); }
-        else showToast((d && d.error) || 'Error', true);
-      } catch { showToast('Error', true); }
+        if (d && d.ok) { showToast(decision === 'accept' ? MSGT('Access granted', 'Hozz\u00e1f\u00e9r\u00e9s megadva') : MSGT('Request declined', 'K\u00e9relem elutas\u00edtva')); if (CHAT.curId) openConversation(CHAT.curId); loadTree(); }
+        else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
+      } catch { showToast(MSGT('Error', 'Hiba'), true); }
     }
-    async function delMessage(id) { try { await fetch('/api/messages/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); MSG.openId = null; refreshMessages(); } catch {} }
-    function showCompose() { document.getElementById('msgCompose').style.display = ''; }
-    function hideCompose() { const c = document.getElementById('msgCompose'); if (c) c.style.display = 'none'; const rl = document.getElementById('msgRefList'); if (rl) rl.style.display = 'none'; }
-    function openCompose(to, replyTo) {
-      MSG.replyTo = replyTo || null;
-      document.getElementById('msgToInput').value = to || '';
-      document.getElementById('msgBodyInput').value = '';
-      document.getElementById('msgComposeTitle').textContent = to ? ('Reply to ' + to) : 'New message';
-      showCompose();
-      setTimeout(() => { const el = document.getElementById('msgBodyInput'); if (el) el.focus(); }, 50);
-    }
-    async function sendComposed() {
-      const to = document.getElementById('msgToInput').value.trim();
-      const body = document.getElementById('msgBodyInput').value.trim();
-      if (!to) { showToast('Enter a recipient', true); return; }
-      if (!body) { showToast('Write a message', true); return; }
+
+    function chatAutosize() { const t = document.getElementById('chatInput'); if (!t) return; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; }
+    async function sendChatMessage() {
+      const inp = document.getElementById('chatInput'); if (!inp) return;
+      const text = inp.value.trim(); if (!text) return;
+      if (!CHAT.curId && !CHAT.pendingTo) return;
+      inp.value = ''; chatAutosize();
+      const payload = CHAT.curId ? { id: CHAT.curId, body: text } : { to: CHAT.pendingTo, body: text };
       try {
-        const r = await fetch('/api/messages/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to, body, replyTo: MSG.replyTo }) });
+        const r = await fetch('/api/chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         const d = await r.json();
-        if (d && d.ok) { showToast('Message sent'); hideCompose(); MSG.view = 'sent'; refreshMessages(); }
-        else showToast((d && d.error) || 'Error', true);
-      } catch { showToast('Error', true); }
+        if (d && d.ok) { CHAT.pendingTo = null; await loadConversations(); openConversation(d.id); }
+        else { showToast((d && d.error) || MSGT('Error', 'Hiba'), true); inp.value = text; chatAutosize(); }
+      } catch { showToast(MSGT('Error', 'Hiba'), true); inp.value = text; chatAutosize(); }
     }
-    function flattenNotes(node, out) {
-      out = out || [];
-      ((node && node.children) || []).forEach(ch => {
-        if (ch.type === 'folder') flattenNotes(ch, out);
-        else {
-          const p = ch.enPath || ch.huPath || ch.path;
-          const lg = ch.enPath ? 'en' : (ch.huPath ? 'hu' : (ch.lang || (MAT_LANG === 'hu' ? 'hu' : 'en')));
-          out.push({ label: (ch.name || '').replace(/\{[^}]*\}/g, '').replace(/\.[^.]+$/, '').trim() || ch.name, path: p, lang: lg });
-        }
-      });
-      return out;
+
+    function startDM(username) {
+      const existing = CHAT.convos.find(c => c.type === 'dm' && String(c.title).toLowerCase() === String(username).toLowerCase());
+      if (existing) { openConversation(existing.id); return; }
+      CHAT.curId = null; CHAT.pendingTo = username; CHAT.cur = { type: 'dm', title: username, participants: [CHAT.me, username], messages: [] };
+      document.getElementById('chatThreadEmpty').style.display = 'none';
+      document.getElementById('chatThreadWrap').style.display = '';
+      document.getElementById('chatShell').classList.add('thread-open');
+      document.getElementById('chatAddMember').style.display = 'none';
+      document.getElementById('chatThreadTitle').innerHTML = esc(username);
+      document.getElementById('chatMsgs').innerHTML = '<div class="chat-sys">' + MSGT('New conversation with ', '\u00daj besz\u00e9lget\u00e9s vele: ') + esc(username) + '</div>';
+      const inp = document.getElementById('chatInput'); if (inp) inp.focus();
     }
-    function toggleRefList() {
-      const rl = document.getElementById('msgRefList');
-      if (rl.style.display === 'block') { rl.style.display = 'none'; return; }
-      const notes = flattenNotes(treeData);
-      if (!notes.length) { showToast('No notes to reference', true); return; }
-      rl.innerHTML = notes.map((n, i) => '<button type="button" data-i="' + i + '">' + esc(n.label) + '</button>').join('');
-      rl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
-        const n = notes[+b.dataset.i];
-        const tok = '[' + n.label + '](ki://note/' + encodeURIComponent(n.path) + '?lang=' + n.lang + ')';
-        const ta = document.getElementById('msgBodyInput');
-        const a = ta.selectionStart || ta.value.length, e = ta.selectionEnd || ta.value.length;
-        ta.value = ta.value.slice(0, a) + tok + ta.value.slice(e); ta.focus();
-        rl.style.display = 'none';
+
+    async function loadUsersForPicker() { try { const r = await fetch('/api/chat/users'); const d = await r.json(); CHAT.users = (d && d.ok) ? d.users : []; } catch { CHAT.users = []; } }
+    function openPicker(mode) {
+      if (!AUTH.user) { navigateTo('home'); openAuthModal(); return; }
+      CHAT.pickMode = mode; CHAT.pickSel = new Set();
+      const gn = document.getElementById('chatGroupName'), title = document.getElementById('chatPickTitle'), go = document.getElementById('chatPickGo'), filt = document.getElementById('chatUserFilter');
+      gn.style.display = mode === 'group' ? '' : 'none'; gn.value = ''; if (filt) filt.value = '';
+      title.textContent = mode === 'dm' ? MSGT('New chat', '\u00daj besz\u00e9lget\u00e9s') : mode === 'group' ? MSGT('New group', '\u00daj csoport') : MSGT('Add members', 'Tagok hozz\u00e1ad\u00e1sa');
+      go.textContent = mode === 'dm' ? MSGT('Start', 'Ind\u00edt\u00e1s') : mode === 'group' ? MSGT('Create', 'L\u00e9trehoz\u00e1s') : MSGT('Add', 'Hozz\u00e1ad\u00e1s');
+      localizeMsgUI();
+      document.getElementById('chatPicker').classList.add('open');
+      loadUsersForPicker().then(renderPickerUsers);
+    }
+    function closePicker() { document.getElementById('chatPicker').classList.remove('open'); }
+    function renderPickerUsers() {
+      const box = document.getElementById('chatUserList'); if (!box) return;
+      const q = (document.getElementById('chatUserFilter').value || '').toLowerCase();
+      let names = CHAT.users.filter(u => u.toLowerCase().indexOf(q) >= 0);
+      if (CHAT.pickMode === 'add' && CHAT.cur) { const have = new Set((CHAT.cur.participants || []).map(p => String(p).toLowerCase())); names = names.filter(u => !have.has(u.toLowerCase())); }
+      if (!names.length) { box.innerHTML = '<div class="chat-empty-list">' + MSGT('No people found.', 'Nincs tal\u00e1lat.') + '</div>'; return; }
+      const multi = CHAT.pickMode !== 'dm';
+      box.innerHTML = names.map(u => '<div class="chat-uitem' + (CHAT.pickSel.has(u) ? ' sel' : '') + '" data-u="' + esc(u) + '"><div class="chat-av">' + esc(chatInitials(u)) + '</div><span>' + esc(u) + '</span>' + (multi ? '<span class="chk">\u2713</span>' : '') + '</div>').join('');
+      box.querySelectorAll('.chat-uitem').forEach(el => el.addEventListener('click', () => {
+        const u = el.dataset.u;
+        if (CHAT.pickMode === 'dm') { closePicker(); startDM(u); return; }
+        if (CHAT.pickSel.has(u)) CHAT.pickSel.delete(u); else CHAT.pickSel.add(u);
+        el.classList.toggle('sel');
       }));
-      rl.style.display = 'block';
     }
+    async function pickerGo() {
+      if (CHAT.pickMode === 'group') {
+        const title = (document.getElementById('chatGroupName').value || '').trim();
+        if (!title) { showToast(MSGT('The group needs a name.', 'A csoportnak n\u00e9v kell.'), true); return; }
+        if (!CHAT.pickSel.size) { showToast(MSGT('Pick at least one member.', 'V\u00e1lassz legal\u00e1bb egy tagot.'), true); return; }
+        try {
+          const r = await fetch('/api/chat/group', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, participants: [...CHAT.pickSel] }) });
+          const d = await r.json();
+          if (d && d.ok) { closePicker(); await loadConversations(); openConversation(d.id); } else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
+        } catch { showToast(MSGT('Error', 'Hiba'), true); }
+      } else if (CHAT.pickMode === 'add') {
+        if (!CHAT.pickSel.size || !CHAT.curId) { closePicker(); return; }
+        try {
+          const r = await fetch('/api/chat/addMembers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: CHAT.curId, participants: [...CHAT.pickSel] }) });
+          const d = await r.json();
+          if (d && d.ok) { closePicker(); openConversation(CHAT.curId); } else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
+        } catch { showToast(MSGT('Error', 'Hiba'), true); }
+      } else { closePicker(); }
+    }
+
     async function openAccessRequest(path, lang, name) {
-      if (!AUTH.user) { showToast('Sign in to request access'); openAuthModal(); return; }
+      if (!AUTH.user) { showToast(MSGT('Sign in to request access', 'Jelentkezz be a k\u00e9relemhez')); openAuthModal(); return; }
       _accessCtx = { path, lang, name };
       const mEl = document.getElementById('accessModal');
       document.getElementById('accessNote').textContent = name || path;
@@ -3878,15 +4038,16 @@
       document.getElementById('accessState').textContent = '';
       document.getElementById('accessMsg').value = '';
       const send = document.getElementById('accessSend'); send.disabled = false; send.style.display = '';
+      localizeMsgUI();
       mEl.classList.add('open');
       try {
         const r = await fetch('/api/access/info?lang=' + lang + '&path=' + encodeURIComponent(path));
         const d = await r.json();
         if (d && d.ok && d.applicable) {
-          if (d.granted) { mEl.classList.remove('open'); showToast('You already have access'); loadTree(); handleClick({ path: path, name: name, ext: (String(name).match(/\.[^.]+$/) || [''])[0], lang: lang, _forceLang: lang, visibility: 'public' }); return; }
-          document.getElementById('accessRecipients').innerHTML = 'Your request will be sent to <b>' + (d.recipients || []).map(esc).join(', ') + '</b>.';
-          if (d.pending) { document.getElementById('accessState').textContent = 'You already have a pending request for this note.'; send.disabled = true; }
-        } else { document.getElementById('accessRecipients').textContent = 'This note does not require a request.'; send.style.display = 'none'; }
+          if (d.granted) { mEl.classList.remove('open'); showToast(MSGT('You already have access', 'M\u00e1r van hozz\u00e1f\u00e9r\u00e9sed')); loadTree(); handleClick({ path: path, name: name, ext: (String(name).match(/\.[^.]+$/) || [''])[0], lang: lang, _forceLang: lang, visibility: 'public' }); return; }
+          document.getElementById('accessRecipients').innerHTML = MSGT('Your request will be sent to ', 'A k\u00e9relmed ide ker\u00fcl: ') + '<b>' + (d.recipients || []).map(esc).join(', ') + '</b>.';
+          if (d.pending) { document.getElementById('accessState').textContent = MSGT('You already have a pending request for this note.', 'M\u00e1r van f\u00fcgg\u0151ben l\u00e9v\u0151 k\u00e9relmed ehhez a jegyzethez.'); send.disabled = true; }
+        } else { document.getElementById('accessRecipients').textContent = MSGT('This note does not require a request.', 'Ehhez a jegyzethez nem kell k\u00e9relem.'); send.style.display = 'none'; }
       } catch {}
     }
     function closeAccessModal() { document.getElementById('accessModal').classList.remove('open'); }
@@ -3897,29 +4058,35 @@
         const r = await fetch('/api/access/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: _accessCtx.path, lang: _accessCtx.lang, body: document.getElementById('accessMsg').value.trim() }) });
         const d = await r.json();
         if (d && d.ok) {
-          if (d.status === 'granted') { showToast('You already have access'); loadTree(); }
-          else { showToast('Request sent to ' + (d.recipients || []).join(', ')); }
+          if (d.status === 'granted') { showToast(MSGT('You already have access', 'M\u00e1r van hozz\u00e1f\u00e9r\u00e9sed')); loadTree(); }
+          else { showToast(MSGT('Request sent to ', 'K\u00e9relem elk\u00fcldve ide: ') + (d.recipients || []).join(', ')); }
           closeAccessModal();
-        } else { showToast((d && d.error) || 'Error', true); send.disabled = false; }
-      } catch { showToast('Error', true); send.disabled = false; }
+        } else { showToast((d && d.error) || MSGT('Error', 'Hiba'), true); send.disabled = false; }
+      } catch { showToast(MSGT('Error', 'Hiba'), true); send.disabled = false; }
     }
+
     (function () {
-      const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
-      on('msgBell', openMessages);
-      on('authMessagesBtn', () => { closeAuthModal(); openMessages(); });
-      on('msgClose', closeMessages);
-      on('msgTabInbox', () => { MSG.view = 'inbox'; MSG.openId = null; renderMessages(); });
-      on('msgTabSent', () => { MSG.view = 'sent'; MSG.openId = null; renderMessages(); });
-      on('msgNewBtn', () => openCompose('', null));
-      on('msgSendBtn', sendComposed);
-      on('msgComposeCancel', hideCompose);
-      on('msgRefBtn', toggleRefList);
+      const on = (id, fn, ev) => { const el = document.getElementById(id); if (el) el.addEventListener(ev || 'click', fn); };
+      on('msgBell', () => navigateTo('chat'));
+      on('authMessagesBtn', () => { closeAuthModal(); navigateTo('chat'); });
+      on('chatSigninBtn', () => openAuthModal());
+      on('chatNewDm', () => openPicker('dm'));
+      on('chatNewGroup', () => openPicker('group'));
+      on('chatAddMember', () => openPicker('add'));
+      on('chatBack', () => { document.getElementById('chatShell').classList.remove('thread-open'); CHAT.curId = null; CHAT.pendingTo = null; renderConvList(); });
+      on('chatSend', sendChatMessage);
+      on('chatInput', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }, 'keydown');
+      on('chatInput', chatAutosize, 'input');
+      on('chatPickClose', closePicker);
+      on('chatPickCancel', closePicker);
+      on('chatPickGo', pickerGo);
+      on('chatUserFilter', renderPickerUsers, 'input');
       on('accessClose', closeAccessModal);
       on('accessCancel', closeAccessModal);
       on('accessSend', sendAccessRequest);
-      const mm = document.getElementById('msgModal'); if (mm) mm.addEventListener('click', e => { if (e.target.id === 'msgModal') closeMessages(); });
       const am = document.getElementById('accessModal'); if (am) am.addEventListener('click', e => { if (e.target.id === 'accessModal') closeAccessModal(); });
-      document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMessages(); closeAccessModal(); } });
+      const cp = document.getElementById('chatPicker'); if (cp) cp.addEventListener('click', e => { if (e.target.id === 'chatPicker') closePicker(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAccessModal(); closePicker(); } });
       _msgPollTimer = setInterval(pollUnread, 45000);
     })();
     async function submitRegister() {

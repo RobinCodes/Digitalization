@@ -420,3 +420,82 @@ the message send / list / unread / mark-read / delete / validation paths.
 > Note: the message-panel and request dialog UI is in English; the rest of the site remains fully
 > bilingual. The folder file manager for the Magic Editor and these panels were kept English to stay
 > compact — they can be localized later via the existing i18n dictionaries.
+
+
+---
+
+## Fixes: date picker, Magic Editor styling, bilingual messages
+
+**Date picker** — prev/next-month (and Today/Clear) no longer close the picker. The popup
+re-renders its contents on navigation, which removed the clicked button from the DOM; the click
+then bubbled to the document outside-click handler, where `wrap.contains(target)` was now false, so
+it closed. Fixed by stopping propagation for clicks that happen inside the popup.
+
+**Magic Editor styling** — generated articles are now **always styled exactly like template.html**,
+even if `template.html` isn't present next to `server.js` at runtime (the previous symptom of an
+"unstyled" page was the server's minimal fallback firing because the file wasn't found). The full
+template is embedded in the server as a base64 fallback; on save it still prefers `template.html`
+on disk (so your edits to the template win), then `process.cwd()`, then the embedded copy. A
+regression test saves a template article with `template.html` deleted and asserts the result still
+includes the stylesheet, fonts, KaTeX and the filled title/body.
+
+**Bilingual message panel & request dialog** — the messages panel and the "Request to read" dialog
+now follow the site language (English / Hungarian), matching the rest of the public UI: tabs,
+buttons, placeholders, status badges, toasts and the access-request copy all switch with `LANG`.
+
+> On the "make the magic-editor bilingual too" point: I read that as the styling fix above, since
+> the sentence that followed described the styling problem and DevTools is otherwise an English-only
+> admin tool. If you did mean the DevTools/Magic-Editor *labels* should also be Hungarian, that's a
+> separate localization pass I can add — just say the word.
+
+Suite is now **152 assertions**.
+
+
+---
+
+## Chat, locked-card redesign, per-article language
+
+### Chat (DMs + group chats) — a tab for everyone
+The old one-to-one "messages" panel is replaced by a conversation-based **Chat** tab in the main
+nav, available to every signed-in account (signed-out visitors see a sign-in prompt on the tab).
+
+- **Direct messages and group chats.** Start a 1:1 with **+ Chat**, or create a named **group** with
+  **+ Group** and a multi-select member picker. Inside a group you can **+ Add** more members later;
+  a system line records who created the group and who was added.
+- **Basic chat elements:** conversation list with avatars, last-message preview, relative timestamps
+  and unread badges; a message thread with sent/received bubbles (sender names shown in groups),
+  auto-growing composer, Enter-to-send (Shift+Enter for a newline), and a responsive layout that
+  collapses to a single column with a back button on phones.
+- **`ki://` note references** inside messages render as clickable links, same as the changelog.
+- **Access requests now live in chat.** When someone taps *Request access* on a locked note, the
+  request is delivered as a card inside a DM with the note's owner; the owner gets inline
+  **Accept / Decline** buttons (with an optional reason), and the result posts back into the same
+  thread. Granting access flips the note open for the requester.
+- The header bell reflects total unread across conversations and opens the Chat tab; it polls every
+  45 seconds (no websockets).
+
+Server side, `messages.json` is replaced by `chats.json` (a list of conversations, each with
+participants, messages and per-user read marks). New endpoints: `/api/chat/{users,unread,list,
+messages,send,group,addMembers,read}` plus the reworked `/api/access/{info,request,respond}` that
+write into conversations. Everything is participant-gated. The whole flow is covered by tests
+(DMs, groups, membership gating, access-request accept/decline) — the suite is now **163 assertions**.
+
+### Locked-card redesign
+Request-to-read cards that you can't open yet now read as clearly locked: the whole card is **greyed
+and dimmed for depth**, two **chains cross it in an X**, and a **Request access** button sits on the
+card. Tapping it opens the request/sign-in dialog (and signed-out users are sent to sign-in first).
+Owners and granted users see the normal, ungated card.
+
+### Articles: two folders, per-article language
+There are still two separate folders next to `server.js` — **`Articles/`** (English) and
+**`ArticlesHU/`** (Hungarian) — and the article editor now has its **own EN / HU language selector**,
+so whoever writes an article picks which site language it belongs to (and therefore which folder it
+saves into), independent of the global "EN data / HU data" toggle. Save and the per-file operations
+for folder-articles all follow that selection.
+
+**Does it matter that `template.html` is currently Hungarian?** No. `template.html` is only a skeleton:
+when an article is generated, the server replaces every visible part (title, intro, body, the back
+button, and the `<html lang>` attribute) according to the article's chosen language, so the template's
+Hungarian *example* text never appears in generated articles. (And after the styling fix, the template
+is embedded in the server too, so generation is fully styled even if the file isn't on disk.) DevTools
+itself remains English-only, as requested.

@@ -1,0 +1,33 @@
+{
+  "conversations": [
+    {
+      "id": "f8f9cc95-b1f5-40e8-896d-43bfb2d5ee75",
+      "type": "dm",
+      "title": "",
+      "participants": [
+        "Robin",
+        "TestAccount"
+      ],
+      "createdBy": "Robin",
+      "created": "2026-06-16T06:02:50.148Z",
+      "messages": [
+        {
+          "id": "964e8b25-76dd-4a2e-b2aa-276fcc3bcc5f",
+          "from": "Robin",
+          "kind": "access-request",
+          "status": "pending",
+          "note": {
+            "path": "STEM/Mathematics/Algebra/Applied Algebra.tex",
+            "lang": "en",
+            "label": "Applied Algebra"
+          },
+          "body": "",
+          "date": "2026-06-16T06:02:50.144Z"
+        }
+      ],
+      "reads": {
+        "robin": "2026-06-16T06:03:01.885Z"
+      }
+    }
+  ]
+}

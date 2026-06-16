@@ -22,7 +22,7 @@ const __ADMINS      = path.join(__dirname, 'admins.json');
 const __USERS       = path.join(__dirname, 'users.json');
 const __SETTINGS    = path.join(__dirname, 'settings.json');
 const __GRANTS      = path.join(__dirname, 'grants.json');
-const __MESSAGES    = path.join(__dirname, 'messages.json');
+const __CHATS       = path.join(__dirname, 'chats.json');
 
 fs.mkdirSync(__CACHE, { recursive: true });
 
@@ -58,7 +58,7 @@ function safePath(base, relPath) {
 
 // Never expose server source, credential files, dotfiles (.git, .pdf-cache), or tests
 // over HTTP — important once the repo is public on GitHub.
-const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'settings.json', 'grants.json', 'messages.json', 'server.js',
+const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json', 'server.js',
   'make-admin.js', 'make-user.js', 'package.json', 'package-lock.json']);
 function isProtectedStatic(rel) {
   const parts = String(rel).split('/').filter(Boolean);
@@ -693,14 +693,18 @@ function walkArticleFolder(absDir, rel) {
   return out;
 }
 // Fill template.html with article metadata + body so generated articles match it exactly.
+const ARTICLE_TEMPLATE_B64 = "PCFET0NUWVBFIGh0bWw+DQo8aHRtbCBsYW5nPSJlbiI+DQo8IS0tDQogIOKVlOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVlw0KICDilZEgIEFSVElDTEUgVEVNUExBVEUgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICDilZENCiAg4pWRICBEdXBsaWNhdGUgdGhpcyBmaWxlIGFuZCBmaWxsIGluIHlvdXIgY29udGVudC4gICAgICAgICAgICAgICAgICAg4pWRDQogIOKVkSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIOKVkQ0KICDilZEgIFVwZGF0ZSB0aGUgbWV0YWRhdGEgZmllbGRzIGJlbG93OiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICDilZENCiAg4pWRICAgIDx0aXRsZT4gICAgICAg4oCUIHNob3duIGluIHRoZSBOb3RlcyBwYWdlIGNhcmQgdGl0bGUgICAgICAgICAgICDilZENCiAg4pWRICAgIGRhdGEtZGF0ZSAgICAg4oCUIElTTyBkYXRlLCBlLmcuIDIwMjQtMTEtMDMgICAgICAgICAgICAgICAgICAgICDilZENCiAg4pWRICAgIGRhdGEtZGVzY3JpcHRpb24g4oCUIHNob3J0IGJsdXJiIHNob3duIGluIHRoZSBjYXJkICAgICAgICAgICAgICDilZENCiAg4pWRICAgIGRhdGEtdGFncyAgICAg4oCUIGNvbW1hLXNlcGFyYXRlZCB0YWdzICAgICAgICAgICAgICAgICAgICAgICAgICDilZENCiAg4pWa4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWdDQotLT4NCjxoZWFkPg0KICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+DQogIDxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsIGluaXRpYWwtc2NhbGU9MS4wIj4NCg0KICA8IS0tIOKUgOKUgCBNZXRhZGF0YSAocmVhZCBieSB0aGUgc2VydmVyIGZvciB0aGUgTm90ZXMgcGFnZSkg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAIC0tPg0KICA8dGl0bGU+QXJ0aWNsZSBUaXRsZSBIZXJlPC90aXRsZT4NCiAgPG1ldGEgZGF0YS1kYXRlPSIyMDI0LTAxLTAxIj4NCiAgPG1ldGEgZGF0YS1kZXNjcmlwdGlvbj0iQSBzaG9ydCBkZXNjcmlwdGlvbiBvZiB3aGF0IHRoaXMgYXJ0aWNsZSBjb3ZlcnMuIj4NCiAgPG1ldGEgZGF0YS10YWdzPSJtYXRoZW1hdGljcywgYW5hbHlzaXMiPg0KDQogIDwhLS0gQXBwbHkgc3RvcmVkIHRoZW1lIGJlZm9yZSBmaXJzdCBwYWludCB0byBwcmV2ZW50IGZsYXNoIC0tPg0KICA8c2NyaXB0Pg0KICAgIChmdW5jdGlvbigpew0KICAgICAgdmFyIHQgPSBsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgna2lfdGhlbWUnKTsNCiAgICAgIGlmICghdCkgdCA9IHdpbmRvdy5tYXRjaE1lZGlhICYmIHdpbmRvdy5tYXRjaE1lZGlhKCcocHJlZmVycy1jb2xvci1zY2hlbWU6IGxpZ2h0KScpLm1hdGNoZXMgPyAnbGlnaHQnIDogJ2RhcmsnOw0KICAgICAgaWYgKHQgPT09ICdsaWdodCcpIGRvY3VtZW50LmRvY3VtZW50RWxlbWVudC5jbGFzc0xpc3QuYWRkKCdsaWdodCcpOw0KICAgIH0pKCk7DQogIDwvc2NyaXB0Pg0KDQogIDxsaW5rIHJlbD0icHJlY29ubmVjdCIgaHJlZj0iaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbSI+DQogIDxsaW5rIGhyZWY9Imh0dHBzOi8vZm9udHMuZ29vZ2xlYXBpcy5jb20vY3NzMj9mYW1pbHk9Q29ybW9yYW50K0dhcmFtb25kOml0YWwsd2dodEAwLDQwMDswLDUwMDswLDYwMDsxLDQwMDsxLDYwMCZmYW1pbHk9U3luZTp3Z2h0QDQwMDs1MDA7NjAwJmZhbWlseT1KZXRCcmFpbnMrTW9ubzp3Z2h0QDMwMDs0MDAmZGlzcGxheT1zd2FwIiByZWw9InN0eWxlc2hlZXQiPg0KDQogIDwhLS0gS2FUZVggZm9yIG1hdGggcmVuZGVyaW5nIC0tPg0KICA8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL0thVGVYLzAuMTYuOS9rYXRleC5taW4uY3NzIj4NCiAgPHNjcmlwdCBkZWZlciBzcmM9Imh0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL0thVGVYLzAuMTYuOS9rYXRleC5taW4uanMiPjwvc2NyaXB0Pg0KICA8c2NyaXB0IGRlZmVyIHNyYz0iaHR0cHM6Ly9jZG5qcy5jbG91ZGZsYXJlLmNvbS9hamF4L2xpYnMvS2FUZVgvMC4xNi45L2NvbnRyaWIvYXV0by1yZW5kZXIubWluLmpzIg0KICAgIG9ubG9hZD0icmVuZGVyTWF0aEluRWxlbWVudChkb2N1bWVudC5ib2R5LCB7DQogICAgICBkZWxpbWl0ZXJzOiBbDQogICAgICAgIHtsZWZ0OiAnJCQnLCByaWdodDogJyQkJywgZGlzcGxheTogdHJ1ZX0sDQogICAgICAgIHtsZWZ0OiAnJCcsIHJpZ2h0OiAnJCcsIGRpc3BsYXk6IGZhbHNlfSwNCiAgICAgICAge2xlZnQ6ICdcXFxcKCcsIHJpZ2h0OiAnXFxcXCknLCBkaXNwbGF5OiBmYWxzZX0sDQogICAgICAgIHtsZWZ0OiAnXFxcXFsnLCByaWdodDogJ1xcXFxdJywgZGlzcGxheTogdHJ1ZX0NCiAgICAgIF0NCiAgICB9KSI+PC9zY3JpcHQ+DQoNCiAgPHN0eWxlPg0KICAgIDpyb290IHsNCiAgICAgIC0tYmc6ICAgICAgIzA3MDcwYTsNCiAgICAgIC0tYmcyOiAgICAgIzBkMGQxMTsNCiAgICAgIC0tYmczOiAgICAgIzEzMTMxYTsNCiAgICAgIC0tYm9yZGVyOiAgcmdiYSgyNTUsMjU1LDI1NSwwLjA3KTsNCiAgICAgIC0tdGV4dDogICAgI2UwZGJkMDsNCiAgICAgIC0tdGV4dDI6ICAgIzdlN2E3MjsNCiAgICAgIC0tdGV4dDM6ICAgIzNlM2MzODsNCiAgICAgIC0tYWNjZW50OiAgI2M0YTEzYzsNCiAgICAgIC0tYWNjZW50MjogI2U4Yzk2YTsNCiAgICAgIC0tZm9udC1kaXNwbGF5OiAnQ29ybW9yYW50IEdhcmFtb25kJywgR2VvcmdpYSwgc2VyaWY7DQogICAgICAtLWZvbnQtdWk6ICAgICAgJ1N5bmUnLCBzYW5zLXNlcmlmOw0KICAgICAgLS1mb250LW1vbm86ICAgICdKZXRCcmFpbnMgTW9ubycsIG1vbm9zcGFjZTsNCiAgICB9DQogICAgLyog4pSA4pSAIExpZ2h0IHRoZW1lIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqLw0KICAgIGh0bWwubGlnaHQgew0KICAgICAgLS1iZzogICAgICAjZjVmMGU4Ow0KICAgICAgLS1iZzI6ICAgICAjZWNlNmRhOw0KICAgICAgLS1iZzM6ICAgICAjZTJkYmQwOw0KICAgICAgLS1ib3JkZXI6ICByZ2JhKDgwLDYwLDIwLDAuMTMpOw0KICAgICAgLS10ZXh0OiAgICAjMWExNjBlOw0KICAgICAgLS10ZXh0MjogICAjNmI2MDU0Ow0KICAgICAgLS10ZXh0MzogICAjYTA5NTg1Ow0KICAgICAgLS1hY2NlbnQ6ICAjOGE2ODE4Ow0KICAgICAgLS1hY2NlbnQyOiAjYjg4YzJhOw0KICAgIH0NCiAgICBodG1sLmxpZ2h0IGJvZHkgeyBiYWNrZ3JvdW5kOiB2YXIoLS1iZyk7IGNvbG9yOiB2YXIoLS10ZXh0KTsgfQ0KICAgIGh0bWwubGlnaHQgLnRvcC1iYXIgew0KICAgICAgYmFja2dyb3VuZDogcmdiYSgyNDUsMjQwLDIzMiwwLjkyKTsNCiAgICAgIGJvcmRlci1ib3R0b20tY29sb3I6IHJnYmEoODAsNjAsMjAsMC4xMyk7DQogICAgfQ0KICAgIGh0bWwubGlnaHQgOjotd2Via2l0LXNjcm9sbGJhci10cmFjayB7IGJhY2tncm91bmQ6IHZhcigtLWJnMik7IH0NCiAgICBodG1sLmxpZ2h0IDo6LXdlYmtpdC1zY3JvbGxiYXItdGh1bWIgeyBiYWNrZ3JvdW5kOiB2YXIoLS1iZzMpOyB9DQogICAgaHRtbC5saWdodCBjb2RlIHsgYmFja2dyb3VuZDogdmFyKC0tYmczKTsgYm9yZGVyLWNvbG9yOiB2YXIoLS1ib3JkZXIpOyBjb2xvcjogIzVhN2E5YTsgfQ0KICAgIGh0bWwubGlnaHQgcHJlICB7IGJhY2tncm91bmQ6IHZhcigtLWJnMikgIWltcG9ydGFudDsgYm9yZGVyLWNvbG9yOiB2YXIoLS1ib3JkZXIpOyB9DQogICAgaHRtbC5saWdodCAubWF0aC1ibG9jayB7IGJhY2tncm91bmQ6IHZhcigtLWJnMik7IGJvcmRlci1jb2xvcjogdmFyKC0tYm9yZGVyKTsgfQ0KICAgIGh0bWwubGlnaHQgLmRlZi1ib3ggICAgIHsgYmFja2dyb3VuZDogdmFyKC0tYmcyKTsgYm9yZGVyLWNvbG9yOiB2YXIoLS1ib3JkZXIpOyB9DQogICAgaHRtbC5saWdodCAudGhlb3JlbS1ib3ggeyBiYWNrZ3JvdW5kOiB2YXIoLS1iZzIpOyBib3JkZXItY29sb3I6IHJnYmEoMTM4LDEwNCwyNCwwLjMpOyB9DQogICAgKiwgKjo6YmVmb3JlLCAqOjphZnRlciB7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IG1hcmdpbjogMDsgcGFkZGluZzogMDsgfQ0KICAgIDo6LXdlYmtpdC1zY3JvbGxiYXIgeyB3aWR0aDogNXB4OyB9DQogICAgOjotd2Via2l0LXNjcm9sbGJhci10cmFjayB7IGJhY2tncm91bmQ6IHZhcigtLWJnMik7IH0NCiAgICA6Oi13ZWJraXQtc2Nyb2xsYmFyLXRodW1iIHsgYmFja2dyb3VuZDogIzFhMWEyMzsgYm9yZGVyLXJhZGl1czogOTlweDsgfQ0KICAgIDo6LXdlYmtpdC1zY3JvbGxiYXItdGh1bWI6aG92ZXIgeyBiYWNrZ3JvdW5kOiB2YXIoLS1hY2NlbnQpOyB9DQoNCiAgICBib2R5IHsNCiAgICAgIGJhY2tncm91bmQ6IHZhcigtLWJnKTsgY29sb3I6IHZhcigtLXRleHQpOw0KICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtZGlzcGxheSk7IGZvbnQtc2l6ZTogMTlweDsgbGluZS1oZWlnaHQ6IDEuODU7DQogICAgICAtd2Via2l0LWZvbnQtc21vb3RoaW5nOiBhbnRpYWxpYXNlZDsNCiAgICB9DQogICAgOjpzZWxlY3Rpb24geyBiYWNrZ3JvdW5kOiByZ2JhKDE5NiwxNjEsNjAsMC4xNSk7IGNvbG9yOiB2YXIoLS1hY2NlbnQyKTsgfQ0KDQogICAgLyog4pSA4pSAIFRvcCBiYXIg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovDQogICAgLnRvcC1iYXIgew0KICAgICAgcG9zaXRpb246IHN0aWNreTsgdG9wOiAwOyB6LWluZGV4OiAxMDA7DQogICAgICBoZWlnaHQ6IDUycHg7IGRpc3BsYXk6IGZsZXg7IGFsaWduLWl0ZW1zOiBjZW50ZXI7DQogICAgICBwYWRkaW5nOiAwIDQwcHg7IGdhcDogMTZweDsNCiAgICAgIGJhY2tncm91bmQ6IHJnYmEoNyw3LDEwLDAuOSk7DQogICAgICBiYWNrZHJvcC1maWx0ZXI6IGJsdXIoMTZweCk7DQogICAgICBib3JkZXItYm90dG9tOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsNCiAgICB9DQogICAgLmJhY2stYnRuIHsNCiAgICAgIGRpc3BsYXk6IGlubGluZS1mbGV4OyBhbGlnbi1pdGVtczogY2VudGVyOyBnYXA6IDZweDsNCiAgICAgIGZvbnQtZmFtaWx5OiB2YXIoLS1mb250LXVpKTsgZm9udC1zaXplOiAxMnB4OyBmb250LXdlaWdodDogNTAwOw0KICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMDhlbTsgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsNCiAgICAgIGNvbG9yOiB2YXIoLS10ZXh0Mik7IHRleHQtZGVjb3JhdGlvbjogbm9uZTsNCiAgICAgIHBhZGRpbmc6IDVweCAxMnB4OyBib3JkZXItcmFkaXVzOiA2cHg7DQogICAgICBib3JkZXI6IDFweCBzb2xpZCB2YXIoLS1ib3JkZXIpOw0KICAgICAgdHJhbnNpdGlvbjogY29sb3IgMC4ycywgYm9yZGVyLWNvbG9yIDAuMnMsIGJhY2tncm91bmQgMC4yczsNCiAgICB9DQogICAgLmJhY2stYnRuOmhvdmVyIHsgY29sb3I6IHZhcigtLWFjY2VudCk7IGJvcmRlci1jb2xvcjogcmdiYSgxOTYsMTYxLDYwLDAuMyk7IGJhY2tncm91bmQ6IHJnYmEoMTk2LDE2MSw2MCwwLjA1KTsgfQ0KICAgIC5iYXItdGl0bGUgew0KICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtdWkpOyBmb250LXNpemU6IDEzcHg7IGNvbG9yOiB2YXIoLS10ZXh0Myk7DQogICAgICBvdmVyZmxvdzogaGlkZGVuOyB0ZXh0LW92ZXJmbG93OiBlbGxpcHNpczsgd2hpdGUtc3BhY2U6IG5vd3JhcDsNCiAgICB9DQoNCiAgICAvKiDilIDilIAgQXJ0aWNsZSBsYXlvdXQg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovDQogICAgYXJ0aWNsZSB7DQogICAgICBtYXgtd2lkdGg6IDY4MHB4OyBtYXJnaW46IDAgYXV0bzsNCiAgICAgIHBhZGRpbmc6IDcycHggNDBweCAxMjBweDsNCiAgICB9DQoNCiAgICAvKiDilIDilIAgSGVhZGVyIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqLw0KICAgIC5hcnRpY2xlLW1ldGEgew0KICAgICAgZGlzcGxheTogZmxleDsgYWxpZ24taXRlbXM6IGNlbnRlcjsgZ2FwOiAxMnB4Ow0KICAgICAgbWFyZ2luLWJvdHRvbTogMzJweDsNCiAgICB9DQogICAgLmFydGljbGUtZGF0ZSB7DQogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1tb25vKTsgZm9udC1zaXplOiAxMXB4Ow0KICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMTZlbTsgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsNCiAgICAgIGNvbG9yOiB2YXIoLS1hY2NlbnQpOw0KICAgIH0NCiAgICAuYXJ0aWNsZS10YWcgew0KICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtbW9ubyk7IGZvbnQtc2l6ZTogOXB4Ow0KICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMTJlbTsgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsNCiAgICAgIHBhZGRpbmc6IDJweCA4cHg7IGJvcmRlci1yYWRpdXM6IDRweDsNCiAgICAgIGJvcmRlcjogMXB4IHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsMC4wOCk7DQogICAgICBjb2xvcjogdmFyKC0tdGV4dDMpOw0KICAgIH0NCiAgICBoMS50aXRsZSB7DQogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1kaXNwbGF5KTsgZm9udC1zaXplOiBjbGFtcCgzNnB4LCA1dncsIDU4cHgpOw0KICAgICAgZm9udC13ZWlnaHQ6IDQwMDsgbGluZS1oZWlnaHQ6IDEuMDU7IGxldHRlci1zcGFjaW5nOiAtMC4wMWVtOw0KICAgICAgbWFyZ2luLWJvdHRvbTogMjBweDsgY29sb3I6IHZhcigtLXRleHQpOw0KICAgIH0NCiAgICBoMS50aXRsZSBlbSB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgY29sb3I6IHZhcigtLWFjY2VudCk7IH0NCiAgICAuYXJ0aWNsZS1pbnRybyB7DQogICAgICBmb250LXNpemU6IDIwcHg7IGNvbG9yOiB2YXIoLS10ZXh0Mik7IGxpbmUtaGVpZ2h0OiAxLjc7DQogICAgICBtYXJnaW4tYm90dG9tOiA1NnB4OyBwYWRkaW5nLWJvdHRvbTogNDBweDsNCiAgICAgIGJvcmRlci1ib3R0b206IDFweCBzb2xpZCB2YXIoLS1ib3JkZXIpOw0KICAgIH0NCg0KICAgIC8qIOKUgOKUgCBUeXBvZ3JhcGh5IOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqLw0KICAgIHAgeyBtYXJnaW4tYm90dG9tOiAxLjRlbTsgfQ0KICAgIHA6bGFzdC1jaGlsZCB7IG1hcmdpbi1ib3R0b206IDA7IH0NCg0KICAgIGgyIHsNCiAgICAgIGZvbnQtZmFtaWx5OiB2YXIoLS1mb250LWRpc3BsYXkpOyBmb250LXNpemU6IDI4cHg7IGZvbnQtd2VpZ2h0OiA1MDA7DQogICAgICBmb250LXN0eWxlOiBpdGFsaWM7IGNvbG9yOiB2YXIoLS1hY2NlbnQpOw0KICAgICAgbWFyZ2luOiA0OHB4IDAgMThweDsgcGFkZGluZy1ib3R0b206IDEycHg7DQogICAgICBib3JkZXItYm90dG9tOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsNCiAgICB9DQogICAgaDMgew0KICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtdWkpOyBmb250LXNpemU6IDE0cHg7IGZvbnQtd2VpZ2h0OiA2MDA7DQogICAgICBsZXR0ZXItc3BhY2luZzogMC4wOGVtOyB0ZXh0LXRyYW5zZm9ybTogdXBwZXJjYXNlOw0KICAgICAgY29sb3I6IHZhcigtLXRleHQyKTsgbWFyZ2luOiAzMnB4IDAgMTJweDsNCiAgICB9DQogICAgaDQgew0KICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtZGlzcGxheSk7IGZvbnQtc2l6ZTogMjBweDsgZm9udC1zdHlsZTogaXRhbGljOw0KICAgICAgY29sb3I6IHZhcigtLXRleHQpOyBtYXJnaW46IDI0cHggMCAxMHB4Ow0KICAgIH0NCg0KICAgIHN0cm9uZyB7IGNvbG9yOiB2YXIoLS10ZXh0KTsgZm9udC13ZWlnaHQ6IDYwMDsgfQ0KICAgIGVtICAgICB7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQ0KICAgIGEgICAgICB7IGNvbG9yOiB2YXIoLS1hY2NlbnQpOyB0ZXh0LWRlY29yYXRpb246IHVuZGVybGluZTsgdGV4dC11bmRlcmxpbmUtb2Zmc2V0OiAzcHg7IHRleHQtZGVjb3JhdGlvbi1jb2xvcjogcmdiYSgxOTYsMTYxLDYwLDAuNCk7IH0NCiAgICBhOmhvdmVyIHsgdGV4dC1kZWNvcmF0aW9uLWNvbG9yOiB2YXIoLS1hY2NlbnQpOyB9DQoNCiAgICAvKiDilIDilIAgTWF0aCBibG9ja3Mg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovDQogICAgLm1hdGgtYmxvY2sgew0KICAgICAgcGFkZGluZzogMjRweCAyOHB4OyBtYXJnaW46IDMycHggMDsNCiAgICAgIGJhY2tncm91bmQ6IHZhcigtLWJnMik7IGJvcmRlcjogMXB4IHNvbGlkIHZhcigtLWJvcmRlcik7DQogICAgICBib3JkZXItbGVmdDogM3B4IHNvbGlkIHZhcigtLWFjY2VudCk7DQogICAgICBib3JkZXItcmFkaXVzOiAwIDhweCA4cHggMDsNCiAgICAgIG92ZXJmbG93LXg6IGF1dG87DQogICAgfQ0KICAgIC5rYXRleC1kaXNwbGF5IHsgbWFyZ2luOiAwICFpbXBvcnRhbnQ7IH0NCiAgICAua2F0ZXggeyBmb250LXNpemU6IDEuMDVlbSAhaW1wb3J0YW50OyB9DQoNCiAgICAvKiDilIDilIAgQmxvY2txdW90ZSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi8NCiAgICBibG9ja3F1b3RlIHsNCiAgICAgIGJvcmRlci1sZWZ0OiAycHggc29saWQgdmFyKC0tYWNjZW50KTsNCiAgICAgIHBhZGRpbmc6IDEwcHggMCAxMHB4IDI0cHg7IG1hcmdpbjogMzJweCAwOw0KICAgICAgZm9udC1zdHlsZTogaXRhbGljOyBjb2xvcjogdmFyKC0tdGV4dDIpOyBmb250LXNpemU6IDIxcHg7DQogICAgICBsaW5lLWhlaWdodDogMS42Ow0KICAgIH0NCg0KICAgIC8qIOKUgOKUgCBDb2RlIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqLw0KICAgIGNvZGUgew0KICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtbW9ubyk7IGZvbnQtc2l6ZTogMC43OGVtOw0KICAgICAgYmFja2dyb3VuZDogdmFyKC0tYmczKTsgYm9yZGVyOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsNCiAgICAgIHBhZGRpbmc6IDJweCA3cHg7IGJvcmRlci1yYWRpdXM6IDVweDsgY29sb3I6ICM4ZGM4ZWY7DQogICAgfQ0KICAgIHByZSB7DQogICAgICBtYXJnaW46IDI4cHggMDsgYm9yZGVyLXJhZGl1czogMTBweDsNCiAgICAgIGJhY2tncm91bmQ6IHZhcigtLWJnMikgIWltcG9ydGFudDsNCiAgICAgIGJvcmRlcjogMXB4IHNvbGlkIHZhcigtLWJvcmRlcik7DQogICAgICBvdmVyZmxvdy14OiBhdXRvOw0KICAgIH0NCiAgICBwcmUgY29kZSB7DQogICAgICBkaXNwbGF5OiBibG9jazsgcGFkZGluZzogMjBweCAyMnB4Ow0KICAgICAgYmFja2dyb3VuZDogdHJhbnNwYXJlbnQgIWltcG9ydGFudDsgYm9yZGVyOiBub25lOw0KICAgICAgZm9udC1zaXplOiAxM3B4OyBsaW5lLWhlaWdodDogMS42NTsNCiAgICB9DQoNCiAgICAvKiDilIDilIAgRGVmaW5pdGlvbiBib3gg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovDQogICAgLmRlZi1ib3ggew0KICAgICAgcGFkZGluZzogMjBweCAyMnB4OyBtYXJnaW46IDI4cHggMDsNCiAgICAgIGJhY2tncm91bmQ6IHZhcigtLWJnMik7IGJvcmRlcjogMXB4IHNvbGlkIHZhcigtLWJvcmRlcik7DQogICAgICBib3JkZXItcmFkaXVzOiA4cHg7DQogICAgfQ0KICAgIC5kZWYtYm94IC5kZWYtbGFiZWwgew0KICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtbW9ubyk7IGZvbnQtc2l6ZTogMTBweDsgbGV0dGVyLXNwYWNpbmc6IDAuMTZlbTsNCiAgICAgIHRleHQtdHJhbnNmb3JtOiB1cHBlcmNhc2U7IGNvbG9yOiB2YXIoLS1hY2NlbnQpOyBtYXJnaW4tYm90dG9tOiA4cHg7DQogICAgICBkaXNwbGF5OiBibG9jazsNCiAgICB9DQogICAgLmRlZi1ib3ggcCB7IG1hcmdpbi1ib3R0b206IDA7IH0NCg0KICAgIC8qIOKUgOKUgCBUaGVvcmVtL1Byb29mIGJveCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi8NCiAgICAudGhlb3JlbS1ib3ggew0KICAgICAgcGFkZGluZzogMjBweCAyMnB4OyBtYXJnaW46IDI4cHggMDsNCiAgICAgIGJhY2tncm91bmQ6IHJnYmEoMTk2LDE2MSw2MCwwLjA0KTsNCiAgICAgIGJvcmRlcjogMXB4IHNvbGlkIHJnYmEoMTk2LDE2MSw2MCwwLjIpOw0KICAgICAgYm9yZGVyLXJhZGl1czogOHB4Ow0KICAgIH0NCiAgICAudGhlb3JlbS1ib3ggLnRobS1sYWJlbCB7DQogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1tb25vKTsgZm9udC1zaXplOiAxMHB4OyBsZXR0ZXItc3BhY2luZzogMC4xNmVtOw0KICAgICAgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsgY29sb3I6IHZhcigtLWFjY2VudCk7IG1hcmdpbi1ib3R0b206IDEwcHg7DQogICAgICBkaXNwbGF5OiBibG9jazsNCiAgICB9DQogICAgLnByb29mLWJveCB7DQogICAgICBwYWRkaW5nOiAyMHB4IDIycHg7IG1hcmdpbjogMTJweCAwIDI4cHg7DQogICAgICBib3JkZXItbGVmdDogMnB4IHNvbGlkIHZhcigtLXRleHQzKTsgcGFkZGluZy1sZWZ0OiAyMHB4Ow0KICAgIH0NCiAgICAucHJvb2YtYm94IC5wcm9vZi1sYWJlbCB7DQogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1tb25vKTsgZm9udC1zaXplOiAxMHB4OyBsZXR0ZXItc3BhY2luZzogMC4xMmVtOw0KICAgICAgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsgY29sb3I6IHZhcigtLXRleHQzKTsgbWFyZ2luLWJvdHRvbTogOHB4Ow0KICAgICAgZGlzcGxheTogYmxvY2s7DQogICAgfQ0KICAgIC5xZWQgew0KICAgICAgZmxvYXQ6IHJpZ2h0OyBmb250LXNpemU6IDE0cHg7IGNvbG9yOiB2YXIoLS10ZXh0Myk7DQogICAgICBsaW5lLWhlaWdodDogMTsNCiAgICB9DQoNCiAgICAvKiDilIDilIAgRm9vdG5vdGUgc3R5bGUg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovDQogICAgLmZvb3Rub3RlcyB7DQogICAgICBtYXJnaW4tdG9wOiA3MnB4OyBwYWRkaW5nLXRvcDogMjhweDsNCiAgICAgIGJvcmRlci10b3A6IDFweCBzb2xpZCB2YXIoLS1ib3JkZXIpOw0KICAgICAgZm9udC1zaXplOiAxNHB4OyBjb2xvcjogdmFyKC0tdGV4dDIpOw0KICAgIH0NCiAgICAuZm9vdG5vdGVzIG9sIHsgcGFkZGluZy1sZWZ0OiAyMHB4OyB9DQogICAgLmZvb3Rub3RlcyBsaSB7IG1hcmdpbi1ib3R0b206IDhweDsgfQ0KDQogICAgLyog4pSA4pSAIEZpZ3VyZSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi8NCiAgICBmaWd1cmUgew0KICAgICAgbWFyZ2luOiAzNnB4IDA7IHRleHQtYWxpZ246IGNlbnRlcjsNCiAgICB9DQogICAgZmlndXJlIGltZyB7DQogICAgICBtYXgtd2lkdGg6IDEwMCU7IGJvcmRlci1yYWRpdXM6IDhweDsNCiAgICAgIGJvcmRlcjogMXB4IHNvbGlkIHZhcigtLWJvcmRlcik7DQogICAgfQ0KICAgIGZpZ2NhcHRpb24gew0KICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtdWkpOyBmb250LXNpemU6IDEycHg7DQogICAgICBjb2xvcjogdmFyKC0tdGV4dDMpOyBtYXJnaW4tdG9wOiAxMHB4Ow0KICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMDRlbTsNCiAgICB9DQoNCiAgICAvKiDilIDilIAgVGFibGUg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovDQogICAgdGFibGUgeyB3aWR0aDogMTAwJTsgYm9yZGVyLWNvbGxhcHNlOiBjb2xsYXBzZTsgbWFyZ2luOiAyOHB4IDA7IGZvbnQtc2l6ZTogMTVweDsgfQ0KICAgIHRoIHsgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtdWkpOyBmb250LXNpemU6IDExcHg7IGZvbnQtd2VpZ2h0OiA2MDA7IGxldHRlci1zcGFjaW5nOiAwLjFlbTsgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsgY29sb3I6IHZhcigtLXRleHQyKTsgcGFkZGluZzogMTBweCAxNHB4OyBib3JkZXItYm90dG9tOiAxcHggc29saWQgdmFyKC0tYm9yZGVyLW1kKTsgdGV4dC1hbGlnbjogbGVmdDsgfQ0KICAgIHRkIHsgcGFkZGluZzogMTBweCAxNHB4OyBib3JkZXItYm90dG9tOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsgY29sb3I6IHZhcigtLXRleHQpOyB9DQogICAgdHI6aG92ZXIgdGQgeyBiYWNrZ3JvdW5kOiB2YXIoLS1iZzIpOyB9DQoNCiAgICAvKiDilIDilIAgQ3VzdG9tIGN1cnNvciDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi8NCiAgICBodG1sIHsgY3Vyc29yOiBub25lOyB9DQogICAgYm9keSB7IGN1cnNvcjogbm9uZTsgfQ0KICAgIGEsIGJ1dHRvbiB7IGN1cnNvcjogbm9uZTsgfQ0KICAgICNjdXItZG90IHsNCiAgICAgIHBvc2l0aW9uOiBmaXhlZDsgei1pbmRleDogOTk5OTk7DQogICAgICB3aWR0aDogNnB4OyBoZWlnaHQ6IDZweDsgYm9yZGVyLXJhZGl1czogNTAlOw0KICAgICAgYmFja2dyb3VuZDogdmFyKC0tYWNjZW50KTsNCiAgICAgIHBvaW50ZXItZXZlbnRzOiBub25lOw0KICAgICAgdHJhbnNmb3JtOiB0cmFuc2xhdGUoLTUwJSwtNTAlKTsNCiAgICAgIHRyYW5zaXRpb246IHdpZHRoIC4ycywgaGVpZ2h0IC4ycywgYmFja2dyb3VuZCAuMnMsIG9wYWNpdHkgLjJzOw0KICAgIH0NCiAgICAjY3VyLXJpbmcgew0KICAgICAgcG9zaXRpb246IGZpeGVkOyB6LWluZGV4OiA5OTk5ODsNCiAgICAgIHdpZHRoOiAzMHB4OyBoZWlnaHQ6IDMwcHg7IGJvcmRlci1yYWRpdXM6IDUwJTsNCiAgICAgIGJvcmRlcjogMS41cHggc29saWQgcmdiYSgxOTYsMTYxLDYwLC40NSk7DQogICAgICBwb2ludGVyLWV2ZW50czogbm9uZTsNCiAgICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlKC01MCUsLTUwJSk7DQogICAgICB3aWxsLWNoYW5nZTogdHJhbnNmb3JtOw0KICAgIH0NCiAgICBib2R5LmMtaG92ZXIgI2N1ci1kb3QgIHsgd2lkdGg6IDRweDsgaGVpZ2h0OiA0cHg7IGJhY2tncm91bmQ6ICNlOGM5NmE7IH0NCiAgICBib2R5LmMtaG92ZXIgI2N1ci1yaW5nIHsgd2lkdGg6IDQ0cHg7IGhlaWdodDogNDRweDsgYm9yZGVyLWNvbG9yOiB2YXIoLS1hY2NlbnQpOyB9DQogICAgYm9keS5jLWNsaWNrICNjdXItZG90ICB7IHdpZHRoOiA5cHg7IGhlaWdodDogOXB4OyB9DQogICAgYm9keS5jLWNsaWNrICNjdXItcmluZyB7IHdpZHRoOiAyMHB4OyBoZWlnaHQ6IDIwcHg7IH0NCiAgICAuY3VyLXJpcHBsZSB7DQogICAgICBwb3NpdGlvbjogZml4ZWQ7IHotaW5kZXg6IDk5OTk3OyBwb2ludGVyLWV2ZW50czogbm9uZTsgYm9yZGVyLXJhZGl1czogNTAlOw0KICAgICAgYm9yZGVyOiAxLjVweCBzb2xpZCByZ2JhKDE5NiwxNjEsNjAsLjU1KTsNCiAgICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlKC01MCUsLTUwJSkgc2NhbGUoMCk7DQogICAgICBhbmltYXRpb246IGNSaXBwbGUgLjZzIGVhc2UgZm9yd2FyZHM7DQogICAgfQ0KICAgIEBrZXlmcmFtZXMgY1JpcHBsZSB7DQogICAgICBmcm9tIHsgdHJhbnNmb3JtOiB0cmFuc2xhdGUoLTUwJSwtNTAlKSBzY2FsZSgwKTsgb3BhY2l0eToxOyB3aWR0aDoxMHB4OyBoZWlnaHQ6MTBweDsgfQ0KICAgICAgdG8gICB7IHRyYW5zZm9ybTogdHJhbnNsYXRlKC01MCUsLTUwJSkgc2NhbGUoMSk7IG9wYWNpdHk6MDsgd2lkdGg6ODBweDsgaGVpZ2h0OjgwcHg7IH0NCiAgICB9DQoNCiAgICBAbWVkaWEgKG1heC13aWR0aDogNjQwcHgpIHsNCiAgICAgIC50b3AtYmFyIHsgcGFkZGluZzogMCAyMHB4OyB9DQogICAgICBhcnRpY2xlIHsgcGFkZGluZzogNDhweCAyMHB4IDgwcHg7IH0NCiAgICAgIGgxLnRpdGxlIHsgZm9udC1zaXplOiAzMnB4OyB9DQogICAgICAjY3VyLWRvdCwgI2N1ci1yaW5nIHsgZGlzcGxheTogbm9uZTsgfQ0KICAgICAgaHRtbCwgYm9keSwgYSwgYnV0dG9uIHsgY3Vyc29yOiBhdXRvOyB9DQogICAgfQ0KICA8L3N0eWxlPg0KPC9oZWFkPg0KPGJvZHk+DQogIDxkaXYgaWQ9ImN1ci1kb3QiPjwvZGl2Pg0KICA8ZGl2IGlkPSJjdXItcmluZyI+PC9kaXY+DQoNCiAgPGRpdiBjbGFzcz0idG9wLWJhciI+DQogIDxhIGNsYXNzPSJiYWNrLWJ0biIgaHJlZj0iamF2YXNjcmlwdDpoaXN0b3J5LmJhY2soKSI+4oaQIFZpc3N6YTwvYT4NCiAgPHNwYW4gY2xhc3M9ImJhci10aXRsZSI+Q2lrayBjw61tZSBpZGU8L3NwYW4+DQo8L2Rpdj4NCg0KPGFydGljbGU+DQoNCiAgPCEtLSDilIDilIAgQXJ0aWNsZSBIZWFkZXIg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAIC0tPg0KICA8ZGl2IGNsYXNzPSJhcnRpY2xlLW1ldGEiPg0KICAgIDxzcGFuIGNsYXNzPSJhcnRpY2xlLWRhdGUiPjIwMjQuIGphbnXDoXIgMS48L3NwYW4+DQogICAgPHNwYW4gY2xhc3M9ImFydGljbGUtdGFnIj5tYXRlbWF0aWthPC9zcGFuPg0KICAgIDxzcGFuIGNsYXNzPSJhcnRpY2xlLXRhZyI+YW5hbMOtemlzPC9zcGFuPg0KICA8L2Rpdj4NCg0KICA8aDEgY2xhc3M9InRpdGxlIj5DaWtrIDxlbT5jw61tZTwvZW0+IGlkZTwvaDE+DQoNCiAgPHAgY2xhc3M9ImFydGljbGUtaW50cm8iPg0KICAgIEVneSByw7Z2aWQgYmV2ZXpldMWRIGJla2V6ZMOpcywgYW1lbHkgbWVnYWRqYSBheiBvbHZhc8OzbmFrLCBtaXLFkWwgc3rDs2wgZXogYSBjaWtrLg0KICAgIE1hcmFkam9uIHTDtm3DtnIg4oCUIGVneXTFkWwgaMOhcm9tIG1vbmRhdGlnLiBFeiBhIHN6w7Z2ZWcgYSBOb3RlcyBvbGRhbCBrw6FydHnDoWrDoW4gaXMgbWVnamVsZW5pay4NCiAgPC9wPg0KDQogIDwhLS0g4pSA4pSAIEJvZHkg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAIC0tPg0KDQogIDwhLS0gQVJUSUNMRS1CT0RZLVNUQVJUIC0tPg0KICA8aDI+RWxzxZEgc3pha2FzejwvaDI+DQoNCiAgPHA+DQogICAgRXogYSB0w7ZyenNzesO2dmVnIGVneWlrIGJla2V6ZMOpc2UuIEEgbWF0ZW1hdGlrw6F0IGxlaGV0IHNvcm9uIGJlbMO8bCDDrXJuaTogJGVee2lccGl9ICsgMSA9IDAkLA0KICAgIHZhZ3kgYXogYWzDoWJiaSBrw7xsw7ZuIGJsb2trYmFuLg0KICA8L3A+DQoNCiAgPGRpdiBjbGFzcz0ibWF0aC1ibG9jayI+DQogICAgJCRcaW50X3stXGluZnR5fV57XGluZnR5fSBlXnsteF4yfVwsIGR4ID0gXHNxcnR7XHBpfSQkDQogIDwvZGl2Pg0KDQogIDxwPg0KICAgIEZvbHl0YXNkIGl0dCBheiDDrXLDoXN0LiBIYXN6bsOhbGogPHN0cm9uZz5mw6lsa8O2dsOpcnQ8L3N0cm9uZz4gYSBraWVtZWzDqXNoZXogw6lzIDxlbT5kxZFsdCBiZXTFsXQ8L2VtPg0KICAgIGEgbWF0ZW1hdGlrYWkga2lmZWplesOpc2VraGV6IHZhZ3kgY8OtbWVraGV6Lg0KICA8L3A+DQoNCiAgPGRpdiBjbGFzcz0iZGVmLWJveCI+DQogICAgPHNwYW4gY2xhc3M9ImRlZi1sYWJlbCI+RGVmaW7DrWNpw7MgMS4xPC9zcGFuPg0KICAgIDxwPg0KICAgICAgRWd5ICRmOiBcbWF0aGJie1J9IFx0byBcbWF0aGJie1J9JCBmw7xnZ3bDqW55dCBha2tvciBtb25kdW5rIDxzdHJvbmc+Zm9seXRvbm9zbmFrIGF6ICRhJCBwb250YmFuPC9zdHJvbmc+LA0KICAgICAgaGEgbWluZGVuICRcdmFyZXBzaWxvbiA+IDAkLWhveiBsw6l0ZXppayBvbHlhbiAkXGRlbHRhID4gMCQsIGhvZ3kNCiAgICAgICR8eCAtIGF8IDwgXGRlbHRhIFxSaWdodGFycm93IHxmKHgpIC0gZihhKXwgPCBcdmFyZXBzaWxvbiQuDQogICAgPC9wPg0KICA8L2Rpdj4NCg0KICA8aDI+TcOhc29kaWsgc3pha2FzejwvaDI+DQoNCiAgPGRpdiBjbGFzcz0idGhlb3JlbS1ib3giPg0KICAgIDxzcGFuIGNsYXNzPSJ0aG0tbGFiZWwiPlTDqXRlbCAyLjEg4oCUIMONcmQgw6F0IGEgdMOpdGVsIG5ldsOpcmU8L3NwYW4+DQogICAgPHA+DQogICAgICDDjXJkIGlkZSBhIHTDqXRlbHQuIFDDqWxkw6F1bDogaGEgJGYkIGZvbHl0b25vcyBheiAkW2EsIGJdJCBpbnRlcnZhbGx1bW9uLCBha2tvciAkZiQgZmVsdmVzemkNCiAgICAgIGEgbWF4aW11bcOhdCDDqXMgbWluaW11bcOhdCBheiAkW2EsIGJdJCBpbnRlcnZhbGx1bW9uLg0KICAgIDwvcD4NCiAgPC9kaXY+DQoNCiAgPGRpdiBjbGFzcz0icHJvb2YtYm94Ij4NCiAgICA8c3BhbiBjbGFzcz0icHJvb2YtbGFiZWwiPkJpem9uecOtdMOhczwvc3Bhbj4NCiAgICA8cD4NCiAgICAgIMONcmQgaWRlIGEgYml6b255w610w6FzdC4gU3rDvGtzw6lnIHN6ZXJpbnQgaGFzem7DoWxqIGvDvGzDtm4ga2llbWVsdCBrw6lwbGV0ZWtldDoNCiAgICAgICQkXHN1bV97bj0xfV57XGluZnR5fSBcZnJhY3sxfXtuXjJ9ID0gXGZyYWN7XHBpXjJ9ezZ9JCQNCiAgICA8L3A+DQogICAgPHA+Rm9seXRhc2QgYSBiaXpvbnnDrXTDoXN0Li4uIDxzcGFuIGNsYXNzPSJxZWQiPuKWoTwvc3Bhbj48L3A+DQogIDwvZGl2Pg0KDQogIDxoMj5KZWd5emV0ZWsgw6lzIGhpdmF0a296w6Fzb2s8L2gyPg0KDQogIDxwPkFkZCBpZGUgYSBoaXZhdGtvesOhc29rYXQsIHRvdsOhYmJpIG9sdmFzbcOhbnlva2F0IHZhZ3kga8O2c3rDtm5ldG55aWx2w6Fuw610w6Fzb2thdC48L3A+DQoNCiAgPGJsb2NrcXVvdGU+DQogICAgRWd5IHN6w6lwIGVyZWRtw6lueSBvbHlhbiwgYW1lbHlldCBuZW0gbGVoZXRldHQgdm9sbmEgZWd5c3plcsWxYmJlbiBtZWdmb2dhbG1hem5pLg0KICA8L2Jsb2NrcXVvdGU+DQoNCiAgPGRpdiBjbGFzcz0iZm9vdG5vdGVzIj4NCiAgICA8b2w+DQogICAgICA8bGk+SWRlIGtlcsO8bCBheiBlbHPFkSBsw6FiamVneXpldCB2YWd5IGhpdmF0a296w6FzLjwvbGk+DQogICAgICA8bGk+SWRlIGtlcsO8bCBhIG3DoXNvZGlrIGzDoWJqZWd5emV0IHZhZ3kgaGl2YXRrb3rDoXMuPC9saT4NCiAgICA8L29sPg0KICA8L2Rpdj4NCg0KICA8IS0tIEFSVElDTEUtQk9EWS1FTkQgLS0+DQo8L2FydGljbGU+DQogIDxzY3JpcHQ+DQogICgoKSA9PiB7DQogICAgY29uc3QgZG90ICA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdjdXItZG90Jyk7DQogICAgY29uc3QgcmluZyA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdjdXItcmluZycpOw0KICAgIGxldCBteD0tMjAwLG15PS0yMDAscng9LTIwMCxyeT0tMjAwOw0KICAgIGNvbnN0IExFUlA9MC4xMywgbGVycD0oYSxiLHQpPT5hKyhiLWEpKnQ7DQogICAgY29uc3QgYiA9IGRvY3VtZW50LmJvZHk7DQoNCiAgICBkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKCdtb3VzZW1vdmUnLCBlID0+IHsgbXg9ZS5jbGllbnRYOyBteT1lLmNsaWVudFk7IH0pOw0KICAgIGRvY3VtZW50LmFkZEV2ZW50TGlzdGVuZXIoJ21vdXNlZG93bicsIGUgPT4gew0KICAgICAgYi5jbGFzc0xpc3QuYWRkKCdjLWNsaWNrJyk7DQogICAgICBjb25zdCByPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2RpdicpOyByLmNsYXNzTmFtZT0nY3VyLXJpcHBsZSc7DQogICAgICByLnN0eWxlLmxlZnQ9ZS5jbGllbnRYKydweCc7IHIuc3R5bGUudG9wPWUuY2xpZW50WSsncHgnOw0KICAgICAgZG9jdW1lbnQuYm9keS5hcHBlbmRDaGlsZChyKTsNCiAgICAgIHIuYWRkRXZlbnRMaXN0ZW5lcignYW5pbWF0aW9uZW5kJywoKT0+ci5yZW1vdmUoKSk7DQogICAgfSk7DQogICAgZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignbW91c2V1cCcsICAgICgpID0+IGIuY2xhc3NMaXN0LnJlbW92ZSgnYy1jbGljaycpKTsNCiAgICBkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKCdtb3VzZWxlYXZlJywgKCkgPT4geyBkb3Quc3R5bGUub3BhY2l0eT0nMCc7IHJpbmcuc3R5bGUub3BhY2l0eT0nMCc7IH0pOw0KICAgIGRvY3VtZW50LmFkZEV2ZW50TGlzdGVuZXIoJ21vdXNlZW50ZXInLCAoKSA9PiB7IGRvdC5zdHlsZS5vcGFjaXR5PScxJzsgcmluZy5zdHlsZS5vcGFjaXR5PScxJzsgfSk7DQoNCiAgICBjb25zdCBIUyA9ICdhLGJ1dHRvbiwuYmFjay1idG4sW2RhdGEtaG92ZXJdJzsNCiAgICBkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKCdtb3VzZW92ZXInLCBlID0+IHsgaWYoZS50YXJnZXQuY2xvc2VzdChIUykpIGIuY2xhc3NMaXN0LmFkZCgnYy1ob3ZlcicpOyB9KTsNCiAgICBkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKCdtb3VzZW91dCcsICBlID0+IHsgaWYoZS50YXJnZXQuY2xvc2VzdChIUykpIGIuY2xhc3NMaXN0LnJlbW92ZSgnYy1ob3ZlcicpOyB9KTsNCg0KICAgIChmdW5jdGlvbiBhbmltKCkgew0KICAgICAgZG90LnN0eWxlLmxlZnQgPW14KydweCc7IGRvdC5zdHlsZS50b3AgPW15KydweCc7DQogICAgICByeD1sZXJwKHJ4LG14LExFUlApOyAgICByeT1sZXJwKHJ5LG15LExFUlApOw0KICAgICAgcmluZy5zdHlsZS5sZWZ0PXJ4KydweCc7IHJpbmcuc3R5bGUudG9wPXJ5KydweCc7DQogICAgICByaW5nLnN0eWxlLnRyYW5zaXRpb249J25vbmUnOw0KICAgICAgcmVxdWVzdEFuaW1hdGlvbkZyYW1lKGFuaW0pOw0KICAgIH0pKCk7DQogIH0pKCk7DQogIDwvc2NyaXB0Pg0KPC9ib2R5Pg0KPC9odG1sPg==";
 function buildArticleFromTemplate(meta, bodyHtml, lang) {
   const title = meta.title || 'Untitled';
   const date  = meta.date || '';
   const desc  = meta.description || '';
   const tags  = (meta.tags || []).filter(Boolean);
-  let tpl;
-  try { tpl = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8'); }
-  catch {
+  let tpl = null;
+  for (const cand of [path.join(__dirname, 'template.html'), path.join(process.cwd(), 'template.html')]) {
+    try { tpl = fs.readFileSync(cand, 'utf8'); break; } catch {}
+  }
+  if (tpl == null) { try { tpl = Buffer.from(ARTICLE_TEMPLATE_B64, 'base64').toString('utf8'); } catch { tpl = null; } }
+  if (!tpl) {
     return '<!DOCTYPE html><html lang="' + (lang === 'hu' ? 'hu' : 'en') + '"><head><meta charset="UTF-8">'
       + '<title>' + htmlText(title) + '</title><meta data-date="' + htmlAttr(date) + '">'
       + '<meta data-description="' + htmlAttr(desc) + '"><meta data-tags="' + htmlAttr(tags.join(', ')) + '">'
@@ -782,9 +786,15 @@ function requestRecipients(relPath, lang) {
   if (owners.length) return [...new Set(owners)];
   return loadAdmins().map(a => a.username);
 }
-// ── Messages (per-user inbox; text only) ──────────────────────────────────────
-function loadMessages() { try { const o = JSON.parse(fs.readFileSync(__MESSAGES, 'utf8')); return Array.isArray(o) ? o : (o && Array.isArray(o.list) ? o.list : []); } catch { return []; } }
-function saveMessages(list) { fs.writeFileSync(__MESSAGES, JSON.stringify(list, null, 2) + '\n', 'utf8'); }
+// ── Chat conversations (DMs + group chats; text only) ─────────────────────────
+function loadChats() { try { const o = JSON.parse(fs.readFileSync(__CHATS, 'utf8')); return (o && Array.isArray(o.conversations)) ? o : { conversations: [] }; } catch { return { conversations: [] }; } }
+function saveChats(o) { fs.writeFileSync(__CHATS, JSON.stringify(o, null, 2) + '\n', 'utf8'); }
+function chatParticipant(c, name) { const n = String(name).toLowerCase(); return (c.participants || []).some(p => String(p).toLowerCase() === n); }
+function chatUnread(c, name) { const n = String(name).toLowerCase(); const last = (c.reads && c.reads[n]) || ''; return (c.messages || []).filter(m => String(m.from).toLowerCase() !== n && (m.date || '') > last).length; }
+function findDM(chats, a, b) { const A = String(a).toLowerCase(), B = String(b).toLowerCase(); return chats.conversations.find(c => c.type === 'dm' && (c.participants || []).length === 2 && c.participants.map(x => String(x).toLowerCase()).includes(A) && c.participants.map(x => String(x).toLowerCase()).includes(B)); }
+function ensureDM(chats, a, b) { let c = findDM(chats, a, b); if (!c) { c = { id: crypto.randomUUID(), type: 'dm', title: '', participants: [a, b], createdBy: a, created: new Date().toISOString(), messages: [], reads: {} }; chats.conversations.push(c); } return c; }
+function chatTitleFor(c, me) { if (c.type === 'group') return c.title || 'Group'; const other = (c.participants || []).find(p => String(p).toLowerCase() !== String(me).toLowerCase()); return other || 'Direct message'; }
+function chatPreview(m) { if (!m) return ''; if (m.kind === 'access-request') return '\uD83D\uDD12 ' + ((m.note && m.note.label) || 'access request'); if (m.kind === 'access-result') return 'access ' + (m.decision || ''); return m.body || ''; }
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.scryptSync(String(password), salt, 32).toString('hex');
@@ -1350,78 +1360,138 @@ const server = http.createServer((req, res) => {
   }
 
   // ── Messages (text only) ────────────────────────────────────────────────────
-  if (pathname === '/api/messages/unread' && req.method === 'GET') {
-    const s = siteSession(req);
-    if (!s) return sendJSON(res, { ok: false, unread: 0 });
-    const unread = loadMessages().filter(m => m.to === s.username && !m.read).length;
-    return sendJSON(res, { ok: true, unread });
-  }
-  if (pathname === '/api/messages' && req.method === 'GET') {
+  // ── Chat: conversations (DMs + group chats), text only ───────────────────────
+  if (pathname === '/api/chat/users' && req.method === 'GET') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
-    const me = s.username, all = loadMessages();
-    const byDate = (a, b) => (b.date || '').localeCompare(a.date || '');
-    const inbox = all.filter(m => m.to === me).sort(byDate);
-    const sent  = all.filter(m => m.from === me).sort(byDate);
-    return sendJSON(res, { ok: true, inbox, sent, unread: inbox.filter(m => !m.read).length });
+    const me = String(s.username).toLowerCase();
+    const seen = new Set(), users = [];
+    for (const u of [...loadAdmins(), ...loadUsers()]) {
+      const k = String(u.username).toLowerCase();
+      if (k === me || seen.has(k)) continue;
+      seen.add(k); users.push(u.username);
+    }
+    users.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+    return sendJSON(res, { ok: true, users });
   }
-  if (pathname === '/api/messages/send' && req.method === 'POST') {
+  if (pathname === '/api/chat/unread' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, unread: 0 });
+    const me = s.username; let unread = 0;
+    for (const c of loadChats().conversations) if (chatParticipant(c, me)) unread += chatUnread(c, me);
+    return sendJSON(res, { ok: true, unread });
+  }
+  if (pathname === '/api/chat/list' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    const me = s.username, out = [];
+    for (const c of loadChats().conversations) {
+      if (!chatParticipant(c, me)) continue;
+      const last = (c.messages || [])[c.messages.length - 1] || null;
+      out.push({ id: c.id, type: c.type, title: chatTitleFor(c, me), participants: c.participants || [],
+        unread: chatUnread(c, me), last: last ? { from: last.from, body: chatPreview(last), date: last.date, kind: last.kind } : null,
+        lastDate: last ? last.date : c.created });
+    }
+    out.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
+    return sendJSON(res, { ok: true, me, conversations: out });
+  }
+  if (pathname === '/api/chat/messages' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    const me = s.username, c = loadChats().conversations.find(x => x.id === query.id);
+    if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+    return sendJSON(res, { ok: true, id: c.id, type: c.type, title: chatTitleFor(c, me), participants: c.participants || [], createdBy: c.createdBy, messages: c.messages || [] });
+  }
+  if (pathname === '/api/chat/send' && req.method === 'POST') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
     let body = ''; req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
     req.on('end', () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
-      const to = resolveUsername(j.to);
       let text = String(j.body || '').trim();
-      if (!to) return sendJSON(res, { ok: false, error: 'Unknown recipient.' }, 400);
       if (!text) return sendJSON(res, { ok: false, error: 'Message is empty.' }, 400);
       if (text.length > 8000) text = text.slice(0, 8000);
-      const list = loadMessages();
-      list.push({ id: crypto.randomUUID(), from: s.username, to, date: new Date().toISOString(), read: false, kind: 'text', body: text, replyTo: j.replyTo || null });
-      try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
-      return sendJSON(res, { ok: true });
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats();
+      let c;
+      if (j.id) {
+        c = chats.conversations.find(x => x.id === j.id);
+        if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'Conversation not found.' }, 404);
+      } else {
+        const to = resolveUsername(j.to);
+        if (!to) return sendJSON(res, { ok: false, error: 'Unknown recipient.' }, 400);
+        if (String(to).toLowerCase() === meLc) return sendJSON(res, { ok: false, error: 'You cannot message yourself.' }, 400);
+        c = ensureDM(chats, me, to);
+      }
+      const msg = { id: crypto.randomUUID(), from: me, body: text, date: new Date().toISOString(), kind: 'text' };
+      c.messages.push(msg);
+      c.reads = c.reads || {}; c.reads[meLc] = msg.date;
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, id: c.id });
     });
     return;
   }
-  if (pathname === '/api/messages/read' && req.method === 'POST') {
+  if (pathname === '/api/chat/group' && req.method === 'POST') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
-    let body = ''; req.on('data', c => { body += c; if (body.length > 65536) req.destroy(); });
+    let body = ''; req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
     req.on('end', () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
-      const me = s.username, list = loadMessages();
-      const ids = j.all ? null : (Array.isArray(j.ids) ? j.ids : (j.id ? [j.id] : []));
-      let n = 0;
-      for (const m of list) if (m.to === me && !m.read && (j.all || ids.includes(m.id))) { m.read = true; n++; }
-      if (n) try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
-      return sendJSON(res, { ok: true, marked: n });
+      const title = String(j.title || '').trim().slice(0, 80);
+      if (!title) return sendJSON(res, { ok: false, error: 'The group needs a name.' }, 400);
+      const me = s.username, set = new Map(); set.set(String(me).toLowerCase(), me);
+      for (const nm of (Array.isArray(j.participants) ? j.participants : [])) { const r = resolveUsername(nm); if (r) set.set(String(r).toLowerCase(), r); }
+      if (set.size < 2) return sendJSON(res, { ok: false, error: 'Add at least one other member.' }, 400);
+      const chats = loadChats(), now = new Date().toISOString();
+      const c = { id: crypto.randomUUID(), type: 'group', title, participants: [...set.values()], createdBy: me, created: now,
+        messages: [{ id: crypto.randomUUID(), from: me, kind: 'system', body: 'created the group', date: now }], reads: {} };
+      chats.conversations.push(c);
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, id: c.id });
     });
     return;
   }
-  if (pathname === '/api/messages/delete' && req.method === 'POST') {
+  if (pathname === '/api/chat/addMembers' && req.method === 'POST') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
-    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    let body = ''; req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
     req.on('end', () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
-      const me = s.username, list = loadMessages();
-      const idx = list.findIndex(m => m.id === j.id && (m.to === me || m.from === me));
-      if (idx < 0) return sendJSON(res, { ok: false, error: 'not found' }, 404);
-      list.splice(idx, 1);
-      try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      const me = s.username, chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
+      if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      if (c.type !== 'group') return sendJSON(res, { ok: false, error: 'Not a group chat.' }, 400);
+      const have = new Set((c.participants || []).map(p => String(p).toLowerCase())), added = [];
+      for (const nm of (Array.isArray(j.participants) ? j.participants : [])) { const r = resolveUsername(nm); if (r && !have.has(String(r).toLowerCase())) { c.participants.push(r); have.add(String(r).toLowerCase()); added.push(r); } }
+      if (added.length) {
+        c.messages.push({ id: crypto.randomUUID(), from: me, kind: 'system', body: 'added ' + added.join(', '), date: new Date().toISOString() });
+        try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      }
+      return sendJSON(res, { ok: true, added });
+    });
+    return;
+  }
+  if (pathname === '/api/chat/read' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
+      if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      c.reads = c.reads || {}; c.reads[String(me).toLowerCase()] = new Date().toISOString();
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true });
     });
     return;
   }
 
-  // ── Access requests for request-to-read notes ────────────────────────────────
+  // ── Access requests for request-to-read notes (delivered as chat DMs) ─────────
   if (pathname === '/api/access/info' && req.method === 'GET') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
     const lang = query.lang === 'hu' ? 'hu' : 'en', p = query.path || '';
     if (noteVisibility(p, lang) !== 'request') return sendJSON(res, { ok: true, applicable: false });
-    const me = s.username;
-    const pending = loadMessages().some(m => m.kind === 'access-request' && m.from === me && m.status === 'pending' && m.note && m.note.path === p && m.note.lang === lang);
+    const meLc = String(s.username).toLowerCase();
+    const pending = loadChats().conversations.some(c => chatParticipant(c, s.username) && (c.messages || []).some(m => m.kind === 'access-request' && String(m.from).toLowerCase() === meLc && m.status === 'pending' && m.note && m.note.path === p && m.note.lang === lang));
     return sendJSON(res, { ok: true, applicable: true, granted: canViewNote(req, p, lang), pending, recipients: requestRecipients(p, lang) });
   }
   if (pathname === '/api/access/request' && req.method === 'POST') {
@@ -1435,13 +1505,20 @@ const server = http.createServer((req, res) => {
       if (canViewNote(req, p, lang)) return sendJSON(res, { ok: true, status: 'granted' });
       const recipients = requestRecipients(p, lang);
       if (!recipients.length) return sendJSON(res, { ok: false, error: 'No one can grant access to this note.' }, 400);
-      const me = s.username, list = loadMessages();
-      if (list.some(m => m.kind === 'access-request' && m.from === me && m.status === 'pending' && m.note && m.note.path === p && m.note.lang === lang))
-        return sendJSON(res, { ok: true, status: 'pending', recipients });
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats();
       const note = { path: p, lang, label: stripDisplayName(path.basename(p)) };
-      const msg = String(j.body || '').slice(0, 2000);
-      for (const to of recipients) if (to !== me) list.push({ id: crypto.randomUUID(), from: me, to, date: new Date().toISOString(), read: false, kind: 'access-request', status: 'pending', note, body: msg });
-      try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      const extra = String(j.body || '').slice(0, 2000), now = new Date().toISOString();
+      let posted = 0, already = false;
+      for (const to of recipients) {
+        if (String(to).toLowerCase() === meLc) continue;
+        const c = ensureDM(chats, me, to);
+        if ((c.messages || []).some(m => m.kind === 'access-request' && String(m.from).toLowerCase() === meLc && m.status === 'pending' && m.note && m.note.path === p && m.note.lang === lang)) { already = true; continue; }
+        c.messages.push({ id: crypto.randomUUID(), from: me, kind: 'access-request', status: 'pending', note, body: extra, date: now });
+        c.reads = c.reads || {}; c.reads[meLc] = now;
+        posted++;
+      }
+      if (!posted) return sendJSON(res, { ok: true, status: already ? 'pending' : 'requested', recipients });
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true, status: 'requested', recipients });
     });
     return;
@@ -1452,15 +1529,20 @@ const server = http.createServer((req, res) => {
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
     req.on('end', () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
-      const me = s.username, list = loadMessages();
-      const msg = list.find(m => m.id === j.id && m.to === me && m.kind === 'access-request' && m.status === 'pending');
-      if (!msg) return sendJSON(res, { ok: false, error: 'Request not found.' }, 404);
-      const accept = j.decision === 'accept';
-      const reason = String(j.reason || '').slice(0, 2000);
-      msg.status = accept ? 'accepted' : 'declined'; msg.read = true;
-      if (accept) addGrant(msg.from, msg.note.lang, msg.note.path);
-      list.push({ id: crypto.randomUUID(), from: me, to: msg.from, date: new Date().toISOString(), read: false, kind: 'access-result', decision: accept ? 'accepted' : 'declined', reason, note: msg.note, body: reason });
-      try { saveMessages(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats();
+      let target = null, convo = null;
+      for (const c of chats.conversations) {
+        if (!chatParticipant(c, me)) continue;
+        const m = (c.messages || []).find(x => x.id === j.id && x.kind === 'access-request' && x.status === 'pending');
+        if (m) { target = m; convo = c; break; }
+      }
+      if (!target) return sendJSON(res, { ok: false, error: 'Request not found.' }, 404);
+      if (String(target.from).toLowerCase() === meLc) return sendJSON(res, { ok: false, error: 'You cannot respond to your own request.' }, 400);
+      const accept = j.decision === 'accept', reason = String(j.reason || '').slice(0, 2000);
+      target.status = accept ? 'accepted' : 'declined';
+      if (accept) addGrant(target.from, target.note.lang, target.note.path);
+      convo.messages.push({ id: crypto.randomUUID(), from: me, kind: 'access-result', decision: accept ? 'accepted' : 'declined', reason, note: target.note, body: reason, date: new Date().toISOString() });
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true });
     });
     return;
