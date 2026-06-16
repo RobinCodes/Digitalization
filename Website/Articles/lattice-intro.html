@@ -6,21 +6,10 @@
   ║  Duplicate this file and fill in your content.                   ║
   ║                                                                  ║
   ║  Update the metadata fields below:                               ║
-  ║    <title>       — shown in the Notes page card title            ║
-  ║    data-date     — ISO date, e.g. 2024-11-03                     ║
-  ║    data-description — short blurb shown in the card              ║
-  ║    data-tags     — comma-separated tags                          ║
-  ╚══════════════════════════════════════════════════════════════════╝
--->
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- ── Metadata (read by the server for the Notes page) ─────────── -->
-  <title>Article Title Here</title>
-  <meta data-date="2024-01-01">
-  <meta data-description="A short description of what this article covers.">
-  <meta data-tags="mathematics, analysis">
+  ║    <title>An introduction to Lattices</title>
+  <meta data-date="2026-07-16">
+  <meta data-description="A sigmatical article">
+  <meta data-tags="mathematics, lattices">
 
   <!-- Apply stored theme before first paint to prevent flash -->
   <script>
@@ -337,83 +326,37 @@
   <div id="cur-ring"></div>
 
   <div class="top-bar">
-    <a class="back-btn" href="javascript:history.back()">← Back</a>
-    <span class="bar-title">Article Title Here</span>
-  </div>
+  <a class="back-btn" href="javascript:history.back()">← Back</a>
+  <span class="bar-title">An introduction to Lattices</span>
+</div>
 
-  <article>
+<article>
 
-    <!-- ── Article Header ──────────────────────────────────────────── -->
-    <div class="article-meta">
-      <span class="article-date">January 1, 2024</span>
-      <span class="article-tag">mathematics</span>
-      <span class="article-tag">analysis</span>
-    </div>
+  <!-- ── Article Header ──────────────────────────────────────────── -->
+  <div class="article-meta"><span class="article-date">2026-07-16</span><span class="article-tag">mathematics</span><span class="article-tag">lattices</span></div>
 
-    <h1 class="title">Article <em>Title</em> Here</h1>
+  <h1 class="title">An introduction to Lattices</h1>
 
-    <p class="article-intro">
-      A short introductory paragraph that gives the reader a sense of what this article covers. 
-      Keep it brief — one to three sentences. This text also appears on the Notes page card.
-    </p>
+  <p class="article-intro">A sigmatical article</p>
 
-    <!-- ── Body ────────────────────────────────────────────────────── -->
+  <!-- ── Body ────────────────────────────────────────────────────── -->
 
-    <h2>First Section</h2>
+  <!-- ARTICLE-BODY-START -->
+This is super cool $2^n = 5$
 
-    <p>
-      This is a paragraph of body text. Mathematics can be written inline: $e^{i\pi} + 1 = 0$, 
-      or as a display block below.
-    </p>
+<div class="theorem-box">
+  <span class="thm-label">Theorem</span>
+  <p>State the theorem here.</p>
+</div>
 
-    <div class="math-block">
-      $$\int_{-\infty}^{\infty} e^{-x^2}\, dx = \sqrt{\pi}$$
-    </div>
 
-    <p>
-      Continue writing here. Use <strong>bold</strong> for emphasis and <em>italics</em> for 
-      mathematical terms or titles. 
-    </p>
+<h2>Section title</h2>
 
-    <div class="def-box">
-      <span class="def-label">Definition 1.1</span>
-      <p>A function $f: \mathbb{R} \to \mathbb{R}$ is said to be <strong>continuous at $a$</strong> 
-      if for every $\varepsilon > 0$, there exists $\delta > 0$ such that 
-      $|x - a| < \delta \Rightarrow |f(x) - f(a)| < \varepsilon$.</p>
-    </div>
-
-    <h2>Second Section</h2>
-
-    <div class="theorem-box">
-      <span class="thm-label">Theorem 2.1 — Replace with theorem name</span>
-      <p>State your theorem here. For example: if $f$ is continuous on $[a, b]$, then $f$ attains 
-      its maximum and minimum on $[a, b]$.</p>
-    </div>
-
-    <div class="proof-box">
-      <span class="proof-label">Proof</span>
-      <p>Write your proof here. Use display math as needed:
-      $$\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}$$
-      </p>
-      <p>Continue the proof... <span class="qed">□</span></p>
-    </div>
-
-    <h2>Notes &amp; References</h2>
-
-    <p>Add references, further reading, or acknowledgements here.</p>
-
-    <blockquote>
-      A beautiful result is one that could not have been stated more simply.
-    </blockquote>
-
-    <div class="footnotes">
-      <ol>
-        <li>First footnote or reference goes here.</li>
-        <li>Second footnote or reference goes here.</li>
-      </ol>
-    </div>
-
-  </article>
+$
+2^{2n} + 3 \pm 5 = 10
+$
+  <!-- ARTICLE-BODY-END -->
+</article>
   <script>
   (() => {
     const dot  = document.getElementById('cur-dot');

@@ -1609,30 +1609,34 @@
 .card.locked{overflow:hidden}
     .card.locked .card-icon,.card.locked .card-body,.card.locked .card-arrow{filter:grayscale(1) brightness(.55);opacity:.5}
     .lock-wrap{position:absolute;inset:0;z-index:5;border-radius:inherit;overflow:hidden;pointer-events:none}
-    .lock-dim{position:absolute;inset:0;background:rgba(8,8,11,.5)}
+    .lock-dim{position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 40%,rgba(8,8,11,.42),rgba(8,8,11,.62))}
     .chain-x{position:absolute;inset:0}
     .chain-strip-pos{position:absolute;left:50%;top:50%;line-height:0}
-    .chain-strip-pos.a{transform:translate(-50%,-50%) rotate(34deg)}
-    .chain-strip-pos.b{transform:translate(-50%,-50%) rotate(-34deg)}
-    .chain-strip-pos svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.65))}
+    .chain-strip-pos.a{transform:translate(-50%,-50%) rotate(30deg)}
+    .chain-strip-pos.b{transform:translate(-50%,-50%) rotate(-30deg)}
+    .chain-strip-pos svg{display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.7))}
     .lock-actions{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;z-index:6}
     .lock-btn{display:inline-flex;align-items:center;gap:7px;background:rgba(18,18,24,.93);border:1px solid var(--accent);color:var(--accent);font-family:var(--font-ui);font-size:12px;font-weight:600;padding:8px 15px;border-radius:99px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.45)}
     .lock-btn:hover{background:var(--accent);color:#1a1408}
     .lock-btn svg{width:13px;height:13px}
     /* ── Chat page ─────────────────────────────────────────────────── */
-    .chat-shell{display:flex;max-width:1100px;margin:0 auto;border:1px solid var(--border);border-radius:14px;overflow:hidden;height:min(70vh,640px);background:var(--bg2)}
+    .chat-topbar{max-width:1180px;margin:0 auto;padding:22px 40px 12px;display:flex;align-items:center;gap:11px}
+    .chat-topbar-ico{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:9px;background:var(--accent-glow,rgba(196,161,60,.14));color:var(--accent);flex:none}
+    .chat-topbar-ico svg{width:17px;height:17px}
+    .chat-topbar-title{font-family:var(--font-display);font-size:23px;font-weight:500;letter-spacing:-.01em;color:var(--text);line-height:1}
+    .chat-shell{display:flex;max-width:1180px;margin:0 auto 30px;border:1px solid var(--border);border-radius:16px;overflow:hidden;height:min(76vh,760px);background:var(--bg2);box-shadow:0 18px 50px -24px rgba(0,0,0,.55)}
     .chat-list-pane{width:300px;flex:none;border-right:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
-    .chat-list-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}
-    .chat-list-head>span{font-weight:700;font-size:14px;flex:1}
+    .chat-list-head{display:flex;align-items:center;gap:8px;padding:13px 14px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:1}
+    .chat-list-head>span{font-weight:700;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);flex:1}
     .chat-list-actions{display:flex;gap:6px}
     .chat-mini{border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--text2);font-size:11px;font-weight:600;padding:4px 9px;cursor:pointer;white-space:nowrap}
     .chat-mini:hover{color:var(--accent);border-color:var(--accent)}
     .chat-list{overflow:auto;flex:1}
     .chat-empty-list{padding:30px 14px;text-align:center;color:var(--text3);font-size:12.5px}
-    .chat-conv{display:flex;gap:10px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+    .chat-conv{display:flex;gap:11px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
     .chat-conv:hover{background:var(--bg3)}
     .chat-conv.active{background:var(--accent-glow,rgba(196,161,60,.12))}
-    .chat-av{width:34px;height:34px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;background:var(--bg3);color:var(--accent);border:1px solid var(--border);text-transform:uppercase}
+    .chat-av{width:36px;height:36px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;background:linear-gradient(150deg,var(--bg3),var(--bg2));color:var(--accent);border:1px solid var(--border);text-transform:uppercase}
     .chat-av.group{border-radius:9px}
     .chat-conv-main{flex:1;min-width:0}
     .chat-conv-top{display:flex;align-items:center;gap:6px}
@@ -1641,14 +1645,14 @@
     .chat-conv-snip{color:var(--text2);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
     .chat-unread{background:var(--accent);color:#1a1408;font-size:10px;font-weight:700;border-radius:99px;padding:1px 7px;flex:none}
     .chat-thread-pane{flex:1;display:flex;flex-direction:column;min-width:0}
-    .chat-thread-empty{margin:auto;color:var(--text3);font-size:13px;padding:20px;text-align:center}
+    .chat-thread-empty{margin:auto;color:var(--text3);font-size:13px;padding:20px;text-align:center;max-width:240px;line-height:1.6}
     .chat-thread-wrap{display:flex;flex-direction:column;height:100%}
     .chat-thread-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}
     .chat-thread-title{font-weight:700;font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .chat-thread-title small{display:block;font-weight:400;font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .chat-back{display:none;background:transparent;border:0;color:var(--text2);font-size:26px;line-height:1;cursor:pointer;width:26px;flex:none}
-    .chat-msgs{flex:1;overflow:auto;padding:16px 14px;display:flex;flex-direction:column;gap:8px}
-    .chat-bubble{max-width:78%;padding:8px 12px;border-radius:14px;font-size:13.5px;line-height:1.5;overflow-wrap:anywhere}
+    .chat-msgs{flex:1;overflow:auto;padding:18px 16px;display:flex;flex-direction:column;gap:7px;background:linear-gradient(180deg,var(--bg),var(--bg2))}
+    .chat-bubble{max-width:74%;padding:8px 13px;border-radius:16px;font-size:13.5px;line-height:1.5;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.12)}
     .chat-bubble.me{align-self:flex-end;background:var(--accent);color:#1a1408;border-bottom-right-radius:4px}
     .chat-bubble.them{align-self:flex-start;background:var(--bg3);color:var(--text);border-bottom-left-radius:4px}
     .chat-bubble .cl-ref{color:inherit;text-decoration:underline;cursor:pointer;font-weight:600}
@@ -1667,8 +1671,9 @@
     .chat-areq .ar-status.no{color:var(--red,#b03b3b)}
     .chat-compose{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);align-items:flex-end}
     .chat-compose textarea{flex:1;resize:none;background:var(--bg);border:1px solid var(--border);border-radius:18px;color:var(--text);padding:9px 14px;font:inherit;font-size:13.5px;max-height:120px;line-height:1.4}
-    .chat-send{flex:none;width:38px;height:38px;border-radius:50%;border:0;background:var(--accent);color:#1a1408;font-size:14px;cursor:pointer}
+    .chat-send{flex:none;width:38px;height:38px;border-radius:50%;border:0;background:var(--accent);color:#1a1408;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:filter .12s,transform .12s}
     .chat-send:hover{filter:brightness(1.08)}
+    .chat-send:active{transform:scale(.92)}
     .chat-signin{max-width:420px;margin:40px auto;text-align:center;color:var(--text2)}
     .chat-signin p{margin-bottom:14px}
     .chat-userlist{max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:10px;margin-top:10px}
@@ -1987,9 +1992,9 @@
     </section>
 
     <section class="page" id="page-chat">
-      <div class="page-hero">
-        <span class="page-label" data-i18n="navChat">Chat</span>
-        <h1 class="page-title" id="chatHeroTitle">Chat</h1>
+      <div class="chat-topbar">
+        <span class="chat-topbar-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5.6a8.5 8.5 0 0 1-.9-3.9A8.38 8.38 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg></span>
+        <h1 class="chat-topbar-title" id="chatHeroTitle">Chat</h1>
       </div>
       <div class="chat-signin" id="chatSignin" style="display:none">
         <p id="chatSigninMsg">Sign in to use chat.</p>
@@ -3832,7 +3837,30 @@
 
     /* ── Chat (DMs + group chats) & access requests ─────────────────── */
     const CHAIN_X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 9.5 6.5 11.5a3 3 0 0 0 4.2 4.2l1-1"/><path d="M15.5 14.5l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><line x1="4.5" y1="4.5" x2="19.5" y2="19.5"/></svg>';
-    const CHAIN_STRIP_SVG = (function () { let l = ''; for (let x = 8, i = 0; x < 360; x += 24, i++) { l += (i % 2 === 0) ? '<ellipse cx="' + x + '" cy="14" rx="8" ry="12"/>' : '<ellipse cx="' + x + '" cy="14" rx="12" ry="8"/>'; } return '<svg width="360" height="28" viewBox="0 0 360 28" fill="none" stroke="#aeb6bf" stroke-width="3">' + l + '</svg>'; })();
+    const CHAIN_STRIP_SVG = (function () {
+      const W = 440, H = 44, cy = 22, pitch = 15, RL = 14, RS = 8, T = 4.6;
+      let horiz = '', vert = '';
+      for (let i = 0, x = 6; x < W; x += pitch, i++) {
+        const v = (i % 2 === 0), rx = v ? RS : RL, ry = v ? RL : RS;
+        const e = (cx, cyy, rxx, ryy, stroke, w, op) => '<ellipse cx="' + cx + '" cy="' + cyy + '" rx="' + rxx + '" ry="' + ryy + '" fill="none" stroke="' + stroke + '" stroke-width="' + w + '"' + (op != null ? ' stroke-opacity="' + op + '"' : '') + '/>';
+        const link = e(x, cy, rx, ry, '#1b1e23', T + 2.2)          // dark outline / contact shadow
+                   + e(x, cy, rx, ry, 'url(#kiMetal)', T)           // shaded metal tube
+                   + e(x, cy, rx, ry, 'url(#kiInner)', T * 0.5)     // inner curvature shading
+                   + e(x - 0.7, cy - 1, rx, ry, '#ffffff', T * 0.26, 0.5); // top-left sheen
+        if (v) vert += link; else horiz += link;
+      }
+      const defs = '<defs>'
+        + '<linearGradient id="kiMetal" x1="0" y1="0" x2="0" y2="1">'
+        +   '<stop offset="0" stop-color="#f2f5f8"/><stop offset=".34" stop-color="#aeb6c1"/>'
+        +   '<stop offset=".54" stop-color="#6e767f"/><stop offset=".72" stop-color="#8f98a2"/>'
+        +   '<stop offset="1" stop-color="#dde3ea"/></linearGradient>'
+        + '<linearGradient id="kiInner" x1="0" y1="0" x2="0" y2="1">'
+        +   '<stop offset="0" stop-color="#000000" stop-opacity=".0"/><stop offset=".5" stop-color="#000000" stop-opacity=".28"/>'
+        +   '<stop offset="1" stop-color="#000000" stop-opacity="0"/></linearGradient>'
+        + '</defs>';
+      // horizontals first, verticals woven on top
+      return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" fill="none">' + defs + horiz + vert + '</svg>';
+    })();
     const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 
     let _accessCtx = null, _msgPollTimer = null;

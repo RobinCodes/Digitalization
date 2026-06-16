@@ -15,7 +15,7 @@
           "id": "964e8b25-76dd-4a2e-b2aa-276fcc3bcc5f",
           "from": "Robin",
           "kind": "access-request",
-          "status": "pending",
+          "status": "accepted",
           "note": {
             "path": "STEM/Mathematics/Algebra/Applied Algebra.tex",
             "lang": "en",
@@ -23,10 +23,53 @@
           },
           "body": "",
           "date": "2026-06-16T06:02:50.144Z"
+        },
+        {
+          "id": "7bbecda9-dd4f-43b0-94b0-d7e2a320b0ab",
+          "from": "Robin",
+          "body": "Hello",
+          "date": "2026-06-16T14:43:10.290Z",
+          "kind": "text"
+        },
+        {
+          "id": "c2c5c221-8917-41ff-bf6c-0976de8de79f",
+          "from": "Robin",
+          "body": "This is crazy",
+          "date": "2026-06-16T14:43:11.961Z",
+          "kind": "text"
+        },
+        {
+          "id": "bc6c7317-bc78-4af0-86dc-9fabe807d590",
+          "from": "Robin",
+          "body": "This shit actually works",
+          "date": "2026-06-16T14:43:14.985Z",
+          "kind": "text"
+        },
+        {
+          "id": "a26328d7-5543-440f-867f-5c692176a99a",
+          "from": "TestAccount",
+          "body": "It does indeed",
+          "date": "2026-06-16T14:47:57.075Z",
+          "kind": "text"
+        },
+        {
+          "id": "b89170e7-73e6-4aac-9459-375feb3adaad",
+          "from": "TestAccount",
+          "kind": "access-result",
+          "decision": "accepted",
+          "reason": "",
+          "note": {
+            "path": "STEM/Mathematics/Algebra/Applied Algebra.tex",
+            "lang": "en",
+            "label": "Applied Algebra"
+          },
+          "body": "",
+          "date": "2026-06-16T14:48:02.180Z"
         }
       ],
       "reads": {
-        "robin": "2026-06-16T06:03:01.885Z"
+        "robin": "2026-06-16T14:54:04.796Z",
+        "testaccount": "2026-06-16T14:48:04.280Z"
       }
     }
   ]
