@@ -2,6 +2,10 @@
 # Account stores hold salted scrypt hashes, but they should still never be public.
 admins.json
 users.json
+grants.json
+chats.json
+changelog.json
+settings.json
 
 # Server-side PDF render cache
 .pdf-cache/
