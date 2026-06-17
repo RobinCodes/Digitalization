@@ -527,3 +527,63 @@ itself remains English-only, as requested.
 
 ## DevTools: account autocomplete on the note whitelist
 When editing a note's **whitelist / owners** field (visibility = members or request), an account picker now drops down as you type — the same idea as starting a new chat. It lists viewer accounts (from `/api/admin/users`), filters by the token under the caret, hides ones already added, and inserts the chosen username into the comma-separated list. Click or use ↑/↓ + Enter; Esc closes. No server changes.
+
+
+---
+
+## Password fix + profile modal + custom theme colours
+- **Fixed: "user already exists" when updating a password.** DevTools → Accounts “Add account” now *updates* an existing viewer's password (upsert), as its own hint promised, instead of rejecting with 409. (Admin names are still protected.) The site-side change-password flow was already correct.
+- **Profile modal filled out.** Clicking your profile now shows an avatar, a Member/Admin chip, at-a-glance stats (conversations + unread), a desktop-notifications quick toggle, and a Preferences shortcut to Settings — alongside the existing change-password / open-chat / sign-out.
+- **Custom theme colours.** Settings → Appearance → **Custom** reveals two colour pickers (accent + highlight) that drive the whole palette live; synced per account.
+
+
+---
+
+## Access model overhaul: separate "see" and "read" gates + owners
+
+The old single `visibility` field (public / members / request) plus one `allow` list has been replaced by **two independent gates** so a note's *listing* and its *content* can be controlled separately.
+
+- **Who can SEE it listed** — `can-see` ∈ `all` | `members` | `whitelist`. Controls whether the card appears in the tree at all.
+- **Who can READ it** — `can-read` ∈ `all` | `members` | `whitelist`. Controls whether the content opens. Reading also requires passing the see gate.
+- **Read requests** — `read-requests: true` (only meaningful when `can-read: whitelist`) lets a signed-in person who isn't whitelisted ask the owners for access; granting adds them to `grants.json`.
+- **Owners** — `owners:` is a list that always sees and reads the note, receives read-requests, and can manage it. The **first owner is the primary owner**.
+- New per-note `data.txt` keys: `can-see`, `can-read`, `read-requests`, `see-allow`, `read-allow`, `owners`. The whitelists are `see-allow` (for the see gate) and `read-allow` (for the read gate).
+
+**Back-compatibility is automatic.** Notes still written with the old keys are mapped on read: `public → all/all`; `members → members/members`; `members` + `allow` → `whitelist/whitelist` (same list both gates); `request → all` see / `whitelist` read with `read-requests` on and the old `allow` becoming the owners. Dual-language counterparts merge gate-by-gate (the more permissive `all < members < whitelist`, union of whitelists/owners, OR of read-requests).
+
+DevTools' note editor now has two segmented controls (see-gate, read-gate), a read-requests toggle, two whitelist fields, and an owners field — each with the same account autocomplete. The public site shows the right lock affordance per state: **Request access** (requestable), **Sign in to read** (anonymous on a members/whitelist note), or **No access**.
+
+
+---
+
+## Folder counterpart linking
+
+Folders can now be **linked across languages** even when their names differ (e.g. English *Mathematics* ↔ Hungarian *Matematika*). Previously the bilingual ("both") view only paired folders with identical names.
+
+- A folder's counterpart is stored in **its own `data.txt`** under a special `[__folder__]` section (`alt-hu` / `alt-en`).
+- The merged tree now carries **separate EN and HU paths** down the recursion, so a linked folder's notes resolve to the correct per-language path. Linking works from **either** side: setting it on the English folder (`alt-hu`) or the Hungarian folder (`alt-en`) both pair them (reverse lookup included).
+- New endpoint **`POST /api/admin/folder/meta`** `{ lang, dir, altHu?, altEn? }` writes (or clears) the link; same-name folders keep working untouched.
+- DevTools shows a ⇄ counterpart chip on linked folder rows and a **link** action (the chain icon) that opens a small modal to set/clear the counterpart folder name for the language you're browsing.
+
+
+---
+
+## Site-side note management ("My notes")
+
+Members can now manage the **metadata and access** of notes they own, from the site itself — **content stays in DevTools**.
+
+- A note's **owners** are an ordered list. `owners[0]` is the **primary owner**; the rest are **collaborators**.
+- The primary owner can edit everything and add/remove/reorder any owner. A **collaborator** can edit metadata/access, **add** further owners, and **remove only themselves** (leave) — they cannot remove the primary or other owners (enforced server-side, `403` otherwise). Admins can always manage.
+- New endpoints: **`GET /api/mynotes`** returns the notes whose own `owners` list names you (with role and current access); **`POST /api/note/manage`** `{ path, lang, patch }` writes the allowed fields (tags, authors, date, description, the full access model, owners) to that note's own `data.txt` section. Access fields are only rewritten when the patch includes them (partial-patch safe); the note body is never touched.
+- UI: the profile menu gains a **My notes** button → a list of your notes (language, role, access at a glance) → a **Manage** editor mirroring the access model (see/read segments, read-requests, whitelists, owners) plus tags/authors/date/description.
+
+
+---
+
+## Note-linked conversations ("Discuss")
+
+You can start a chat **about a specific note**, optionally pointing at a selected passage.
+
+- A chat message can carry an optional **`noteRef`** `{ path, lang, label, from, to }`, where `from`/`to` are character offsets into the note text and `label` is the selected snippet (or the note's title for a whole-note reference). `/api/chat/send` validates and stores it; it flows to clients with the message.
+- Both viewers gain a **Discuss** button. In the source/code viewer, the current text selection becomes the reference (with computed character offsets); in the PDF viewer it's a whole-note reference. The Discuss dialog lets you pick a recipient and write a message.
+- In the conversation, a referenced note renders as a **tappable chip** in the bubble — clicking it opens the note in the viewer.

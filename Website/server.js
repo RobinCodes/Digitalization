@@ -159,6 +159,40 @@ function findMeta(fileName, sections) {
   return null;
 }
 
+// ── Access model: visibility + readability gates, owners, request flow ──────
+function _csvLc(v) { return v ? String(v).split(',').map(x => x.trim().toLowerCase()).filter(Boolean) : []; }
+function deriveAccess(meta) {
+  meta = meta || {};
+  const norm = v => (v === 'members' || v === 'whitelist') ? v : 'all';
+  const hasNew = ['can_see', 'can_read', 'read_requests', 'see_allow', 'read_allow', 'owners'].some(k => k in meta);
+  if (hasNew) {
+    return {
+      canSee: norm(meta.can_see), canRead: norm(meta.can_read),
+      readRequests: meta.read_requests === 'true',
+      seeWhitelist: _csvLc(meta.see_allow), readWhitelist: _csvLc(meta.read_allow),
+      owners: _csvLc(meta.owners),
+    };
+  }
+  const vis = (meta.visibility === 'members' || meta.visibility === 'request') ? meta.visibility : 'public';
+  const allow = _csvLc(meta.allow);
+  if (vis === 'public') return { canSee: 'all', canRead: 'all', readRequests: false, seeWhitelist: [], readWhitelist: [], owners: [] };
+  if (vis === 'members') return allow.length
+    ? { canSee: 'whitelist', canRead: 'whitelist', readRequests: false, seeWhitelist: allow, readWhitelist: allow, owners: [] }
+    : { canSee: 'members', canRead: 'members', readRequests: false, seeWhitelist: [], readWhitelist: [], owners: [] };
+  return { canSee: 'all', canRead: 'whitelist', readRequests: true, seeWhitelist: [], readWhitelist: [], owners: allow };
+}
+function mergeAccess(a, b) {
+  const rank = { all: 0, members: 1, whitelist: 2 };
+  const pick = (x, y) => (rank[x] >= rank[y] ? x : y);
+  const uniq = (...ls) => [...new Set([].concat(...ls))];
+  return {
+    canSee: pick(a.canSee, b.canSee), canRead: pick(a.canRead, b.canRead),
+    readRequests: !!(a.readRequests || b.readRequests),
+    seeWhitelist: uniq(a.seeWhitelist, b.seeWhitelist),
+    readWhitelist: uniq(a.readWhitelist, b.readWhitelist),
+    owners: uniq(a.owners, b.owners),
+  };
+}
 function fileMeta(dir, name, sections) {
   const ext  = path.extname(name).toLowerCase();
   const meta = findMeta(name, sections) || {};
@@ -173,12 +207,14 @@ function fileMeta(dir, name, sections) {
     description: meta.description || null,
     altHu:       meta.alt_hu      || null,
     altEn:       meta.alt_en      || null,
-    visibility:  (meta.visibility === 'members' || meta.visibility === 'request') ? meta.visibility : 'public',
-    whitelist:   meta.allow ? meta.allow.split(',').map(s => s.trim().toLowerCase()).filter(Boolean) : [],
+    ...deriveAccess(meta),
   };
 }
 
 // ── Single-dir tree ────────────────────────────────────────────────────────────
+// A folder's own counterpart link lives in its data.txt under a [__folder__] section.
+function folderMeta(dir) { return parseDataTxt(dir)['__folder__'] || {}; }
+
 function buildTree(dir, rel = '') {
   let entries;
   try { entries = fs.readdirSync(dir, { withFileTypes: true }); }
@@ -206,7 +242,7 @@ function buildTree(dir, rel = '') {
 
 // ── Dual-language merged tree ─────────────────────────────────────────────────
 // enDir = primary dir, huDir = secondary dir.
-function buildMergedTree(enDir, huDir, rel = '') {
+function buildMergedTree(enDir, huDir, relEn = '', relHu = relEn) {
   let enEntries, huEntries;
   try { enEntries = fs.readdirSync(enDir, { withFileTypes: true }); } catch { enEntries = []; }
   try { huEntries = fs.readdirSync(huDir, { withFileTypes: true }); } catch { huEntries = []; }
@@ -215,31 +251,38 @@ function buildMergedTree(enDir, huDir, rel = '') {
   const huSecs = parseDataTxt(huDir);
   const result = [];
   const huMatched = new Set();
+  const huFolderMatched = new Set();
   const enFolderNames = new Set(enEntries.filter(e => e.isDirectory()).map(e => e.name));
 
   function findByDisplay(entries, displayName) {
     const dl = displayName.toLowerCase();
     return entries.find(e => e.isFile && e.isFile() && stripDisplayName(e.name).toLowerCase() === dl);
   }
+  const joinRel = (base, name) => base ? `${base}/${name}` : name;
 
   // EN (primary) entries
   for (const e of enEntries) {
     if (e.name === 'data.txt') continue;
-    const childRelEn = rel ? `${rel}/${e.name}` : e.name;
+    const childRelEn = joinRel(relEn, e.name);
     if (e.isDirectory()) {
-      const children = buildMergedTree(path.join(enDir, e.name), path.join(huDir, e.name), childRelEn);
+      const fm = folderMeta(path.join(enDir, e.name));
+      let huName = e.name;
+      if (fm.alt_hu) { const mm = huEntries.find(h => h.isDirectory() && stripDisplayName(h.name).toLowerCase() === stripDisplayName(fm.alt_hu).toLowerCase()); if (mm) huName = mm.name; }
+      else if (!huEntries.some(h => h.isDirectory() && h.name === e.name)) { const rev = huEntries.find(h => h.isDirectory() && (folderMeta(path.join(huDir, h.name)).alt_en || '').trim().toLowerCase() === e.name.toLowerCase()); if (rev) huName = rev.name; }
+      huFolderMatched.add(huName);
+      const children = buildMergedTree(path.join(enDir, e.name), path.join(huDir, huName), childRelEn, joinRel(relHu, huName));
       let mtime = null;
       try { mtime = fs.statSync(path.join(enDir, e.name)).mtime.toISOString(); } catch {}
-      result.push({ name: e.name, type: 'folder', path: childRelEn, children, count: children.length, mtime });
+      result.push({ name: e.name, type: 'folder', path: childRelEn, children, count: children.length, mtime, altHu: fm.alt_hu || null, altEn: fm.alt_en || null });
       continue;
     }
     const meta = findMeta(e.name, enSecs) || {};
     const huM  = meta.alt_hu ? findByDisplay(huEntries, meta.alt_hu) : null
               || findByDisplay(huEntries, stripDisplayName(e.name));
     if (huM) huMatched.add(huM.name);
-    const huRelPath = huM ? (rel ? `${rel}/${huM.name}` : huM.name) : null;
+    const huRelPath = huM ? joinRel(relHu, huM.name) : null;
     const m = fileMeta(enDir, e.name, enSecs);
-    if (huM) { const hv = findMeta(huM.name, huSecs) || {}; if (hv.visibility === 'members') m.visibility = 'members'; else if (hv.visibility === 'request' && m.visibility !== 'members') m.visibility = 'request'; }
+    if (huM) Object.assign(m, mergeAccess(m, deriveAccess(findMeta(huM.name, huSecs) || {})));
     result.push({ ...m, name: e.name, path: childRelEn,
       enAvailable: true, huAvailable: !!huM,
       enPath: childRelEn, huPath: huRelPath,
@@ -250,17 +293,18 @@ function buildMergedTree(enDir, huDir, rel = '') {
   for (const e of huEntries) {
     if (e.name === 'data.txt') continue;
     if (e.isDirectory()) {
-      if (enFolderNames.has(e.name)) continue;
-      const childRelHu = rel ? `${rel}/${e.name}` : e.name;
-      const children = buildMergedTree(path.join(enDir, e.name), path.join(huDir, e.name), childRelHu);
+      if (enFolderNames.has(e.name) || huFolderMatched.has(e.name)) continue;
+      const childRelHu = joinRel(relHu, e.name);
+      const fm = folderMeta(path.join(huDir, e.name));
+      const children = buildMergedTree(path.join(enDir, e.name), path.join(huDir, e.name), joinRel(relEn, e.name), childRelHu);
       let mtime = null;
       try { mtime = fs.statSync(path.join(huDir, e.name)).mtime.toISOString(); } catch {}
-      result.push({ name: e.name, type: 'folder', path: childRelHu, children, count: children.length, mtime });
+      result.push({ name: e.name, type: 'folder', path: childRelHu, children, count: children.length, mtime, altHu: fm.alt_hu || null, altEn: fm.alt_en || null });
       continue;
     }
     if (!e.isFile || !e.isFile()) continue;
     if (huMatched.has(e.name)) continue;
-    const childRelHu = rel ? `${rel}/${e.name}` : e.name;
+    const childRelHu = joinRel(relHu, e.name);
     const m = fileMeta(huDir, e.name, huSecs);
     result.push({ ...m, name: e.name, path: childRelHu,
       enAvailable: false, huAvailable: true,
@@ -294,18 +338,20 @@ function deepRemapHu(items) {
 // Whether a viewer ({username, role} or null) may see a note node.
 // public → everyone; members → signed-in; members + whitelist → only listed users (admins always).
 function canSeeNode(node, viewer) {
-  if (!node || node.visibility !== 'members') return true;
+  const cs = (node && node.canSee) || 'all';
+  if (cs === 'all') return true;
   if (!viewer || !viewer.username) return false;
-  const wl = node.whitelist;
-  if (!wl || !wl.length) return true;
   if (viewer.role === 'admin') return true;
-  return wl.includes(String(viewer.username).toLowerCase());
+  if (cs === 'members') return true;
+  const u = String(viewer.username).toLowerCase();
+  return (node.seeWhitelist || []).includes(u) || (node.owners || []).includes(u);
 }
 // Mark request-to-read notes the viewer cannot currently open (for the locked card UI).
 function annotateLocks(items, req, matLang) {
   for (const it of items || []) {
-    if (it.type === 'folder') annotateLocks(it.children || [], req, matLang);
-    else if (it.visibility === 'request') it.locked = !canViewNote(req, it.path, it.lang || matLang);
+    if (it.type === 'folder') { annotateLocks(it.children || [], req, matLang); continue; }
+    it.locked = !canViewNote(req, it.path, it.lang || matLang);
+    it.canRequest = !!(it.locked && it.canRead === 'whitelist' && it.readRequests);
   }
 }
 // Drop notes the viewer may not see; prune folders left empty.
@@ -323,18 +369,16 @@ function filterTreeForVisibility(items, viewer) {
 }
 // Effective visibility of one note from disk (its own data.txt, plus its
 // same-folder counterpart in dual-language mode — either being members wins).
-function noteVisibility(relPath, lang) {
-  const visOf = (base, rel) => {
-    try {
-      const full = safePath(base, rel);
-      const v = (findMeta(path.basename(full), parseDataTxt(path.dirname(full))) || {}).visibility;
-      return (v === 'members' || v === 'request') ? v : 'public';
-    } catch { return 'public'; }
+// Effective access for a note, merged across its own data.txt + counterpart.
+function noteAccess(relPath, lang) {
+  const accOf = (base, rel) => {
+    try { const full = safePath(base, rel); return deriveAccess(findMeta(path.basename(full), parseDataTxt(path.dirname(full))) || {}); }
+    catch { return deriveAccess({}); }
   };
   const huPrimary = (lang === 'hu' && HAS_DUAL_LANG);
   const base = huPrimary ? __DATA_HU : __DATA;
-  let vis = visOf(base, relPath);
-  if (vis !== 'members' && HAS_DUAL_LANG) {
+  let acc = accOf(base, relPath);
+  if (HAS_DUAL_LANG) {
     const other = huPrimary ? __DATA : __DATA_HU;
     try {
       const baseFull = safePath(base, relPath);
@@ -343,35 +387,65 @@ function noteVisibility(relPath, lang) {
       const display  = stripDisplayName(path.basename(baseFull)).toLowerCase();
       let ents = []; try { ents = fs.readdirSync(otherDir); } catch {}
       const match = ents.find(n => stripDisplayName(n).toLowerCase() === display);
-      if (match) { const ov = visOf(otherDir, match); if (ov === 'members') return 'members'; if (ov === 'request') vis = 'request'; }
+      if (match) acc = mergeAccess(acc, accOf(otherDir, match));
     } catch {}
   }
-  return vis;
+  return acc;
 }
-// Whitelist (lowercased usernames) declared on a note's own data.txt.
-function noteWhitelist(relPath, lang) {
-  try {
-    const base = (lang === 'hu' && HAS_DUAL_LANG) ? __DATA_HU : __DATA;
-    const full = safePath(base, relPath);
-    const meta = findMeta(path.basename(full), parseDataTxt(path.dirname(full))) || {};
-    return meta.allow ? meta.allow.split(',').map(x => x.trim().toLowerCase()).filter(Boolean) : [];
-  } catch { return []; }
+function noteOwners(relPath, lang) { return noteAccess(relPath, lang).owners; }
+// Notes a member owns/collaborates on (their username appears in a note's own `owners`).
+function walkOwnedNotes(member) {
+  const meLc = String(member).toLowerCase();
+  const out = [];
+  const langs = [['en', __DATA]];
+  if (HAS_DUAL_LANG) langs.push(['hu', __DATA_HU]);
+  for (const [lang, baseDir] of langs) {
+    (function walk(dir, rel) {
+      let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+      const secs = parseDataTxt(dir);
+      for (const f of ents) {
+        if (!f.isFile() || f.name === 'data.txt') continue;
+        const own = deriveAccess(findMeta(f.name, secs) || {}).owners;
+        if (!own.includes(meLc)) continue;
+        const relPath = rel ? `${rel}/${f.name}` : f.name;
+        const acc = noteAccess(relPath, lang);
+        const meta = findMeta(f.name, secs) || {};
+        out.push({
+          lang, path: relPath, name: f.name, display: stripDisplayName(f.name),
+          folder: rel || '',
+          tags: meta.tags ? meta.tags.split(',').map(x => x.trim()).filter(Boolean) : [],
+          authors: meta.authors ? meta.authors.split(',').map(x => x.trim()).filter(Boolean) : [],
+          date: meta.date || null, description: meta.description || null, important: meta.important === 'true',
+          canSee: acc.canSee, canRead: acc.canRead, readRequests: acc.readRequests,
+          seeWhitelist: acc.seeWhitelist, readWhitelist: acc.readWhitelist, owners: acc.owners,
+          primary: acc.owners[0] === meLc,
+        });
+      }
+      for (const e of ents) if (e.isDirectory()) walk(path.join(dir, e.name), rel ? `${rel}/${e.name}` : e.name);
+    })(baseDir, '');
+  }
+  return out;
 }
 // Authoritative content-access check used by /api/file, /data and /api/compile.
-function canViewNote(req, relPath, lang) {
-  const vis = noteVisibility(relPath, lang);
-  if (vis === 'public') return true;
-  const s = siteSession(req);
+function passSeeGate(acc, s) {
+  if (acc.canSee === 'all') return true;
   if (!s) return false;
   if (s.role === 'admin') return true;
-  if (vis === 'request') {
-    const owners = noteWhitelist(relPath, lang);
-    if (owners.includes(String(s.username).toLowerCase())) return true;
-    return hasGrant(s.username, lang, relPath);
-  }
-  const wl = noteWhitelist(relPath, lang);
-  if (!wl.length) return true;
-  return wl.includes(String(s.username).toLowerCase());
+  if (acc.canSee === 'members') return true;
+  const u = String(s.username).toLowerCase();
+  return acc.seeWhitelist.includes(u) || acc.owners.includes(u);
+}
+function canViewNote(req, relPath, lang) {
+  const acc = noteAccess(relPath, lang);
+  const s = siteSession(req);
+  if (!passSeeGate(acc, s)) return false;
+  if (acc.canRead === 'all') return true;
+  if (!s) return false;
+  if (s.role === 'admin') return true;
+  if (acc.canRead === 'members') return true;
+  const u = String(s.username).toLowerCase();
+  if (acc.readWhitelist.includes(u) || acc.owners.includes(u)) return true;
+  return hasGrant(s.username, lang, relPath);
 }
 
 // ── Single-language ("solo") tree ─────────────────────────────────────────────
@@ -395,7 +469,8 @@ function buildSoloTree(primaryDir, otherDir, primaryLang, rel = '') {
                                      otherExists ? path.join(otherDir, e.name) : null,
                                      primaryLang, childRel);
       let mtime = null; try { mtime = fs.statSync(path.join(primaryDir, e.name)).mtime.toISOString(); } catch {}
-      out.push({ name: e.name, type: 'folder', path: childRel, children, count: children.length, mtime });
+      const _fm = folderMeta(path.join(primaryDir, e.name));
+      out.push({ name: e.name, type: 'folder', path: childRel, children, count: children.length, mtime, altHu: _fm.alt_hu || null, altEn: _fm.alt_en || null });
       continue;
     }
     const m    = fileMeta(primaryDir, e.name, secs);
@@ -419,7 +494,7 @@ function buildSoloTree(primaryDir, otherDir, primaryLang, rel = '') {
       }
     }
     const counterRel = counter ? (rel ? `${rel}/${counter.name}` : counter.name) : null;
-    if (counter) { const cm = findMeta(counter.name, otherSecs) || {}; if (cm.visibility === 'members') m.visibility = 'members'; else if (cm.visibility === 'request' && m.visibility !== 'members') m.visibility = 'request'; }
+    if (counter) Object.assign(m, mergeAccess(m, deriveAccess(findMeta(counter.name, otherSecs) || {})));
     const node = { ...m, name: e.name, path: childRel, lang: primaryLang };
     if (primaryLang === 'en') {
       node.enAvailable = true;       node.enPath = childRel;   node.enName = e.name;
@@ -782,7 +857,7 @@ function resolveUsername(name) {
 }
 // Who receives a read-request for a note: its `allow` owners, else all admins.
 function requestRecipients(relPath, lang) {
-  const owners = noteWhitelist(relPath, lang).map(resolveUsername).filter(Boolean);
+  const owners = noteOwners(relPath, lang).map(resolveUsername).filter(Boolean);
   if (owners.length) return [...new Set(owners)];
   return loadAdmins().map(a => a.username);
 }
@@ -900,15 +975,16 @@ function serializeDataTxt(sections) {
   for (const [name, meta] of Object.entries(sections || {})) {
     if (!name || !meta) continue;
     out += `[${name}]\n`;
-    const order   = ['tags', 'authors', 'date', 'important', 'visibility', 'allow', 'description', 'alt_hu', 'alt_en'];
-    const keyName = { alt_hu: 'alt-hu', alt_en: 'alt-en' };
+    const order   = ['tags', 'authors', 'date', 'important', 'visibility', 'allow', 'can_see', 'can_read', 'read_requests', 'see_allow', 'read_allow', 'owners', 'description', 'alt_hu', 'alt_en'];
+    const keyName = { alt_hu: 'alt-hu', alt_en: 'alt-en', can_see: 'can-see', can_read: 'can-read', read_requests: 'read-requests', see_allow: 'see-allow', read_allow: 'read-allow' };
     for (const k of order) {
       let v = meta[k];
       if (v == null || v === '' || (Array.isArray(v) && v.length === 0)) continue;
       if (Array.isArray(v)) v = v.join(', ');
-      if (k === 'important') { if (v === true || v === 'true') v = 'true'; else continue; }
+      if (k === 'important' || k === 'read_requests') { if (v === true || v === 'true') v = 'true'; else continue; }
       if (k === 'visibility') { if (v !== 'members' && v !== 'request') continue; }
-      if (k === 'allow') { if (v && String(v).trim()) v = String(v).trim(); else continue; }
+      if (k === 'can_see' || k === 'can_read') { if (v !== 'members' && v !== 'whitelist') continue; }
+      if (k === 'allow' || k === 'see_allow' || k === 'read_allow' || k === 'owners') { if (v && String(v).trim()) v = String(v).trim(); else continue; }
       out += `${keyName[k] || k}: ${String(v).replace(/\r?\n/g, ' ').trim()}\n`;
     }
     out += '\n';
@@ -931,13 +1007,14 @@ function adminBrowse(dir, rel = '') {
     if (e.isDirectory()) {
       let count = 0;
       try { count = fs.readdirSync(path.join(dir, e.name)).filter(n => n !== 'data.txt').length; } catch {}
-      out.push({ type: 'folder', name: e.name, path: childRel, display: stripDisplayName(e.name), count });
+      const _fm = folderMeta(path.join(dir, e.name));
+      out.push({ type: 'folder', name: e.name, path: childRel, display: stripDisplayName(e.name), count, altHu: _fm.alt_hu || null, altEn: _fm.alt_en || null });
     } else {
       const m = fileMeta(dir, e.name, secs);
       out.push({ type: 'file', name: e.name, path: childRel, display: stripDisplayName(e.name),
         ext: path.extname(e.name).toLowerCase(), size: m.size,
         tags: m.tags, authors: m.authors, date: m.date, important: m.important,
-        description: m.description, altHu: m.altHu, altEn: m.altEn, visibility: m.visibility, whitelist: m.whitelist,
+        description: m.description, altHu: m.altHu, altEn: m.altEn, canSee: m.canSee, canRead: m.canRead, readRequests: m.readRequests, seeWhitelist: m.seeWhitelist, readWhitelist: m.readWhitelist, owners: m.owners,
         editable: TEXT_NOTE_EXTS.has(path.extname(e.name).toLowerCase()) });
     }
   }
@@ -1273,13 +1350,25 @@ const server = http.createServer((req, res) => {
         // drop any prior section that maps to the same display name
         for (const k of Object.keys(secs))
           if (stripDisplayName(k + '.x').replace(/\.x$/, '').toLowerCase() === display.toLowerCase()) delete secs[k];
-        secs[display] = {
-          tags: j.meta.tags, authors: j.meta.authors, date: j.meta.date,
-          important: j.meta.important, description: j.meta.description,
-          alt_hu: j.meta.altHu, alt_en: j.meta.altEn,
-          visibility: j.meta.visibility,
-          allow: j.meta.allow,
+        const _m = j.meta;
+        const _useNew = ['canSee', 'canRead', 'readRequests', 'seeAllow', 'readAllow', 'owners'].some(k => k in _m);
+        const sec = {
+          tags: _m.tags, authors: _m.authors, date: _m.date,
+          important: _m.important, description: _m.description,
+          alt_hu: _m.altHu, alt_en: _m.altEn,
         };
+        if (_useNew) {
+          sec.can_see = (_m.canSee === 'members' || _m.canSee === 'whitelist') ? _m.canSee : 'all';
+          sec.can_read = (_m.canRead === 'members' || _m.canRead === 'whitelist') ? _m.canRead : 'all';
+          sec.read_requests = _m.readRequests ? 'true' : '';
+          sec.see_allow = _m.seeAllow || '';
+          sec.read_allow = _m.readAllow || '';
+          sec.owners = _m.owners || '';
+        } else {
+          sec.visibility = _m.visibility;
+          sec.allow = _m.allow;
+        }
+        secs[display] = sec;
         try { fs.writeFileSync(path.join(folderFull, 'data.txt'), serializeDataTxt(secs), 'utf8'); } catch {}
       }
       return sendJSON(res, { ok: true, path: (j.dir ? j.dir + '/' : '') + filename });
@@ -1288,6 +1377,24 @@ const server = http.createServer((req, res) => {
   }
 
   // ── Admin: delete a note + its metadata ─────────────────────────────────────
+  if (pathname === '/api/admin/folder/meta' && req.method === 'POST') {
+    if (!requireAdmin(req, res)) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const lang = j.lang === 'hu' ? 'hu' : 'en';
+      let folderFull;
+      try { folderFull = safePath(adminDataDir(lang), j.dir || ''); } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
+      if (!fs.existsSync(folderFull)) return sendJSON(res, { ok: false, error: 'folder not found' }, 404);
+      const secs = parseDataTxt(folderFull);
+      const altHu = String(j.altHu || '').trim(), altEn = String(j.altEn || '').trim();
+      if (altHu || altEn) secs['__folder__'] = { alt_hu: altHu, alt_en: altEn };
+      else delete secs['__folder__'];
+      try { fs.writeFileSync(path.join(folderFull, 'data.txt'), serializeDataTxt(secs), 'utf8'); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
   if (pathname === '/api/admin/note/delete' && req.method === 'POST') {
     if (!requireAdmin(req, res)) return;
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
@@ -1402,6 +1509,70 @@ const server = http.createServer((req, res) => {
     if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
     return sendJSON(res, { ok: true, id: c.id, type: c.type, title: chatTitleFor(c, me), participants: c.participants || [], createdBy: c.createdBy, messages: c.messages || [] });
   }
+  // ── Site-side note management: a member's own notes ─────────────────────────
+  if (pathname === '/api/mynotes' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    return sendJSON(res, { ok: true, notes: walkOwnedNotes(s.username) });
+  }
+  if (pathname === '/api/note/manage' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const lang = j.lang === 'hu' ? 'hu' : 'en';
+      const relPath = String(j.path || '');
+      const meLc = String(s.username).toLowerCase();
+      const isAdmin = s.role === 'admin';
+      const acc = noteAccess(relPath, lang);
+      const owners = acc.owners.slice();
+      if (!isAdmin && !owners.includes(meLc)) return sendJSON(res, { ok: false, error: 'You do not manage this note.' }, 403);
+      const primary = owners[0] || null;
+      const isPrimary = isAdmin || primary === meLc;
+      const p = j.patch || {};
+      let folderFull, fileName;
+      try {
+        const full = safePath(adminDataDir(lang), relPath);
+        folderFull = path.dirname(full); fileName = path.basename(full);
+        if (!fs.existsSync(full)) return sendJSON(res, { ok: false, error: 'note not found' }, 404);
+      } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
+      const secs = parseDataTxt(folderFull);
+      const display = stripDisplayName(fileName);
+      let key = Object.keys(secs).find(k => stripDisplayName(k + '.x').replace(/\.x$/, '').toLowerCase() === display.toLowerCase());
+      if (!key) key = display;
+      const sec = { ...(secs[key] || {}) };
+      // owners: collaborators may only add others and remove themselves; primary stays primary
+      const toLc = v => Array.isArray(v) ? v.map(x => String(x).trim().toLowerCase()).filter(Boolean)
+                      : (typeof v === 'string' ? _csvLc(v) : null);
+      let newOwners = toLc(p.owners); if (newOwners == null) newOwners = owners.slice();
+      newOwners = [...new Set(newOwners)];
+      if (!isPrimary) {
+        for (const r of owners.filter(o => o !== meLc)) if (!newOwners.includes(r))
+          return sendJSON(res, { ok: false, error: 'Only the primary owner can remove other owners.' }, 403);
+        if (primary && newOwners.includes(primary)) newOwners = [primary, ...newOwners.filter(o => o !== primary)];
+      }
+      if ('tags' in p)        sec.tags        = Array.isArray(p.tags) ? p.tags.join(', ') : String(p.tags || '');
+      if ('authors' in p)     sec.authors     = Array.isArray(p.authors) ? p.authors.join(', ') : String(p.authors || '');
+      if ('date' in p)        sec.date        = String(p.date || '');
+      if ('description' in p) sec.description  = String(p.description || '');
+      if ('important' in p)   sec.important    = p.important ? 'true' : '';
+      if (['canSee', 'canRead', 'readRequests', 'seeAllow', 'readAllow'].some(k => k in p)) {
+        const canSee  = (p.canSee === 'members' || p.canSee === 'whitelist') ? p.canSee : 'all';
+        const canRead = (p.canRead === 'members' || p.canRead === 'whitelist') ? p.canRead : 'all';
+        delete sec.visibility; delete sec.allow;
+        sec.can_see = canSee; sec.can_read = canRead;
+        sec.read_requests = p.readRequests ? 'true' : '';
+        sec.see_allow  = canSee === 'whitelist' ? (Array.isArray(p.seeAllow) ? p.seeAllow.join(', ') : String(p.seeAllow || '')) : '';
+        sec.read_allow = canRead === 'whitelist' ? (Array.isArray(p.readAllow) ? p.readAllow.join(', ') : String(p.readAllow || '')) : '';
+      }
+      sec.owners = newOwners.join(', ');
+      secs[key] = sec;
+      try { fs.writeFileSync(path.join(folderFull, 'data.txt'), serializeDataTxt(secs), 'utf8'); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
   if (pathname === '/api/chat/send' && req.method === 'POST') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
@@ -1424,6 +1595,12 @@ const server = http.createServer((req, res) => {
       }
       const msg = { id: crypto.randomUUID(), from: me, body: text, date: new Date().toISOString(), kind: 'text' };
       if (j.replyTo) { const src = (c.messages || []).find(m => m.id === j.replyTo); if (src) { msg.replyTo = src.id; msg.replyFrom = src.from; msg.replyText = (src.kind === 'text' ? (src.body || '') : chatPreview(src)).slice(0, 160); } }
+      if (j.noteRef && typeof j.noteRef === 'object' && j.noteRef.path) {
+        const nr = j.noteRef;
+        const ref = { path: String(nr.path).slice(0, 512), lang: nr.lang === 'hu' ? 'hu' : 'en', label: String(nr.label || '').slice(0, 240) };
+        if (Number.isFinite(nr.from) && Number.isFinite(nr.to)) { ref.from = Math.max(0, nr.from | 0); ref.to = Math.max(ref.from, nr.to | 0); }
+        msg.noteRef = ref;
+      }
       c.messages.push(msg);
       c.reads = c.reads || {}; c.reads[meLc] = msg.date;
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
@@ -1490,10 +1667,12 @@ const server = http.createServer((req, res) => {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
     const lang = query.lang === 'hu' ? 'hu' : 'en', p = query.path || '';
-    if (noteVisibility(p, lang) !== 'request') return sendJSON(res, { ok: true, applicable: false });
+    const _acc = noteAccess(p, lang);
+    const granted = canViewNote(req, p, lang);
+    const applicable = !granted && _acc.canRead === 'whitelist' && _acc.readRequests && passSeeGate(_acc, s);
     const meLc = String(s.username).toLowerCase();
     const pending = loadChats().conversations.some(c => chatParticipant(c, s.username) && (c.messages || []).some(m => m.kind === 'access-request' && String(m.from).toLowerCase() === meLc && m.status === 'pending' && m.note && m.note.path === p && m.note.lang === lang));
-    return sendJSON(res, { ok: true, applicable: true, granted: canViewNote(req, p, lang), pending, recipients: requestRecipients(p, lang) });
+    return sendJSON(res, { ok: true, applicable, granted, pending, recipients: requestRecipients(p, lang) });
   }
   if (pathname === '/api/access/request' && req.method === 'POST') {
     const s = siteSession(req);
@@ -1502,7 +1681,8 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
       const lang = j.lang === 'hu' ? 'hu' : 'en', p = String(j.path || '');
-      if (noteVisibility(p, lang) !== 'request') return sendJSON(res, { ok: false, error: 'This note does not require a request.' }, 400);
+      const _acc = noteAccess(p, lang);
+      if (!(_acc.canRead === 'whitelist' && _acc.readRequests)) return sendJSON(res, { ok: false, error: 'This note does not require a request.' }, 400);
       if (canViewNote(req, p, lang)) return sendJSON(res, { ok: true, status: 'granted' });
       const recipients = requestRecipients(p, lang);
       if (!recipients.length) return sendJSON(res, { ok: false, error: 'No one can grant access to this note.' }, 400);
@@ -1607,12 +1787,15 @@ const server = http.createServer((req, res) => {
       const username = String(j.username || '').trim();
       const password = String(j.password || '');
       if (!username || !password) return sendJSON(res, { ok: false, error: 'username and password required' }, 400);
+      if (loadAdmins().some(a => a.username.toLowerCase() === username.toLowerCase()))
+        return sendJSON(res, { ok: false, error: 'That name belongs to an admin account.' }, 409);
       const list = loadUsers();
-      if (list.some(u => u.username.toLowerCase() === username.toLowerCase()))
-        return sendJSON(res, { ok: false, error: 'user already exists' }, 409);
-      list.push({ username, ...hashPassword(password) });
+      const i = list.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+      let updated = false;
+      if (i >= 0) { list[i] = { username: list[i].username, ...hashPassword(password) }; updated = true; }
+      else list.push({ username, ...hashPassword(password) });
       try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
-      return sendJSON(res, { ok: true, username });
+      return sendJSON(res, { ok: true, username, updated });
     });
     return;
   }

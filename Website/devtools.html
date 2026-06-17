@@ -423,20 +423,38 @@
 
       <div class="row-toggle" id="edImpToggle" style="margin-top:18px"><div class="switch"></div><span>Mark this note as important</span></div>
       <div style="margin-top:16px">
-        <div class="panel-label" style="margin-bottom:8px">/ visibility</div>
-        <div class="seg" id="edVisSeg">
-          <button type="button" data-vis="public" class="active">Public</button>
-          <button type="button" data-vis="members">Members only</button>
-          <button type="button" data-vis="request">Request to read</button>
+        <div class="panel-label" style="margin-bottom:8px">/ access</div>
+        <div class="fld" style="margin-bottom:12px">
+          <span>Visibility <span style="color:var(--text3)">&mdash; who sees it listed in the archive</span></span>
+          <div class="seg" id="edSeeSeg" style="margin-top:6px">
+            <button type="button" data-see="all" class="active">Everyone</button>
+            <button type="button" data-see="members">Members</button>
+            <button type="button" data-see="whitelist">Whitelist</button>
+          </div>
         </div>
-        <div class="field-note" id="edVisNote" style="margin-top:6px"></div>
+        <label class="fld" id="edSeeAllowFld" style="display:none">
+          <span>Visible to <span style="color:var(--text3)">&mdash; only these usernames see it</span></span>
+          <div class="wl-acwrap"><input type="text" id="edSeeAllow" placeholder="alice, bob" spellcheck="false" autocapitalize="off" autocomplete="off"><div class="wl-ac" id="edSeeAllowAC" hidden></div></div>
+        </label>
+        <div class="fld" style="margin-bottom:12px">
+          <span>Readability <span style="color:var(--text3)">&mdash; who can open the content</span></span>
+          <div class="seg" id="edReadSeg" style="margin-top:6px">
+            <button type="button" data-read="all" class="active">Everyone</button>
+            <button type="button" data-read="members">Members</button>
+            <button type="button" data-read="whitelist">Whitelist</button>
+          </div>
+        </div>
+        <div class="row-toggle" id="edReadReqToggle" style="display:none;margin-bottom:12px"><div class="switch"></div><span>Allow read-requests <span style="color:var(--text3)">&mdash; users can ask; granting adds them to the read whitelist</span></span></div>
+        <label class="fld" id="edReadAllowFld" style="display:none">
+          <span>Can read <span style="color:var(--text3)">&mdash; only these usernames open it</span></span>
+          <div class="wl-acwrap"><input type="text" id="edReadAllow" placeholder="alice, bob" spellcheck="false" autocapitalize="off" autocomplete="off"><div class="wl-ac" id="edReadAllowAC" hidden></div></div>
+        </label>
+        <label class="fld" id="edOwnersFld">
+          <span>Owners <span style="color:var(--text3)">&mdash; receive read-requests, can grant &amp; manage the note (blank = any admin)</span></span>
+          <div class="wl-acwrap"><input type="text" id="edOwners" placeholder="alice, bob" spellcheck="false" autocapitalize="off" autocomplete="off"><div class="wl-ac" id="edOwnersAC" hidden></div></div>
+        </label>
+        <div class="field-note" id="edAccessNote" style="margin-top:6px"></div>
       </div>
-      <label class="fld" id="edWhitelistFld" style="margin-top:10px;display:none"><span id="edWhitelistLabel"></span>
-        <div class="wl-acwrap">
-          <input type="text" id="edWhitelist" placeholder="alice, bob" spellcheck="false" autocapitalize="off" autocomplete="off">
-          <div class="wl-ac" id="edWhitelistAC" hidden></div>
-        </div>
-      </label>
     </div>
     <div class="sheet-ft">
       <button class="btn-secondary" id="edCancel">Cancel</button>
@@ -577,6 +595,25 @@
     <div class="sheet-ft">
       <button class="btn-secondary" id="cfCancel">Cancel</button>
       <button class="btn-danger" id="cfOk">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="folderLinkOv">
+  <div class="sheet" style="max-width:480px">
+    <div class="sheet-hd">
+      <h3>Link counterpart folder</h3>
+      <button class="icon-btn" id="flClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="sheet-bd">
+      <p style="color:var(--text2);font-size:13px;margin:0 0 12px" id="flHint"></p>
+      <label class="fld"><span id="flLabel"></span>
+        <input type="text" id="flInput" placeholder="Exact folder name in the other language" spellcheck="false" autocapitalize="off" autocomplete="off">
+      </label>
+    </div>
+    <div class="sheet-ft">
+      <button class="btn-secondary" id="flClear">Clear link</button>
+      <button class="btn-primary" id="flSave">Save link</button>
     </div>
   </div>
 </div>
@@ -824,17 +861,22 @@
         (it.tags || []).slice(0, 4).forEach(t => chips.push('<span class="chip tag">' + esc(t) + '</span>'));
         (it.authors || []).slice(0, 3).forEach(a => chips.push('<span class="chip author">' + esc(a) + '</span>'));
         if (it.important) chips.push('<span class="chip imp">important</span>');
-        if (it.visibility === 'members') chips.push('<span class="chip members">members</span>');
-        else if (it.visibility === 'request') chips.push('<span class="chip request">locked</span>');
+        if (it.canSee === 'whitelist') chips.push('<span class="chip request">hidden</span>');
+        else if (it.canSee === 'members') chips.push('<span class="chip members">members</span>');
+        if (it.canRead === 'whitelist') chips.push('<span class="chip request">' + (it.readRequests ? 'request' : 'locked') + '</span>');
+        else if (it.canRead === 'members') chips.push('<span class="chip members">read</span>');
+        if ((it.owners || []).length) chips.push('<span class="chip muted">◈ ' + esc((it.owners || []).join(', ')) + '</span>');
         if (it.date) chips.push('<span class="chip muted">' + esc(it.date) + '</span>');
         const counter = it.altHu || it.altEn;
         if (counter) chips.push('<span class="chip muted">\u21c4 ' + esc(counter) + '</span>');
         if (!chips.length) chips.push('<span class="chip muted">no metadata yet</span>');
       } else {
         chips.push('<span class="chip muted">' + (it.count || 0) + ' item' + (it.count === 1 ? '' : 's') + '</span>');
+        const _fc = it.altHu || it.altEn;
+        if (_fc) chips.push('<span class="chip muted">⇄ ' + esc(_fc) + '</span>');
       }
       const badge = it.type === 'folder' ? 'DIR' : (it.ext || '').replace('.', '').toUpperCase();
-      const acts = it.type === 'folder' ? '' :
+      const acts = it.type === 'folder' ? '<button class="icon-btn" data-act="link" title="Link counterpart folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>' :
         '<button class="icon-btn" data-act="edit" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>' +
         '<button class="icon-btn danger" data-act="del" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
       row.innerHTML =
@@ -847,6 +889,8 @@
         row.querySelector('.ico').onclick = () => { dir = it.path; loadBrowse(); };
         row.style.cursor = 'pointer';
         row.onclick = e => { if (!e.target.closest('.acts')) { dir = it.path; loadBrowse(); } };
+        const _lk = row.querySelector('[data-act="link"]');
+        if (_lk) _lk.onclick = e => { e.stopPropagation(); openFolderLink(it); };
       } else {
         const editBtn = row.querySelector('[data-act="edit"]');
         const delBtn  = row.querySelector('[data-act="del"]');
@@ -882,8 +926,13 @@
     $('edDate').value    = isNew ? '' : (item.date || '');
     $('edDesc').value    = isNew ? '' : (item.description || '');
     $('edImpToggle').classList.toggle('on', !isNew && !!item.important);
-    setEdVis(isNew ? 'public' : (item.visibility || 'public'));
-    $('edWhitelist').value = isNew ? '' : (item.whitelist || []).join(', ');
+    setSeg('edSeeSeg', 'see', isNew ? 'all' : (item.canSee || 'all'));
+    setSeg('edReadSeg', 'read', isNew ? 'all' : (item.canRead || 'all'));
+    $('edReadReqToggle').classList.toggle('on', !isNew && !!item.readRequests);
+    $('edSeeAllow').value  = isNew ? '' : (item.seeWhitelist  || []).join(', ');
+    $('edReadAllow').value = isNew ? '' : (item.readWhitelist || []).join(', ');
+    $('edOwners').value    = isNew ? '' : (item.owners        || []).join(', ');
+    syncAccessUI();
 
     // counterpart label + value
     $('edCounterLabel').textContent = counterpartLabel();
@@ -914,24 +963,27 @@
   function closeEditor() { $('editorOv').classList.remove('open'); document.body.style.overflow = ''; editing = null; }
   $('edClose').onclick = closeEditor; $('edCancel').onclick = closeEditor;
   $('edImpToggle').onclick = () => $('edImpToggle').classList.toggle('on');
-  function setEdVis(v) {
-    if (!['public', 'members', 'request'].includes(v)) v = 'public';
-    $('edVisSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.vis === v));
-    $('edWhitelistFld').style.display = (v === 'members' || v === 'request') ? '' : 'none';
-    $('edWhitelistLabel').innerHTML = v === 'request'
-      ? 'Owners <span style="color:var(--text3)">&mdash; usernames who receive read-requests and can grant access (comma-separated; blank = any admin)</span>'
-      : 'Whitelist <span style="color:var(--text3)">&mdash; only these usernames may read it (comma-separated; blank = any signed-in member)</span>';
-    $('edVisNote').textContent = v === 'request'
-      ? 'Everyone sees the note in the folder, but the content stays locked until you approve a read-request.'
-      : v === 'members' ? 'Hidden from visitors who are not signed in.' : 'Visible and readable by everyone.';
+  function getSeg(id, attr) { const b = $(id).querySelector('button.active'); return b ? b.dataset[attr] : 'all'; }
+  function setSeg(id, attr, val) { $(id).querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset[attr] === val)); }
+  function syncAccessUI() {
+    const see = getSeg('edSeeSeg', 'see'), read = getSeg('edReadSeg', 'read');
+    $('edSeeAllowFld').style.display   = (see === 'whitelist') ? '' : 'none';
+    $('edReadAllowFld').style.display  = (read === 'whitelist') ? '' : 'none';
+    $('edReadReqToggle').style.display = (read === 'whitelist') ? 'flex' : 'none';
+    const req = read === 'whitelist' && $('edReadReqToggle').classList.contains('on');
+    $('edAccessNote').textContent =
+      read === 'all'     ? 'Anyone who can see the note can also read it.' :
+      read === 'members' ? 'Any signed-in member can read it; visitors cannot.' :
+      (req ? 'Locked: read whitelist + owners + anyone you grant can read. Others can request access.'
+           : 'Locked: only the read whitelist + owners can read it.');
   }
-  $('edVisSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setEdVis(b.dataset.vis)));
+  $('edSeeSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { setSeg('edSeeSeg', 'see', b.dataset.see); syncAccessUI(); }));
+  $('edReadSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { setSeg('edReadSeg', 'read', b.dataset.read); syncAccessUI(); }));
+  $('edReadReqToggle').onclick = () => { $('edReadReqToggle').classList.toggle('on'); syncAccessUI(); };
 
-  // ── whitelist account autocomplete (mirrors the new-chat user picker) ──
+  // ── account autocomplete on the access fields (mirrors the new-chat picker) ──
   (function () {
-    const input = $('edWhitelist'), box = $('edWhitelistAC');
-    if (!input || !box) return;
-    let accounts = null, loading = false, items = [], hi = -1;
+    let accounts = null, loading = false;
     async function ensure() {
       if (accounts || loading) return;
       loading = true;
@@ -939,63 +991,63 @@
       catch { accounts = []; }
       loading = false;
     }
-    function tokenAt() {
-      const v = input.value, caret = input.selectionStart != null ? input.selectionStart : v.length;
-      const start = v.lastIndexOf(',', caret - 1) + 1;
-      let end = v.indexOf(',', caret); if (end === -1) end = v.length;
-      return { start, end, raw: v.slice(start, end) };
+    function attach(inputId, boxId) {
+      const input = $(inputId), box = $(boxId);
+      if (!input || !box) return;
+      let items = [], hi = -1;
+      const tokenAt = () => {
+        const v = input.value, caret = input.selectionStart != null ? input.selectionStart : v.length;
+        const start = v.lastIndexOf(',', caret - 1) + 1;
+        let end = v.indexOf(',', caret); if (end === -1) end = v.length;
+        return { start, end, raw: v.slice(start, end) };
+      };
+      const takenExcept = rawTok => {
+        const except = rawTok.trim().toLowerCase();
+        const set = new Set(input.value.split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+        set.delete(except); return set;
+      };
+      const render = () => {
+        const tb = tokenAt(), q = tb.raw.trim().toLowerCase(), taken = takenExcept(tb.raw);
+        const pool = (accounts || []).filter(u => !taken.has(u.toLowerCase()));
+        items = (q ? pool.filter(u => u.toLowerCase().includes(q)) : pool).slice(0, 8);
+        hi = -1;
+        if (!items.length) { box.innerHTML = '<div class="wl-ac-empty">' + ((accounts && accounts.length) ? 'No matching accounts' : 'No viewer accounts yet') + '</div>'; box.hidden = false; return; }
+        box.innerHTML = items.map((u, i) => '<div class="wl-ac-item" data-i="' + i + '"><span class="wl-ac-ic">' + esc(u.slice(0, 1)) + '</span>' + esc(u) + '</div>').join('');
+        box.hidden = false;
+      };
+      const hide = () => { box.hidden = true; hi = -1; };
+      const choose = i => {
+        const u = items[i]; if (u == null) return;
+        const tb = tokenAt();
+        let before = input.value.slice(0, tb.start).replace(/[ \t]*,?[ \t]*$/, '');
+        let after  = input.value.slice(tb.end).replace(/^[ \t]*,?[ \t]*/, '');
+        const head = before ? before + ', ' : '', tail = after ? ', ' + after : '';
+        input.value = head + u + tail;
+        const caret = (head + u).length;
+        input.focus(); input.setSelectionRange(caret, caret); render();
+      };
+      const move = n => {
+        const els = box.querySelectorAll('.wl-ac-item'); if (!els.length) return;
+        hi = (n + els.length) % els.length;
+        els.forEach((e, i) => e.classList.toggle('active', i === hi));
+        els[hi].scrollIntoView({ block: 'nearest' });
+      };
+      input.addEventListener('focus', async () => { await ensure(); render(); });
+      input.addEventListener('input', async () => { await ensure(); render(); });
+      input.addEventListener('click', () => { if (accounts) render(); });
+      input.addEventListener('keydown', e => {
+        if (box.hidden) { if (e.key === 'ArrowDown') { e.preventDefault(); ensure().then(render); } return; }
+        if (e.key === 'ArrowDown') { e.preventDefault(); move(hi + 1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); move(hi - 1); }
+        else if (e.key === 'Enter' && hi >= 0) { e.preventDefault(); choose(hi); }
+        else if (e.key === 'Escape') { e.preventDefault(); hide(); }
+      });
+      input.addEventListener('blur', () => setTimeout(hide, 160));
+      box.addEventListener('mousedown', e => { const it = e.target.closest('.wl-ac-item'); if (it) { e.preventDefault(); choose(+it.dataset.i); } });
     }
-    function takenExcept(rawTok) {
-      const except = rawTok.trim().toLowerCase();
-      const set = new Set(input.value.split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
-      set.delete(except);
-      return set;
-    }
-    function render() {
-      const tb = tokenAt(), q = tb.raw.trim().toLowerCase(), taken = takenExcept(tb.raw);
-      const pool = (accounts || []).filter(u => !taken.has(u.toLowerCase()));
-      items = (q ? pool.filter(u => u.toLowerCase().includes(q)) : pool).slice(0, 8);
-      hi = -1;
-      if (!items.length) {
-        box.innerHTML = '<div class="wl-ac-empty">' + ((accounts && accounts.length) ? 'No matching accounts' : 'No viewer accounts yet') + '</div>';
-        box.hidden = false; return;
-      }
-      box.innerHTML = items.map((u, i) =>
-        '<div class="wl-ac-item" data-i="' + i + '"><span class="wl-ac-ic">' + esc(u.slice(0, 1)) + '</span>' + esc(u) + '</div>'
-      ).join('');
-      box.hidden = false;
-    }
-    function hide() { box.hidden = true; hi = -1; }
-    function choose(i) {
-      const u = items[i]; if (u == null) return;
-      const tb = tokenAt();
-      let before = input.value.slice(0, tb.start).replace(/[ \t]*,?[ \t]*$/, '');
-      let after  = input.value.slice(tb.end).replace(/^[ \t]*,?[ \t]*/, '');
-      const head = before ? before + ', ' : '';
-      const tail = after ? ', ' + after : '';
-      input.value = head + u + tail;
-      const caret = (head + u).length;
-      input.focus(); input.setSelectionRange(caret, caret);
-      render();
-    }
-    function move(n) {
-      const els = box.querySelectorAll('.wl-ac-item'); if (!els.length) return;
-      hi = (n + els.length) % els.length;
-      els.forEach((e, i) => e.classList.toggle('active', i === hi));
-      els[hi].scrollIntoView({ block: 'nearest' });
-    }
-    input.addEventListener('focus', async () => { await ensure(); render(); });
-    input.addEventListener('input', async () => { await ensure(); render(); });
-    input.addEventListener('click', () => { if (accounts) render(); });
-    input.addEventListener('keydown', e => {
-      if (box.hidden) { if (e.key === 'ArrowDown') { e.preventDefault(); ensure().then(render); } return; }
-      if (e.key === 'ArrowDown') { e.preventDefault(); move(hi + 1); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); move(hi - 1); }
-      else if (e.key === 'Enter' && hi >= 0) { e.preventDefault(); choose(hi); }
-      else if (e.key === 'Escape') { e.preventDefault(); hide(); }
-    });
-    input.addEventListener('blur', () => setTimeout(hide, 160));
-    box.addEventListener('mousedown', e => { const it = e.target.closest('.wl-ac-item'); if (it) { e.preventDefault(); choose(+it.dataset.i); } });
+    attach('edSeeAllow', 'edSeeAllowAC');
+    attach('edReadAllow', 'edReadAllowAC');
+    attach('edOwners', 'edOwnersAC');
   })();
   $('edCounterClear').onclick = () => setCounter('');
 
@@ -1014,8 +1066,12 @@
       authors: splitList($('edAuthors').value),
       date: $('edDate').value || '',
       important: $('edImpToggle').classList.contains('on'),
-      visibility: $('edVisSeg').querySelector('button.active').dataset.vis,
-      allow: ($('edVisSeg').querySelector('button.active').dataset.vis !== 'public') ? $('edWhitelist').value.trim() : '',
+      canSee: getSeg('edSeeSeg', 'see'),
+      canRead: getSeg('edReadSeg', 'read'),
+      readRequests: $('edReadReqToggle').classList.contains('on'),
+      seeAllow: getSeg('edSeeSeg', 'see') === 'whitelist' ? $('edSeeAllow').value.trim() : '',
+      readAllow: getSeg('edReadSeg', 'read') === 'whitelist' ? $('edReadAllow').value.trim() : '',
+      owners: $('edOwners').value.trim(),
       description: $('edDesc').value.trim(),
     };
     // A note's counterpart lives in the opposite language: EN notes carry alt-hu,
@@ -1045,6 +1101,37 @@
     loadPicker();
   };
   function closePicker() { $('pickerOv').classList.remove('open'); }
+
+  // ── folder counterpart link ────────────────────────────────────────
+  let _flItem = null;
+  function openFolderLink(item) {
+    _flItem = item;
+    const other = counterpartKeyLang();
+    const cur = (other === 'hu') ? (item.altHu || '') : (item.altEn || '');
+    $('flLabel').textContent = (other === 'hu') ? 'Hungarian counterpart folder' : 'English counterpart folder';
+    $('flHint').innerHTML = 'Link \u201c' + esc(item.display || item.name) + '\u201d to the folder that holds the same content in the other language. Their notes then merge in the bilingual view.';
+    $('flInput').value = cur;
+    $('folderLinkOv').classList.add('open');
+    setTimeout(() => { $('flInput').focus(); $('flInput').select(); }, 60);
+  }
+  function closeFolderLink() { $('folderLinkOv').classList.remove('open'); _flItem = null; }
+  async function saveFolderLink(clear) {
+    if (!_flItem) return;
+    const other = counterpartKeyLang();
+    const val = clear ? '' : $('flInput').value.trim();
+    const body = { lang, dir: _flItem.path };
+    if (other === 'hu') body.altHu = val; else body.altEn = val;
+    try {
+      const d = await api('/api/admin/folder/meta', { method: 'POST', body: JSON.stringify(body) });
+      if (d && d.ok) { toast(val ? 'Folder linked' : 'Folder link cleared'); closeFolderLink(); loadBrowse(); }
+      else toast((d && d.error) || 'Failed to save link', true);
+    } catch (e) { toast('Failed: ' + e.message, true); }
+  }
+  $('flClose').onclick = closeFolderLink;
+  $('flClear').onclick = () => saveFolderLink(true);
+  $('flSave').onclick  = () => saveFolderLink(false);
+  $('flInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveFolderLink(false); } });
+  $('folderLinkOv').addEventListener('click', e => { if (e.target.id === 'folderLinkOv') closeFolderLink(); });
   $('pkClose').onclick = closePicker;
   $('pkNone').onclick = () => { setCounter(''); closePicker(); };
 
@@ -1171,9 +1258,9 @@
     if (!username || !password) { toast('Username and password required', true); return; }
     $('acAdd').disabled = true; $('acAdd').textContent = 'Adding…';
     try {
-      await api('/api/admin/users', { method: 'POST', body: { username, password } });
+      const r = await api('/api/admin/users', { method: 'POST', body: { username, password } });
       $('acUser').value = ''; $('acPass').value = '';
-      toast('Account saved'); loadAccounts();
+      toast(r && r.updated ? 'Password updated' : 'Account added'); loadAccounts();
     } catch (e) { toast('Could not add: ' + e.message, true); }
     finally { $('acAdd').disabled = false; $('acAdd').textContent = 'Add account'; }
   };
@@ -1449,6 +1536,7 @@
     if (e.key !== 'Escape') return;
     if ($('refOv').classList.contains('open')) return closeRefPicker();
     if ($('artOv').classList.contains('open')) return closeArtOv();
+    if ($('folderLinkOv').classList.contains('open')) return closeFolderLink();
     if ($('pickerOv').classList.contains('open')) return closePicker();
     if ($('confirmOv').classList.contains('open')) { $('confirmOv').classList.remove('open'); confirmFn = null; return; }
     if ($('editorOv').classList.contains('open')) return closeEditor();
