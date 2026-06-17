@@ -26,6 +26,10 @@ const __CHATS       = path.join(__dirname, 'chats.json');
 
 fs.mkdirSync(__CACHE, { recursive: true });
 
+// Last-resort guards: a single bad request must never take the whole server down.
+process.on('uncaughtException', err => { console.error('uncaughtException:', (err && err.stack) || err); });
+process.on('unhandledRejection', err => { console.error('unhandledRejection:', (err && err.stack) || err); });
+
 // Whether both language data dirs exist — determines if bilingual features activate
 const HAS_DUAL_LANG = fs.existsSync(__DATA) && fs.existsSync(__DATA_HU);
 
@@ -67,13 +71,20 @@ function isProtectedStatic(rel) {
   return PROTECTED_FILES.has(parts[parts.length - 1] || '');
 }
 
+// Optional CORS. Set CORS_ORIGIN to a specific origin to expose the API cross-site.
+// Default ('') sends no Access-Control-Allow-Origin — the app is same-origin, so
+// nothing breaks, and we never echo a wildcard (which would be unsafe with cookies).
+const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
+function cors(headers = {}) {
+  if (CORS_ORIGIN) { headers['Access-Control-Allow-Origin'] = CORS_ORIGIN; headers['Vary'] = headers['Vary'] ? headers['Vary'] + ', Origin' : 'Origin'; }
+  return headers;
+}
 function sendJSON(res, data, status = 200) {
   const body = JSON.stringify(data);
-  res.writeHead(status, {
+  res.writeHead(status, cors({
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
     'Cache-Control': 'no-store',
-  });
+  }));
   res.end(body);
 }
 
@@ -83,31 +94,56 @@ function serveFile(res, req, fullPath, forceDownload = false) {
   let stat;
   try { stat = fs.statSync(fullPath); }
   catch { res.writeHead(404); res.end('Not Found'); return; }
+  if (!stat.isFile()) { res.writeHead(404); res.end('Not Found'); return; }
 
-  const headers = {
+  const headers = cors({
     'Content-Type': mime,
-    'Access-Control-Allow-Origin': '*',
     'Cache-Control': 'no-store',
     'Accept-Ranges': 'bytes',
-  };
+  });
   if (forceDownload)
     headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(path.basename(fullPath))}"`;
 
-  const rangeHeader = req && req.headers && req.headers.range;
-  if (rangeHeader && !forceDownload) {
-    const parts = rangeHeader.replace(/bytes=/, '').split('-');
-    const start = parseInt(parts[0], 10);
-    const end   = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
-    const chunk = end - start + 1;
-    headers['Content-Range']  = `bytes ${start}-${end}/${stat.size}`;
-    headers['Content-Length'] = String(chunk);
-    res.writeHead(206, headers);
-    fs.createReadStream(fullPath, { start, end }).pipe(res);
-    return;
+  // Stream a byte range with an error handler so a read failure can never throw
+  // out of the request handler and crash the process.
+  function pipeRange(statusCode, start, end) {
+    let stream;
+    try { stream = fs.createReadStream(fullPath, { start, end }); }
+    catch { try { if (!res.headersSent) res.writeHead(500); } catch {} try { res.end(); } catch {} return; }
+    stream.on('error', () => { try { if (!res.headersSent) res.writeHead(500); } catch {} try { res.end(); } catch {} });
+    res.on('close', () => stream.destroy());
+    res.writeHead(statusCode, headers);
+    stream.pipe(res);
   }
-  headers['Content-Length'] = String(stat.size);
-  res.writeHead(200, headers);
-  fs.createReadStream(fullPath).pipe(res);
+
+  const size = stat.size;
+  if (size === 0) { headers['Content-Length'] = '0'; res.writeHead(200, headers); return res.end(); }
+  if (req && req.method === 'HEAD') { headers['Content-Length'] = String(size); res.writeHead(200, headers); return res.end(); }
+
+  const rangeHeader = req && req.headers && req.headers.range;
+  if (rangeHeader && !forceDownload && /^bytes=/.test(rangeHeader)) {
+    const spec = rangeHeader.replace(/^bytes=/, '').trim();
+    const bad  = () => { res.writeHead(416, { ...headers, 'Content-Range': `bytes */${size}` }); res.end(); };
+    if (spec.indexOf(',') !== -1) return bad();          // multi-range unsupported
+    const m = /^(\d*)-(\d*)$/.exec(spec);
+    if (!m || (m[1] === '' && m[2] === '')) return bad();
+    let start, end;
+    if (m[1] === '') {                                   // suffix: last N bytes
+      const n = parseInt(m[2], 10);
+      if (!Number.isFinite(n) || n <= 0) return bad();
+      start = Math.max(0, size - n); end = size - 1;
+    } else {
+      start = parseInt(m[1], 10);
+      end   = m[2] === '' ? size - 1 : parseInt(m[2], 10);
+    }
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start > end || start >= size) return bad();
+    if (end >= size) end = size - 1;
+    headers['Content-Range']  = `bytes ${start}-${end}/${size}`;
+    headers['Content-Length'] = String(end - start + 1);
+    return pipeRange(206, start, end);
+  }
+  headers['Content-Length'] = String(size);
+  pipeRange(200, 0, size - 1);
 }
 
 function copyDirSync(src, dest) {
@@ -551,18 +587,27 @@ function findPdflatex() {
 const PDFLATEX = findPdflatex();
 
 // ── On-demand compile (synchronous — runs in request handler) ─────────────────
+// Strip server-side absolute paths out of anything we return to the client.
+function redactPaths(str) {
+  let out = String(str == null ? '' : str);
+  for (const p of [__DATA, __DATA_HU, __ARTICLES, __ARTICLES_HU, __dirname, os.tmpdir()]) {
+    if (p) { try { out = out.split(p).join('\u2026'); } catch {} }
+  }
+  return out;
+}
 function compileTexSync(fullTex, texPath, lang) {
   const texName = path.basename(fullTex);
   const texBase = texName.replace(/\.tex$/i, '');
   const tmpDir  = fs.mkdtempSync(path.join(os.tmpdir(), 'ki_'));
   try {
     copyDirSync(path.dirname(fullTex), tmpDir);
-    const args = ['-interaction=nonstopmode', '-file-line-error', texName];
+    const args = ['-no-shell-escape', '-interaction=nonstopmode', '-file-line-error', texName];
     const opts = {
       cwd: tmpDir,
       env: { ...process.env,
         TEXMFHOME: process.env.TEXMFHOME || '/usr/share/texmf',
         PATH: process.env.PATH || '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+        openin_any: process.env.openin_any || 'p', openout_any: process.env.openout_any || 'p',  // no reads of absolute/parent/dotfile paths
       },
       timeout: 120_000, maxBuffer: 32 * 1024 * 1024,
     };
@@ -593,8 +638,8 @@ function compileTexSync(fullTex, texPath, lang) {
       }
     } catch {}
     rmDirSync(tmpDir);
-    return { success: false, log: (r2.status === null ? 'pdflatex killed\n\n' : `exit ${r2.status}\n\n`) + parts.join('\n').trim() };
-  } catch (err) { rmDirSync(tmpDir); return { success: false, log: `Error: ${err.message}` }; }
+    return { success: false, log: (r2.status === null ? 'pdflatex killed\n\n' : `exit ${r2.status}\n\n`) + redactPaths(parts.join('\n').trim()) };
+  } catch (err) { rmDirSync(tmpDir); return { success: false, log: redactPaths('Error: ' + err.message) }; }
 }
 
 // ── Background precompile queue (non-blocking via async child processes) ───────
@@ -602,12 +647,15 @@ const preQueue   = [];
 const preStatus  = {};
 let   preRunning = false;
 
+const MAX_PRE_QUEUE = 500;   // bound the backlog so it can't be used for resource exhaustion
 function enqueuePrecompile(texPath, lang) {
   const key = `${lang}:${texPath}`;
-  if (preStatus[key] && ['queued', 'compiling'].includes(preStatus[key].state)) return;
+  if (preStatus[key] && ['queued', 'compiling'].includes(preStatus[key].state)) return false;
+  if (preQueue.length >= MAX_PRE_QUEUE) return false;
   preStatus[key] = { state: 'queued', ts: Date.now() };
   preQueue.push({ texPath, lang });
   schedulePreQueue();
+  return true;
 }
 
 function schedulePreQueue() {
@@ -643,8 +691,9 @@ function runNextPrecompile() {
   const env  = { ...process.env,
     TEXMFHOME: process.env.TEXMFHOME || '/usr/share/texmf',
     PATH: process.env.PATH || '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+        openin_any: process.env.openin_any || 'p', openout_any: process.env.openout_any || 'p',  // no reads of absolute/parent/dotfile paths
   };
-  const args = ['-interaction=nonstopmode', '-file-line-error', texName];
+  const args = ['-no-shell-escape', '-interaction=nonstopmode', '-file-line-error', texName];
 
   function onDone(exitOk) {
     const pdfPath = path.join(tmpDir, texBase + '.pdf');
@@ -699,7 +748,7 @@ function handleCompile(req, res) {
     catch { res.writeHead(403); return res.end('Forbidden'); }
 
     if (!fs.existsSync(fullTex))
-      return sendJSON(res, { success: false, log: `File not found:\n  ${fullTex}` });
+      return sendJSON(res, { success: false, log: `File not found: ${path.basename(String(filePath))}` });
 
     // Cache hit
     if (isCacheValid(filePath, lang, fullTex)) {
@@ -708,7 +757,7 @@ function handleCompile(req, res) {
         res.writeHead(200, {
           'Content-Type': 'application/pdf', 'Content-Length': String(cached.length),
           'Content-Disposition': `inline; filename="${encodeURIComponent(path.basename(filePath, '.tex'))}.pdf"`,
-          'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store', 'X-From-Cache': 'true',
+          'Cache-Control': 'no-store', 'X-From-Cache': 'true',
         });
         return res.end(cached);
       }
@@ -716,14 +765,14 @@ function handleCompile(req, res) {
 
     const chk = spawnSync(PDFLATEX, ['--version'], { timeout: 8000 });
     if (chk.status !== 0 && !chk.stdout)
-      return sendJSON(res, { success: false, log: `pdflatex not found at: ${PDFLATEX}\nInstall TeX Live: sudo apt-get install texlive-full` });
+      return sendJSON(res, { success: false, log: 'The PDF compiler is not available on the server.' });
 
     const result = compileTexSync(fullTex, filePath, lang);
     if (result.success) {
       res.writeHead(200, {
         'Content-Type': 'application/pdf', 'Content-Length': String(result.data.length),
         'Content-Disposition': `inline; filename="${encodeURIComponent(path.basename(filePath, '.tex'))}.pdf"`,
-        'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store',
+        'Cache-Control': 'no-store',
         'X-Compile-Warnings': result.warnings ? 'true' : 'false',
       });
       return res.end(result.data);
@@ -734,7 +783,7 @@ function handleCompile(req, res) {
 
 // ── Changelog ─────────────────────────────────────────────────────────────────
 function readChangelog()  { try { return JSON.parse(fs.readFileSync(__CHANGELOG, 'utf8')); } catch { return []; } }
-function writeChangelog(e){ fs.writeFileSync(__CHANGELOG, JSON.stringify(e, null, 2), 'utf8'); }
+function writeChangelog(e){ writeFileAtomic(__CHANGELOG, JSON.stringify(e, null, 2)); }
 
 // ── Articles ─────────────────────────────────────────────────────────────────
 // Files served publicly under /articles/. Authoring is admin-only and confined to
@@ -827,10 +876,15 @@ function loadUsers() {
     return [];
   } catch { return []; }
 }
-function saveUsers(list) { fs.writeFileSync(__USERS, JSON.stringify(list, null, 2) + '\n', 'utf8'); }
+function writeFileAtomic(file, data) {
+  const tmp = file + '.tmp-' + process.pid + '-' + crypto.randomBytes(4).toString('hex');
+  fs.writeFileSync(tmp, data, 'utf8');
+  fs.renameSync(tmp, file);
+}
+function saveUsers(list) { writeFileAtomic(__USERS, JSON.stringify(list, null, 2) + '\n'); }
 // Per-account UI settings (theme, language, layout) keyed by username.
 function loadSettings() { try { const o = JSON.parse(fs.readFileSync(__SETTINGS, 'utf8')); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch { return {}; } }
-function saveSettings(o) { fs.writeFileSync(__SETTINGS, JSON.stringify(o, null, 2) + '\n', 'utf8'); }
+function saveSettings(o) { writeFileAtomic(__SETTINGS, JSON.stringify(o, null, 2) + '\n'); }
 function cleanSettings(j) {
   const out = {};
   if (j && typeof j === 'object') {
@@ -845,7 +899,7 @@ function cleanSettings(j) {
 }
 // ── Access grants (who may read which request-to-read note) ───────────────────
 function loadGrants() { try { const o = JSON.parse(fs.readFileSync(__GRANTS, 'utf8')); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch { return {}; } }
-function saveGrants(o) { fs.writeFileSync(__GRANTS, JSON.stringify(o, null, 2) + '\n', 'utf8'); }
+function saveGrants(o) { writeFileAtomic(__GRANTS, JSON.stringify(o, null, 2) + '\n'); }
 function grantKey(lang, relPath) { return (lang === 'hu' ? 'hu' : 'en') + ':' + relPath; }
 function hasGrant(username, lang, relPath) { const g = loadGrants()[String(username).toLowerCase()]; return Array.isArray(g) && g.includes(grantKey(lang, relPath)); }
 function addGrant(username, lang, relPath) { const all = loadGrants(); const u = String(username).toLowerCase(); const k = grantKey(lang, relPath); if (!Array.isArray(all[u])) all[u] = []; if (!all[u].includes(k)) { all[u].push(k); saveGrants(all); } }
@@ -863,34 +917,43 @@ function requestRecipients(relPath, lang) {
 }
 // ── Chat conversations (DMs + group chats; text only) ─────────────────────────
 function loadChats() { try { const o = JSON.parse(fs.readFileSync(__CHATS, 'utf8')); return (o && Array.isArray(o.conversations)) ? o : { conversations: [] }; } catch { return { conversations: [] }; } }
-function saveChats(o) { fs.writeFileSync(__CHATS, JSON.stringify(o, null, 2) + '\n', 'utf8'); }
+function saveChats(o) { writeFileAtomic(__CHATS, JSON.stringify(o, null, 2) + '\n'); }
 function chatParticipant(c, name) { const n = String(name).toLowerCase(); return (c.participants || []).some(p => String(p).toLowerCase() === n); }
 function chatUnread(c, name) { const n = String(name).toLowerCase(); const last = (c.reads && c.reads[n]) || ''; return (c.messages || []).filter(m => String(m.from).toLowerCase() !== n && (m.date || '') > last).length; }
 function findDM(chats, a, b) { const A = String(a).toLowerCase(), B = String(b).toLowerCase(); return chats.conversations.find(c => c.type === 'dm' && (c.participants || []).length === 2 && c.participants.map(x => String(x).toLowerCase()).includes(A) && c.participants.map(x => String(x).toLowerCase()).includes(B)); }
 function ensureDM(chats, a, b) { let c = findDM(chats, a, b); if (!c) { c = { id: crypto.randomUUID(), type: 'dm', title: '', participants: [a, b], createdBy: a, created: new Date().toISOString(), messages: [], reads: {} }; chats.conversations.push(c); } return c; }
 function chatTitleFor(c, me) { if (c.type === 'group') return c.title || 'Group'; const other = (c.participants || []).find(p => String(p).toLowerCase() !== String(me).toLowerCase()); return other || 'Direct message'; }
 function chatPreview(m) { if (!m) return ''; if (m.kind === 'access-request') return '\uD83D\uDD12 ' + ((m.note && m.note.label) || 'access request'); if (m.kind === 'access-result') return 'access ' + (m.decision || ''); return m.body || ''; }
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString('hex');
-  const hash = crypto.scryptSync(String(password), salt, 32).toString('hex');
-  return { salt, hash };
+// A fixed dummy salt so a login attempt for a non-existent user still spends
+// ~the same time hashing — closes the username-enumeration timing side channel.
+const DUMMY_SALT = crypto.randomBytes(16).toString('hex');
+function scryptAsync(password, salt, len) {
+  return new Promise((resolve, reject) => {
+    crypto.scrypt(String(password), salt, len, (err, dk) => err ? reject(err) : resolve(dk));
+  });
 }
-// Constant-time credential check against a list of { username, salt, hash }
-function verifyAgainst(records, username, password) {
-  if (!username || !password) return null;
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const dk   = await scryptAsync(String(password), salt, 32);
+  return { salt, hash: dk.toString('hex') };
+}
+// Constant-time credential check against a list of { username, salt, hash }.
+// Runs scrypt even on a miss (against DUMMY_SALT) to avoid timing enumeration.
+async function verifyAgainst(records, username, password) {
   const rec = (records || []).find(a =>
-    a && a.username && String(a.username).toLowerCase() === String(username).toLowerCase());
-  if (!rec || !rec.salt || !rec.hash) return null;
+    a && a.username && String(a.username).toLowerCase() === String(username || '').toLowerCase());
+  const salt = (rec && rec.salt) ? rec.salt : DUMMY_SALT;
   let derived;
-  try { derived = crypto.scryptSync(String(password), rec.salt, 32); }
+  try { derived = await scryptAsync(String(password || ''), salt, 32); }
   catch { return null; }
+  if (!rec || !rec.salt || !rec.hash || !username || !password) return null;
   let stored;
   try { stored = Buffer.from(rec.hash, 'hex'); } catch { return null; }
   if (derived.length !== stored.length) return null;
   return crypto.timingSafeEqual(derived, stored) ? rec : null;
 }
-function verifyAdmin(username, password) { return verifyAgainst(loadAdmins(), username, password); }
-function verifyUser(username, password)  { return verifyAgainst(loadUsers(),  username, password); }
+async function verifyAdmin(username, password) { return verifyAgainst(loadAdmins(), username, password); }
+async function verifyUser(username, password)  { return verifyAgainst(loadUsers(),  username, password); }
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
 // One token store for both surfaces; each session carries a role.
@@ -936,9 +999,15 @@ function siteSession(req) {
       || getSession(parseCookies(req)[SITE_COOKIE] || '');
 }
 function isLoggedIn(req) { return !!siteSession(req); }
+// X-Forwarded-* are only trusted from configured proxy IPs (env TRUSTED_PROXIES,
+// comma-separated). Otherwise a client could spoof them to bypass rate limits.
+const TRUSTED_PROXIES = new Set((process.env.TRUSTED_PROXIES || '').split(',').map(x => x.trim()).filter(Boolean));
+function directIp(req) {
+  return (req.socket && req.socket.remoteAddress) || (req.connection && req.connection.remoteAddress) || '';
+}
 function reqIsHttps(req) {
-  return (req.headers && req.headers['x-forwarded-proto'] === 'https')
-      || !!(req.socket && req.socket.encrypted) || !!(req.connection && req.connection.encrypted);
+  if (TRUSTED_PROXIES.has(directIp(req)) && req.headers && req.headers['x-forwarded-proto'] === 'https') return true;
+  return !!(req.socket && req.socket.encrypted) || !!(req.connection && req.connection.encrypted);
 }
 function setCookie(req, token) {
   return `${SITE_COOKIE}=${token}; Path=/; Max-Age=${SESSION_TTL / 1000}; SameSite=Lax; HttpOnly`
@@ -951,8 +1020,12 @@ function clearCookie(req) {
 // Tiny in-memory rate limiter to blunt brute-force / abuse on auth endpoints.
 const RL = new Map();
 function clientIp(req) {
-  const xf = ((req.headers && req.headers['x-forwarded-for']) || '').split(',')[0].trim();
-  return xf || (req.socket && req.socket.remoteAddress) || 'unknown';
+  const direct = directIp(req) || 'unknown';
+  if (TRUSTED_PROXIES.has(direct)) {
+    const xf = ((req.headers && req.headers['x-forwarded-for']) || '').split(',')[0].trim();
+    if (xf) return xf;
+  }
+  return direct;
 }
 function rateOk(req, bucket, limit, windowMs) {
   const key = bucket + ':' + clientIp(req);
@@ -1056,7 +1129,7 @@ const server = http.createServer((req, res) => {
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
   res.setHeader('Content-Security-Policy', [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com",
+    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
     "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
     "img-src 'self' data: blob:",
@@ -1066,7 +1139,8 @@ const server = http.createServer((req, res) => {
   ].join('; '));
 
   if (req.method === 'OPTIONS') {
-    res.writeHead(204, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST', 'Access-Control-Allow-Headers': 'Content-Type' });
+    if (CORS_ORIGIN) res.writeHead(204, cors({ 'Access-Control-Allow-Methods': 'GET,POST,HEAD,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-Admin-Token' }));
+    else res.writeHead(204);
     return res.end();
   }
 
@@ -1123,23 +1197,26 @@ const server = http.createServer((req, res) => {
     let full; try { full = safePath(fileDir, query.path); } catch { res.writeHead(403); return res.end('Forbidden'); }
     if (!canViewNote(req, query.path, query.lang)) { res.writeHead(403); return res.end('Sign-in required'); }
     let content; try { content = fs.readFileSync(full, 'utf8'); } catch { res.writeHead(404); return res.end('Not Found'); }
-    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
     return res.end(content);
   }
 
   // Precompile start
   if (pathname === '/api/precompile/start' && req.method === 'POST') {
-    let body = ''; req.on('data', c => { body += c; });
+    if (!requireAdmin(req, res)) return;
+    if (!rateOk(req, 'precompile', 60, 5 * 60 * 1000)) return sendJSON(res, { error: 'Too many requests.' }, 429);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 1048576) req.destroy(); });
     req.on('end', () => {
       try { const { paths, lang } = JSON.parse(body); if (!Array.isArray(paths)) { res.writeHead(400); return res.end('paths must be array'); }
-        for (const p of paths) enqueuePrecompile(p, lang || 'en'); sendJSON(res, { queued: paths.length });
+        let q = 0; for (const p of paths) { if (typeof p === 'string' && enqueuePrecompile(p, lang || 'en')) q++; } sendJSON(res, { queued: q });
       } catch { res.writeHead(400); res.end('Bad JSON'); }
     }); return;
   }
 
   // Precompile folder
   if (pathname === '/api/precompile/folder' && req.method === 'POST') {
-    let body = ''; req.on('data', c => { body += c; });
+    if (!rateOk(req, 'precompile', 60, 5 * 60 * 1000)) return sendJSON(res, { error: 'Too many requests.' }, 429);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 65536) req.destroy(); });
     req.on('end', () => {
       try {
         const { folderPath, lang } = JSON.parse(body); const l = lang || 'en';
@@ -1151,7 +1228,7 @@ const server = http.createServer((req, res) => {
           let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
           for (const e of ents) {
             if (e.isDirectory()) { walk(path.join(dir, e.name), rel ? `${rel}/${e.name}` : e.name); continue; }
-            if (path.extname(e.name).toLowerCase() === '.tex') { enqueuePrecompile(rel ? `${rel}/${e.name}` : e.name, l); count++; }
+            if (path.extname(e.name).toLowerCase() === '.tex') { if (enqueuePrecompile(rel ? `${rel}/${e.name}` : e.name, l)) count++; }
           }
         }
         walk(fullFolder, folderPath || '');
@@ -1264,11 +1341,11 @@ const server = http.createServer((req, res) => {
   // ── Admin: auth ─────────────────────────────────────────────────────────────
   if (pathname === '/api/admin/login' && req.method === 'POST') {
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
-    req.on('end', () => {
+    req.on('end', async () => {
       let u, p;
       try { const j = JSON.parse(body); u = j.username; p = j.password; }
       catch { res.writeHead(400); return res.end('Bad JSON'); }
-      const rec = verifyAdmin(u, p);
+      const rec = await verifyAdmin(u, p);
       if (!rec) return sendJSON(res, { ok: false, error: 'invalid credentials' }, 401);
       const token = createSession(rec.username);
       return sendJSON(res, { ok: true, token, username: rec.username });
@@ -1421,15 +1498,15 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/login' && req.method === 'POST') {
     if (!rateOk(req, 'login', 20, 10 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many attempts. Try again in a few minutes.' }, 429);
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
-    req.on('end', () => {
+    req.on('end', async () => {
       let u, p;
       try { const j = JSON.parse(body); u = j.username; p = j.password; }
       catch { res.writeHead(400); return res.end('Bad JSON'); }
-      let rec = verifyUser(u, p), role = 'user';
-      if (!rec) { rec = verifyAdmin(u, p); role = 'admin'; }
+      let rec = await verifyUser(u, p), role = 'user';
+      if (!rec) { rec = await verifyAdmin(u, p); role = 'admin'; }
       if (!rec) return sendJSON(res, { ok: false, error: 'invalid credentials' }, 401);
       const token = createSession(rec.username, role);
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': setCookie(req, token), 'Access-Control-Allow-Origin': '*' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': setCookie(req, token) });
       return res.end(JSON.stringify({ ok: true, username: rec.username, role }));
     });
     return;
@@ -1441,7 +1518,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/logout' && req.method === 'POST') {
     const s = siteSession(req);
     if (s) for (const [tok, v] of SESSIONS) if (v === s) SESSIONS.delete(tok);
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': clearCookie(req), 'Access-Control-Allow-Origin': '*' });
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': clearCookie(req) });
     return res.end(JSON.stringify({ ok: true }));
   }
 
@@ -1602,6 +1679,7 @@ const server = http.createServer((req, res) => {
         msg.noteRef = ref;
       }
       c.messages.push(msg);
+      if (c.messages.length > 1000) c.messages = c.messages.slice(-1000);
       c.reads = c.reads || {}; c.reads[meLc] = msg.date;
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true, id: c.id });
@@ -1733,7 +1811,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/register' && req.method === 'POST') {
     if (!rateOk(req, 'register', 5, 60 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many sign-up attempts. Try again later.' }, 429);
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
-    req.on('end', () => {
+    req.on('end', async () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
       const username = String(j.username || '').trim();
       const password = String(j.password || '');
@@ -1745,10 +1823,10 @@ const server = http.createServer((req, res) => {
       if (list.some(u => u.username.toLowerCase() === username.toLowerCase())
         || loadAdmins().some(a => a.username.toLowerCase() === username.toLowerCase()))
         return sendJSON(res, { ok: false, error: 'That username is taken.' }, 409);
-      list.push({ username, ...hashPassword(password) });
+      list.push({ username, ...(await hashPassword(password)) });
       try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       const token = createSession(username, 'user');
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': setCookie(req, token), 'Access-Control-Allow-Origin': '*' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': setCookie(req, token) });
       return res.end(JSON.stringify({ ok: true, username, role: 'user' }));
     });
     return;
@@ -1759,15 +1837,15 @@ const server = http.createServer((req, res) => {
     if (!s) return sendJSON(res, { ok: false, error: 'Not signed in.' }, 401);
     if (s.role !== 'user') return sendJSON(res, { ok: false, error: 'Admin passwords are managed with make-admin.js.' }, 400);
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
-    req.on('end', () => {
+    req.on('end', async () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
       const oldp = String(j.oldPassword || ''), newp = String(j.newPassword || '');
       if (newp.length < 8) return sendJSON(res, { ok: false, error: 'New password must be at least 8 characters.' }, 400);
-      if (!verifyUser(s.username, oldp)) return sendJSON(res, { ok: false, error: 'Current password is incorrect.' }, 403);
+      if (!(await verifyUser(s.username, oldp))) return sendJSON(res, { ok: false, error: 'Current password is incorrect.' }, 403);
       const list = loadUsers();
       const i = list.findIndex(u => u.username.toLowerCase() === s.username.toLowerCase());
       if (i < 0) return sendJSON(res, { ok: false, error: 'Account not found.' }, 404);
-      list[i] = { username: list[i].username, ...hashPassword(newp) };
+      list[i] = { username: list[i].username, ...(await hashPassword(newp)) };
       try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true });
     });
@@ -1782,7 +1860,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/admin/users' && req.method === 'POST') {
     if (!requireAdmin(req, res)) return;
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
-    req.on('end', () => {
+    req.on('end', async () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
       const username = String(j.username || '').trim();
       const password = String(j.password || '');
@@ -1792,8 +1870,8 @@ const server = http.createServer((req, res) => {
       const list = loadUsers();
       const i = list.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
       let updated = false;
-      if (i >= 0) { list[i] = { username: list[i].username, ...hashPassword(password) }; updated = true; }
-      else list.push({ username, ...hashPassword(password) });
+      if (i >= 0) { list[i] = { username: list[i].username, ...(await hashPassword(password)) }; updated = true; }
+      else list.push({ username, ...(await hashPassword(password)) });
       try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true, username, updated });
     });

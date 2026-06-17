@@ -17,6 +17,21 @@ if (!username || !password) {
   process.exit(1);
 }
 
+const NAME_RE = /^[A-Za-z0-9_.-]+$/;
+if (!NAME_RE.test(username) || username.length < 3 || username.length > 32) {
+  console.error('Username must be 3-32 chars: letters, digits, dot, dash or underscore only.');
+  process.exit(1);
+}
+// Refuse a name that already exists in the other account store (avoids ambiguous logins).
+try {
+  const _raw = JSON.parse(fs.readFileSync(path.join(__dirname, 'admins.json'), 'utf8'));
+  const _list = Array.isArray(_raw) ? _raw : (_raw && Array.isArray(_raw.admins) ? _raw.admins : []);
+  if (_list.some(a => a && String(a.username).toLowerCase() === username.toLowerCase())) {
+    console.error(`"${username}" already exists as an admin. Pick a different name.`);
+    process.exit(1);
+  }
+} catch { /* no admins.json yet */ }
+
 let users = [];
 try {
   const raw = JSON.parse(fs.readFileSync(FILE, 'utf8'));

@@ -7014,7 +7014,7 @@
             el.className = 'stg-sec-parent';
             el.draggable = true;
             el.dataset.name = subj.name;
-            el.innerHTML = `${HANDLE_SVG}<span class="stg-sec-emoji">${emoji}</span><span class="stg-sec-name">${subj.name.toUpperCase()}</span>`;
+            el.innerHTML = `${HANDLE_SVG}<span class="stg-sec-emoji">${emoji}</span><span class="stg-sec-name">${esc(subj.name.toUpperCase())}</span>`;
             list.appendChild(el);
           });
           // Drag saves subject names to sectionOrder
@@ -7045,7 +7045,7 @@
             parentEl.className = 'stg-sec-parent';
             parentEl.draggable = true;
             parentEl.dataset.name = typeFolder.name;
-            parentEl.innerHTML = `${HANDLE_SVG}<span class="stg-sec-emoji">${emoji}</span><span class="stg-sec-name">${typeFolder.name.toUpperCase()}</span>${hasSubjects ? CARET_SVG : ''}`;
+            parentEl.innerHTML = `${HANDLE_SVG}<span class="stg-sec-emoji">${emoji}</span><span class="stg-sec-name">${esc(typeFolder.name.toUpperCase())}</span>${hasSubjects ? CARET_SVG : ''}`;
             group.appendChild(parentEl);
 
             if (hasSubjects) {
@@ -7064,7 +7064,7 @@
                 childEl.className = 'stg-sec-child';
                 childEl.draggable = true;
                 childEl.dataset.name = subj.name;
-                childEl.innerHTML = `${HANDLE_SVG}<span class="stg-sec-emoji" style="font-size:11px">${subjEmoji}</span><span class="stg-sec-name">${subj.name.toUpperCase()}</span>`;
+                childEl.innerHTML = `${HANDLE_SVG}<span class="stg-sec-emoji" style="font-size:11px">${subjEmoji}</span><span class="stg-sec-name">${esc(subj.name.toUpperCase())}</span>`;
                 childList.appendChild(childEl);
               });
 
@@ -7302,7 +7302,7 @@
     // Jump to whatever a changelog entry references.
     function navigateToRef(ref) {
       if (!ref || !ref.kind) return;
-      if (ref.kind === 'url')     { window.open(ref.target, '_blank', 'noopener'); return; }
+      if (ref.kind === 'url')     { try { const _u = new URL(ref.target, location.href); if (_u.protocol === 'http:' || _u.protocol === 'https:') window.open(_u.href, '_blank', 'noopener'); } catch {} return; }
       if (ref.kind === 'article') { window.location.href = '/articles/' + ref.target + (ref.lang === 'hu' ? '?lang=hu' : ''); return; }
       if (ref.kind === 'note')    { openNoteByPath(ref.target, ref.lang || 'en'); return; }
       if (ref.kind === 'log')     { clScrollToId = ref.target; navigateTo('changelog'); return; }
