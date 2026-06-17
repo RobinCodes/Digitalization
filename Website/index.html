@@ -1122,6 +1122,11 @@
       transition:transform .2s var(--tr-spring);
     }
     .stg-toggle.on::after{transform:translateX(18px)}
+    .stg-color-wrap{display:flex;gap:8px;align-items:center}
+    .stg-color{width:36px;height:28px;padding:0;border:1px solid var(--border-md);border-radius:7px;background:none;cursor:pointer}
+    .stg-color::-webkit-color-swatch-wrapper{padding:2px}
+    .stg-color::-webkit-color-swatch{border:none;border-radius:5px}
+    .stg-color::-moz-color-swatch{border:none;border-radius:5px}
     /* Segment control (for theme/lang) */
     .stg-seg{display:flex;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px}
     .stg-seg-btn{
@@ -1695,6 +1700,28 @@
     /* quoted reply inside a bubble */
     .chat-quote{display:block;border-left:3px solid currentColor;padding:3px 8px;margin:0 0 6px;border-radius:5px;background:rgba(255,255,255,.10);font-size:12px;line-height:1.4;cursor:pointer}
     .chat-bubble.them .chat-quote{background:rgba(255,255,255,.05)}
+    .chat-noteref{display:inline-flex;align-items:center;gap:6px;margin-top:7px;padding:5px 10px;border-radius:9px;background:var(--accent-dim);color:var(--accent);font-size:12px;cursor:pointer;max-width:100%;border:1px solid var(--accent-glow)}
+    .chat-noteref:hover{filter:brightness(1.12)}
+    .chat-noteref svg{flex:none}
+    .chat-noteref .cnr-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #discussModal,#myNotesModal,#manageModal{position:fixed;inset:0;z-index:8700;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+    #discussModal.open,#myNotesModal.open,#manageModal.open{opacity:1;pointer-events:all}
+    #discussModal .msg-sheet,#myNotesModal .msg-sheet,#manageModal .msg-sheet{transform:scale(.96) translateY(8px);transition:transform .25s}
+    #discussModal.open .msg-sheet,#myNotesModal.open .msg-sheet,#manageModal.open .msg-sheet{transform:scale(1) translateY(0)}
+    .mn-list{max-height:min(60vh,520px);overflow:auto;margin:-2px -2px 0;padding:2px}
+    .mn-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+    .mn-row .mn-main{flex:1;min-width:0}
+    .mn-row .mn-name{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mn-row .mn-sub{font-size:11.5px;color:var(--text2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+    .mn-chip{font-size:10.5px;padding:2px 7px;border-radius:20px;background:var(--accent-dim);color:var(--accent)}
+    .mn-chip.role{background:rgba(255,255,255,.08);color:var(--text2)}
+    .mgr-seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+    .mgr-seg button{background:none;border:0;color:var(--text2);padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+    .mgr-seg button.active{background:var(--accent);color:#1a1205}
+    .mgr-fld{display:block;margin-top:13px}
+    .mgr-fld>span{display:block;font-size:12px;color:var(--text2);margin-bottom:5px}
+    .mgr-fld input,.mgr-fld textarea,.mgr-fld select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 10px;font:inherit;font-size:13px}
+    .mgr-note{font-size:11.5px;color:var(--text3);margin-top:6px}
     .chat-quote .cq-from{display:block;font-weight:700;font-size:10.5px;opacity:.85}
     .chat-quote .cq-snip{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;opacity:.8}
     /* reply preview bar above the composer */
@@ -1750,6 +1777,16 @@
     .auth-link{display:block;width:100%;margin-top:10px;background:none;border:none;color:var(--accent);font-family:var(--font-ui);font-size:13px;cursor:pointer;text-align:center;padding:6px}
     .auth-link:hover{text-decoration:underline}
     .auth-divider{height:1px;background:var(--border-md);margin:16px 0}
+    .auth-profile{display:flex;align-items:center;gap:13px;margin-bottom:8px}
+    .auth-pf-av{width:46px;height:46px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;background:linear-gradient(150deg,var(--accent),var(--accent2));color:#1a1408;text-transform:uppercase}
+    .auth-pf-meta{min-width:0}
+    .auth-pf-role{display:inline-block;margin-top:4px;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--accent-dim);border:1px solid var(--border-md);padding:2px 8px;border-radius:99px}
+    .auth-stats{display:flex;gap:10px;margin:14px 0}
+    .auth-stat{flex:1;display:flex;flex-direction:column;gap:3px;padding:12px 14px;border:1px solid var(--border-md);border-radius:10px;background:var(--bg2)}
+    .auth-stat-n{font-family:var(--font-display);font-size:26px;line-height:1;color:var(--text)}
+    .auth-stat-l{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+    .auth-row-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 2px}
+    .auth-rt-label{font-size:13.5px;color:var(--text)}
     .auth-h4{font-family:var(--font-ui);font-size:14px;font-weight:600;color:var(--text);margin:0 0 10px}
     .auth-ok{color:var(--green);font-size:13px;margin:4px 0}
     .pdf-qs-lang-btn.qs-disabled,.pdf-tbtn.qs-disabled{opacity:.35;cursor:not-allowed}
@@ -1871,8 +1908,22 @@
         <button type="button" class="auth-link" id="authToSignin" data-i18n="authHaveAccount">Have an account? Sign in</button>
       </div>
       <div id="authViewIn" style="display:none">
-        <h3 class="auth-h"><span data-i18n="authSignedAs">Signed in as</span> <em id="authWho"></em></h3>
+        <div class="auth-profile">
+          <div class="auth-pf-av" id="authAvatar">?</div>
+          <div class="auth-pf-meta">
+            <h3 class="auth-h" style="margin:0"><span data-i18n="authSignedAs">Signed in as</span> <em id="authWho"></em></h3>
+            <span class="auth-pf-role" id="authRoleChip">Member</span>
+          </div>
+        </div>
         <p class="auth-sub" data-i18n="authInSub">You can now read member-only notes across the archive.</p>
+        <div class="auth-stats">
+          <div class="auth-stat"><span class="auth-stat-n" id="authStatConvos">0</span><span class="auth-stat-l" data-i18n="authConvosLbl">Conversations</span></div>
+          <div class="auth-stat"><span class="auth-stat-n" id="authStatUnread">0</span><span class="auth-stat-l" data-i18n="authUnreadLbl">Unread</span></div>
+        </div>
+        <div class="auth-row-toggle" id="authNotifRow">
+          <div class="auth-rt-label" data-i18n="authNotif">Desktop notifications</div>
+          <div class="stg-toggle" id="authNotifToggle"></div>
+        </div>
         <div id="acpBlock">
           <div class="auth-divider"></div>
           <h4 class="auth-h4" data-i18n="authChangePw">Change password</h4>
@@ -1886,7 +1937,10 @@
           <button class="auth-submit" id="acpSubmit" data-i18n="authChangePwBtn">Update password</button>
         </div>
         <div class="auth-divider"></div>
+        <button class="auth-submit" id="authDevtoolsBtn" style="display:none;margin-bottom:10px" data-i18n="authDevtools">Open DevTools</button>
         <button class="auth-submit ghost" id="authMessagesBtn" style="margin-bottom:10px">Open chat</button>
+        <button class="auth-submit ghost" id="authPrefsBtn" style="margin-bottom:10px" data-i18n="authPrefs">Preferences</button>
+        <button class="auth-submit ghost" id="authMyNotesBtn" style="margin-bottom:10px" data-i18n="myNotes">My notes</button>
         <button class="auth-submit ghost" id="authSignOut" data-i18n="authSignOut">Sign out</button>
       </div>
     </div>
@@ -1911,6 +1965,48 @@
         <input type="text" id="chatUserFilter" placeholder="Search people" spellcheck="false" autocapitalize="off">
         <div class="chat-userlist" id="chatUserList"></div>
         <div class="msg-compose-row"><span style="flex:1"></span><button class="msg-ghost" id="chatPickCancel" type="button">Cancel</button><button class="msg-primary" id="chatPickGo" type="button">Start</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="myNotesModal">
+    <div class="msg-sheet" style="max-width:520px">
+      <div class="msg-head"><h2 id="mnTitle">My notes</h2><button class="msg-x" id="mnClose" type="button" aria-label="Close">&times;</button></div>
+      <div class="access-box">
+        <div class="mn-list" id="mnList"></div>
+      </div>
+    </div>
+  </div>
+  <div id="manageModal">
+    <div class="msg-sheet" style="max-width:520px">
+      <div class="msg-head"><h2 id="mgrTitle">Manage note</h2><button class="msg-x" id="mgrClose" type="button" aria-label="Close">&times;</button></div>
+      <div class="access-box" style="max-height:min(74vh,640px);overflow:auto">
+        <div style="font-weight:600;font-size:13.5px" id="mgrNoteName"></div>
+        <div class="mn-sub" id="mgrNoteSub" style="margin:2px 0 4px"></div>
+        <label class="mgr-fld"><span>Tags (comma separated)</span><input type="text" id="mgrTags" spellcheck="false" autocapitalize="off"></label>
+        <label class="mgr-fld"><span>Authors (comma separated)</span><input type="text" id="mgrAuthors" spellcheck="false" autocapitalize="off"></label>
+        <label class="mgr-fld"><span>Date</span><input type="text" id="mgrDate" placeholder="2025-01-01"></label>
+        <label class="mgr-fld"><span>Description</span><textarea id="mgrDesc" rows="2"></textarea></label>
+        <div class="mgr-fld"><span>Who can see it listed</span><div class="mgr-seg" id="mgrSeeSeg"><button type="button" data-see="all">Everyone</button><button type="button" data-see="members">Members</button><button type="button" data-see="whitelist">Specific people</button></div></div>
+        <label class="mgr-fld" id="mgrSeeAllowFld" style="display:none"><span>People who can see it (comma separated)</span><input type="text" id="mgrSeeAllow" spellcheck="false" autocapitalize="off" placeholder="alice, bob"></label>
+        <div class="mgr-fld"><span>Who can open &amp; read it</span><div class="mgr-seg" id="mgrReadSeg"><button type="button" data-read="all">Everyone</button><button type="button" data-read="members">Members</button><button type="button" data-read="whitelist">Specific people</button></div></div>
+        <label class="mgr-fld" id="mgrReadAllowFld" style="display:none"><span>People who can read it (comma separated)</span><input type="text" id="mgrReadAllow" spellcheck="false" autocapitalize="off" placeholder="alice, bob"></label>
+        <label class="mgr-fld" id="mgrReadReqFld" style="display:none"><span style="display:inline-flex;align-items:center;gap:8px;margin-bottom:0"><input type="checkbox" id="mgrReadReq" style="width:auto"> Allow people to request read access</span></label>
+        <label class="mgr-fld"><span>Owners (comma separated &mdash; the first is the primary owner)</span><input type="text" id="mgrOwners" spellcheck="false" autocapitalize="off"></label>
+        <div class="mgr-note" id="mgrOwnersNote"></div>
+        <div class="msg-compose-row" style="margin-top:16px"><span style="flex:1"></span><button class="msg-ghost" id="mgrCancel" type="button">Cancel</button><button class="msg-primary" id="mgrSave" type="button">Save changes</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="discussModal">
+    <div class="msg-sheet" style="max-width:460px">
+      <div class="msg-head"><h2 id="discussTitle">Discuss this note</h2><button class="msg-x" id="discussClose" type="button" aria-label="Close">&times;</button></div>
+      <div class="access-box">
+        <div class="access-note" id="discussNoteRef"></div>
+        <label class="mgr-fld"><span id="discussToLbl">Send to</span>
+          <select id="discussTo"></select>
+        </label>
+        <textarea id="discussMsg" rows="3" placeholder="Write your message…"></textarea>
+        <div class="msg-compose-row"><span style="flex:1"></span><button class="msg-ghost" id="discussCancel" type="button">Cancel</button><button class="msg-primary" id="discussSend" type="button">Send</button></div>
       </div>
     </div>
   </div>
@@ -2135,6 +2231,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           <span data-i18n="print">Print</span>
         </button>
+        <button class="pdf-tbtn accent" id="pdfDiscuss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span data-i18n="discuss">Discuss</span>
+        </button>
         <button class="pdf-tbtn accent" id="pdfShare">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           <span data-i18n="share">Share</span>
@@ -2319,6 +2419,7 @@
         <div class="modal-btns">
           <button class="modal-btn" id="codeModalCopy">⎘ <span data-i18n="copyCode">Copy</span></button>
           <button class="modal-btn" id="codeModalDownload">↓ <span data-i18n="download">Download</span></button>
+          <button class="modal-btn" id="codeDiscuss">⌨ <span data-i18n="discuss">Discuss</span></button>
           <button class="modal-btn danger" id="codeModalClose">✕ <span data-i18n="close">Close</span></button>
         </div>
       </div>
@@ -2401,6 +2502,17 @@
               <button class="stg-seg-btn" data-theme="dark" data-i18n="stgDark">Dark</button>
               <button class="stg-seg-btn" data-theme="light" data-i18n="stgLight">Light</button>
               <button class="stg-seg-btn" data-theme="teal" data-i18n="stgTeal">Teal</button>
+              <button class="stg-seg-btn" data-theme="custom" data-i18n="stgCustom">Custom</button>
+            </div>
+          </div>
+          <div class="stg-row" id="stgCustomColorsRow" style="display:none">
+            <div>
+              <div class="stg-lbl" data-i18n="stgCustomColors">Custom colors</div>
+              <div class="stg-sublbl" data-i18n="stgCustomColorsSub">Accent and highlight</div>
+            </div>
+            <div class="stg-color-wrap">
+              <input type="color" id="stgCustomAccent" class="stg-color" value="#c4a13c" aria-label="Accent color">
+              <input type="color" id="stgCustomAccent2" class="stg-color" value="#e8c96a" aria-label="Highlight color">
             </div>
           </div>
         </div>
@@ -2434,6 +2546,16 @@
               <button class="mat-lang-btn" data-matlang="en" data-i18n="stgMatLangEn">EN</button>
               <button class="mat-lang-btn" data-matlang="both" data-i18n="stgMatLangBoth">Both</button>
               <button class="mat-lang-btn" data-matlang="hu" data-i18n="stgMatLangHu">HU</button>
+            </div>
+          </div>
+          <div class="stg-row" id="stgOpenLangRow" style="display:none">
+            <div>
+              <div class="stg-lbl" data-i18n="stgOpenLang">Preferred open language</div>
+              <div class="stg-sublbl" data-i18n="stgOpenLangSub">Which version opens first when a note exists in both</div>
+            </div>
+            <div class="mat-lang-seg" id="stgOpenLangSeg">
+              <button class="mat-lang-btn" data-openlang="en" data-i18n="stgMatLangEn">EN</button>
+              <button class="mat-lang-btn" data-openlang="hu" data-i18n="stgMatLangHu">HU</button>
             </div>
           </div>
         </div>
@@ -2639,8 +2761,15 @@
         authPass:     'Password',
         authSignIn:   'Sign in',
         authSignOut:  'Sign out',
+        authDevtools: 'Open DevTools',
         authSignedAs: 'Signed in as',
         authInSub:    'You can now read member-only notes across the archive.',
+        authConvosLbl: 'Conversations',
+        authUnreadLbl: 'Unread',
+        authNotif:     'Desktop notifications',
+        authPrefs:     'Preferences',
+        authRoleMember:'Member',
+        authRoleAdmin: 'Admin',
         authBadInput: 'Enter a username and password.',
         authBadCreds: 'Incorrect username or password.',
         authToastIn:  (u) => `Signed in as ${u}`,
@@ -2671,6 +2800,8 @@
         download:     'Download',
         close:        'Close',
         share:        'Share',
+        discuss:      'Discuss',
+        myNotes:      'My notes',
         clear:        'Clear',
         // Context menu
         ctxOpenFolder:'Open Folder',
@@ -2700,6 +2831,9 @@
         stgDark:        'Dark',
         stgLight:       'Light',
         stgTeal:        'Teal',
+        stgCustom:      'Custom',
+        stgCustomColors:    'Custom colors',
+        stgCustomColorsSub: 'Accent and highlight',
         stgLanguage:    'Language',
         stgLangLabel:   'Interface language',
         stgPdfViewer:   'PDF Viewer',
@@ -2794,6 +2928,8 @@
         stgMatLangEn:   'EN',
         stgMatLangBoth: 'Both',
         stgMatLangHu:   'HU',
+        stgOpenLang:    'Preferred open language',
+        stgOpenLangSub: 'Which version opens first when a note exists in both',
         // Media
         toastMediaOpen: (name) => `Opening ${name}`,
         // Precompile
@@ -2832,8 +2968,15 @@
         authPass:     'Jelszó',
         authSignIn:   'Bejelentkezés',
         authSignOut:  'Kijelentkezés',
+        authDevtools: 'DevTools megnyitása',
         authSignedAs: 'Bejelentkezve mint',
         authInSub:    'Mostantól elérheted a csak tagoknak szóló jegyzeteket az archívumban.',
+        authConvosLbl: 'Beszélgetések',
+        authUnreadLbl: 'Olvasatlan',
+        authNotif:     'Asztali értesítések',
+        authPrefs:     'Beállítások',
+        authRoleMember:'Tag',
+        authRoleAdmin: 'Admin',
         authBadInput: 'Adj meg felhasználónevet és jelszót.',
         authBadCreds: 'Hibás felhasználónév vagy jelszó.',
         authToastIn:  (u) => `Bejelentkezve mint ${u}`,
@@ -2864,6 +3007,8 @@
         download:     'Letöltés',
         close:        'Bezárás',
         share:        'Megosztás',
+        discuss:      'Megvitatás',
+        myNotes:      'Jegyzeteim',
         clear:        'Törlés',
         // Helyi menü
         ctxOpenFolder:'Mappa megnyitása',
@@ -2893,6 +3038,9 @@
         stgDark:        'Sötét',
         stgLight:       'Világos',
         stgTeal:        'Türkiz',
+        stgCustom:      'Egyedi',
+        stgCustomColors:    'Egyedi színek',
+        stgCustomColorsSub: 'Kiemelő és világos kiemelő',
         stgLanguage:    'Nyelv',
         stgLangLabel:   'Felhasználói felület nyelve',
         stgPdfViewer:   'PDF nézegető',
@@ -2987,6 +3135,8 @@
         stgMatLangEn:   'AN',
         stgMatLangBoth: 'Mindkettő',
         stgMatLangHu:   'MA',
+        stgOpenLang:    'Alapért. megnyitási nyelv',
+        stgOpenLangSub: 'Melyik változat nyíljon meg, ha a jegyzet mindkét nyelven létezik',
         // Média
         toastMediaOpen: (name) => `Megnyitás: ${name}`,
         // Előfordítás
@@ -3141,17 +3291,30 @@
 
     /* ── Theme toggle ─────────────────────────────────────────────── */
     const THEME_KEY = 'ki_theme';
-    const THEMES = ['dark', 'light', 'teal'];
+    const THEMES = ['dark', 'light', 'teal', 'custom'];
     function currentThemeName() {
+      if (document.body.classList.contains('theme-custom')) return 'custom';
       if (document.body.classList.contains('light'))      return 'light';
       if (document.body.classList.contains('theme-teal')) return 'teal';
       return 'dark';
     }
+    function hexToRgba(hex, a) { hex = String(hex || '').replace('#', ''); if (hex.length === 3) hex = hex.split('').map(c => c + c).join(''); const n = parseInt(hex || '0', 16); return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
+    function applyCustomColors() {
+      const a = localStorage.getItem('ki_custom_accent') || '#c4a13c';
+      const a2 = localStorage.getItem('ki_custom_accent2') || '#e8c96a';
+      const el = document.documentElement.style;
+      el.setProperty('--accent', a); el.setProperty('--accent2', a2);
+      el.setProperty('--accent-glow', hexToRgba(a, 0.18)); el.setProperty('--accent-dim', hexToRgba(a, 0.08));
+    }
     function applyTheme(theme) {
       if (!THEMES.includes(theme)) theme = 'dark';
-      document.body.classList.remove('light', 'theme-teal');
-      if (theme === 'light')     document.body.classList.add('light');
-      else if (theme === 'teal') document.body.classList.add('theme-teal');
+      document.body.classList.remove('light', 'theme-teal', 'theme-custom');
+      if (theme === 'light')       document.body.classList.add('light');
+      else if (theme === 'teal')   document.body.classList.add('theme-teal');
+      else if (theme === 'custom') document.body.classList.add('theme-custom');
+      const root = document.documentElement.style;
+      ['--accent', '--accent2', '--accent-glow', '--accent-dim'].forEach(p => root.removeProperty(p));
+      if (theme === 'custom') applyCustomColors();
       localStorage.setItem(THEME_KEY, theme);
       // Re-render the open PDF so the dark/light page treatment updates immediately.
       if (window._rerenderPdfTheme) window._rerenderPdfTheme();
@@ -3335,6 +3498,13 @@
     let sectionBy    = localStorage.getItem('ki_section_by') || 'type'; // 'type' | 'subject'
     // Material language: 'en' | 'both' | 'hu'
     let MAT_LANG = localStorage.getItem('ki_mat_lang') || (LANG === 'hu' ? 'hu' : 'en');
+    let OPEN_LANG = (localStorage.getItem('ki_open_lang') === 'hu' || localStorage.getItem('ki_open_lang') === 'en') ? localStorage.getItem('ki_open_lang') : (LANG === 'hu' ? 'hu' : 'en');
+    function syncOpenLangRow() {
+      const r = document.getElementById('stgOpenLangRow'); if (!r) return;
+      const matRow = document.getElementById('stgMatLangRow');
+      const dualShown = matRow && matRow.style.display !== 'none';
+      r.style.display = (dualShown && MAT_LANG === 'both') ? '' : 'none';
+    }
 
     /* ── Media extension helpers ────────────────────────────────────────────── */
     const AUDIO_EXTS = new Set(['.mp3','.ogg','.wav','.flac','.m4a','.aac']);
@@ -3571,7 +3741,8 @@
       const isGreyed = MAT_LANG === 'both' && (!!item.enAvailable !== !!item.huAvailable);
 
       // If covered by a folder, show covered style (even if also individually selected)
-      const isLocked = item.visibility === 'request' && item.locked;
+      const isLocked = !!item.locked;
+      const canRequest = !!item.canRequest;
       card.className = 'card'
         + (isSel && !isCovered ? ' selected' : '')
         + (isCovered ? ' covered' : '')
@@ -3610,9 +3781,10 @@
         </div>`;
       }
 
+      const _lockLabel = canRequest ? MSGT('Request access', 'Hozzáférés kérése') : (!AUTH.user ? MSGT('Sign in to read', 'Jelentkezz be az olvasáshoz') : MSGT('No access', 'Nincs hozzáférés'));
       const lockOverlayHtml = isLocked ? `
         <div class="lock-wrap" aria-hidden="true"><div class="lock-dim"></div><div class="chain-x"><span class="chain-strip-pos a">${CHAIN_STRIP_SVG}</span><span class="chain-strip-pos b">${CHAIN_STRIP_SVG}</span></div></div>
-        <div class="lock-actions"><button class="lock-btn" type="button">${LOCK_SVG}<span>${MSGT('Request access', 'Hozzáférés kérése')}</span></button></div>` : '';
+        <div class="lock-actions"><button class="lock-btn" type="button">${LOCK_SVG}<span>${_lockLabel}</span></button></div>` : '';
 
       card.innerHTML = `
         ${splitOverlayHtml}
@@ -3627,7 +3799,7 @@
           <div class="card-meta">
             <span class="card-badge" style="color:var(--${cv})">${badge}</span>
             <span class="card-count">${meta}</span>
-            ${item.visibility === 'members' ? '<span class="card-members" title="Members only">\uD83D\uDD12</span>' : ''}
+            ${item.canSee === 'members' ? '<span class="card-members" title="Members only">\uD83D\uDD12</span>' : ''}
           </div>
           ${tagsHtml}
         </div>
@@ -3643,7 +3815,12 @@
       });
 
       const _lockBtn = card.querySelector('.lock-btn');
-      if (_lockBtn) _lockBtn.addEventListener('click', e => { e.stopPropagation(); const lg = item.lang || (MAT_LANG === 'hu' ? 'hu' : 'en'); openAccessRequest(item.path, lg, getDisplayName(item)); });
+      if (_lockBtn) _lockBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const lg = item.lang || (MAT_LANG === 'hu' ? 'hu' : 'en');
+        if (canRequest) openAccessRequest(item.path, lg, getDisplayName(item));
+        else if (!AUTH.user) openAuthModal();
+      });
 
       // Checkbox click — always look up current coverage state at click time
       card.querySelector('.card-cb').addEventListener('click', e => {
@@ -3728,13 +3905,16 @@
       if (item._forceLang) {
         openLang = item._forceLang;
       } else if (MAT_LANG === 'both') {
-        if (item.enAvailable && item.enPath)      { openLang = 'en'; openPath = item.enPath; openName = item.enName || item.name; }
-        else if (item.huAvailable && item.huPath) { openLang = 'hu'; openPath = item.huPath; openName = item.huName || item.name; }
+        const _pref = OPEN_LANG === 'hu' ? 'hu' : 'en';
+        const _enOk = item.enAvailable && item.enPath, _huOk = item.huAvailable && item.huPath;
+        const _pick = (_pref === 'hu') ? (_huOk ? 'hu' : (_enOk ? 'en' : null)) : (_enOk ? 'en' : (_huOk ? 'hu' : null));
+        if (_pick === 'en')      { openLang = 'en'; openPath = item.enPath; openName = item.enName || item.name; }
+        else if (_pick === 'hu') { openLang = 'hu'; openPath = item.huPath; openName = item.huName || item.name; }
         else openLang = item.lang || LANG;
       } else {
         openLang = item.lang || (MAT_LANG === 'hu' ? 'hu' : 'en');
       }
-      if (item.visibility === 'request' && item.locked) { openAccessRequest(openPath, openLang, openName); return; }
+      if (item.locked) { if (item.canRequest) openAccessRequest(openPath, openLang, openName); else if (!AUTH.user) openAuthModal(); return; }
       const ext = (item.ext||'').toLowerCase();
       if (['.tex','.sty','.cls'].includes(ext)) { openPdfViewer(openPath, openName, openLang, item); return; }
       if (ext==='.pdf') { openPdfDirect('/data/'+encPath(openPath)+'?lang='+openLang, openName); return; }
@@ -3757,6 +3937,7 @@
         const hasDual = !!treeData.hasDualLang;
         const matRow  = document.getElementById('stgMatLangRow');
         if (matRow) matRow.style.display = hasDual ? '' : 'none';
+        syncOpenLangRow();
         renderBreadcrumb();
         renderGrid(treeData);
       } catch (err) {
@@ -3771,7 +3952,7 @@
 
     /* ── Per-account settings sync (falls back to per-device localStorage) ──── */
     let _applyingSettings = false, _pushTimer = null;
-    const _SETTINGS_KEYS = new Set(['ki_lang', 'ki_mat_lang', 'ki_theme', 'ki_section_by', 'ki_section_order', 'ki_child_orders', 'ki_notify']);
+    const _SETTINGS_KEYS = new Set(['ki_lang', 'ki_mat_lang', 'ki_theme', 'ki_section_by', 'ki_section_order', 'ki_child_orders', 'ki_notify', 'ki_open_lang', 'ki_custom_accent', 'ki_custom_accent2']);
     (function () {
       const orig = localStorage.setItem.bind(localStorage);
       localStorage.setItem = function (k, v) { orig(k, v); if (_SETTINGS_KEYS.has(k)) scheduleSettingsPush(); };
@@ -3780,7 +3961,10 @@
       return {
         lang:         localStorage.getItem('ki_lang')          || undefined,
         matLang:      localStorage.getItem('ki_mat_lang')      || undefined,
+        openLang:     localStorage.getItem('ki_open_lang')     || undefined,
         theme:        localStorage.getItem('ki_theme')         || undefined,
+        customAccent:  localStorage.getItem('ki_custom_accent')  || undefined,
+        customAccent2: localStorage.getItem('ki_custom_accent2') || undefined,
         sectionBy:    localStorage.getItem('ki_section_by')    || undefined,
         sectionOrder: localStorage.getItem('ki_section_order') || undefined,
         childOrders:  localStorage.getItem('ki_child_orders')  || undefined,
@@ -3807,11 +3991,17 @@
       if (!s || typeof s !== 'object') return;
       _applyingSettings = true;
       try {
+        if (typeof s.customAccent === 'string') localStorage.setItem('ki_custom_accent', s.customAccent);
+        if (typeof s.customAccent2 === 'string') localStorage.setItem('ki_custom_accent2', s.customAccent2);
         if (s.theme) applyTheme(s.theme);
         if (s.lang === 'en' || s.lang === 'hu') { LANG = s.lang; localStorage.setItem('ki_lang', LANG); }
         if (s.matLang === 'en' || s.matLang === 'hu' || s.matLang === 'both') {
           MAT_LANG = s.matLang; localStorage.setItem('ki_mat_lang', MAT_LANG);
           document.querySelectorAll('#stgMatLangSeg .mat-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.matlang === MAT_LANG));
+        }
+        if (s.openLang === 'en' || s.openLang === 'hu') {
+          OPEN_LANG = s.openLang; localStorage.setItem('ki_open_lang', OPEN_LANG);
+          document.querySelectorAll('#stgOpenLangSeg .mat-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.openlang === OPEN_LANG));
         }
         if (s.sectionBy === 'type' || s.sectionBy === 'subject') { sectionBy = s.sectionBy; localStorage.setItem('ki_section_by', sectionBy); }
         if (typeof s.sectionOrder === 'string') { try { sectionOrder = JSON.parse(s.sectionOrder); } catch { sectionOrder = null; } localStorage.setItem('ki_section_order', s.sectionOrder); }
@@ -3847,14 +4037,29 @@
       if (reg) reg.style.display = which === 'register' ? '' : 'none';
       if (inv) inv.style.display = which === 'in'       ? '' : 'none';
     }
+    async function populateProfileStats() {
+      const av = document.getElementById('authAvatar'); if (av) av.textContent = (AUTH.user || '?').slice(0, 1).toUpperCase();
+      const chip = document.getElementById('authRoleChip'); if (chip) chip.textContent = AUTH.role === 'admin' ? (t('authRoleAdmin') || 'Admin') : (t('authRoleMember') || 'Member');
+      const nt = document.getElementById('authNotifToggle'); if (nt) nt.classList.toggle('on', localStorage.getItem('ki_notify') === '1');
+      const cEl = document.getElementById('authStatConvos'), uEl = document.getElementById('authStatUnread');
+      if (cEl) cEl.textContent = '\u2013'; if (uEl) uEl.textContent = '\u2013';
+      try {
+        const r = await fetch('/api/chat/list'); const d = await r.json();
+        const convos = (d && d.ok && d.conversations) ? d.conversations : [];
+        if (cEl) cEl.textContent = String(convos.length);
+        if (uEl) uEl.textContent = String(convos.reduce((a, c) => a + (c.unread || 0), 0));
+      } catch { if (cEl) cEl.textContent = '0'; if (uEl) uEl.textContent = '0'; }
+    }
     function openAuthModal() {
       if (AUTH.user) {
         showAuthView('in');
         document.getElementById('authWho').textContent = AUTH.user;
         const acp = document.getElementById('acpBlock');
         if (acp) acp.style.display = AUTH.role === 'admin' ? 'none' : '';
+        const dtb = document.getElementById('authDevtoolsBtn'); if (dtb) dtb.style.display = AUTH.role === 'admin' ? '' : 'none';
         ['acpOld','acpNew'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
         const m = document.getElementById('acpMsg'); if (m) { m.textContent = ''; m.className = 'auth-err'; }
+        populateProfileStats();
       } else {
         showAuthView('signin');
         document.getElementById('authErr').textContent = '';
@@ -4063,7 +4268,8 @@
         }
         const sender = (type === 'group' && !mine) ? '<div class="chat-sender">' + esc(m.from) + '</div>' : '';
         const quote = m.replyTo ? '<div class="chat-quote" data-goto="' + esc(m.replyTo) + '"><span class="cq-from">' + esc(m.replyFrom || '') + '</span><span class="cq-snip">' + esc(String(m.replyText || '').slice(0, 140)) + '</span></div>' : '';
-        const bubble = '<div class="chat-bubble ' + (mine ? 'me' : 'them') + '" data-mid="' + esc(m.id) + '">' + sender + quote + '<div>' + renderRefText(m.body) + '</div><div class="chat-time">' + esc(chatFmtTime(m.date)) + '</div></div>';
+        const noteRefHtml = m.noteRef ? '<div class="chat-noteref" data-nr-path="' + esc(m.noteRef.path) + '" data-nr-lang="' + esc(m.noteRef.lang || 'en') + '"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="cnr-label">' + esc(m.noteRef.label || String(m.noteRef.path).split('/').pop()) + '</span></div>' : '';
+        const bubble = '<div class="chat-bubble ' + (mine ? 'me' : 'them') + '" data-mid="' + esc(m.id) + '">' + sender + quote + '<div>' + renderRefText(m.body) + '</div>' + noteRefHtml + '<div class="chat-time">' + esc(chatFmtTime(m.date)) + '</div></div>';
         const rbtn = '<button class="chat-reply-btn" type="button" data-reply="' + esc(m.id) + '" title="' + MSGT('Reply', 'Válasz') + '" aria-label="Reply">↩</button>';
         return '<div class="chat-row ' + (mine ? 'me' : 'them') + '">' + rbtn + bubble + '</div>';
       }).join('');
@@ -4071,6 +4277,7 @@
       box.querySelectorAll('.ar-act').forEach(b => b.addEventListener('click', () => { const id = b.dataset.id, dec = b.dataset.act; const ri = box.querySelector('.ar-reason[data-id="' + id + '"]'); respondAccess(id, dec, ri ? ri.value.trim() : ''); }));
       box.querySelectorAll('.chat-reply-btn').forEach(b => b.addEventListener('click', () => setReplyTarget(b.dataset.reply)));
       box.querySelectorAll('.chat-quote').forEach(q => q.addEventListener('click', () => { const t = box.querySelector('[data-mid="' + q.dataset.goto + '"]'); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('chat-flash'); setTimeout(() => t.classList.remove('chat-flash'), 1100); } }));
+      box.querySelectorAll('.chat-noteref').forEach(el => el.addEventListener('click', () => openNoteByPath(el.dataset.nrPath, el.dataset.nrLang)));
       box.scrollTop = box.scrollHeight;
     }
 
@@ -4211,6 +4418,17 @@
     (function () {
       const on = (id, fn, ev) => { const el = document.getElementById(id); if (el) el.addEventListener(ev || 'click', fn); };
       on('authMessagesBtn', () => { closeAuthModal(); navigateTo('chat'); });
+      on('authDevtoolsBtn', () => { window.location.href = '/devtools'; });
+      on('authPrefsBtn', () => { closeAuthModal(); const sb = document.getElementById('settingsBtn'); if (sb) sb.click(); });
+      on('authMyNotesBtn', () => { closeAuthModal(); openMyNotes(); });
+      on('authNotifToggle', async () => {
+        const el = document.getElementById('authNotifToggle'); if (!el) return;
+        const turningOn = !el.classList.contains('on');
+        if (turningOn) { const okp = await requestNotifyPermission(); if (!okp) return; localStorage.setItem('ki_notify', '1'); }
+        else localStorage.setItem('ki_notify', '0');
+        el.classList.toggle('on');
+        const st = document.getElementById('stgNotifToggle'); if (st) st.classList.toggle('on', localStorage.getItem('ki_notify') === '1');
+      });
       on('chatSigninBtn', () => openAuthModal());
       on('chatNewDm', () => openPicker('dm'));
       on('chatNewGroup', () => openPicker('group'));
@@ -4320,6 +4538,7 @@
     let pdfCurrentName= '';
     let pdfCurrentPath= '';    // tex path for re-compile / source view
     let pdfCurrentLang= 'en';  // material language of the open document
+    let codeCurPath = '', codeCurName = '', codeCurLang = 'en';
     let pdfViewerCtx  = null;  // { enPath,enName,huPath,huName,enAvailable,huAvailable,curLang }
 
     // Build the viewer's language context from the clicked item so the EN/HU
@@ -5531,6 +5750,7 @@
     const codeModal = document.getElementById('codeModal');
 
     async function openCodeViewer(filePath, fileName, fileLang) {
+      codeCurPath = filePath; codeCurName = fileName; codeCurLang = fileLang || 'en';
       document.getElementById('codeModalTitle').textContent = displayFileName(fileName);
       codeModalFile = filePath;
       const codeEl = document.getElementById('codeContent');
@@ -6083,6 +6303,143 @@
       document.body.removeChild(el);
     }
 
+    // ── Discuss this note (note-linked conversations) ─────────────────────────
+    let _discussRef = null;
+    async function openDiscuss(notePath, noteName, noteLang) {
+      if (!AUTH.user) { openAuthModal(); return; }
+      if (!notePath) return;
+      let label = '', from = null, to = null;
+      try {
+        const selStr = window.getSelection ? String(window.getSelection()).trim() : '';
+        if (selStr) {
+          label = selStr.slice(0, 200);
+          const cc = document.getElementById('codeContent');
+          const rng = (window.getSelection().rangeCount) ? window.getSelection().getRangeAt(0) : null;
+          if (cc && rng && cc.contains(rng.commonAncestorContainer)) {
+            const pre = document.createRange(); pre.selectNodeContents(cc); pre.setEnd(rng.startContainer, rng.startOffset);
+            from = pre.toString().length; to = from + selStr.length;
+          }
+        }
+      } catch {}
+      _discussRef = { path: notePath, lang: noteLang || 'en', label, from, to };
+      const nm = displayFileName(noteName);
+      document.getElementById('discussNoteRef').innerHTML =
+        '<div style="font-size:12px;color:var(--text2);margin-bottom:4px">' + (label ? MSGT('Referencing a selection from', 'Hivatkozott részlet innen') : MSGT('Referencing note', 'Hivatkozott jegyzet')) + '</div>' +
+        '<div style="font-weight:600">' + esc(nm) + '</div>' +
+        (label ? '<div style="margin-top:6px;padding:7px 10px;border-left:3px solid var(--accent);background:var(--accent-dim);border-radius:6px;font-size:12.5px;max-height:80px;overflow:auto">“' + esc(label) + '”</div>' : '');
+      await loadUsersForPicker();
+      const sel = document.getElementById('discussTo');
+      sel.innerHTML = '<option value="">' + MSGT('Choose a person…', 'Válassz személyt…') + '</option>' +
+        (CHAT.users || []).map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('');
+      document.getElementById('discussMsg').value = '';
+      document.getElementById('discussModal').classList.add('open');
+      setTimeout(() => document.getElementById('discussTo').focus(), 60);
+    }
+    function closeDiscuss() { document.getElementById('discussModal').classList.remove('open'); _discussRef = null; }
+    async function sendDiscuss() {
+      if (!_discussRef) return;
+      const to = document.getElementById('discussTo').value;
+      const body = document.getElementById('discussMsg').value.trim();
+      if (!to) { showToast(MSGT('Pick a recipient', 'Válassz címzettet')); return; }
+      if (!body) { showToast(MSGT('Write a message first', 'Elsőként írj egy üzenetet')); return; }
+      const noteRef = { path: _discussRef.path, lang: _discussRef.lang, label: _discussRef.label || '' };
+      if (_discussRef.from != null && _discussRef.to != null) { noteRef.from = _discussRef.from; noteRef.to = _discussRef.to; }
+      try {
+        const r = await fetch('/api/chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to, body, noteRef }) });
+        const d = await r.json();
+        if (d && d.ok) { closeDiscuss(); showToast(MSGT('Message sent', 'Üzenet elküldve')); }
+        else showToast((d && d.error) || MSGT('Could not send', 'Nem sikerült elküldeni'));
+      } catch { showToast(MSGT('Could not send', 'Nem sikerült elküldeni')); }
+    }
+    document.getElementById('discussClose').addEventListener('click', closeDiscuss);
+    document.getElementById('discussCancel').addEventListener('click', closeDiscuss);
+    document.getElementById('discussSend').addEventListener('click', sendDiscuss);
+    document.getElementById('discussModal').addEventListener('click', e => { if (e.target.id === 'discussModal') closeDiscuss(); });
+    document.getElementById('pdfDiscuss').addEventListener('click', () => openDiscuss(pdfCurrentPath, pdfCurrentName, pdfCurrentLang));
+    document.getElementById('codeDiscuss').addEventListener('click', () => openDiscuss(codeCurPath, codeCurName, codeCurLang));
+
+    // ── My notes: site-side note management ───────────────────────────────────
+    let _mnNotes = [], _mgrNote = null;
+    async function openMyNotes() {
+      if (!AUTH.user) { openAuthModal(); return; }
+      const list = document.getElementById('mnList');
+      list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px">' + MSGT('Loading…', 'Betöltés…') + '</div>';
+      document.getElementById('myNotesModal').classList.add('open');
+      try { const r = await fetch('/api/mynotes'); const d = await r.json(); _mnNotes = (d && d.ok) ? d.notes : []; }
+      catch { _mnNotes = []; }
+      renderMyNotes();
+    }
+    function closeMyNotes() { document.getElementById('myNotesModal').classList.remove('open'); }
+    function renderMyNotes() {
+      const list = document.getElementById('mnList');
+      if (!_mnNotes.length) { list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px">' + MSGT('You do not manage any notes yet.', 'Még nem kezelsz egyetlen jegyzetet sem.') + '</div>'; return; }
+      list.innerHTML = _mnNotes.map((n, i) => {
+        const access = (n.canRead === 'whitelist') ? MSGT('restricted', 'korlátozott') : (n.canRead === 'members' ? MSGT('members only', 'csak tagok') : MSGT('public', 'nyilvános'));
+        const role = n.primary ? MSGT('owner', 'tulajdonos') : MSGT('collaborator', 'társszerző');
+        return '<div class="mn-row"><div class="mn-main"><div class="mn-name">' + esc(n.display) + '</div><div class="mn-sub"><span class="mn-chip">' + (n.lang === 'hu' ? 'HU' : 'EN') + '</span><span class="mn-chip role">' + role + '</span><span>' + access + '</span>' + (n.folder ? '<span>· ' + esc(n.folder) + '</span>' : '') + '</div></div><button class="msg-primary" data-mn-i="' + i + '">' + MSGT('Manage', 'Kezelés') + '</button></div>';
+      }).join('');
+      list.querySelectorAll('[data-mn-i]').forEach(b => b.addEventListener('click', () => { closeMyNotes(); openManage(_mnNotes[+b.dataset.mnI]); }));
+    }
+    function _mgrSetSeg(segId, attr, val) { document.querySelectorAll('#' + segId + ' button').forEach(b => b.classList.toggle('active', b.getAttribute(attr) === val)); }
+    function _mgrGetSeg(segId, attr) { const b = document.querySelector('#' + segId + ' button.active'); return b ? b.getAttribute(attr) : 'all'; }
+    function _mgrSyncUI() {
+      const see = _mgrGetSeg('mgrSeeSeg', 'data-see'), read = _mgrGetSeg('mgrReadSeg', 'data-read');
+      document.getElementById('mgrSeeAllowFld').style.display  = (see === 'whitelist') ? '' : 'none';
+      document.getElementById('mgrReadAllowFld').style.display = (read === 'whitelist') ? '' : 'none';
+      document.getElementById('mgrReadReqFld').style.display   = (read === 'whitelist') ? '' : 'none';
+    }
+    function _csv(v) { return String(v || '').split(',').map(x => x.trim()).filter(Boolean); }
+    function openManage(n) {
+      _mgrNote = n;
+      document.getElementById('mgrNoteName').textContent = n.display;
+      document.getElementById('mgrNoteSub').textContent = (n.lang === 'hu' ? 'Hungarian' : 'English') + (n.folder ? ' · ' + n.folder : '');
+      document.getElementById('mgrTags').value = (n.tags || []).join(', ');
+      document.getElementById('mgrAuthors').value = (n.authors || []).join(', ');
+      document.getElementById('mgrDate').value = n.date || '';
+      document.getElementById('mgrDesc').value = n.description || '';
+      _mgrSetSeg('mgrSeeSeg', 'data-see', n.canSee || 'all');
+      _mgrSetSeg('mgrReadSeg', 'data-read', n.canRead || 'all');
+      document.getElementById('mgrSeeAllow').value = (n.seeWhitelist || []).join(', ');
+      document.getElementById('mgrReadAllow').value = (n.readWhitelist || []).join(', ');
+      document.getElementById('mgrReadReq').checked = !!n.readRequests;
+      document.getElementById('mgrOwners').value = (n.owners || []).join(', ');
+      document.getElementById('mgrOwnersNote').textContent = n.primary
+        ? MSGT('You are the primary owner — the first name stays primary.', 'Te vagy az elsődleges tulajdonos — az első név marad az elsődleges.')
+        : MSGT('You are a collaborator: you may add owners or remove only yourself.', 'Társszerző vagy: hozzáadhatsz tulajdonosokat, de csak magadat távolíthatod el.');
+      _mgrSyncUI();
+      document.getElementById('manageModal').classList.add('open');
+    }
+    function closeManage() { document.getElementById('manageModal').classList.remove('open'); _mgrNote = null; }
+    async function saveManage() {
+      if (!_mgrNote) return;
+      const patch = {
+        tags: _csv(document.getElementById('mgrTags').value),
+        authors: _csv(document.getElementById('mgrAuthors').value),
+        date: document.getElementById('mgrDate').value.trim(),
+        description: document.getElementById('mgrDesc').value.trim(),
+        canSee: _mgrGetSeg('mgrSeeSeg', 'data-see'),
+        canRead: _mgrGetSeg('mgrReadSeg', 'data-read'),
+        readRequests: document.getElementById('mgrReadReq').checked,
+        seeAllow: _csv(document.getElementById('mgrSeeAllow').value),
+        readAllow: _csv(document.getElementById('mgrReadAllow').value),
+        owners: _csv(document.getElementById('mgrOwners').value),
+      };
+      try {
+        const r = await fetch('/api/note/manage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: _mgrNote.path, lang: _mgrNote.lang, patch }) });
+        const d = await r.json();
+        if (d && d.ok) { closeManage(); showToast(MSGT('Saved', 'Mentve')); openMyNotes(); }
+        else showToast((d && d.error) || MSGT('Could not save', 'Nem sikerült menteni'));
+      } catch { showToast(MSGT('Could not save', 'Nem sikerült menteni')); }
+    }
+    document.getElementById('mnClose').addEventListener('click', closeMyNotes);
+    document.getElementById('myNotesModal').addEventListener('click', e => { if (e.target.id === 'myNotesModal') closeMyNotes(); });
+    document.getElementById('mgrClose').addEventListener('click', closeManage);
+    document.getElementById('mgrCancel').addEventListener('click', closeManage);
+    document.getElementById('mgrSave').addEventListener('click', saveManage);
+    document.getElementById('manageModal').addEventListener('click', e => { if (e.target.id === 'manageModal') closeManage(); });
+    document.querySelectorAll('#mgrSeeSeg button').forEach(b => b.addEventListener('click', () => { _mgrSetSeg('mgrSeeSeg', 'data-see', b.getAttribute('data-see')); _mgrSyncUI(); }));
+    document.querySelectorAll('#mgrReadSeg button').forEach(b => b.addEventListener('click', () => { _mgrSetSeg('mgrReadSeg', 'data-read', b.getAttribute('data-read')); _mgrSyncUI(); }));
+
     // PDF viewer share button
     document.getElementById('pdfShare').addEventListener('click', () => {
       if (!pdfCurrentPath) return;
@@ -6372,6 +6729,7 @@
           theme:        currentThemeName(),
           lang:         LANG,
           matLang:      MAT_LANG,
+          openLang:     OPEN_LANG,
           fullDoc:      pdfFullDocMode,
           sectionBy:    sectionBy,
           sectionOrder: localStorage.getItem('ki_section_order') || 'null',
@@ -6416,6 +6774,10 @@
           MAT_LANG = _snap.matLang;
           localStorage.setItem('ki_mat_lang', MAT_LANG);
           loadTree();
+        }
+        if (OPEN_LANG !== _snap.openLang) {
+          OPEN_LANG = _snap.openLang;
+          localStorage.setItem('ki_open_lang', OPEN_LANG);
         }
         // Section-by
         if (sectionBy !== _snap.sectionBy) {
@@ -6517,6 +6879,14 @@
           markDirty();
         });
       });
+      ['stgCustomAccent', 'stgCustomAccent2'].forEach((id, idx) => {
+        const inp = document.getElementById(id);
+        if (inp) inp.addEventListener('input', () => {
+          localStorage.setItem(idx === 0 ? 'ki_custom_accent' : 'ki_custom_accent2', inp.value);
+          if (currentThemeName() === 'custom') applyCustomColors();
+          markDirty();
+        });
+      });
 
       /* ── Language segment ──────────────────────────────────────────── */
       document.getElementById('stgLangSeg').querySelectorAll('.stg-seg-btn').forEach(btn => {
@@ -6551,6 +6921,15 @@
           localStorage.setItem('ki_mat_lang', MAT_LANG);
           document.querySelectorAll('#stgMatLangSeg .mat-lang-btn').forEach(b => b.classList.toggle('active', b === btn));
           loadTree(); // reload with new mat_lang
+          syncOpenLangRow();
+          markDirty();
+        });
+      });
+      document.getElementById('stgOpenLangSeg') && document.getElementById('stgOpenLangSeg').querySelectorAll('.mat-lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          OPEN_LANG = btn.dataset.openlang === 'hu' ? 'hu' : 'en';
+          localStorage.setItem('ki_open_lang', OPEN_LANG);
+          document.querySelectorAll('#stgOpenLangSeg .mat-lang-btn').forEach(b => b.classList.toggle('active', b === btn));
           markDirty();
         });
       });
@@ -6735,6 +7114,9 @@
         document.querySelectorAll('#stgThemeSeg .stg-seg-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.theme === _theme);
         });
+        const _cr = document.getElementById('stgCustomColorsRow'); if (_cr) _cr.style.display = (_theme === 'custom') ? '' : 'none';
+        const _ca = document.getElementById('stgCustomAccent'); if (_ca) _ca.value = localStorage.getItem('ki_custom_accent') || '#c4a13c';
+        const _ca2 = document.getElementById('stgCustomAccent2'); if (_ca2) _ca2.value = localStorage.getItem('ki_custom_accent2') || '#e8c96a';
         // Language
         document.querySelectorAll('#stgLangSeg .stg-seg-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.lang === LANG);
@@ -6746,6 +7128,10 @@
         document.querySelectorAll('#stgMatLangSeg .mat-lang-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.matlang === MAT_LANG);
         });
+        document.querySelectorAll('#stgOpenLangSeg .mat-lang-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.openlang === OPEN_LANG);
+        });
+        syncOpenLangRow();
         // Section by
         document.querySelectorAll('#stgSectionBySeg .stg-seg-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.sectionby === sectionBy);
