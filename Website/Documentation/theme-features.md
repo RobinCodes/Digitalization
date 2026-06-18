@@ -1,8 +1,15 @@
 # Theme features
 
-Two additions to the Knowledge Index frontend (all in `index.html`, with server-side
-persistence support in `server.js`). Built on the existing `dark / light / teal / custom`
-theme model; **dark, light, and teal are unchanged**.
+Additions to the Knowledge Index frontend (in `index.html` and `devtools.html`, with server-side
+persistence support in `server.js`). The theme model is `dark / light / custom`; **dark and light
+are unchanged**. **Teal is no longer a standalone theme — it lives as a preset inside Custom.**
+(Teal is purely an opt-in preset now — it is never auto-applied; a legacy `teal` selection simply falls back to the Custom/Amethyst default.)
+
+The **default theme is now Custom (Amethyst preset)** for new visitors, and the Custom theme
+studio is always shown under Appearance — so the full set of presets is visible the moment you
+open Settings.
+
+**DevTools now shares the same themes.** `devtools.html` uses the same theme engine and the same `ki_theme` / `ki_custom_theme` storage as the main app, so whatever theme you pick in one applies in the other. Its theme switch offers Dark / Light / Custom, and a compact preset strip appears under the header when Custom is active (defaulting to Amethyst). Legacy DevTools-only theme selections are carried over once.
 
 ## 1. Powerful custom themes
 
@@ -17,13 +24,14 @@ just two accent swatches.
   picker). Fixed to the viewport, it shows through the blurred header.
 - **12 presets**, several radiant: Gold, **Teal**, Aurora, Sunset, Amethyst, Rose, Nordic,
   Emerald, Crimson, Mono, Daylight, Sky. Click one to load it as your current custom theme; the
-  active preset is highlighted. (Teal is included as a preset as requested — the built-in Teal
-  theme is still there too.)
+  active preset is highlighted. **Amethyst is the default** (what a fresh install and the
+  right-click action use); Teal is one of the presets here rather than a separate theme.
 
 ## 2. Right-click the theme button → your saved theme
 
 - **Right-click** the header theme button (or the mobile / PDF theme buttons) to instantly apply
-  your **right-click theme**. By default that's your latest Custom theme.
+  your **right-click theme**. By default this applies the **Amethyst** preset; save a theme and
+  mark it as the right-click target to override that default.
 - **Save themes:** name the current custom theme and hit Save. Saved themes are listed with
   **Apply**, **Right-click** (designate this one as the right-click target — tap again to clear),
   and **Delete**.
