@@ -6,6 +6,7 @@ grants.json
 chats.json
 changelog.json
 settings.json
+note-discussions.json
 
 # Server-side PDF render cache
 .pdf-cache/
