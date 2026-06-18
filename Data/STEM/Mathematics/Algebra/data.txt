@@ -1,7 +1,0 @@
-[Applied Algebra]
-tags: algebra
-authors: Robin Rovenszky
-date: 2024-09-15
-alt_hu: Alkalmazott Algebra
-important: true
-description: Covers group theory, rings, and field extensions
