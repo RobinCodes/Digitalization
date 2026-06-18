@@ -21,8 +21,8 @@
 \newtheorem{proposition}{Propozíció}[section]
 
 \title{Gráfelmélet}
-\author{Rovenszky Robin}
-\date{Legutóbb frissítve: 2026. Április 16.}
+\author{Rovenszky Robin \and Lengyel Zoltán Péter \and Simon László}
+\date{2026. Május 14.}
 
 \begin{document} % TODO: Improve the overall flow of this document
 
@@ -324,5 +324,102 @@ A gráfelmélet általában egyszerű, összefüggő irányítatlan gráfokkal f
     Ha egy gráfban minden pont foka 2, akkor van benne kör.
 \end{lemma}
 
+\begin{theorem}[Turán-tétel]
+    Pontosan nem definiáljuk vagy bizonyítjuk, de ehhez kapcsolódoan oldottuk meg a következő feladatot: 8 pontú egyszerű gráfban hány élt lehet behúzni, hogy ne legyen benne háromszög (három csúcsú kör)?
+\end{theorem}
+
+\section{$n$-pontú $k$-reguláris gráfok, síkgráfok}
+\begin{definition}[Reguláris gráf]
+    Olyan gráf, amelyben minden pont fokszáma egyenlő.
+\end{definition}
+
+\begin{definition}[Clique]
+    $n$-pontú teljes gráf. $K_5$: ötös clique.
+\end{definition}
+
+\begin{lemma}
+    5 pontú clique nem rajzolható fel egymást nem keresztező élekből, ha csak szakaszokat használhatunk, vagyis nem síkbarajzolható. Hasonlóan, $K_{3,3}$ nem síkbarajzolható.
+\end{lemma}
+\begin{proof}
+    Egyértelműen következik a Kuratowski-tételből. (Lsd. 5.1. Tétel)
+\end{proof}
+
+\begin{definition}[Síkbarajzolható]
+    Olyan gráf, mely lerajzolható úgy a síkon, hogy élei kizárólag a csúcspontokban találkoznak, ahol az éleket csak szakaszokkal jelölhetjük.
+\end{definition}
+
+\begin{theorem}[Kuratowski-tétel]
+    Egy gráf akkor és csak akkor síkbarajzolható, ha nem tartalmaz felosztott $K_{3,3}$-at vagy felosztott $K_5$-öt.
+\end{theorem}
+
+\begin{theorem}[Euler-tétel]
+    \[
+    V - E + F = 2
+    \]
+    ahol
+    \begin{itemize}
+        \item V = csúcsok száma,
+        \item E = élek száma,
+        \item F = lapok (tartományok) száma.
+    \end{itemize}
+\end{theorem}
+
+\begin{lemma}
+    8 csúcsú 4 reguláris gráf komplementergráfja a 8 csúcsú 3 reguláris gráf, emiatt a kétféle gráfból ugyan annyi van.
+\end{lemma}
+
+\section{Ramsey-típusú tételek}
+\begin{lemma}
+    6 tagú társaság ismerettségi gráfjában 
+    \begin{itemize}
+        \item biztosan lehet találni olyan 3 embert, amely közül bármely 2 ismeri egymást, vagy van 3 olyan, amelyek közül egyik se ismeri egymást,
+        \item egy 6 csúcsú egyszerű gráfban, vagy a komplementerében van háromszög.
+        \item egy 6 csúcsú teljes gráf éleit két színnel színezve mindig van egyszínű háromszög
+    \end{itemize}
+\end{lemma}
+
+\begin{lemma}
+    \[
+    R(3,3) = 6
+    \]
+    \[
+    R(3,3,3) = 17
+    \]
+    \[
+    R(3,3,3,3) \le 65
+    \]
+\end{lemma}
+
+\begin{lemma}
+    $n_{n\ge2}$ csúcsú egyszerű gráfban van legalább 2 azonos fokszámú pont.
+\end{lemma}
+\begin{proof}
+    \emph{Izolált pont:} Fokszáma 0.\\
+    \emph{Telített pont:} n-csúcsú gráfban fokszáma n.
+    
+    Ezek nem létezhetnek egyszerre, ezért n-csúcsú gráfban a fokszámokra $F_i$-kre rendre igaz, hogy $F_i \in [0, n-2]$ vagy $F_i \in [1, n-1]$, vagyis a tételünk igaz.
+\end{proof}
+
+$N(n,k)$ = n pont másik n ponttal összekötve, hány olyan van, ahol k metszéspont van?
+
+\centering
+\begin{tabular}{c|c|c|c|c|c|c|c}
+n\textbackslash k & 0 & 1 & 2 & 3 & 4 & 5 & 6\\
+\hline
+1 & 1 \\
+\hline
+2 & 1 & 1 \\
+\hline
+3 & 1 & 2 & 2 & 1 \\
+\hline
+4 & 1 & 3 & 5 & 6 & 5 & 3 & 1\\
+\end{tabular}
+
+\flushleft
+
+Általánosan 
+\[
+N(n, 1) = n-1.
+\]
 
 \end{document}

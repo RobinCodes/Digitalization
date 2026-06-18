@@ -1,0 +1,187 @@
+\documentclass[a4paper]{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+
+% --- Encoding & Language ---
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+% --- Math & Chemistry ---
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage[version=4]{mhchem} % chemical formulas
+\usepackage{siunitx}            % units, temperatures
+\usepackage{tikz}
+\usetikzlibrary{tikzmark, calc}
+\usepackage{mathtools}
+
+% --- Section formatting ---
+\usepackage{titlesec}
+
+% Allow deep section numbering and TOC
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+\makeatletter
+
+% ------------------------
+% LEVEL 4: subsubsubsection
+% ------------------------
+\titleclass{\subsubsubsection}{straight}[\subsubsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+
+\renewcommand\subsubsubsection{%
+  \@startsection{subsubsubsection}{4}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 4
+\newcommand*\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+
+% --------------------------
+% LEVEL 5: subsubsubsubsection
+% --------------------------
+\titleclass{\subsubsubsubsection}{straight}[\subsubsubsection]
+\newcounter{subsubsubsubsection}[subsubsubsection]
+\renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
+
+\renewcommand\subsubsubsubsection{%
+  \@startsection{subsubsubsubsection}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 5
+% Use level 4 internally for safety (LaTeX only knows TOC levels 1-4)
+\newcommand*\l@subsubsubsubsection{\@dottedtocline{4}{10em}{5em}}
+
+\makeatother
+
+\title{IV. Főcsoport: A széncsoport}
+\author{Rovenszky Robin}
+\date{2026. Május 19.}
+
+\newtheorem{definition}{Definíció}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\vspace{14pt}
+\hrule
+
+\section{A széncsoport}
+
+4 db vegyérték elektron\\
+$\rightarrow$ 4 db kovalens kötés (C, Si)
+
+\noindent
+\begin{minipage}{0.78\textwidth}
+\begin{enumerate}
+    \item Szén (C)
+    \item Szilícium (Si)
+    \item Germánium (Ge)
+    \item Ón (Sn)
+    \item Ólom (Pb)
+\end{enumerate}
+
+5 db vegyérték elektron $\implies$ a nemesgáz elektronszerkezetének eléréséhez:
+    \begin{itemize}
+        \item 3 db kovalens kötés\\
+        Pl.: Ammónia 
+        \vspace{-10pt}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.3\textwidth]{Assets/Chemistry/Main Group V/NH_3.png}
+        \end{figure}
+        \vspace{-30pt}
+    \end{itemize}
+    
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.1\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Assets/Chemistry/Main Group IV/Periodic_Table.png}
+    \end{minipage}
+        
+    \begin{itemize}
+    
+        \item 3-szoros negatív töltésű anion (pl. $N^{3-}$ - nitrid-ion). \\
+        Egyedi, mert lényegében csak a nitrogén tud ennyi iont felvenni, mivel nagyon nagy az elektronegativitása.
+        \item Az is lehetséges, hogy a nitrogén 5 db kovalens kötést létesítsen. Pl.: $HNO_3$ - salétromsav
+
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.3\textwidth]{Assets/Chemistry/Main Group V/HNO_3.png}
+        \end{figure}
+        
+        A nitrogén túllépett a nemesgáz elektroszerkezetén, de ez így is energetikailag kedvező.
+    \end{itemize}
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{p{2.5cm}|p{4cm}|p{4cm}}
+    
+    Szempont & $CO_2$ & $CO$ \\ 
+    \hline
+    
+    Keletkezés &
+    Szén égésekor:
+    $C + O_2 \rightarrow CO_2$
+
+    C-tartalmú anyag égésekor.
+    Pl:
+    $CH_4 + 2O_2 \rightarrow CO_2 + 2H_2O$
+    & 
+    a\\
+    
+    \hline
+    
+    Élettani hatás & 
+    a & 
+    a\\
+    
+    \hline
+
+    Előfordulás & 
+    a & 
+    a \\
+    
+    \hline
+    
+    Környezeti hatás & 
+    a &
+    a \\
+    
+    \hline
+    
+    Felhasználás & 
+    a & 
+    a
+    
+    \end{tabular}
+    
+    \caption{Szén vegyületek}
+    \label{tab:example}
+\end{table}
+
+\end{document}

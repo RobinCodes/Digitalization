@@ -1,0 +1,30 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+\usepackage{graphicx}
+
+\title{Combinatorial problems}
+\author{Robin Rovenszky}
+\date{Last updated: May 11, 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem 1.}
+We are given numbers $n_i \in [1, 7]$ with $n_i \in \mathbb{N^+}$. We write down the digits $n_1$ through $n_7$ in some order, or in other words, we permute them. Then we count how many times the following relation holds.
+\begin{equation}
+n_i = n_{i+1} - 1.
+\end{equation}
+Then we define $N(n, k)$ to be the number of permutations where relation (1) is satisfied exactly $k$ times, with $max(n_i) = n$.
+Since for $n = 7$, the number of permutations ($7! = 5040$) is already much larger than to be ideal for case-by-case analysis, we seek a recursive formula for the value of $N(n, k)$.
+
+\end{document}
