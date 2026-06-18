@@ -21,8 +21,6 @@ Thumbs.db
 *.swp
 *~
 
-Tests/
-
 # ── Your real content (optional) ──────────────────────────────────────────────
 # Demo content ships under sample-data/. If you keep your *real* notes inside the
 # repository folder, uncomment these so your library stays private on GitHub:

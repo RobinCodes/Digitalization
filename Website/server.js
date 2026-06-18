@@ -23,6 +23,7 @@ const __USERS       = path.join(__dirname, 'users.json');
 const __SETTINGS    = path.join(__dirname, 'settings.json');
 const __GRANTS      = path.join(__dirname, 'grants.json');
 const __CHATS       = path.join(__dirname, 'chats.json');
+const __NOTE_DISCUSS = path.join(__dirname, 'note-discussions.json');
 
 fs.mkdirSync(__CACHE, { recursive: true });
 
@@ -86,6 +87,20 @@ function sendJSON(res, data, status = 200) {
     'Cache-Control': 'no-store',
   }));
   res.end(body);
+}
+
+// Serve an app-shell HTML page with a per-request CSP nonce substituted in.
+function serveHtmlShell(res, req, fullPath) {
+  let html;
+  try { html = fs.readFileSync(fullPath, 'utf8'); }
+  catch { res.writeHead(404); return res.end('Not Found'); }
+  const nonce = res._cspNonce || '';
+  html = html.split('__CSP_NONCE__').join(nonce);
+  const buf = Buffer.from(html, 'utf8');
+  const headers = cors({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Length': String(buf.length) });
+  if (req && req.method === 'HEAD') { res.writeHead(200, headers); return res.end(); }
+  res.writeHead(200, headers);
+  res.end(buf);
 }
 
 function serveFile(res, req, fullPath, forceDownload = false) {
@@ -890,7 +905,12 @@ function cleanSettings(j) {
   if (j && typeof j === 'object') {
     if (j.lang === 'en' || j.lang === 'hu') out.lang = j.lang;
     if (j.matLang === 'en' || j.matLang === 'hu' || j.matLang === 'both') out.matLang = j.matLang;
-    if (j.theme === 'dark' || j.theme === 'light' || j.theme === 'teal') out.theme = j.theme;
+    if (j.theme === 'dark' || j.theme === 'light' || j.theme === 'teal' || j.theme === 'custom') out.theme = j.theme;
+    if (typeof j.customAccent  === 'string' && j.customAccent.length  <= 32)    out.customAccent  = j.customAccent;
+    if (typeof j.customAccent2 === 'string' && j.customAccent2.length <= 32)    out.customAccent2 = j.customAccent2;
+    if (typeof j.customTheme   === 'string' && j.customTheme.length   <= 4096)  out.customTheme   = j.customTheme;
+    if (typeof j.savedThemes   === 'string' && j.savedThemes.length   <= 65536) out.savedThemes   = j.savedThemes;
+    if (typeof j.rclickTheme   === 'string' && j.rclickTheme.length   <= 64)    out.rclickTheme   = j.rclickTheme;
     if (j.sectionBy === 'type' || j.sectionBy === 'subject') out.sectionBy = j.sectionBy;
     if (typeof j.sectionOrder === 'string' && j.sectionOrder.length <= 8192) out.sectionOrder = j.sectionOrder;
     if (typeof j.childOrders === 'string' && j.childOrders.length <= 65536) out.childOrders = j.childOrders;
@@ -918,6 +938,9 @@ function requestRecipients(relPath, lang) {
 // ── Chat conversations (DMs + group chats; text only) ─────────────────────────
 function loadChats() { try { const o = JSON.parse(fs.readFileSync(__CHATS, 'utf8')); return (o && Array.isArray(o.conversations)) ? o : { conversations: [] }; } catch { return { conversations: [] }; } }
 function saveChats(o) { writeFileAtomic(__CHATS, JSON.stringify(o, null, 2) + '\n'); }
+function loadNoteDiscuss() { try { const o = JSON.parse(fs.readFileSync(__NOTE_DISCUSS, 'utf8')); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch { return {}; } }
+function saveNoteDiscuss(o) { writeFileAtomic(__NOTE_DISCUSS, JSON.stringify(o, null, 2) + '\n'); }
+function noteDiscussKey(p, lang) { return (lang === 'hu' ? 'hu' : 'en') + ':' + String(p); }
 function chatParticipant(c, name) { const n = String(name).toLowerCase(); return (c.participants || []).some(p => String(p).toLowerCase() === n); }
 function chatUnread(c, name) { const n = String(name).toLowerCase(); const last = (c.reads && c.reads[n]) || ''; return (c.messages || []).filter(m => String(m.from).toLowerCase() !== n && (m.date || '') > last).length; }
 function findDM(chats, a, b) { const A = String(a).toLowerCase(), B = String(b).toLowerCase(); return chats.conversations.find(c => c.type === 'dm' && (c.participants || []).length === 2 && c.participants.map(x => String(x).toLowerCase()).includes(A) && c.participants.map(x => String(x).toLowerCase()).includes(B)); }
@@ -1127,9 +1150,20 @@ const server = http.createServer((req, res) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  // Per-request nonce: the app shell (index.html / devtools.html) uses a strict
+  // nonce-based script-src with NO 'unsafe-inline'; article pages keep 'unsafe-inline'
+  // because they are admin-authored documents that may carry inline scripts/handlers.
+  const _cspNonce = crypto.randomBytes(16).toString('base64');
+  res._cspNonce = _cspNonce;
+  let _cspPath = '/';
+  try { _cspPath = decodeURIComponent((req.url || '/').split('?')[0]); } catch { _cspPath = (req.url || '/').split('?')[0]; }
+  const _cspShell = (_cspPath === '/' || _cspPath === '/index.html' || _cspPath === '/devtools' || _cspPath === '/devtools/' || _cspPath === '/devtools.html');
+  const _scriptSrc = _cspShell
+    ? `script-src 'self' 'nonce-${_cspNonce}' https://cdnjs.cloudflare.com`
+    : "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com";
   res.setHeader('Content-Security-Policy', [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+    _scriptSrc,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
     "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
     "img-src 'self' data: blob:",
@@ -1145,7 +1179,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (pathname === '/devtools' || pathname === '/devtools/')
-    return serveFile(res, req, path.join(__WEBSITE, 'devtools.html'));
+    return serveHtmlShell(res, req, path.join(__WEBSITE, 'devtools.html'));
 
   if (pathname === '/api/compile' && req.method === 'POST') return handleCompile(req, res);
 
@@ -1650,6 +1684,59 @@ const server = http.createServer((req, res) => {
     });
     return;
   }
+  // ── Per-note discussion: a shared thread attached to a note (feature) ───────
+  // Readable/postable only by signed-in users who can view the note.
+  if (pathname === '/api/note/discussion' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    const p = query.path, lang = query.lang === 'hu' ? 'hu' : 'en';
+    if (!p) return sendJSON(res, { ok: false, error: 'Missing path.' }, 400);
+    if (!canViewNote(req, p, lang)) return sendJSON(res, { ok: false, error: 'No access to this note.' }, 403);
+    const all = loadNoteDiscuss();
+    return sendJSON(res, { ok: true, messages: all[noteDiscussKey(p, lang)] || [] });
+  }
+  if (pathname === '/api/note/discussion' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const p = j.path, lang = j.lang === 'hu' ? 'hu' : 'en';
+      if (!p) return sendJSON(res, { ok: false, error: 'Missing path.' }, 400);
+      if (!canViewNote(req, p, lang)) return sendJSON(res, { ok: false, error: 'No access to this note.' }, 403);
+      let text = String(j.body || '').trim();
+      if (!text) return sendJSON(res, { ok: false, error: 'Message is empty.' }, 400);
+      if (text.length > 8000) text = text.slice(0, 8000);
+      const all = loadNoteDiscuss(), key = noteDiscussKey(p, lang);
+      const thread = Array.isArray(all[key]) ? all[key] : (all[key] = []);
+      const msg = { id: crypto.randomUUID(), from: s.username, body: text, date: new Date().toISOString() };
+      thread.push(msg);
+      if (thread.length > 500) all[key] = thread.slice(-500);
+      try { saveNoteDiscuss(all); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, message: msg });
+    });
+    return;
+  }
+  if (pathname === '/api/note/discussion/delete' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const p = j.path, lang = j.lang === 'hu' ? 'hu' : 'en', id = String(j.id || '');
+      if (!p || !id) return sendJSON(res, { ok: false, error: 'Missing path or id.' }, 400);
+      const all = loadNoteDiscuss(), key = noteDiscussKey(p, lang);
+      const thread = Array.isArray(all[key]) ? all[key] : [];
+      const m = thread.find(x => x.id === id);
+      if (!m) return sendJSON(res, { ok: false, error: 'Message not found.' }, 404);
+      if (String(m.from).toLowerCase() !== String(s.username).toLowerCase()) return sendJSON(res, { ok: false, error: 'You can only delete your own messages.' }, 403);
+      all[key] = thread.filter(x => x.id !== id);
+      try { saveNoteDiscuss(all); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+
   if (pathname === '/api/chat/send' && req.method === 'POST') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
@@ -1923,6 +2010,7 @@ const server = http.createServer((req, res) => {
   if (isProtectedStatic(decodeURIComponent(rel))) { res.writeHead(404); return res.end('Not Found'); }
   let full; try { full = safePath(__WEBSITE, rel); } catch { res.writeHead(403); return res.end('Forbidden'); }
   try { if (fs.statSync(full).isDirectory()) full = path.join(full, 'index.html'); } catch {}
+  if (full === path.join(__WEBSITE, 'index.html')) return serveHtmlShell(res, req, full);
   return serveFile(res, req, full);
 });
 

@@ -50,6 +50,100 @@
       --red:#d07070; --blue:#5fa8d8; --teal:#4fd0c0; --green:#5fc98f; --purple:#9a86d8;
       --hdr-bg:rgba(6,9,11,.88);
     }
+    /* ── CUSTOM THEME: radiant background ────────────────────────────── */
+    body.theme-custom{background-color:var(--bg);background-image:var(--bg-radiant,none);background-attachment:fixed;background-repeat:no-repeat}
+    /* Theme studio (Settings → Appearance → Custom) */
+    .thm-studio{display:flex;flex-direction:column;gap:15px;width:100%;margin-top:4px}
+    .thm-group-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text2);margin-bottom:7px}
+    .thm-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    @media(min-width:520px){.thm-presets{grid-template-columns:repeat(4,1fr)}}
+    .thm-preset{position:relative;border:1px solid var(--border-md);border-radius:9px;padding:7px;cursor:pointer;background:var(--bg2);transition:border-color .18s,transform .18s var(--tr-spring),box-shadow .18s;overflow:hidden}
+    .thm-preset:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.3)}
+    .thm-preset.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+    .thm-swatch{height:34px;border-radius:6px;padding:5px 6px;display:flex;align-items:flex-end;border:1px solid rgba(255,255,255,.08)}
+    .thm-preset-name{font-family:var(--font-ui);font-size:11px;color:var(--text);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:6px}
+    .thm-pickers{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+    .thm-pick{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+    .thm-pick label{font-family:var(--font-ui);font-size:12px;color:var(--text2)}
+    .thm-row-flex{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .thm-saved{display:flex;flex-direction:column;gap:6px}
+    .thm-saved-item{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 8px 6px 10px}
+    .thm-saved-sw{width:30px;height:18px;border-radius:4px;flex:none}
+    .thm-saved-name{flex:1;font-family:var(--font-ui);font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .thm-mini{font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);border:1px solid var(--border-md);border-radius:6px;padding:4px 8px;cursor:pointer;background:none;transition:color .15s,border-color .15s,background .15s;white-space:nowrap}
+    .thm-mini:hover{color:var(--accent);border-color:var(--accent)}
+    .thm-mini.danger:hover{color:var(--red);border-color:var(--red)}
+    .thm-mini.is-rclick{color:var(--bg);background:var(--accent);border-color:var(--accent)}
+    .thm-save-row{display:flex;gap:8px;align-items:center}
+    .thm-name-input{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border-md);border-radius:7px;padding:7px 10px;color:var(--text);font-family:var(--font-ui);font-size:12px;outline:none}
+    .thm-name-input:focus{border-color:var(--accent)}
+    .thm-switch{width:38px;height:22px;border-radius:99px;background:var(--bg4);border:1px solid var(--border-md);position:relative;cursor:pointer;transition:background .2s,border-color .2s;flex:none}
+    .thm-switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--text2);transition:transform .2s var(--tr-spring),background .2s}
+    .thm-switch.on{background:var(--accent-dim);border-color:var(--accent)}
+    .thm-switch.on::after{transform:translateX(16px);background:var(--accent)}
+    .thm-hint{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:.03em;line-height:1.5}
+    /* ── Reference-this-note message input (feature 1) ───────────────── */
+    .disc-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 12px;font:inherit;font-size:13.5px;line-height:1.5;resize:vertical;min-height:88px;transition:border-color .15s,box-shadow .15s;outline:none}
+    .disc-textarea::placeholder{color:var(--text3)}
+    .disc-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+
+    /* ── Per-note discussion side panel (feature 2) ──────────────────── */
+    #notePanel{position:fixed;top:0;right:0;bottom:0;width:min(420px,92vw);background:var(--bg2);border-left:1px solid var(--border);z-index:8600;display:flex;flex-direction:column;transform:translateX(101%);transition:transform .28s var(--tr-spring);box-shadow:-16px 0 48px rgba(0,0,0,.34)}
+    #notePanel.open{transform:translateX(0)}
+    .np-head{flex:none;display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .np-titles{flex:1;min-width:0}
+    .np-title{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+    .np-title svg{color:var(--accent)}
+    .np-note{font-family:var(--font-mono);font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+    .np-x{background:transparent;border:0;color:var(--text2);cursor:pointer;font-size:23px;line-height:1;width:30px;flex:none}
+    .np-x:hover{color:var(--accent)}
+    .np-thread{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:13px}
+    .np-msg{display:flex;flex-direction:column;gap:3px;position:relative;padding-right:18px}
+    .np-msg-head{display:flex;align-items:baseline;gap:8px}
+    .np-from{font-size:12px;font-weight:700;color:var(--accent)}
+    .np-time{font-size:10.5px;color:var(--text3);font-family:var(--font-mono)}
+    .np-body{font-size:13.5px;color:var(--text);line-height:1.55;white-space:pre-wrap;word-break:break-word}
+    .np-body .cl-ref{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent);cursor:pointer}
+    .np-del{position:absolute;top:0;right:0;background:transparent;border:0;color:var(--text3);cursor:pointer;font-size:12px;opacity:0;transition:opacity .15s,color .15s}
+    .np-msg:hover .np-del{opacity:1}
+    .np-del:hover{color:var(--red)}
+    .np-empty{margin:auto;text-align:center;color:var(--text3);font-size:13px;padding:26px;line-height:1.5}
+    .np-compose{flex:none;border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;align-items:flex-end}
+    .np-compose textarea{flex:1;resize:none;background:var(--bg);border:1px solid var(--border);border-radius:16px;color:var(--text);padding:9px 14px;font:inherit;font-size:13.5px;max-height:120px;line-height:1.4;overflow-y:hidden;outline:none;transition:border-color .15s}
+    .np-compose textarea:focus{border-color:var(--accent)}
+    @media(max-width:768px){#notePanel{width:100%}}
+
+    /* ── Reference button + picker (feature 3) ───────────────────────── */
+    .chat-ref-btn,.np-ref-btn{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .12s,border-color .12s,transform .12s}
+    .chat-ref-btn:hover,.np-ref-btn:hover{color:var(--accent);border-color:var(--accent)}
+    .chat-ref-btn:active,.np-ref-btn:active{transform:scale(.92)}
+    .chat-ref-btn svg,.np-ref-btn svg{width:18px;height:18px}
+    #refPicker{position:fixed;z-index:9100;width:300px;max-width:94vw;background:var(--bg2);border:1px solid var(--border-md);border-radius:12px;box-shadow:0 18px 52px rgba(0,0,0,.5);opacity:0;transform:translateY(8px) scale(.98);pointer-events:none;transition:opacity .16s,transform .16s;overflow:hidden}
+    #refPicker.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+    .refp-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border)}
+    .refp-back{background:transparent;border:0;color:var(--text2);cursor:pointer;font-size:18px;line-height:1;width:22px;display:none}
+    .refp-back:hover{color:var(--accent)}
+    .refp-title{flex:1;font-size:13px;font-weight:700;color:var(--text)}
+    .refp-x{background:transparent;border:0;color:var(--text2);cursor:pointer;font-size:19px;line-height:1;width:24px}
+    .refp-x:hover{color:var(--accent)}
+    .refp-kinds{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px}
+    .refp-kind{display:flex;align-items:center;gap:9px;padding:11px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text);cursor:pointer;font-size:13px;font-weight:600;transition:border-color .14s,transform .14s var(--tr-spring),background .14s}
+    .refp-kind:hover{border-color:var(--accent);transform:translateY(-1px)}
+    .refp-kind svg{width:17px;height:17px;color:var(--accent);flex:none}
+    .refp-body{padding:10px 12px 12px}
+    .refp-search{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 11px;font:inherit;font-size:13px;outline:none;margin-bottom:8px}
+    .refp-search:focus{border-color:var(--accent)}
+    .refp-list{max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+    .refp-item{text-align:left;background:transparent;border:0;border-radius:7px;padding:8px 10px;color:var(--text);cursor:pointer;font:inherit;font-size:12.5px;line-height:1.35;transition:background .12s}
+    .refp-item:hover{background:var(--bg3)}
+    .refp-item-sub{display:block;font-size:10.5px;color:var(--text3);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+    .refp-empty{padding:18px 8px;text-align:center;color:var(--text3);font-size:12px}
+    .refp-field{display:block;margin-bottom:9px}
+    .refp-field span{display:block;font-size:11px;color:var(--text2);margin-bottom:4px}
+    .refp-field input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 11px;font:inherit;font-size:13px;outline:none}
+    .refp-field input:focus{border-color:var(--accent)}
+    .refp-insert{width:100%;background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:9px;font-weight:700;cursor:pointer;font-size:13px}
+    .refp-insert:hover{filter:brightness(1.08)}
     ::-webkit-scrollbar{width:5px;height:5px}
     ::-webkit-scrollbar-track{background:var(--bg2)}
     ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:999px;opacity:.7}
@@ -1999,13 +2093,15 @@
   </div>
   <div id="discussModal">
     <div class="msg-sheet" style="max-width:460px">
-      <div class="msg-head"><h2 id="discussTitle">Discuss this note</h2><button class="msg-x" id="discussClose" type="button" aria-label="Close">&times;</button></div>
+      <div class="msg-head"><h2 id="discussTitle" data-i18n="referenceNote">Reference this note</h2><button class="msg-x" id="discussClose" type="button" aria-label="Close">&times;</button></div>
       <div class="access-box">
         <div class="access-note" id="discussNoteRef"></div>
         <label class="mgr-fld"><span id="discussToLbl">Send to</span>
           <select id="discussTo"></select>
         </label>
-        <textarea id="discussMsg" rows="3" placeholder="Write your message…"></textarea>
+        <label class="mgr-fld"><span data-i18n="discussMsgLbl">Message</span>
+          <textarea id="discussMsg" class="disc-textarea" rows="4" placeholder="Write your message…" data-i18n-ph="discussMsgPh"></textarea>
+        </label>
         <div class="msg-compose-row"><span style="flex:1"></span><button class="msg-ghost" id="discussCancel" type="button">Cancel</button><button class="msg-primary" id="discussSend" type="button">Send</button></div>
       </div>
     </div>
@@ -2160,6 +2256,7 @@
                 <button class="crb-x" id="chatReplyCancel" type="button" aria-label="Cancel reply">✕</button>
               </div>
               <div class="chat-compose">
+                <button class="chat-ref-btn" id="chatRefBtn" type="button" aria-label="Insert reference" title="Insert reference"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
                 <textarea id="chatInput" rows="1" placeholder="Write a message"></textarea>
                 <button class="chat-send" id="chatSend" type="button" aria-label="Send">➤</button>
               </div>
@@ -2233,7 +2330,11 @@
         </button>
         <button class="pdf-tbtn accent" id="pdfDiscuss">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <span data-i18n="discuss">Discuss</span>
+          <span data-i18n="referenceNote">Reference this note</span>
+        </button>
+        <button class="pdf-tbtn accent" id="pdfDiscussion">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <span data-i18n="discussion">Discussion</span>
         </button>
         <button class="pdf-tbtn accent" id="pdfShare">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -2419,7 +2520,8 @@
         <div class="modal-btns">
           <button class="modal-btn" id="codeModalCopy">⎘ <span data-i18n="copyCode">Copy</span></button>
           <button class="modal-btn" id="codeModalDownload">↓ <span data-i18n="download">Download</span></button>
-          <button class="modal-btn" id="codeDiscuss">⌨ <span data-i18n="discuss">Discuss</span></button>
+          <button class="modal-btn" id="codeDiscuss">↪ <span data-i18n="referenceNote">Reference this note</span></button>
+          <button class="modal-btn" id="codeDiscussion">💬 <span data-i18n="discussion">Discussion</span></button>
           <button class="modal-btn danger" id="codeModalClose">✕ <span data-i18n="close">Close</span></button>
         </div>
       </div>
@@ -2506,13 +2608,36 @@
             </div>
           </div>
           <div class="stg-row" id="stgCustomColorsRow" style="display:none">
-            <div>
-              <div class="stg-lbl" data-i18n="stgCustomColors">Custom colors</div>
-              <div class="stg-sublbl" data-i18n="stgCustomColorsSub">Accent and highlight</div>
-            </div>
-            <div class="stg-color-wrap">
-              <input type="color" id="stgCustomAccent" class="stg-color" value="#c4a13c" aria-label="Accent color">
-              <input type="color" id="stgCustomAccent2" class="stg-color" value="#e8c96a" aria-label="Highlight color">
+            <div class="thm-studio">
+              <div>
+                <div class="thm-group-lbl" data-i18n="stgPresets">Presets</div>
+                <div class="thm-presets" id="thmPresets"></div>
+              </div>
+              <div>
+                <div class="thm-group-lbl" data-i18n="stgColors">Colors</div>
+                <div class="thm-pickers">
+                  <div class="thm-pick"><label data-i18n="stgClrAccent">Accent</label><input type="color" id="stgCustomAccent" class="stg-color" value="#c4a13c" aria-label="Accent color"></div>
+                  <div class="thm-pick"><label data-i18n="stgClrHighlight">Highlight</label><input type="color" id="stgCustomAccent2" class="stg-color" value="#e8c96a" aria-label="Highlight color"></div>
+                  <div class="thm-pick"><label data-i18n="stgClrBg">Background</label><input type="color" id="stgCustomBg" class="stg-color" value="#07070a" aria-label="Background color"></div>
+                  <div class="thm-pick"><label data-i18n="stgClrText">Text</label><input type="color" id="stgCustomText" class="stg-color" value="#e0dbd0" aria-label="Text color"></div>
+                </div>
+              </div>
+              <div class="thm-row-flex">
+                <div><div class="stg-lbl" data-i18n="stgRadiant">Radiant glow</div><div class="stg-sublbl" data-i18n="stgRadiantSub">Soft gradient backdrop</div></div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <input type="color" id="stgRadiantColor" class="stg-color" value="#c4a13c" aria-label="Radiant color" style="display:none">
+                  <div class="thm-switch" id="stgRadiantToggle" role="switch" tabindex="0" aria-label="Radiant glow"></div>
+                </div>
+              </div>
+              <div>
+                <div class="thm-group-lbl" data-i18n="stgSavedThemes">Saved themes</div>
+                <div class="thm-save-row">
+                  <input type="text" class="thm-name-input" id="thmNameInput" maxlength="32" placeholder="Name this theme…" data-i18n-ph="stgThemeNamePh">
+                  <button class="thm-mini" id="thmSaveBtn" data-i18n="stgSave">Save</button>
+                </div>
+                <div class="thm-saved" id="thmSaved" style="margin-top:8px"></div>
+                <div class="thm-hint" data-i18n="stgRclickHint" style="margin-top:8px">Right-click the theme button in the header to apply your right-click theme.</div>
+              </div>
             </div>
           </div>
         </div>
@@ -2719,10 +2844,35 @@
   <!-- HIDDEN PRINT IFRAME -->
   <iframe id="printFrame" style="display:none"></iframe>
 
+  <!-- Per-note discussion panel (feature 2) -->
+  <aside id="notePanel" aria-label="Note discussion">
+    <div class="np-head">
+      <div class="np-titles">
+        <div class="np-title"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span data-i18n="npTitle">Discussion</span></div>
+        <div class="np-note" id="npNoteName"></div>
+      </div>
+      <button class="np-x" id="npClose" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div class="np-thread" id="npThread"></div>
+    <div class="np-compose">
+      <button class="np-ref-btn" id="npRefBtn" type="button" aria-label="Insert reference" title="Insert reference"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+      <textarea id="npInput" rows="1" placeholder="Write a message" data-i18n-ph="npPlaceholder"></textarea>
+      <button class="chat-send" id="npSend" type="button" aria-label="Send">➤</button>
+    </div>
+  </aside>
+  <!-- Reference picker (feature 3) -->
+  <div id="refPicker" role="dialog" aria-label="Insert reference">
+    <div class="refp-head">
+      <button class="refp-back" id="refpBack" type="button" aria-label="Back">‹</button>
+      <span class="refp-title" id="refpTitle">Insert reference</span>
+      <button class="refp-x" id="refpX" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div id="refpContent"></div>
+  </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
+  <script nonce="__CSP_NONCE__">
   (() => {
     'use strict';
 
@@ -2801,6 +2951,25 @@
         close:        'Close',
         share:        'Share',
         discuss:      'Discuss',
+        referenceNote:  'Reference this note',
+        discussion:     'Discussion',
+        discussMsgLbl:  'Message',
+        discussMsgPh:   'Write your message…',
+        npTitle:        'Discussion',
+        npPlaceholder:  'Write a message',
+        npEmpty:        'No messages yet — start the discussion.',
+        npFailed:       'Could not load the discussion.',
+        refInsertTitle: 'Insert reference',
+        refKindNote:    'Note',
+        refKindArticle: 'Article',
+        refKindLog:     'Log',
+        refKindLink:    'Link',
+        refSearch:      'Search…',
+        refNone:        'Nothing found.',
+        refLabel:       'Label',
+        refLabelPh:     'Link text',
+        refUrl:         'URL',
+        refInsert:      'Insert',
         myNotes:      'My notes',
         clear:        'Clear',
         // Context menu
@@ -2834,6 +3003,25 @@
         stgCustom:      'Custom',
         stgCustomColors:    'Custom colors',
         stgCustomColorsSub: 'Accent and highlight',
+        stgPresets:     'Presets',
+        stgColors:      'Colors',
+        stgClrAccent:   'Accent',
+        stgClrHighlight:'Highlight',
+        stgClrBg:       'Background',
+        stgClrText:     'Text',
+        stgRadiant:     'Radiant glow',
+        stgRadiantSub:  'Soft gradient backdrop',
+        stgSavedThemes: 'Saved themes',
+        stgSave:        'Save',
+        stgThemeNamePh: 'Name this theme…',
+        stgApply:       'Apply',
+        stgDelete:      'Delete',
+        stgSetRclick:   'Right-click',
+        stgRclickHint:  'Right-click the theme button in the header to apply your right-click theme.',
+        stgThemeSaved:  'Theme saved',
+        stgRclickSet:   'Right-click theme set',
+        stgThemeApplied:'Theme applied',
+        stgNoSaved:     'No saved themes yet.',
         stgLanguage:    'Language',
         stgLangLabel:   'Interface language',
         stgPdfViewer:   'PDF Viewer',
@@ -3008,6 +3196,25 @@
         close:        'Bezárás',
         share:        'Megosztás',
         discuss:      'Megvitatás',
+        referenceNote:  'Jegyzet hivatkozása',
+        discussion:     'Beszélgetés',
+        discussMsgLbl:  'Üzenet',
+        discussMsgPh:   'Írd meg az üzeneted…',
+        npTitle:        'Beszélgetés',
+        npPlaceholder:  'Írj üzenetet',
+        npEmpty:        'Még nincs üzenet — kezdd el a beszélgetést.',
+        npFailed:       'Nem sikerült betölteni a beszélgetést.',
+        refInsertTitle: 'Hivatkozás beszúrása',
+        refKindNote:    'Jegyzet',
+        refKindArticle: 'Cikk',
+        refKindLog:     'Napló',
+        refKindLink:    'Hivatkozás',
+        refSearch:      'Keresés…',
+        refNone:        'Nincs találat.',
+        refLabel:       'Címke',
+        refLabelPh:     'Hivatkozás szövege',
+        refUrl:         'URL',
+        refInsert:      'Beszúrás',
         myNotes:      'Jegyzeteim',
         clear:        'Törlés',
         // Helyi menü
@@ -3041,6 +3248,25 @@
         stgCustom:      'Egyedi',
         stgCustomColors:    'Egyedi színek',
         stgCustomColorsSub: 'Kiemelő és világos kiemelő',
+        stgPresets:     'Sablonok',
+        stgColors:      'Színek',
+        stgClrAccent:   'Kiemelő',
+        stgClrHighlight:'Világos kiemelő',
+        stgClrBg:       'Háttér',
+        stgClrText:     'Szöveg',
+        stgRadiant:     'Sugárzó háttér',
+        stgRadiantSub:  'Lágy színátmenetes háttér',
+        stgSavedThemes: 'Mentett témák',
+        stgSave:        'Mentés',
+        stgThemeNamePh: 'Téma neve…',
+        stgApply:       'Alkalmaz',
+        stgDelete:      'Törlés',
+        stgSetRclick:   'Jobbklikk',
+        stgRclickHint:  'Kattints jobb gombbal a fejléc témagombjára a jobbklikk-téma alkalmazásához.',
+        stgThemeSaved:  'Téma elmentve',
+        stgRclickSet:   'Jobbklikk-téma beállítva',
+        stgThemeApplied:'Téma alkalmazva',
+        stgNoSaved:     'Még nincs mentett téma.',
         stgLanguage:    'Nyelv',
         stgLangLabel:   'Felhasználói felület nyelve',
         stgPdfViewer:   'PDF nézegető',
@@ -3289,50 +3515,166 @@
     if (langEN2) langEN2.addEventListener('click', () => switchLang('en'));
     if (langHU2) langHU2.addEventListener('click', () => switchLang('hu'));
 
-    /* ── Theme toggle ─────────────────────────────────────────────── */
-    const THEME_KEY = 'ki_theme';
+    /* ── Theme system ─────────────────────────────────────────────── */
+    const THEME_KEY  = 'ki_theme';
+    const CUSTOM_KEY = 'ki_custom_theme';
+    const SAVED_KEY  = 'ki_saved_themes';
+    const RCLICK_KEY = 'ki_rclick_theme';
     const THEMES = ['dark', 'light', 'teal', 'custom'];
+    // Every CSS var the custom theme may drive — cleared when switching to a built-in theme.
+    const CUSTOM_PROPS = ['--bg','--bg2','--bg3','--bg4','--border','--border-md','--text','--text2','--text3','--accent','--accent2','--accent-glow','--accent-dim','--hdr-bg','--bg-radiant'];
+
     function currentThemeName() {
       if (document.body.classList.contains('theme-custom')) return 'custom';
-      if (document.body.classList.contains('light'))      return 'light';
-      if (document.body.classList.contains('theme-teal')) return 'teal';
+      if (document.body.classList.contains('light'))        return 'light';
+      if (document.body.classList.contains('theme-teal'))   return 'teal';
       return 'dark';
     }
-    function hexToRgba(hex, a) { hex = String(hex || '').replace('#', ''); if (hex.length === 3) hex = hex.split('').map(c => c + c).join(''); const n = parseInt(hex || '0', 16); return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
-    function applyCustomColors() {
-      const a = localStorage.getItem('ki_custom_accent') || '#c4a13c';
-      const a2 = localStorage.getItem('ki_custom_accent2') || '#e8c96a';
-      const el = document.documentElement.style;
-      el.setProperty('--accent', a); el.setProperty('--accent2', a2);
-      el.setProperty('--accent-glow', hexToRgba(a, 0.18)); el.setProperty('--accent-dim', hexToRgba(a, 0.08));
+
+    /* colour helpers */
+    function _h2(hex){ hex=String(hex||'').replace('#',''); if(hex.length===3) hex=hex.split('').map(function(c){return c+c;}).join(''); var n=parseInt(hex||'0',16); if(isNaN(n)) n=0; return [(n>>16)&255,(n>>8)&255,n&255]; }
+    function _ch(v){ v=Math.max(0,Math.min(255,Math.round(v))); var s=v.toString(16); return s.length<2?'0'+s:s; }
+    function _2h(r,g,b){ return '#'+_ch(r)+_ch(g)+_ch(b); }
+    function hexToRgba(hex,a){ var c=_h2(hex); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+    function mix(h1,h2,t){ var a=_h2(h1),b=_h2(h2); return _2h(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t); }
+    function lum(hex){ var c=_h2(hex); return (0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255; }
+    function isDark(hex){ return lum(hex) < 0.5; }
+    function shade(hex,amt){ return mix(hex, amt>=0?'#ffffff':'#000000', Math.abs(amt)); }
+
+    var DEFAULT_CUSTOM = { name:'Custom', accent:'#c4a13c', accent2:'#e8c96a', bg:'#07070a', text:'#e0dbd0', radiant:false, radiantColor:'#c4a13c' };
+    var PRESETS = [
+      { name:'Gold',     accent:'#c4a13c', accent2:'#e8c96a', bg:'#07070a', text:'#e0dbd0', radiant:false, radiantColor:'#c4a13c' },
+      { name:'Teal',     accent:'#3fb6ac', accent2:'#6fe0d3', bg:'#06090b', text:'#d7e4e3', radiant:false, radiantColor:'#3fb6ac' },
+      { name:'Aurora',   accent:'#4fd1b0', accent2:'#7ee8ff', bg:'#05100f', text:'#dcefe9', radiant:true,  radiantColor:'#2bd6a7' },
+      { name:'Sunset',   accent:'#ff7a59', accent2:'#ffd166', bg:'#160a0d', text:'#f6e3da', radiant:true,  radiantColor:'#ff5e7a' },
+      { name:'Amethyst', accent:'#b98cff', accent2:'#e0b3ff', bg:'#0c0814', text:'#e7ddf5', radiant:true,  radiantColor:'#9a6bff' },
+      { name:'Rose',     accent:'#f0648c', accent2:'#ffb3c7', bg:'#160910', text:'#f7dde6', radiant:true,  radiantColor:'#ff5e9a' },
+      { name:'Nordic',   accent:'#88c0d0', accent2:'#b0e0ea', bg:'#0b0f14', text:'#dbe6ee', radiant:false, radiantColor:'#88c0d0' },
+      { name:'Emerald',  accent:'#3fc16b', accent2:'#8ef0a8', bg:'#06110a', text:'#d8efdd', radiant:true,  radiantColor:'#2fd06a' },
+      { name:'Crimson',  accent:'#e0455e', accent2:'#ff8aa0', bg:'#130608', text:'#f3d8dc', radiant:true,  radiantColor:'#e0304f' },
+      { name:'Mono',     accent:'#cfcfcf', accent2:'#ffffff', bg:'#0a0a0a', text:'#e6e6e6', radiant:false, radiantColor:'#9a9a9a' },
+      { name:'Daylight', accent:'#8a6818', accent2:'#b88c2a', bg:'#f5f0e8', text:'#1a160e', radiant:false, radiantColor:'#e9c46a' },
+      { name:'Sky',      accent:'#2f7fd1', accent2:'#7ec8ff', bg:'#070b12', text:'#d9e6f5', radiant:true,  radiantColor:'#2f9bff' }
+    ];
+
+    function _normTheme(c){ c=(c&&typeof c==='object')?c:{}; return { name:(c.name||'Custom'), accent:c.accent||DEFAULT_CUSTOM.accent, accent2:c.accent2||DEFAULT_CUSTOM.accent2, bg:c.bg||DEFAULT_CUSTOM.bg, text:c.text||DEFAULT_CUSTOM.text, radiant:!!c.radiant, radiantColor:c.radiantColor||c.accent||DEFAULT_CUSTOM.radiantColor }; }
+
+    (function migrateCustom(){
+      if (localStorage.getItem(CUSTOM_KEY)) return;
+      var a=localStorage.getItem('ki_custom_accent'), a2=localStorage.getItem('ki_custom_accent2');
+      if (!a && !a2) return;
+      var c=Object.assign({},DEFAULT_CUSTOM); if(a){c.accent=a;c.radiantColor=a;} if(a2)c.accent2=a2;
+      try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(c)); } catch(e){}
+    })();
+
+    function getCustom(){ try{ return _normTheme(JSON.parse(localStorage.getItem(CUSTOM_KEY)||'null')); }catch(e){ return Object.assign({},DEFAULT_CUSTOM); } }
+    function setCustom(c){ c=_normTheme(c); try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(c)); }catch(e){} localStorage.setItem('ki_custom_accent', c.accent); localStorage.setItem('ki_custom_accent2', c.accent2); if (currentThemeName()==='custom') applyCustomColors(); }
+
+    function getSaved(){ try{ var a=JSON.parse(localStorage.getItem(SAVED_KEY)||'[]'); return Array.isArray(a)?a.map(_normSaved).filter(Boolean):[]; }catch(e){ return []; } }
+    function _normSaved(s){ if(!s||typeof s!=='object')return null; var c=_normTheme(s); c.id=s.id||('t'+Math.random().toString(36).slice(2,9)); return c; }
+    function setSaved(arr){ try{ localStorage.setItem(SAVED_KEY, JSON.stringify(arr)); }catch(e){} }
+
+    function deriveVars(c){
+      c=_normTheme(c);
+      var dark=isDark(c.bg), d=dark?1:-1;
+      var bg=c.bg, bg2=shade(bg,d*0.05), bg3=shade(bg,d*0.10), bg4=shade(bg,d*0.16);
+      var text=c.text, text2=mix(text,bg,0.42), text3=mix(text,bg,0.66);
+      var radiant = c.radiant
+        ? ('radial-gradient(1150px circle at 50% -10%, '+hexToRgba(c.radiantColor,0.26)+' 0%, '+hexToRgba(c.radiantColor,0.07)+' 34%, transparent 66%)')
+        : 'none';
+      return { '--bg':bg,'--bg2':bg2,'--bg3':bg3,'--bg4':bg4,'--border':hexToRgba(text,0.09),'--border-md':hexToRgba(text,0.18),'--text':text,'--text2':text2,'--text3':text3,'--accent':c.accent,'--accent2':c.accent2,'--accent-glow':hexToRgba(c.accent,0.18),'--accent-dim':hexToRgba(c.accent,0.09),'--hdr-bg':hexToRgba(bg,0.88),'--bg-radiant':radiant };
     }
-    function applyTheme(theme) {
-      if (!THEMES.includes(theme)) theme = 'dark';
-      document.body.classList.remove('light', 'theme-teal', 'theme-custom');
-      if (theme === 'light')       document.body.classList.add('light');
-      else if (theme === 'teal')   document.body.classList.add('theme-teal');
-      else if (theme === 'custom') document.body.classList.add('theme-custom');
-      const root = document.documentElement.style;
-      ['--accent', '--accent2', '--accent-glow', '--accent-dim'].forEach(p => root.removeProperty(p));
-      if (theme === 'custom') applyCustomColors();
+    function applyCustomColors(){ var v=deriveVars(getCustom()), el=document.documentElement.style; for (var k in v) el.setProperty(k, v[k]); }
+
+    function applyTheme(theme){
+      if (THEMES.indexOf(theme)===-1) theme='dark';
+      document.body.classList.remove('light','theme-teal','theme-custom');
+      if (theme==='light')       document.body.classList.add('light');
+      else if (theme==='teal')   document.body.classList.add('theme-teal');
+      else if (theme==='custom') document.body.classList.add('theme-custom');
+      var root=document.documentElement.style;
+      CUSTOM_PROPS.forEach(function(p){ root.removeProperty(p); });
+      if (theme==='custom') applyCustomColors();
       localStorage.setItem(THEME_KEY, theme);
-      // Re-render the open PDF so the dark/light page treatment updates immediately.
       if (window._rerenderPdfTheme) window._rerenderPdfTheme();
     }
+    // Store a full theme object as the current custom theme and switch to it.
+    function applyThemeObject(obj){ setCustom(obj); applyTheme('custom'); }
+
+    function saveCurrentTheme(name){ var c=getCustom(); c.name=((name||c.name||'Custom')+'').trim().slice(0,32)||'Custom'; var arr=getSaved(); var rec=_normSaved(Object.assign({},c)); arr.push(rec); setSaved(arr); return rec; }
+    function applySavedTheme(id){ var r=getSaved().filter(function(s){return s.id===id;})[0]; if(r) applyThemeObject(r); return !!r; }
+    function deleteSavedTheme(id){ setSaved(getSaved().filter(function(s){return s.id!==id;})); if(localStorage.getItem(RCLICK_KEY)===id) localStorage.removeItem(RCLICK_KEY); }
+    function setRclickTheme(id){ if(localStorage.getItem(RCLICK_KEY)===id) localStorage.removeItem(RCLICK_KEY); else localStorage.setItem(RCLICK_KEY, id); }
+    // Applied when the header theme button is right-clicked.
+    function applyRclickTheme(){ var id=localStorage.getItem(RCLICK_KEY); if (id && applySavedTheme(id)) return; applyTheme('custom'); }
+
+    function _sameTheme(a,b){ return a.accent===b.accent && a.accent2===b.accent2 && a.bg===b.bg && a.text===b.text && (!!a.radiant)===(!!b.radiant) && a.radiantColor===b.radiantColor; }
+    function renderThemePresets(){
+      var host=document.getElementById('thmPresets'); if(!host) return;
+      var cur=getCustom(); host.innerHTML='';
+      PRESETS.forEach(function(p){
+        var card=document.createElement('div'); card.className='thm-preset'+(_sameTheme(_normTheme(p),cur)?' active':'');
+        var sw=document.createElement('div'); sw.className='thm-swatch';
+        sw.style.background = p.radiant
+          ? ('radial-gradient(130% 130% at 50% 0%, '+p.radiantColor+' 0%, '+p.bg+' 72%)')
+          : ('linear-gradient(135deg, '+p.bg+' 0%, '+shade(p.bg, isDark(p.bg)?0.13:-0.13)+' 100%)');
+        var dots=document.createElement('div'); dots.style.cssText='display:flex;gap:4px;align-items:center';
+        var d1=document.createElement('span'); d1.style.cssText='width:11px;height:11px;border-radius:50%;background:'+p.accent+';box-shadow:0 0 0 1px rgba(0,0,0,.25)';
+        var d2=document.createElement('span'); d2.style.cssText='width:11px;height:11px;border-radius:50%;background:'+p.accent2+';box-shadow:0 0 0 1px rgba(0,0,0,.25)';
+        dots.appendChild(d1); dots.appendChild(d2); sw.appendChild(dots);
+        var nm=document.createElement('div'); nm.className='thm-preset-name'; nm.textContent=p.name;
+        card.appendChild(sw); card.appendChild(nm);
+        card.addEventListener('click', function(){ applyThemeObject(p); if(typeof syncSettingsUI==='function') syncSettingsUI(); if(typeof markDirty==='function') markDirty(); });
+        host.appendChild(card);
+      });
+    }
+    function renderSavedThemes(){
+      var host=document.getElementById('thmSaved'); if(!host) return;
+      var arr=getSaved(), rid=localStorage.getItem(RCLICK_KEY); host.innerHTML='';
+      if(!arr.length){ var em=document.createElement('div'); em.className='thm-hint'; em.textContent=t('stgNoSaved'); host.appendChild(em); return; }
+      arr.forEach(function(s){
+        var row=document.createElement('div'); row.className='thm-saved-item';
+        var sw=document.createElement('span'); sw.className='thm-saved-sw';
+        sw.style.background = s.radiant ? ('radial-gradient(130% 130% at 50% 0%, '+s.radiantColor+' 0%, '+s.bg+' 75%)') : s.bg;
+        sw.style.boxShadow='inset 0 0 0 2px '+s.accent;
+        var nm=document.createElement('span'); nm.className='thm-saved-name'; nm.textContent=s.name;
+        var bA=document.createElement('button'); bA.className='thm-mini'; bA.textContent=t('stgApply');
+        bA.addEventListener('click', function(){ applySavedTheme(s.id); if(typeof syncSettingsUI==='function') syncSettingsUI(); if(typeof markDirty==='function') markDirty(); });
+        var bR=document.createElement('button'); bR.className='thm-mini'+(rid===s.id?' is-rclick':''); bR.textContent=t('stgSetRclick');
+        bR.addEventListener('click', function(){ setRclickTheme(s.id); renderSavedThemes(); if(typeof showToast==='function') showToast(t('stgRclickSet')); if(typeof markDirty==='function') markDirty(); });
+        var bD=document.createElement('button'); bD.className='thm-mini danger'; bD.textContent=t('stgDelete');
+        bD.addEventListener('click', function(){ deleteSavedTheme(s.id); renderSavedThemes(); if(typeof markDirty==='function') markDirty(); });
+        row.appendChild(sw); row.appendChild(nm); row.appendChild(bA); row.appendChild(bR); row.appendChild(bD);
+        host.appendChild(row);
+      });
+    }
+    function updateStudioInputs(){
+      var c=getCustom();
+      var map={ stgCustomAccent:c.accent, stgCustomAccent2:c.accent2, stgCustomBg:c.bg, stgCustomText:c.text, stgRadiantColor:c.radiantColor };
+      Object.keys(map).forEach(function(id){ var el=document.getElementById(id); if(el) el.value=map[id]; });
+      var rt=document.getElementById('stgRadiantToggle'); if(rt) rt.classList.toggle('on', !!c.radiant);
+      var rc=document.getElementById('stgRadiantColor'); if(rc) rc.style.display = c.radiant ? '' : 'none';
+    }
+
     // Load persisted theme — fall back to OS preference
     const osPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedTheme = localStorage.getItem(THEME_KEY);
     applyTheme(savedTheme || (osPrefersDark ? 'dark' : 'light'));
-    // Listen for OS theme changes when no explicit preference is saved
     if (window.matchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-        if (!localStorage.getItem(THEME_KEY)) applyTheme(e.matches ? 'dark' : 'light');
-      });
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e){ if (!localStorage.getItem(THEME_KEY)) applyTheme(e.matches ? 'dark' : 'light'); });
     }
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      // The standard toggle only flips light/dark; Teal is selectable in Settings.
-      applyTheme(currentThemeName() === 'light' ? 'dark' : 'light');
+    // Header toggle: left-click flips light/dark (Teal/Custom live in Settings).
+    document.getElementById('themeToggle').addEventListener('click', function(){ applyTheme(currentThemeName()==='light' ? 'dark' : 'light'); });
+    // Right-click any theme button → apply the chosen right-click theme (a saved theme, else the latest Custom).
+    document.addEventListener('contextmenu', function(e){
+      var btn = e.target.closest && e.target.closest('#themeToggle, #mobThemeToggle, #pdfQsTheme, #pshQsTheme');
+      if (!btn) return;
+      e.preventDefault();
+      applyRclickTheme();
+      if (typeof showToast==='function') showToast(t('stgThemeApplied'));
+      if (typeof syncSettingsUI==='function') syncSettingsUI();
     });
+
 
     /* ── Cursor ─────────────────────────────────────────────────────── */
     const dot  = document.getElementById('cursorDot');
@@ -3952,7 +4294,7 @@
 
     /* ── Per-account settings sync (falls back to per-device localStorage) ──── */
     let _applyingSettings = false, _pushTimer = null;
-    const _SETTINGS_KEYS = new Set(['ki_lang', 'ki_mat_lang', 'ki_theme', 'ki_section_by', 'ki_section_order', 'ki_child_orders', 'ki_notify', 'ki_open_lang', 'ki_custom_accent', 'ki_custom_accent2']);
+    const _SETTINGS_KEYS = new Set(['ki_lang', 'ki_mat_lang', 'ki_theme', 'ki_section_by', 'ki_section_order', 'ki_child_orders', 'ki_notify', 'ki_open_lang', 'ki_custom_accent', 'ki_custom_accent2', 'ki_custom_theme', 'ki_saved_themes', 'ki_rclick_theme']);
     (function () {
       const orig = localStorage.setItem.bind(localStorage);
       localStorage.setItem = function (k, v) { orig(k, v); if (_SETTINGS_KEYS.has(k)) scheduleSettingsPush(); };
@@ -3965,6 +4307,9 @@
         theme:        localStorage.getItem('ki_theme')         || undefined,
         customAccent:  localStorage.getItem('ki_custom_accent')  || undefined,
         customAccent2: localStorage.getItem('ki_custom_accent2') || undefined,
+        customTheme:  localStorage.getItem('ki_custom_theme')  || undefined,
+        savedThemes:  localStorage.getItem('ki_saved_themes')  || undefined,
+        rclickTheme:  localStorage.getItem('ki_rclick_theme')  || undefined,
         sectionBy:    localStorage.getItem('ki_section_by')    || undefined,
         sectionOrder: localStorage.getItem('ki_section_order') || undefined,
         childOrders:  localStorage.getItem('ki_child_orders')  || undefined,
@@ -3993,6 +4338,9 @@
       try {
         if (typeof s.customAccent === 'string') localStorage.setItem('ki_custom_accent', s.customAccent);
         if (typeof s.customAccent2 === 'string') localStorage.setItem('ki_custom_accent2', s.customAccent2);
+        if (typeof s.customTheme === 'string') localStorage.setItem('ki_custom_theme', s.customTheme);
+        if (typeof s.savedThemes === 'string') localStorage.setItem('ki_saved_themes', s.savedThemes);
+        if (typeof s.rclickTheme === 'string') localStorage.setItem('ki_rclick_theme', s.rclickTheme);
         if (s.theme) applyTheme(s.theme);
         if (s.lang === 'en' || s.lang === 'hu') { LANG = s.lang; localStorage.setItem('ki_lang', LANG); }
         if (s.matLang === 'en' || s.matLang === 'hu' || s.matLang === 'both') {
@@ -6879,14 +7227,30 @@
           markDirty();
         });
       });
-      ['stgCustomAccent', 'stgCustomAccent2'].forEach((id, idx) => {
-        const inp = document.getElementById(id);
-        if (inp) inp.addEventListener('input', () => {
-          localStorage.setItem(idx === 0 ? 'ki_custom_accent' : 'ki_custom_accent2', inp.value);
-          if (currentThemeName() === 'custom') applyCustomColors();
-          markDirty();
-        });
-      });
+      /* ── Custom theme studio ───────────────────────────────────────── */
+      function _studioField(id, field){
+        var el=document.getElementById(id); if(!el) return;
+        el.addEventListener('input', function(){ var c=getCustom(); c[field]=el.value; setCustom(c); renderThemePresets(); markDirty(); });
+      }
+      _studioField('stgCustomAccent','accent');
+      _studioField('stgCustomAccent2','accent2');
+      _studioField('stgCustomBg','bg');
+      _studioField('stgCustomText','text');
+      _studioField('stgRadiantColor','radiantColor');
+      (function(){
+        var rt=document.getElementById('stgRadiantToggle');
+        if (rt){
+          var toggle=function(){ var c=getCustom(); c.radiant=!c.radiant; setCustom(c); updateStudioInputs(); renderThemePresets(); markDirty(); };
+          rt.addEventListener('click', toggle);
+          rt.addEventListener('keydown', function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(); } });
+        }
+        var sv=document.getElementById('thmSaveBtn'), nm=document.getElementById('thmNameInput');
+        function doSave(){ var name=(nm&&nm.value||'').trim(); saveCurrentTheme(name); if(nm) nm.value=''; renderSavedThemes(); if(typeof showToast==='function') showToast(t('stgThemeSaved')); markDirty(); }
+        if (sv) sv.addEventListener('click', doSave);
+        if (nm) nm.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); doSave(); } });
+      })();
+      renderThemePresets();
+      renderSavedThemes();
 
       /* ── Language segment ──────────────────────────────────────────── */
       document.getElementById('stgLangSeg').querySelectorAll('.stg-seg-btn').forEach(btn => {
@@ -7115,8 +7479,9 @@
           btn.classList.toggle('active', btn.dataset.theme === _theme);
         });
         const _cr = document.getElementById('stgCustomColorsRow'); if (_cr) _cr.style.display = (_theme === 'custom') ? '' : 'none';
-        const _ca = document.getElementById('stgCustomAccent'); if (_ca) _ca.value = localStorage.getItem('ki_custom_accent') || '#c4a13c';
-        const _ca2 = document.getElementById('stgCustomAccent2'); if (_ca2) _ca2.value = localStorage.getItem('ki_custom_accent2') || '#e8c96a';
+        updateStudioInputs();
+        renderThemePresets();
+        renderSavedThemes();
         // Language
         document.querySelectorAll('#stgLangSeg .stg-seg-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.lang === LANG);
@@ -7298,6 +7663,207 @@
       if (['.bib', '.md', '.txt'].includes(ext)) { openCodeViewer(notePath, name, ln); return; }
       window.open('/data/' + encPath(notePath) + '?lang=' + ln, '_blank');
     }
+
+    /* ── Per-note discussion panel (feature 2) ────────────────────────── */
+    var _npRef = null;
+    function openNotePanel(notePath, noteName, noteLang){
+      if (!notePath) return;
+      _npRef = { path: notePath, name: noteName || String(notePath).split('/').pop(), lang: noteLang === 'hu' ? 'hu' : 'en' };
+      var nm = document.getElementById('npNoteName'); if (nm) nm.textContent = _npRef.name;
+      document.body.classList.add('np-open');
+      document.getElementById('notePanel').classList.add('open');
+      loadNoteDiscussion();
+      setTimeout(function(){ var i = document.getElementById('npInput'); if (i) i.focus(); }, 90);
+    }
+    function closeNotePanel(){
+      var p = document.getElementById('notePanel'); if (p) p.classList.remove('open');
+      document.body.classList.remove('np-open'); _npRef = null;
+    }
+    async function loadNoteDiscussion(){
+      var thread = document.getElementById('npThread'); if (!thread || !_npRef) return;
+      thread.innerHTML = '<div class="np-empty">…</div>';
+      try {
+        var res = await fetch('/api/note/discussion?path=' + encodeURIComponent(_npRef.path) + '&lang=' + _npRef.lang);
+        var d = await res.json();
+        if (!d || !d.ok) { thread.innerHTML = '<div class="np-empty">' + esc((d && d.error) || t('npFailed')) + '</div>'; return; }
+        renderNoteDiscussion(d.messages || []);
+      } catch { thread.innerHTML = '<div class="np-empty">' + esc(t('npFailed')) + '</div>'; }
+    }
+    function renderNoteDiscussion(msgs){
+      var thread = document.getElementById('npThread'); if (!thread) return;
+      if (!msgs.length) { thread.innerHTML = '<div class="np-empty">' + esc(t('npEmpty')) + '</div>'; return; }
+      var me = (AUTH.user || '').toLowerCase();
+      thread.innerHTML = '';
+      msgs.forEach(function(m){
+        var wrap = document.createElement('div'); wrap.className = 'np-msg';
+        var head = document.createElement('div'); head.className = 'np-msg-head';
+        var from = document.createElement('span'); from.className = 'np-from'; from.textContent = m.from;
+        var time = document.createElement('span'); time.className = 'np-time'; time.textContent = (typeof chatFmtTime === 'function') ? chatFmtTime(m.date) : (m.date || '');
+        head.appendChild(from); head.appendChild(time);
+        var body = document.createElement('div'); body.className = 'np-body'; body.innerHTML = renderRefText(m.body || '');
+        wrap.appendChild(head); wrap.appendChild(body);
+        if (String(m.from).toLowerCase() === me) {
+          var del = document.createElement('button'); del.className = 'np-del'; del.type = 'button'; del.textContent = '✕'; del.title = t('stgDelete') || 'Delete';
+          del.addEventListener('click', function(){ deleteNoteDiscussion(m.id); });
+          wrap.appendChild(del);
+        }
+        thread.appendChild(wrap);
+      });
+      thread.querySelectorAll('.np-body .cl-ref').forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); try { navigateToRef(JSON.parse(a.getAttribute('data-ref'))); } catch {} }); });
+      thread.scrollTop = thread.scrollHeight;
+    }
+    function npAutosize(){ var x = document.getElementById('npInput'); if (!x) return; x.style.height = 'auto'; x.style.height = Math.min(x.scrollHeight, 120) + 'px'; x.style.overflowY = x.scrollHeight > 120 ? 'auto' : 'hidden'; }
+    async function sendNoteDiscussion(){
+      var inp = document.getElementById('npInput'); if (!inp || !_npRef) return;
+      var text = inp.value.trim(); if (!text) return;
+      inp.value = ''; npAutosize();
+      try {
+        var res = await fetch('/api/note/discussion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: _npRef.path, lang: _npRef.lang, body: text }) });
+        var d = await res.json();
+        if (d && d.ok) { await loadNoteDiscussion(); }
+        else { showToast((d && d.error) || MSGT('Could not send', 'Nem sikerült elküldeni'), true); inp.value = text; npAutosize(); }
+      } catch { showToast(MSGT('Could not send', 'Nem sikerült elküldeni'), true); inp.value = text; npAutosize(); }
+    }
+    async function deleteNoteDiscussion(id){
+      if (!_npRef) return;
+      try {
+        var res = await fetch('/api/note/discussion/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: _npRef.path, lang: _npRef.lang, id: id }) });
+        var d = await res.json(); if (d && d.ok) loadNoteDiscussion();
+      } catch {}
+    }
+
+    /* ── Reference picker (feature 3) ─────────────────────────────────── */
+    var _refTarget = null, _refArticles = null;
+    var _REF_ICONS = {
+      note:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+      article:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+      log:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>',
+      url:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
+    };
+    function openRefPicker(textarea, anchorEl){
+      _refTarget = textarea;
+      refShowKinds();
+      var p = document.getElementById('refPicker'); p.classList.add('open');
+      positionRefPicker(anchorEl);
+      setTimeout(function(){ document.addEventListener('mousedown', _refOutside); }, 0);
+    }
+    function closeRefPicker(){ var p = document.getElementById('refPicker'); if (p) p.classList.remove('open'); document.removeEventListener('mousedown', _refOutside); }
+    function _refOutside(e){ var p = document.getElementById('refPicker'); if (p && !p.contains(e.target)) closeRefPicker(); }
+    function positionRefPicker(anchorEl){
+      var p = document.getElementById('refPicker'); if (!p) return;
+      var w = p.offsetWidth || 300, h = p.offsetHeight || 320;
+      var r = anchorEl ? anchorEl.getBoundingClientRect() : { left: 20, right: 20, top: window.innerHeight - 80, bottom: window.innerHeight - 40 };
+      var left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
+      var top = r.top - h - 8;
+      if (top < 8) top = Math.min(window.innerHeight - h - 8, r.bottom + 8);
+      p.style.left = left + 'px'; p.style.top = top + 'px';
+    }
+    function refSetHead(title, withBack){
+      document.getElementById('refpTitle').textContent = title;
+      document.getElementById('refpBack').style.display = withBack ? '' : 'none';
+    }
+    function refShowKinds(){
+      refSetHead(t('refInsertTitle'), false);
+      var kinds = [['note', t('refKindNote')], ['article', t('refKindArticle')], ['log', t('refKindLog')], ['url', t('refKindLink')]];
+      var html = '<div class="refp-kinds">';
+      kinds.forEach(function(o){ html += '<button class="refp-kind" data-k="' + o[0] + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + _REF_ICONS[o[0]] + '</svg>' + esc(o[1]) + '</button>'; });
+      html += '</div>';
+      var body = document.getElementById('refpContent'); body.innerHTML = html;
+      body.querySelectorAll('.refp-kind').forEach(function(b){ b.addEventListener('click', function(){ refShowKind(b.getAttribute('data-k')); }); });
+    }
+    async function refShowKind(kind){
+      var body = document.getElementById('refpContent');
+      if (kind === 'url') {
+        refSetHead(t('refKindLink'), true);
+        body.innerHTML = '<div class="refp-body">' +
+          '<label class="refp-field"><span>' + esc(t('refLabel')) + '</span><input id="refpLabel" type="text" maxlength="120" placeholder="' + esc(t('refLabelPh')) + '"></label>' +
+          '<label class="refp-field"><span>' + esc(t('refUrl')) + '</span><input id="refpUrl" type="text" placeholder="https://"></label>' +
+          '<button class="refp-insert" id="refpInsertUrl">' + esc(t('refInsert')) + '</button></div>';
+        document.getElementById('refpInsertUrl').addEventListener('click', function(){
+          var label = (document.getElementById('refpLabel').value || '').trim();
+          var url = (document.getElementById('refpUrl').value || '').trim();
+          if (!url) return;
+          if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+          insertRefToken('url', url, '', label || url);
+        });
+        setTimeout(function(){ var l = document.getElementById('refpLabel'); if (l) l.focus(); }, 0);
+        return;
+      }
+      refSetHead(kind === 'note' ? t('refKindNote') : kind === 'article' ? t('refKindArticle') : t('refKindLog'), true);
+      body.innerHTML = '<div class="refp-body"><input class="refp-search" id="refpSearch" type="text" placeholder="' + esc(t('refSearch')) + '"><div class="refp-list" id="refpList"></div></div>';
+      var items = await refGatherItems(kind);
+      function draw(q){
+        q = (q || '').toLowerCase();
+        var list = document.getElementById('refpList'); if (!list) return;
+        var filtered = items.filter(function(it){ return !q || it.label.toLowerCase().indexOf(q) !== -1 || (it.sub || '').toLowerCase().indexOf(q) !== -1; }).slice(0, 60);
+        if (!filtered.length) { list.innerHTML = '<div class="refp-empty">' + esc(t('refNone')) + '</div>'; return; }
+        list.innerHTML = '';
+        filtered.forEach(function(it){
+          var b = document.createElement('button'); b.className = 'refp-item'; b.type = 'button';
+          b.innerHTML = esc(it.label) + (it.sub ? '<span class="refp-item-sub">' + esc(it.sub) + '</span>' : '');
+          b.addEventListener('click', function(){ insertRefToken(kind, it.target, it.lang || '', it.label); });
+          list.appendChild(b);
+        });
+      }
+      draw('');
+      var se = document.getElementById('refpSearch'); if (se) { se.addEventListener('input', function(){ draw(se.value); }); setTimeout(function(){ se.focus(); }, 0); }
+    }
+    async function refGatherItems(kind){
+      try {
+        if (kind === 'note') {
+          var all = treeData ? collectAllItems(treeData) : [];
+          return all.filter(function(it){ return it.type === 'file'; }).map(function(it){
+            var nm = it.title || it.name || String(it.path).split('/').pop();
+            return { label: String(nm).replace(/\.[^.]+$/, ''), sub: it.path, target: it.path, lang: it.lang || LANG };
+          });
+        }
+        if (kind === 'article') {
+          if (!_refArticles) { var r = await fetch('/api/articles?lang=' + LANG); _refArticles = await r.json(); }
+          return (_refArticles || []).map(function(a){ return { label: a.title || a.file, sub: a.date || a.file, target: a.file, lang: LANG }; });
+        }
+        if (kind === 'log') {
+          if (!clLoaded) { try { var r2 = await fetch('/api/changelog'); clEntries = await r2.json(); clLoaded = true; } catch {} }
+          return (clEntries || []).map(function(e){
+            var lab = e.title || (e.body ? plainChat(e.body).slice(0, 48) : '') || ('#' + e.id);
+            return { label: lab, sub: (e.date || '') + (e.type ? ' · ' + e.type : ''), target: e.id, lang: '' };
+          });
+        }
+      } catch {}
+      return [];
+    }
+    function insertRefToken(kind, target, lang, label){
+      var ta = _refTarget; if (!ta) { closeRefPicker(); return; }
+      label = String(label || target || 'reference').replace(/[\[\]()]/g, ' ').trim() || 'reference';
+      var token = '[' + label + '](ki://' + kind + '/' + encodeURIComponent(target) + (lang ? ('?lang=' + lang) : '') + ')';
+      var start = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
+      var end = ta.selectionEnd != null ? ta.selectionEnd : ta.value.length;
+      var before = ta.value.slice(0, start), after = ta.value.slice(end);
+      var pre = (before && !/\s$/.test(before)) ? ' ' : '';
+      var post = (after && !/^\s/.test(after)) ? ' ' : '';
+      ta.value = before + pre + token + post + after;
+      var pos = (before + pre + token).length;
+      try { ta.focus(); ta.setSelectionRange(pos, pos); } catch {}
+      try { ta.dispatchEvent(new Event('input')); } catch {}
+      closeRefPicker();
+    }
+
+    /* Wire the discussion panel + reference buttons. */
+    (function(){
+      var c = document.getElementById('npClose'); if (c) c.addEventListener('click', closeNotePanel);
+      var s = document.getElementById('npSend'); if (s) s.addEventListener('click', sendNoteDiscussion);
+      var i = document.getElementById('npInput'); if (i) { i.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendNoteDiscussion(); } }); i.addEventListener('input', npAutosize); }
+      var nrb = document.getElementById('npRefBtn'); if (nrb) nrb.addEventListener('click', function(){ openRefPicker(document.getElementById('npInput'), nrb); });
+      var crb = document.getElementById('chatRefBtn'); if (crb) crb.addEventListener('click', function(){ openRefPicker(document.getElementById('chatInput'), crb); });
+      var rx = document.getElementById('refpX'); if (rx) rx.addEventListener('click', closeRefPicker);
+      var rbk = document.getElementById('refpBack'); if (rbk) rbk.addEventListener('click', refShowKinds);
+      var pd = document.getElementById('pdfDiscussion'); if (pd) pd.addEventListener('click', function(){ openNotePanel(pdfCurrentPath, pdfCurrentName, pdfCurrentLang); });
+      var cd = document.getElementById('codeDiscussion'); if (cd) cd.addEventListener('click', function(){ openNotePanel(codeCurPath, codeCurName, codeCurLang); });
+      document.addEventListener('keydown', function(e){
+        if (e.key !== 'Escape') return;
+        if (document.getElementById('refPicker').classList.contains('open')) closeRefPicker();
+        else if (document.getElementById('notePanel').classList.contains('open')) closeNotePanel();
+      });
+    })();
 
     // Jump to whatever a changelog entry references.
     function navigateToRef(ref) {
