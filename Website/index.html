@@ -134,6 +134,53 @@
     .refp-field input:focus{border-color:var(--accent)}
     .refp-insert{width:100%;background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:9px;font-weight:700;cursor:pointer;font-size:13px}
     .refp-insert:hover{filter:brightness(1.08)}
+    /* ── Learning timeline ───────────────────────────────────────────── */
+    #timelineModal{position:fixed;inset:0;z-index:8000;background:var(--bg);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .22s}
+    #timelineModal.open{opacity:1;pointer-events:auto}
+    .tl-top{flex:none;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--hdr-bg);backdrop-filter:blur(10px)}
+    .tl-title{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:var(--text)}
+    .tl-title svg{color:var(--accent)}
+    .tl-count{font-family:var(--font-mono);font-size:11px;color:var(--text2);font-weight:400}
+    .tl-ctrls{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-left:auto}
+    .tl-ctrl{display:flex;flex-direction:column;gap:3px;font-size:10px;color:var(--text2)}
+    .tl-ctrl>span{font-family:var(--font-mono);letter-spacing:.08em;text-transform:uppercase}
+    .tl-ctrl select,.tl-ctrl input{background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:5px 8px;font:inherit;font-size:12.5px;outline:none}
+    .tl-ctrl select:focus,.tl-ctrl input:focus{border-color:var(--accent)}
+    .tl-btn{background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:6px 11px;font:inherit;font-size:12.5px;cursor:pointer;transition:border-color .12s,color .12s,background .12s}
+    .tl-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .tl-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+    .tl-zoom{display:inline-flex;gap:5px}
+    .tl-zoom .tl-btn{padding:6px 10px;min-width:34px;text-align:center}
+    .tl-x{background:transparent;border:0;color:var(--text2);font-size:26px;line-height:1;cursor:pointer;width:34px}
+    .tl-x:hover{color:var(--accent)}
+    .tl-body{flex:1;display:flex;min-height:0}
+    .tl-subjects{flex:none;width:212px;border-right:1px solid var(--border);overflow-y:auto;padding:12px 10px;background:var(--bg2)}
+    #timelineModal.subjects-collapsed .tl-subjects{display:none}
+    .tl-sub-head{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);padding:0 6px 9px}
+    .tl-sub-grp{margin-bottom:9px}
+    .tl-sub-row{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;cursor:pointer;font-size:12.5px;color:var(--text)}
+    .tl-sub-row:hover{background:var(--bg3)}
+    .tl-sub-row.top{font-weight:600}
+    .tl-sub-row:not(.top){padding-left:18px;font-size:12px;color:var(--text2)}
+    .tl-sub-row input{width:auto;accent-color:var(--accent);cursor:pointer;flex:none}
+    .tl-sub-dot{width:9px;height:9px;border-radius:2px;flex:none}
+    .tl-sub-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tl-sub-empty{color:var(--text3);font-size:12px;padding:10px 6px;line-height:1.5}
+    .tl-canvas-wrap{flex:1;overflow:auto;position:relative;min-width:0}
+    .tl-canvas{position:relative;min-width:100%;min-height:100%}
+    .tl-grid{position:absolute;width:0;border-left:1px solid var(--border)}
+    .tl-grid.major{border-left-color:var(--border-md)}
+    .tl-tick{position:absolute;font-family:var(--font-mono);font-size:10px;color:var(--text3);transform:translateX(3px);white-space:nowrap}
+    .tl-tick.major{color:var(--text2);font-weight:600}
+    .tl-today{position:absolute;width:0;border-left:2px dashed var(--accent);opacity:.5}
+    .tl-item{position:absolute;cursor:pointer;transition:filter .12s}
+    .tl-bar{height:22px;border-radius:6px;border:2px solid;box-sizing:border-box}
+    .tl-dot{width:11px;height:11px;border-radius:3px;transform:rotate(45deg)}
+    .tl-item:hover{filter:brightness(1.25);z-index:6}
+    .tl-bar:hover{outline:2px solid var(--accent);outline-offset:1px}
+    .tl-label{position:absolute;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;text-shadow:0 1px 3px var(--bg),0 0 2px var(--bg)}
+    .tl-empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--text3);font-size:14px;text-align:center;padding:30px;line-height:1.6}
+    @media(max-width:680px){.tl-subjects{width:168px}.tl-ctrls{gap:8px}.tl-ctrl>span{display:none}}
     ::-webkit-scrollbar{width:5px;height:5px}
     ::-webkit-scrollbar-track{background:var(--bg2)}
     ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:999px;opacity:.7}
@@ -1805,6 +1852,8 @@
     .mgr-fld{display:block;margin-top:13px}
     .mgr-fld>span{display:block;font-size:12px;color:var(--text2);margin-bottom:5px}
     .mgr-fld input,.mgr-fld textarea,.mgr-fld select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 10px;font:inherit;font-size:13px}
+    .mgr-auto{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:10.5px;padding:2px 7px;cursor:pointer;font:inherit;line-height:1.4}
+    .mgr-auto:hover{color:var(--accent);border-color:var(--accent)}
     .mgr-note{font-size:11.5px;color:var(--text3);margin-top:6px}
     .chat-quote .cq-from{display:block;font-weight:700;font-size:10.5px;opacity:.85}
     .chat-quote .cq-snip{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;opacity:.8}
@@ -1926,6 +1975,7 @@
         <a class="nav-link" href="#" data-page="story" data-i18n="navStory">Story</a>
         <a class="nav-link" href="#" data-page="notes" data-i18n="navNotes">Articles</a>
         <a class="nav-link" href="#" data-page="changelog" data-i18n="navChangelog">Log</a>
+        <a class="nav-link" href="#" id="navTimeline" data-i18n="navTimeline">Timeline</a>
         <a class="nav-link" href="#" data-page="chat"><span data-i18n="navChat">Chat</span><span class="nav-badge" id="chatNavBadge" hidden></span></a>
       </nav>
       <div class="header-right">
@@ -1957,6 +2007,7 @@
       <a class="mob-nav-link" href="#" data-mob-page="story" data-i18n="navStory">Story</a>
       <a class="mob-nav-link" href="#" data-mob-page="notes" data-i18n="navNotes">Articles</a>
       <a class="mob-nav-link" href="#" data-mob-page="changelog" data-i18n="navChangelog">Log</a>
+      <a class="mob-nav-link" href="#" id="mobNavTimeline" data-i18n="navTimeline">Timeline</a>
       <a class="mob-nav-link" href="#" data-mob-page="chat"><span data-i18n="navChat">Chat</span><span class="nav-badge" id="chatNavBadgeMob" hidden></span></a>
       <div class="mob-drawer-sep"></div>
       <div class="mob-drawer-controls">
@@ -2084,6 +2135,9 @@
         <label class="mgr-fld"><span>Tags (comma separated)</span><input type="text" id="mgrTags" spellcheck="false" autocapitalize="off"></label>
         <label class="mgr-fld"><span>Authors (comma separated)</span><input type="text" id="mgrAuthors" spellcheck="false" autocapitalize="off"></label>
         <label class="mgr-fld"><span>Date</span><input type="text" id="mgrDate" placeholder="2025-01-01"></label>
+        <label class="mgr-fld"><span>Material start date</span><input type="date" id="mgrMatStart"></label>
+        <label class="mgr-fld"><span>Material end date</span><input type="date" id="mgrMatEnd"></label>
+        <label class="mgr-fld"><span style="display:flex;align-items:center;gap:8px">Updated date <button type="button" id="mgrUpdatedAuto" class="mgr-auto">Auto from file</button></span><input type="date" id="mgrUpdated"></label>
         <label class="mgr-fld"><span>Description</span><textarea id="mgrDesc" rows="2"></textarea></label>
         <div class="mgr-fld"><span>Who can see it listed</span><div class="mgr-seg" id="mgrSeeSeg"><button type="button" data-see="all">Everyone</button><button type="button" data-see="members">Members</button><button type="button" data-see="whitelist">Specific people</button></div></div>
         <label class="mgr-fld" id="mgrSeeAllowFld" style="display:none"><span>People who can see it (comma separated)</span><input type="text" id="mgrSeeAllow" spellcheck="false" autocapitalize="off" placeholder="alice, bob"></label>
@@ -2873,6 +2927,37 @@
     </div>
     <div id="refpContent"></div>
   </div>
+  <!-- Learning timeline -->
+  <div id="timelineModal" aria-label="Learning timeline">
+    <div class="tl-top">
+      <div class="tl-title"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="6" y1="8" x2="6" y2="16"/><circle cx="11" cy="12" r="1.6"/><circle cx="17" cy="12" r="1.6"/></svg><span data-i18n="tlTitle">Timeline</span><span class="tl-count" id="tlCount"></span></div>
+      <div class="tl-ctrls">
+        <label class="tl-ctrl"><span data-i18n="tlShow">Show</span>
+          <select id="tlBasis">
+            <option value="period" data-i18n="tlBasisPeriod">Material period</option>
+            <option value="start" data-i18n="tlBasisStart">Material start</option>
+            <option value="end" data-i18n="tlBasisEnd">Material end</option>
+            <option value="updated" data-i18n="tlBasisUpdated">Updated date</option>
+          </select>
+        </label>
+        <label class="tl-ctrl"><span data-i18n="tlFrom">From</span><input type="date" id="tlFrom"></label>
+        <label class="tl-ctrl"><span data-i18n="tlTo">To</span><input type="date" id="tlTo"></label>
+        <button class="tl-btn on" id="tlSubjectsBtn" type="button" data-i18n="tlSubjects">Subjects</button>
+        <span class="tl-zoom"><button class="tl-btn" id="tlZoomOut" type="button" aria-label="Zoom out">&minus;</button><button class="tl-btn" id="tlFit" type="button" data-i18n="tlFit">Fit</button><button class="tl-btn" id="tlZoomIn" type="button" aria-label="Zoom in">+</button></span>
+        <button class="tl-x" id="tlClose" type="button" aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="tl-body">
+      <div class="tl-subjects" id="tlSubjects">
+        <div class="tl-sub-head" data-i18n="tlSubjectsHead">Subjects</div>
+        <div class="tl-sub-list" id="tlSubjectList"></div>
+      </div>
+      <div class="tl-canvas-wrap" id="tlCanvasWrap">
+        <div class="tl-canvas" id="tlCanvas"></div>
+        <div class="tl-empty" id="tlEmpty"></div>
+      </div>
+    </div>
+  </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -3093,6 +3178,22 @@
 
         // Changelog
         navChangelog: 'Log',
+        navTimeline:     'Timeline',
+        tlTitle:         'Learning timeline',
+        tlShow:          'Show',
+        tlBasisPeriod:   'Material period',
+        tlBasisStart:    'Material start',
+        tlBasisEnd:      'Material end',
+        tlBasisUpdated:  'Updated date',
+        tlFrom:          'From',
+        tlTo:            'To',
+        tlSubjects:      'Subjects',
+        tlSubjectsHead:  'Subjects',
+        tlFit:           'Fit',
+        tlMaterials:     'materials',
+        tlNoData:        'No materials with the selected date(s) in this range. Add material/updated dates to notes, or widen the range.',
+        tlBadRange:      'Pick a valid date range.',
+        tlNoFolders:     'No subject folders found yet.',
         navChat: 'Chat',
         clLabel:      '/ log',
         clTitle2:     'Change<br><em>Log</em>',
@@ -3337,6 +3438,22 @@
 
         // Napló
         navChangelog: 'Napló',
+        navTimeline:     'Idővonal',
+        tlTitle:         'Tanulási idővonal',
+        tlShow:          'Mit mutasson',
+        tlBasisPeriod:   'Tananyag időszaka',
+        tlBasisStart:    'Tananyag kezdete',
+        tlBasisEnd:      'Tananyag vége',
+        tlBasisUpdated:  'Frissítés dátuma',
+        tlFrom:          'Ettől',
+        tlTo:            'Eddig',
+        tlSubjects:      'Tárgyak',
+        tlSubjectsHead:  'Tárgyak',
+        tlFit:           'Igazítás',
+        tlMaterials:     'tananyag',
+        tlNoData:        'Nincs a kiválasztott dátumú tananyag ebben a tartományban. Adj meg dátumokat a jegyzeteknél, vagy bővítsd a tartományt.',
+        tlBadRange:      'Adj meg érvényes dátumtartományt.',
+        tlNoFolders:     'Még nincsenek tárgymappák.',
         navChat: 'Csevegés',
         clLabel:      '/ napló',
         clTitle2:     'Változás<br><em>Napló</em>',
@@ -6745,6 +6862,9 @@
       document.getElementById('mgrTags').value = (n.tags || []).join(', ');
       document.getElementById('mgrAuthors').value = (n.authors || []).join(', ');
       document.getElementById('mgrDate').value = n.date || '';
+      document.getElementById('mgrMatStart').value = n.materialStart || '';
+      document.getElementById('mgrMatEnd').value = n.materialEnd || '';
+      document.getElementById('mgrUpdated').value = n.updated || (n.mtime ? String(n.mtime).slice(0,10) : '');
       document.getElementById('mgrDesc').value = n.description || '';
       _mgrSetSeg('mgrSeeSeg', 'data-see', n.canSee || 'all');
       _mgrSetSeg('mgrReadSeg', 'data-read', n.canRead || 'all');
@@ -6765,6 +6885,9 @@
         tags: _csv(document.getElementById('mgrTags').value),
         authors: _csv(document.getElementById('mgrAuthors').value),
         date: document.getElementById('mgrDate').value.trim(),
+        materialStart: document.getElementById('mgrMatStart').value || '',
+        materialEnd: document.getElementById('mgrMatEnd').value || '',
+        updated: document.getElementById('mgrUpdated').value || '',
         description: document.getElementById('mgrDesc').value.trim(),
         canSee: _mgrGetSeg('mgrSeeSeg', 'data-see'),
         canRead: _mgrGetSeg('mgrReadSeg', 'data-read'),
@@ -6783,6 +6906,7 @@
     document.getElementById('mnClose').addEventListener('click', closeMyNotes);
     document.getElementById('myNotesModal').addEventListener('click', e => { if (e.target.id === 'myNotesModal') closeMyNotes(); });
     document.getElementById('mgrClose').addEventListener('click', closeManage);
+    document.getElementById('mgrUpdatedAuto').addEventListener('click', function(){ if (_mgrNote && _mgrNote.mtime) document.getElementById('mgrUpdated').value = String(_mgrNote.mtime).slice(0,10); });
     document.getElementById('mgrCancel').addEventListener('click', closeManage);
     document.getElementById('mgrSave').addEventListener('click', saveManage);
     document.getElementById('manageModal').addEventListener('click', e => { if (e.target.id === 'manageModal') closeManage(); });
@@ -7864,6 +7988,123 @@
         if (document.getElementById('refPicker').classList.contains('open')) closeRefPicker();
         else if (document.getElementById('notePanel').classList.contains('open')) closeNotePanel();
       });
+    })();
+
+    /* ── Learning timeline ─────────────────────────────────────────────── */
+    var _tlUnchecked = {}, _tlPx = 3, _tlBasis = 'period';
+    var TL_PALETTE = ['#b98cff','#4fd1b0','#ff7a59','#f0648c','#88c0d0','#3fc16b','#e0455e','#7ec8ff','#ffd166','#c4a13c','#9a6bff','#2bd6a7'];
+    function tlDay(s){ if(!s) return null; var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s)); if(!m) return null; var t=Date.UTC(+m[1],+m[2]-1,+m[3]); return isNaN(t)?null:Math.floor(t/86400000); }
+    function tlDayToDate(day){ return new Date(day*86400000); }
+    function tlFmtDay(day){ return tlDayToDate(day).toISOString().slice(0,10); }
+    function tlLabelPx(name){ return Math.min(260, 14 + String(name||'').length*6.4); }
+    function tlPackLanes(entries){ var ends=[]; entries.forEach(function(e){ var p=-1; for(var i=0;i<ends.length;i++){ if(e.x0>=ends[i]+6){ p=i; break; } } if(p<0){ p=ends.length; ends.push(0); } ends[p]=e.x1; e.lane=p; }); return ends.length; }
+    function tlTicks(from,to,px){ var ticks=[]; var monthPx=px*30.4; var d0=tlDayToDate(from),y0=d0.getUTCFullYear(),m0=d0.getUTCMonth(); var MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      if(monthPx>=46){ var y=y0,m=m0,step=Math.max(1,Math.ceil(46/monthPx)); while(true){ var day=Math.floor(Date.UTC(y,m,1)/86400000); if(day>to) break; if(day>=from-31) ticks.push({day:day,label:(m===0?String(y):MN[m]+(step>=3?' '+y:'')),major:m===0}); m+=step; while(m>=12){m-=12;y++;} } }
+      else { var yearPx=px*365,ys=Math.max(1,Math.ceil(60/yearPx)); for(var yy=y0-(y0%ys);;yy+=ys){ var dy=Math.floor(Date.UTC(yy,0,1)/86400000); if(dy>to) break; if(dy>=from-366) ticks.push({day:dy,label:String(yy),major:true}); } }
+      return ticks; }
+    function tlColor(subject){ var h=0,s=String(subject); for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return TL_PALETTE[h%TL_PALETTE.length]; }
+    function tlGatherNotes(){
+      if(!treeData) return [];
+      return collectAllItems(treeData).filter(function(it){return it.type==='file';}).map(function(it){
+        var parts=(it.path||'').split('/'); var subj=parts.length>1?parts[0]:'(root)';
+        var upd=it.updated||(it.mtime?String(it.mtime).slice(0,10):null);
+        return { name:(typeof getDisplayName==='function'?getDisplayName(it):(it.display||it.name)), path:it.path, lang:it.lang||LANG, subject:subj, start:it.materialStart||null, end:it.materialEnd||null, updated:upd };
+      });
+    }
+    function tlTopFolders(){
+      if(!treeData) return [];
+      return (treeData.children||[]).filter(function(c){return c.type==='folder';}).map(function(f){
+        return { path:f.path||f.name, name:(typeof getDisplayName==='function'?getDisplayName(f):f.name),
+          children:(f.children||[]).filter(function(c){return c.type==='folder';}).map(function(s){return {path:s.path,name:(typeof getDisplayName==='function'?getDisplayName(s):s.name)};}) };
+      });
+    }
+    function tlIncluded(path){ for(var fp in _tlUnchecked){ if(_tlUnchecked[fp] && (path===fp || path.indexOf(fp+'/')===0)) return false; } return true; }
+    function tlEntries(){
+      var out=[];
+      tlGatherNotes().forEach(function(n){
+        if(!tlIncluded(n.path)) return;
+        if(_tlBasis==='period'){ var s=tlDay(n.start),e=tlDay(n.end); if(s==null||e==null) return; if(e<s){var t2=s;s=e;e=t2;} out.push({n:n,kind:'bar',d0:s,d1:e}); }
+        else { var key=_tlBasis==='start'?n.start:_tlBasis==='end'?n.end:n.updated; var d=tlDay(key); if(d==null) return; out.push({n:n,kind:'pt',d0:d,d1:d}); }
+      });
+      return out;
+    }
+    function tlExtent(ents){ if(!ents.length) return null; var lo=Infinity,hi=-Infinity; ents.forEach(function(e){ if(e.d0<lo)lo=e.d0; if(e.d1>hi)hi=e.d1; }); return [lo,hi]; }
+    function tlInitRange(){
+      var ext=tlExtent(tlEntries()); var fI=document.getElementById('tlFrom'),tI=document.getElementById('tlTo');
+      if(ext){ var pad=Math.max(14,Math.round((ext[1]-ext[0])*0.05)); fI.value=tlFmtDay(ext[0]-pad); tI.value=tlFmtDay(ext[1]+pad); }
+      else { var td=tlDay(new Date().toISOString().slice(0,10)); fI.value=tlFmtDay(td-180); tI.value=tlFmtDay(td+180); }
+    }
+    function tlFit(){
+      var fI=document.getElementById('tlFrom'),tI=document.getElementById('tlTo'); var from=tlDay(fI.value),to=tlDay(tI.value);
+      if(from==null||to==null||to<=from){ tlRender(); return; }
+      var wrap=document.getElementById('tlCanvasWrap'); var avail=Math.max(320,(wrap.clientWidth||800)-60);
+      _tlPx=Math.max(0.04,Math.min(40,avail/(to-from))); tlRender();
+    }
+    function tlRenderSubjects(){
+      var host=document.getElementById('tlSubjectList'); if(!host) return; var tops=tlTopFolders(); host.innerHTML='';
+      if(!tops.length){ host.innerHTML='<div class="tl-sub-empty">'+esc(t('tlNoFolders'))+'</div>'; return; }
+      tops.forEach(function(f){ var grp=document.createElement('div'); grp.className='tl-sub-grp'; grp.appendChild(tlSubRow(f.path,f.name,true)); f.children.forEach(function(s){ grp.appendChild(tlSubRow(s.path,s.name,false)); }); host.appendChild(grp); });
+    }
+    function tlSubRow(path,name,top){
+      var lab=document.createElement('label'); lab.className='tl-sub-row'+(top?' top':'');
+      var cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!_tlUnchecked[path];
+      var dot=document.createElement('span'); dot.className='tl-sub-dot'; if(top) dot.style.background=tlColor(String(path).split('/')[0]); else dot.style.visibility='hidden';
+      cb.addEventListener('change',function(){ if(cb.checked) delete _tlUnchecked[path]; else _tlUnchecked[path]=true; tlRender(); });
+      var nm=document.createElement('span'); nm.className='tl-sub-name'; nm.textContent=name;
+      lab.appendChild(cb); lab.appendChild(dot); lab.appendChild(nm); return lab;
+    }
+    function tlRender(){
+      var canvas=document.getElementById('tlCanvas'),empty=document.getElementById('tlEmpty'),count=document.getElementById('tlCount');
+      var fI=document.getElementById('tlFrom'),tI=document.getElementById('tlTo'); var from=tlDay(fI.value),to=tlDay(tI.value);
+      function showEmpty(msg){ canvas.innerHTML=''; canvas.style.width='100%'; canvas.style.height='100%'; empty.textContent=msg; empty.style.display='flex'; }
+      if(from==null||to==null||to<=from){ showEmpty(t('tlBadRange')); if(count) count.textContent=''; return; }
+      var vis=tlEntries().filter(function(e){ return e.d1>=from && e.d0<=to; });
+      if(count) count.textContent='· '+vis.length+' '+t('tlMaterials');
+      if(!vis.length){ showEmpty(t('tlNoData')); return; }
+      empty.style.display='none';
+      var px=_tlPx, AXIS=34, PADTOP=10, LANE=(_tlBasis==='period'?46:30), LEFT=10;
+      function xOf(day){ return LEFT+(day-from)*px; }
+      vis.forEach(function(e){ var a=xOf(Math.max(e.d0,from)),b=xOf(Math.min(e.d1,to)); e.px0=a; e.px1=b; e.x0=a; e.x1=Math.max(b, a + (e.kind==='bar'? Math.max(tlLabelPx(e.n.name), b-a) : tlLabelPx(e.n.name))); });
+      vis.sort(function(a,b){ return a.x0-b.x0; });
+      var lanes=tlPackLanes(vis);
+      var width=LEFT+(to-from)*px+40, height=PADTOP+AXIS+lanes*LANE+16;
+      var html='';
+      tlTicks(from,to,px).forEach(function(tk){ var x=xOf(tk.day); html+='<div class="tl-grid'+(tk.major?' major':'')+'" style="left:'+x+'px;top:'+(PADTOP+AXIS)+'px;height:'+(lanes*LANE)+'px"></div><div class="tl-tick'+(tk.major?' major':'')+'" style="left:'+x+'px;top:'+PADTOP+'px">'+esc(tk.label)+'</div>'; });
+      var today=tlDay(new Date().toISOString().slice(0,10));
+      if(today!=null&&today>=from&&today<=to){ html+='<div class="tl-today" style="left:'+xOf(today)+'px;top:'+(PADTOP+AXIS-6)+'px;height:'+(lanes*LANE+6)+'px"></div>'; }
+      vis.forEach(function(e){
+        var top=PADTOP+AXIS+e.lane*LANE, col=tlColor(e.n.subject);
+        var info=esc(e.n.subject)+' · '+(e.kind==='bar'?(esc(e.n.start)+' \u2192 '+esc(e.n.end)):esc(tlFmtDay(e.d0)));
+        var tip=esc(e.n.name)+' \u2014 '+info;
+        if(e.kind==='bar'){ var w=Math.max(6,e.px1-e.px0);
+          html+='<div class="tl-item tl-bar" data-p="'+esc(e.n.path)+'" data-l="'+esc(e.n.lang)+'" title="'+tip+'" style="left:'+e.px0+'px;top:'+(top+18)+'px;width:'+w+'px;background:'+col+'22;border-color:'+col+'"></div>';
+          html+='<div class="tl-label" style="left:'+e.px0+'px;top:'+(top+1)+'px;max-width:280px;color:'+col+'">'+esc(e.n.name)+'</div>';
+        } else {
+          html+='<div class="tl-item tl-dot" data-p="'+esc(e.n.path)+'" data-l="'+esc(e.n.lang)+'" title="'+tip+'" style="left:'+(e.px0-5)+'px;top:'+(top+8)+'px;background:'+col+'"></div>';
+          html+='<div class="tl-label" style="left:'+(e.px0+10)+'px;top:'+(top+2)+'px;max-width:240px;color:'+col+'">'+esc(e.n.name)+'</div>';
+        }
+      });
+      canvas.style.width=width+'px'; canvas.style.height=height+'px'; canvas.innerHTML=html;
+      canvas.querySelectorAll('.tl-item').forEach(function(el){ el.addEventListener('click',function(){ var p=el.getAttribute('data-p'),l=el.getAttribute('data-l'); closeTimeline(); openNoteByPath(p,l); }); });
+    }
+    function openTimeline(){
+      document.body.classList.add('tl-open'); document.getElementById('timelineModal').classList.add('open');
+      var go=function(){ tlInitRange(); tlRenderSubjects(); tlFit(); };
+      if(!treeData){ (loadTree()||Promise.resolve()).then(go).catch(go); } else go();
+    }
+    function closeTimeline(){ document.getElementById('timelineModal').classList.remove('open'); document.body.classList.remove('tl-open'); }
+    (function(){
+      var byId=function(id){return document.getElementById(id);};
+      var c=byId('tlClose'); if(c) c.addEventListener('click', closeTimeline);
+      var b=byId('tlBasis'); if(b) b.addEventListener('change', function(){ _tlBasis=b.value; tlInitRange(); tlFit(); });
+      var f=byId('tlFrom'); if(f) f.addEventListener('change', tlRender);
+      var tt=byId('tlTo'); if(tt) tt.addEventListener('change', tlRender);
+      var fit=byId('tlFit'); if(fit) fit.addEventListener('click', tlFit);
+      var zi=byId('tlZoomIn'); if(zi) zi.addEventListener('click', function(){ _tlPx=Math.min(40,_tlPx*1.4); tlRender(); });
+      var zo=byId('tlZoomOut'); if(zo) zo.addEventListener('click', function(){ _tlPx=Math.max(0.04,_tlPx/1.4); tlRender(); });
+      var sb=byId('tlSubjectsBtn'); if(sb) sb.addEventListener('click', function(){ var collapsed=byId('timelineModal').classList.toggle('subjects-collapsed'); sb.classList.toggle('on', !collapsed); });
+      ['navTimeline','mobNavTimeline'].forEach(function(id){ var el=byId(id); if(el) el.addEventListener('click', function(e){ if(e&&e.preventDefault)e.preventDefault(); var d=byId('mobileMenuDrawer'); if(d) d.classList.remove('open'); openTimeline(); }); });
+      document.addEventListener('keydown', function(e){ if(e.key==='Escape' && byId('timelineModal').classList.contains('open')) closeTimeline(); });
     })();
 
     // Jump to whatever a changelog entry references.

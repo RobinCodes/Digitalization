@@ -254,6 +254,9 @@ function fileMeta(dir, name, sections) {
     tags:        meta.tags    ? meta.tags.split(',').map(s => s.trim()).filter(Boolean)    : [],
     authors:     meta.authors ? meta.authors.split(',').map(s => s.trim()).filter(Boolean) : [],
     date:        meta.date        || null,
+    materialStart: meta.material_start || null,
+    materialEnd:   meta.material_end   || null,
+    updated:       meta.updated        || null,
     important:   meta.important  === 'true',
     description: meta.description || null,
     altHu:       meta.alt_hu      || null,
@@ -467,6 +470,8 @@ function walkOwnedNotes(member) {
           tags: meta.tags ? meta.tags.split(',').map(x => x.trim()).filter(Boolean) : [],
           authors: meta.authors ? meta.authors.split(',').map(x => x.trim()).filter(Boolean) : [],
           date: meta.date || null, description: meta.description || null, important: meta.important === 'true',
+          materialStart: meta.material_start || null, materialEnd: meta.material_end || null, updated: meta.updated || null,
+          mtime: (function(){ try { return fs.statSync(path.join(dir, f.name)).mtime.toISOString(); } catch { return null; } })(),
           canSee: acc.canSee, canRead: acc.canRead, readRequests: acc.readRequests,
           seeWhitelist: acc.seeWhitelist, readWhitelist: acc.readWhitelist, owners: acc.owners,
           primary: acc.owners[0] === meLc,
@@ -1063,7 +1068,7 @@ function rateOk(req, bucket, limit, windowMs) {
 const DATA_TXT_HEADER =
   '# Managed by Digitalization DevTools.\n' +
   '# Each [Section] header is a note display name (filename without extension or {tags}).\n' +
-  '# Keys: tags, authors, date, important, visibility (public|members|request), allow, description, alt-hu, alt-en\n' +
+  '# Keys: tags, authors, date, material-start, material-end, updated, important, visibility (public|members|request), allow, description, alt-hu, alt-en\n' +
   '#   visibility=request: note is visible but content is locked; allow = owner usernames who receive read-requests.\n';
 
 function serializeDataTxt(sections) {
@@ -1071,8 +1076,8 @@ function serializeDataTxt(sections) {
   for (const [name, meta] of Object.entries(sections || {})) {
     if (!name || !meta) continue;
     out += `[${name}]\n`;
-    const order   = ['tags', 'authors', 'date', 'important', 'visibility', 'allow', 'can_see', 'can_read', 'read_requests', 'see_allow', 'read_allow', 'owners', 'description', 'alt_hu', 'alt_en'];
-    const keyName = { alt_hu: 'alt-hu', alt_en: 'alt-en', can_see: 'can-see', can_read: 'can-read', read_requests: 'read-requests', see_allow: 'see-allow', read_allow: 'read-allow' };
+    const order   = ['tags', 'authors', 'date', 'material_start', 'material_end', 'updated', 'important', 'visibility', 'allow', 'can_see', 'can_read', 'read_requests', 'see_allow', 'read_allow', 'owners', 'description', 'alt_hu', 'alt_en'];
+    const keyName = { material_start: 'material-start', material_end: 'material-end', alt_hu: 'alt-hu', alt_en: 'alt-en', can_see: 'can-see', can_read: 'can-read', read_requests: 'read-requests', see_allow: 'see-allow', read_allow: 'read-allow' };
     for (const k of order) {
       let v = meta[k];
       if (v == null || v === '' || (Array.isArray(v) && v.length === 0)) continue;
@@ -1666,6 +1671,9 @@ const server = http.createServer((req, res) => {
       if ('tags' in p)        sec.tags        = Array.isArray(p.tags) ? p.tags.join(', ') : String(p.tags || '');
       if ('authors' in p)     sec.authors     = Array.isArray(p.authors) ? p.authors.join(', ') : String(p.authors || '');
       if ('date' in p)        sec.date        = String(p.date || '');
+      if ('materialStart' in p) sec.material_start = String(p.materialStart || '');
+      if ('materialEnd' in p)   sec.material_end   = String(p.materialEnd || '');
+      if ('updated' in p)       sec.updated        = String(p.updated || '');
       if ('description' in p) sec.description  = String(p.description || '');
       if ('important' in p)   sec.important    = p.important ? 'true' : '';
       if (['canSee', 'canRead', 'readRequests', 'seeAllow', 'readAllow'].some(k => k in p)) {
