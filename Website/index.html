@@ -3003,7 +3003,6 @@
         stgNotifSub:    'Alerts for new messages and access decisions',
         stgDark:        'Dark',
         stgLight:       'Light',
-        stgTeal:        'Teal',
         stgCustom:      'Custom',
         stgCustomColors:    'Custom colors',
         stgCustomColorsSub: 'Accent and highlight',
@@ -3248,7 +3247,6 @@
         stgNotifSub:    'Szólás új üzenetekről és hozzáférési döntésekről',
         stgDark:        'Sötét',
         stgLight:       'Világos',
-        stgTeal:        'Türkiz',
         stgCustom:      'Egyedi',
         stgCustomColors:    'Egyedi színek',
         stgCustomColorsSub: 'Kiemelő és világos kiemelő',
@@ -3590,7 +3588,7 @@
     function applyCustomColors(){ var v=deriveVars(getCustom()), el=document.documentElement.style; for (var k in v) el.setProperty(k, v[k]); }
 
     function applyTheme(theme){
-      if (theme==='teal'){ var _tp=PRESETS.filter(function(p){return p.name==='Teal';})[0]; if(_tp) setCustom(_tp); theme='custom'; }
+      if (theme==='teal') theme='custom';
       if (THEMES.indexOf(theme)===-1) theme='dark';
       document.body.classList.remove('light','theme-teal','theme-custom');
       if (theme==='light')       document.body.classList.add('light');
@@ -3609,7 +3607,7 @@
     function deleteSavedTheme(id){ setSaved(getSaved().filter(function(s){return s.id!==id;})); if(localStorage.getItem(RCLICK_KEY)===id) localStorage.removeItem(RCLICK_KEY); }
     function setRclickTheme(id){ if(localStorage.getItem(RCLICK_KEY)===id) localStorage.removeItem(RCLICK_KEY); else localStorage.setItem(RCLICK_KEY, id); }
     // Applied when the header theme button is right-clicked.
-    function applyRclickTheme(){ var id=localStorage.getItem(RCLICK_KEY); if (id && applySavedTheme(id)) return; applyTheme('custom'); }
+    function applyRclickTheme(){ var id=localStorage.getItem(RCLICK_KEY); if (id && applySavedTheme(id)) return; applyThemeObject(PRESETS.filter(function(p){return p.name==='Amethyst';})[0] || DEFAULT_CUSTOM); }
 
     function _sameTheme(a,b){ return a.accent===b.accent && a.accent2===b.accent2 && a.bg===b.bg && a.text===b.text && (!!a.radiant)===(!!b.radiant) && a.radiantColor===b.radiantColor; }
     function renderThemePresets(){
@@ -3668,7 +3666,7 @@
     }
     // Header toggle: left-click flips light/dark (Custom lives in Settings).
     document.getElementById('themeToggle').addEventListener('click', function(){ applyTheme(currentThemeName()==='light' ? 'dark' : 'light'); });
-    // Right-click any theme button → apply the chosen right-click theme (a saved theme, else the latest Custom).
+    // Right-click any theme button → apply the chosen right-click theme (a saved theme, else Amethyst by default).
     document.addEventListener('contextmenu', function(e){
       var btn = e.target.closest && e.target.closest('#themeToggle, #mobThemeToggle, #pdfQsTheme, #pshQsTheme');
       if (!btn) return;
