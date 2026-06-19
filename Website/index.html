@@ -40,16 +40,6 @@
       --red:#a03030; --blue:#2a5a96; --teal:#1a7a68; --green:#2a7040; --purple:#5a3898;
       --hdr-bg:rgba(245,240,232,.92);
     }
-    /* ── TEAL (dark, teal-blue) THEME ───────────────── */
-    body.theme-teal {
-      --bg:#06090b; --bg2:#0a1014; --bg3:#0f181d; --bg4:#152229;
-      --border:rgba(150,205,210,0.07); --border-md:rgba(150,205,210,0.12);
-      --text:#d7e4e3; --text2:#7c918f; --text3:#3a4745;
-      --accent:#3fb6ac; --accent2:#6fe0d3;
-      --accent-glow:rgba(63,182,172,0.20); --accent-dim:rgba(63,182,172,0.09);
-      --red:#d07070; --blue:#5fa8d8; --teal:#4fd0c0; --green:#5fc98f; --purple:#9a86d8;
-      --hdr-bg:rgba(6,9,11,.88);
-    }
     /* ── CUSTOM THEME: radiant background ────────────────────────────── */
     body.theme-custom{background-color:var(--bg);background-image:var(--bg-radiant,none);background-attachment:fixed;background-repeat:no-repeat}
     /* Theme studio (Settings → Appearance → Custom) */
@@ -1657,7 +1647,7 @@
     #authModal{position:fixed;inset:0;z-index:8600;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
     #authModal.open{opacity:1;pointer-events:all}
     .auth-bd{position:absolute;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-    .auth-box{position:relative;z-index:1;width:min(400px,100%);background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);box-shadow:0 0 0 1px var(--accent-dim),0 32px 80px rgba(0,0,0,.7);transform:scale(.97) translateY(8px);transition:transform .3s var(--tr-spring);overflow:hidden}
+    .auth-box{position:relative;z-index:1;width:min(400px,100%);background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);box-shadow:0 0 0 1px var(--accent-dim),0 32px 80px rgba(0,0,0,.7);transform:scale(.97) translateY(8px);transition:transform .3s var(--tr-spring);display:flex;flex-direction:column;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow:hidden}
     #authModal.open .auth-box{transform:scale(1) translateY(0)}
     #msgBell{position:relative}
     #msgBell .msg-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red,#b03b3b);border:1.5px solid var(--bg)}
@@ -1852,11 +1842,11 @@
       .chat-shell.thread-open .chat-thread-pane{display:flex}
       .chat-back{display:block}
     }
-    .auth-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+    .auth-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex:none}
     .auth-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
     .auth-x{width:30px;height:30px;border:none;background:var(--bg3);color:var(--text2);border-radius:8px;cursor:none;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s}
     .auth-x:hover{background:var(--bg4);color:var(--text)}
-    .auth-box>div:not(.auth-hd){padding:20px 18px}
+    .auth-box>div:not(.auth-hd){padding:20px 18px;overflow-y:auto;min-height:0}
     .auth-h{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--text);margin-bottom:6px}
     .auth-h em{color:var(--accent2);font-style:italic}
     .auth-sub{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:16px}
@@ -1900,6 +1890,21 @@
     @media(max-width:480px){#authBtn{display:none}}
     .mob-auth-btn{margin-top:10px;width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border-md);border-radius:8px;color:var(--text);font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;cursor:none}
     .mob-auth-btn:hover{border-color:var(--accent)}
+    /* Short viewports: keep the profile / auth modal fully on screen. */
+    @media (max-height:600px){
+      #authModal{padding:10px}
+      .auth-box{max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px)}
+      .auth-box>div:not(.auth-hd){padding:14px 18px}
+      .auth-h{font-size:20px;margin-bottom:4px}
+      .auth-sub{margin-bottom:10px}
+      .auth-profile{margin-bottom:6px}
+      .auth-stats{margin:10px 0}
+      .auth-stat{padding:9px 12px}
+      .auth-stat-n{font-size:22px}
+      .auth-fld{margin-bottom:9px}
+      .auth-divider{margin:11px 0}
+      .auth-submit{padding:9px}
+    }
     .card-members{font-size:10px;opacity:.75;margin-left:2px}
   </style>
 </head>
@@ -2603,11 +2608,10 @@
             <div class="stg-seg" id="stgThemeSeg">
               <button class="stg-seg-btn" data-theme="dark" data-i18n="stgDark">Dark</button>
               <button class="stg-seg-btn" data-theme="light" data-i18n="stgLight">Light</button>
-              <button class="stg-seg-btn" data-theme="teal" data-i18n="stgTeal">Teal</button>
               <button class="stg-seg-btn" data-theme="custom" data-i18n="stgCustom">Custom</button>
             </div>
           </div>
-          <div class="stg-row" id="stgCustomColorsRow" style="display:none">
+          <div class="stg-row" id="stgCustomColorsRow">
             <div class="thm-studio">
               <div>
                 <div class="thm-group-lbl" data-i18n="stgPresets">Presets</div>
@@ -3520,14 +3524,13 @@
     const CUSTOM_KEY = 'ki_custom_theme';
     const SAVED_KEY  = 'ki_saved_themes';
     const RCLICK_KEY = 'ki_rclick_theme';
-    const THEMES = ['dark', 'light', 'teal', 'custom'];
+    const THEMES = ['dark', 'light', 'custom'];
     // Every CSS var the custom theme may drive — cleared when switching to a built-in theme.
     const CUSTOM_PROPS = ['--bg','--bg2','--bg3','--bg4','--border','--border-md','--text','--text2','--text3','--accent','--accent2','--accent-glow','--accent-dim','--hdr-bg','--bg-radiant'];
 
     function currentThemeName() {
       if (document.body.classList.contains('theme-custom')) return 'custom';
       if (document.body.classList.contains('light'))        return 'light';
-      if (document.body.classList.contains('theme-teal'))   return 'teal';
       return 'dark';
     }
 
@@ -3541,7 +3544,7 @@
     function isDark(hex){ return lum(hex) < 0.5; }
     function shade(hex,amt){ return mix(hex, amt>=0?'#ffffff':'#000000', Math.abs(amt)); }
 
-    var DEFAULT_CUSTOM = { name:'Custom', accent:'#c4a13c', accent2:'#e8c96a', bg:'#07070a', text:'#e0dbd0', radiant:false, radiantColor:'#c4a13c' };
+    var DEFAULT_CUSTOM = { name:'Amethyst', accent:'#b98cff', accent2:'#e0b3ff', bg:'#0c0814', text:'#e7ddf5', radiant:true, radiantColor:'#9a6bff' };
     var PRESETS = [
       { name:'Gold',     accent:'#c4a13c', accent2:'#e8c96a', bg:'#07070a', text:'#e0dbd0', radiant:false, radiantColor:'#c4a13c' },
       { name:'Teal',     accent:'#3fb6ac', accent2:'#6fe0d3', bg:'#06090b', text:'#d7e4e3', radiant:false, radiantColor:'#3fb6ac' },
@@ -3567,7 +3570,7 @@
       try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(c)); } catch(e){}
     })();
 
-    function getCustom(){ try{ return _normTheme(JSON.parse(localStorage.getItem(CUSTOM_KEY)||'null')); }catch(e){ return Object.assign({},DEFAULT_CUSTOM); } }
+    function getCustom(){ try{ var _raw=localStorage.getItem(CUSTOM_KEY); return _raw ? _normTheme(JSON.parse(_raw)) : Object.assign({},DEFAULT_CUSTOM); }catch(e){ return Object.assign({},DEFAULT_CUSTOM); } }
     function setCustom(c){ c=_normTheme(c); try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(c)); }catch(e){} localStorage.setItem('ki_custom_accent', c.accent); localStorage.setItem('ki_custom_accent2', c.accent2); if (currentThemeName()==='custom') applyCustomColors(); }
 
     function getSaved(){ try{ var a=JSON.parse(localStorage.getItem(SAVED_KEY)||'[]'); return Array.isArray(a)?a.map(_normSaved).filter(Boolean):[]; }catch(e){ return []; } }
@@ -3587,10 +3590,10 @@
     function applyCustomColors(){ var v=deriveVars(getCustom()), el=document.documentElement.style; for (var k in v) el.setProperty(k, v[k]); }
 
     function applyTheme(theme){
+      if (theme==='teal'){ var _tp=PRESETS.filter(function(p){return p.name==='Teal';})[0]; if(_tp) setCustom(_tp); theme='custom'; }
       if (THEMES.indexOf(theme)===-1) theme='dark';
       document.body.classList.remove('light','theme-teal','theme-custom');
       if (theme==='light')       document.body.classList.add('light');
-      else if (theme==='teal')   document.body.classList.add('theme-teal');
       else if (theme==='custom') document.body.classList.add('theme-custom');
       var root=document.documentElement.style;
       CUSTOM_PROPS.forEach(function(p){ root.removeProperty(p); });
@@ -3659,11 +3662,11 @@
     // Load persisted theme — fall back to OS preference
     const osPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedTheme = localStorage.getItem(THEME_KEY);
-    applyTheme(savedTheme || (osPrefersDark ? 'dark' : 'light'));
+    applyTheme(savedTheme || 'custom');
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e){ if (!localStorage.getItem(THEME_KEY)) applyTheme(e.matches ? 'dark' : 'light'); });
     }
-    // Header toggle: left-click flips light/dark (Teal/Custom live in Settings).
+    // Header toggle: left-click flips light/dark (Custom lives in Settings).
     document.getElementById('themeToggle').addEventListener('click', function(){ applyTheme(currentThemeName()==='light' ? 'dark' : 'light'); });
     // Right-click any theme button → apply the chosen right-click theme (a saved theme, else the latest Custom).
     document.addEventListener('contextmenu', function(e){
@@ -7230,7 +7233,7 @@
       /* ── Custom theme studio ───────────────────────────────────────── */
       function _studioField(id, field){
         var el=document.getElementById(id); if(!el) return;
-        el.addEventListener('input', function(){ var c=getCustom(); c[field]=el.value; setCustom(c); renderThemePresets(); markDirty(); });
+        el.addEventListener('input', function(){ var c=getCustom(); c[field]=el.value; setCustom(c); var _sw=currentThemeName()!=='custom'; if(_sw) applyTheme('custom'); if(_sw && typeof syncSettingsUI==='function') syncSettingsUI(); else renderThemePresets(); markDirty(); });
       }
       _studioField('stgCustomAccent','accent');
       _studioField('stgCustomAccent2','accent2');
@@ -7240,7 +7243,7 @@
       (function(){
         var rt=document.getElementById('stgRadiantToggle');
         if (rt){
-          var toggle=function(){ var c=getCustom(); c.radiant=!c.radiant; setCustom(c); updateStudioInputs(); renderThemePresets(); markDirty(); };
+          var toggle=function(){ var c=getCustom(); c.radiant=!c.radiant; setCustom(c); if(currentThemeName()!=='custom') applyTheme('custom'); if(typeof syncSettingsUI==='function') syncSettingsUI(); else { updateStudioInputs(); renderThemePresets(); } markDirty(); };
           rt.addEventListener('click', toggle);
           rt.addEventListener('keydown', function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(); } });
         }
@@ -7478,7 +7481,7 @@
         document.querySelectorAll('#stgThemeSeg .stg-seg-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.theme === _theme);
         });
-        const _cr = document.getElementById('stgCustomColorsRow'); if (_cr) _cr.style.display = (_theme === 'custom') ? '' : 'none';
+        const _cr = document.getElementById('stgCustomColorsRow'); if (_cr) _cr.style.display = '';
         updateStudioInputs();
         renderThemePresets();
         renderSavedThemes();
