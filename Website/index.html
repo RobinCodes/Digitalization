@@ -72,6 +72,95 @@
     .thm-switch.on{background:var(--accent-dim);border-color:var(--accent)}
     .thm-switch.on::after{transform:translateX(16px);background:var(--accent)}
     .thm-hint{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:.03em;line-height:1.5}
+    /* Cursor studio */
+    .cur-select{background:var(--bg3);border:1px solid var(--border-md);border-radius:7px;color:var(--text);font-family:var(--font-ui);font-size:12px;padding:5px 7px;outline:none;cursor:none;max-width:60%}
+    .cur-select:focus{border-color:var(--accent)}
+    .cur-preview{position:relative;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid rgba(255,255,255,.07);overflow:hidden}
+    .cur-preview span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+    .cur-preview .cur-prev-dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+    .cur-preview .cur-prev-ring{width:20px;height:20px;border-radius:50%;border:2px solid var(--accent)}
+    .cur-preview .cur-prev-arrow{width:16px;height:21px;background-color:#efe7d6;-webkit-mask:var(--cur-arrow) 0 0/100% 100% no-repeat;mask:var(--cur-arrow) 0 0/100% 100% no-repeat}
+    .cur-preview .cur-prev-blob{width:18px;height:18px;background-color:#efe7d6;-webkit-mask:var(--cur-blob) 0 0/100% 100% no-repeat;mask:var(--cur-blob) 0 0/100% 100% no-repeat}
+    .cur-preview.glow .cur-prev-dot{box-shadow:0 0 7px currentColor}
+    .cur-preview.glow .cur-prev-ring{box-shadow:0 0 9px rgba(255,255,255,.3)}
+    .cur-preview.anim-pulse .cur-prev-ring{animation:curPulse 1.5s ease-in-out infinite}
+    .cur-preview.anim-breathe .cur-prev-ring{animation:curBreathe 2.6s ease-in-out infinite}
+    .cur-preview.anim-spin .cur-prev-ring{border-top-color:transparent;border-right-color:transparent;animation:curSpin 1s linear infinite}
+    .cur-preview.anim-trail .cur-prev-dot{animation:curPulse 1.4s ease-in-out infinite}
+    @keyframes curHue{to{filter:hue-rotate(360deg)}}
+    .cur-preview.anim-rainbow{animation:curHue 3s linear infinite}
+    /* Connectivity banner + message status + presence */
+    .net-banner{position:fixed;left:0;right:0;top:var(--header-h);z-index:7200;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,#5d1f24,#4a181d);color:#ffdada;font-family:var(--font-ui);font-size:12.5px;letter-spacing:.01em;max-height:0;padding:0 14px;overflow:hidden;transition:max-height .25s var(--tr),padding .25s var(--tr);box-shadow:0 6px 18px rgba(0,0,0,.28)}
+    .net-banner.show{max-height:44px;padding:8px 14px}
+    .net-banner .nb-dot{width:8px;height:8px;border-radius:50%;background:#ff6b6b;box-shadow:0 0 8px #ff6b6b;animation:netPulse 1.3s ease-in-out infinite;flex:none}
+    @keyframes netPulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .chat-presence{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-ui);font-size:11px;color:var(--text3);margin-left:2px;white-space:nowrap}
+    .chat-presence .cp-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex:none}
+    .chat-presence.on{color:#3fc16b}
+    .chat-presence.on .cp-dot{background:#3fc16b;box-shadow:0 0 6px #3fc16b}
+    .chat-row.pending .chat-bubble{opacity:.72}
+    .chat-row.pending.failed .chat-bubble{opacity:.95;outline:1px solid rgba(255,120,120,.45);outline-offset:1px}
+    .cb-stat{font-size:10.5px;opacity:.9;display:inline-flex;align-items:center;gap:4px}
+    .cb-stat.sending{font-style:italic}
+    @keyframes nbSpin{to{transform:rotate(360deg)}}
+    .cb-stat.sending::before{content:'';width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;border-top-color:transparent;display:inline-block;animation:nbSpin .8s linear infinite}
+    .cb-stat.failed{color:#ffb3b3}
+    .cb-retry{font:inherit;font-size:10px;color:var(--accent);text-decoration:underline;background:none;border:none;cursor:none;padding:0 0 0 5px}
+    .cb-retry:hover{color:var(--accent2)}
+    /* ── Custom form controls (cursor-friendly: no native OS UI) ─────────── */
+    @keyframes ddIn{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+    /* Custom dropdown (replaces native <select>) */
+    .cdd{position:relative;display:inline-flex}
+    .cdd-btn{display:inline-flex;align-items:center;gap:7px;justify-content:space-between;min-width:124px;background:var(--bg3);border:1px solid var(--border-md);border-radius:8px;color:var(--text);font-family:var(--font-ui);font-size:12px;padding:6px 9px;cursor:none;transition:border-color .15s,color .15s}
+    .cdd-btn:hover{border-color:var(--accent)}
+    .cdd.open .cdd-btn{border-color:var(--accent)}
+    .cdd-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cdd-chev{display:inline-flex;flex:none}
+    .cdd-chev svg{width:11px;height:11px;opacity:.6;transition:transform .2s var(--tr)}
+    .cdd.open .cdd-chev svg{transform:rotate(180deg)}
+    .cdd-menu{position:absolute;top:calc(100% + 6px);left:0;right:auto;z-index:9000;min-width:100%;background:var(--bg2);border:1px solid var(--border-md);border-radius:10px;padding:4px;box-shadow:0 14px 42px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.03);display:none}
+    .cdd-menu.open{display:block;animation:ddIn .16s var(--tr)}
+    .cdd-item{display:flex;align-items:center;width:100%;white-space:nowrap;padding:7px 10px;border-radius:6px;background:none;border:none;color:var(--text2);font-family:var(--font-ui);font-size:12px;text-align:left;cursor:none;transition:background .12s,color .12s}
+    .cdd-item:hover{background:var(--bg4);color:var(--text)}
+    .cdd-item.active{color:var(--accent)}
+    .cdd-item.active::before{content:'✓';margin-right:7px;font-size:10px;opacity:.9}
+    .cdd-item:not(.active)::before{content:'';margin-right:7px;width:10px;display:inline-block}
+    /* Custom date picker (ported from DevTools — theme-adaptive calendar) */
+    .kidate{position:relative;display:inline-flex;align-items:center;gap:6px}
+    .kidate-input{cursor:none}
+    .kidate-btn{display:inline-flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border-md);border-radius:8px;color:var(--text2);cursor:none;padding:6px 8px;transition:color .15s,border-color .15s}
+    .kidate-btn svg{width:14px;height:14px}
+    .kidate-btn:hover{color:var(--accent);border-color:var(--accent)}
+    .kidate-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:9000;display:none;background:var(--bg2);border:1px solid var(--border-md);border-radius:12px;padding:10px;box-shadow:0 16px 44px rgba(0,0,0,.55);width:236px}
+    .kidate-pop.open{display:block;animation:ddIn .16s var(--tr)}
+    .kidate-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-family:var(--font-ui);font-size:13px;color:var(--text)}
+    .kidate-hd button{background:none;border:none;color:var(--text2);cursor:none;font-size:18px;padding:2px 9px;border-radius:6px;line-height:1;transition:color .15s,background .15s}
+    .kidate-hd button:hover{color:var(--accent);background:var(--bg3)}
+    .kidate-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+    .kidate-dow{text-align:center;font-size:10px;color:var(--text3);padding:4px 0;font-family:var(--font-ui)}
+    .kidate-day{aspect-ratio:1;border:none;background:none;color:var(--text);border-radius:7px;cursor:none;font-size:12px;font-family:var(--font-mono);transition:background .12s,color .12s,transform .12s var(--tr-spring)}
+    .kidate-day:hover{background:var(--bg4);transform:scale(1.08)}
+    .kidate-day.today{outline:1px solid var(--border-md)}
+    .kidate-day.sel{background:var(--accent);color:var(--bg);font-weight:600}
+    .kidate-foot{display:flex;justify-content:space-between;margin-top:8px}
+    .kidate-foot button{background:var(--bg3);border:1px solid var(--border-md);color:var(--text2);border-radius:6px;padding:4px 11px;font-size:11px;cursor:none;font-family:var(--font-ui);transition:color .15s,border-color .15s}
+    .kidate-foot button:hover{color:var(--accent);border-color:var(--accent)}
+    /* Custom HSV colour picker (replaces native <input type=color>) */
+    .ccol{position:relative;display:inline-flex}
+    .ccol-sw{width:38px;height:24px;border-radius:7px;border:1px solid var(--border-md);cursor:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);transition:border-color .15s,transform .15s var(--tr-spring)}
+    .ccol-sw:hover{border-color:var(--accent);transform:translateY(-1px)}
+    .ccol-pop{position:absolute;top:calc(100% + 8px);right:0;z-index:9100;width:208px;background:var(--bg2);border:1px solid var(--border-md);border-radius:13px;padding:13px;box-shadow:0 18px 50px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.03);display:none;flex-direction:column;gap:11px}
+    .ccol-pop.open{display:flex;animation:ddIn .17s var(--tr)}
+    .ccol-sv{position:relative;width:100%;height:122px;border-radius:9px;cursor:none;background:hsl(0,100%,50%);overflow:hidden;touch-action:none}
+    .ccol-sv-white{position:absolute;inset:0;background:linear-gradient(to right,#fff,rgba(255,255,255,0))}
+    .ccol-sv-black{position:absolute;inset:0;background:linear-gradient(to top,#000,rgba(0,0,0,0))}
+    .ccol-sv-thumb{position:absolute;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.55),0 1px 3px rgba(0,0,0,.4);transform:translate(-50%,-50%);pointer-events:none}
+    .ccol-hue{position:relative;width:100%;height:14px;border-radius:7px;cursor:none;touch-action:none;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+    .ccol-hue-thumb{position:absolute;top:-2px;bottom:-2px;width:6px;border-radius:4px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.5);transform:translateX(-50%);pointer-events:none}
+    .ccol-row{display:flex;align-items:center;gap:9px}
+    .ccol-prev{width:26px;height:26px;border-radius:7px;flex:none;border:1px solid var(--border-md)}
+    .ccol-hex{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border-md);border-radius:7px;color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 9px;outline:none;cursor:none;text-transform:lowercase}
+    .ccol-hex:focus{border-color:var(--accent)}
     /* ── Reference-this-note message input (feature 1) ───────────────── */
     .disc-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 12px;font:inherit;font-size:13.5px;line-height:1.5;resize:vertical;min-height:88px;transition:border-color .15s,box-shadow .15s;outline:none}
     .disc-textarea::placeholder{color:var(--text3)}
@@ -181,11 +270,16 @@
     .tl-label{position:absolute;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;text-shadow:0 1px 3px var(--bg),0 0 2px var(--bg)}
     .tl-empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--text3);font-size:14px;text-align:center;padding:30px;line-height:1.6}
     @media(max-width:680px){.tl-subjects{width:168px}.tl-ctrls{gap:8px}.tl-ctrl>span{display:none}}
-    ::-webkit-scrollbar{width:5px;height:5px}
-    ::-webkit-scrollbar-track{background:var(--bg2)}
-    ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:999px;opacity:.7}
-    ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--accent2),var(--accent));opacity:1;box-shadow:0 0 6px rgba(196,161,60,.45)}
-    *{scrollbar-width:thin;scrollbar-color:var(--accent) var(--bg2)}
+    /* Native scrollbars are hidden everywhere — the browser forces the OS arrow
+       cursor over them and ignores `cursor:none`. A custom overlay (.csb) gives the
+       main view a themed, cursor-friendly scrollbar instead. */
+    ::-webkit-scrollbar{width:0;height:0;background:transparent}
+    *{scrollbar-width:none}
+    .csb{position:fixed;width:10px;z-index:6700;opacity:0;pointer-events:none;transition:opacity .25s}
+    .csb.show{opacity:1}
+    .csb.show .csb-thumb{pointer-events:auto}
+    .csb-thumb{position:absolute;left:2px;right:2px;border-radius:999px;background:linear-gradient(180deg,var(--accent2),var(--accent));opacity:.5;cursor:none;transition:opacity .15s,box-shadow .15s}
+    .csb-thumb:hover,.csb.dragging .csb-thumb{opacity:.92;box-shadow:0 0 8px var(--accent-glow)}
     html{cursor:none}
     body{font-family:var(--font-ui);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:none;-webkit-font-smoothing:antialiased;transition:background .4s,color .4s}
     /* ── No scrollbar on main page on desktop ─────────────────────── */
@@ -198,14 +292,42 @@
     button{cursor:none;border:none;background:none;font-family:inherit;color:inherit}
     ::selection{background:var(--accent-dim);color:var(--accent2)}
 
-    /* CURSOR */
-    #cursorDot{position:fixed;z-index:99999;width:6px;height:6px;border-radius:50%;background:var(--accent);pointer-events:none;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s,opacity .2s}
-    #cursorRing{position:fixed;z-index:99998;width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(196,161,60,.5);pointer-events:none;transform:translate(-50%,-50%);transition:width .25s var(--tr),height .25s var(--tr),border-color .2s,opacity .2s;will-change:transform}
-    body.cursor-hover #cursorDot{width:4px;height:4px;background:var(--accent2)}
-    body.cursor-hover #cursorRing{width:44px;height:44px;border-color:var(--accent)}
-    body.cursor-active #cursorDot{width:8px;height:8px}
-    body.cursor-active #cursorRing{width:22px;height:22px;border-color:var(--accent2)}
-    .ripple{position:fixed;z-index:99997;pointer-events:none;border-radius:50%;border:1.5px solid rgba(196,161,60,.6);transform:translate(-50%,-50%) scale(0);animation:rippleOut .6s var(--tr) forwards}
+    /* CURSOR — themeable via --cur-* vars (set by the cursor-theme engine). */
+    :root{--cur-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 32'%3E%3Cpath d='M2 1 L2 25 L8.5 18.5 L12.5 28 L16.5 26.3 L12.6 17 L21 17 Z' fill='%23000'/%3E%3C/svg%3E");
+      /* Tailless, far-more-rounded pointer (a soft teardrop), tip at top-left ~ (5,5) of 28. */
+      --cur-blob:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cpath d='M5 5 C5 15 9 20.5 15 20.5 C20 20.5 22.5 17 22.5 12.5 C22.5 8 18.5 5 12 5 C9.5 5 7 5 5 5 Z' fill='%23000'/%3E%3C/svg%3E")}
+    #cursorDot{position:fixed;z-index:99999;width:var(--cur-dot-size,6px);height:var(--cur-dot-size,6px);border-radius:50%;background:var(--cur-dot,var(--accent));box-shadow:var(--cur-glow-dot,none);pointer-events:none;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s,opacity .2s}
+    #cursorRing{position:fixed;z-index:99998;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--cur-ring,rgba(196,161,60,.55));box-shadow:var(--cur-glow-ring,none);pointer-events:none;transform:translate(-50%,-50%);transition:width .25s var(--tr),height .25s var(--tr),border-color .2s,opacity .2s;will-change:transform}
+    body.cursor-hover #cursorDot{width:4px;height:4px}
+    body.cursor-hover #cursorRing{width:44px;height:44px}
+    body.cursor-active #cursorDot{width:9px;height:9px}
+    body.cursor-active #cursorRing{width:22px;height:22px}
+    /* Cursor shapes */
+    body.cur-dot #cursorRing,body.cur-arrow #cursorRing,body.cur-blob #cursorRing{display:none}
+    body.cur-dot #cursorDot{width:10px;height:10px}
+    body.cur-dot.cursor-hover #cursorDot{width:14px;height:14px}
+    body.cur-ring #cursorDot{display:none}
+    body.cur-ring #cursorRing{width:26px;height:26px;border-width:2px}
+    body.cur-arrow #cursorDot{width:22px;height:30px;border-radius:0;background:transparent;background-color:var(--cur-dot,#efe7d6);transform:translate(-8%,-6%);transition:none;-webkit-mask:var(--cur-arrow) 0 0/100% 100% no-repeat;mask:var(--cur-arrow) 0 0/100% 100% no-repeat;filter:drop-shadow(0 0 1.1px var(--cur-ring,#2c281f)) drop-shadow(0 1px 2px rgba(0,0,0,.45));box-shadow:none}
+    body.cur-arrow.cursor-hover #cursorDot,body.cur-arrow.cursor-active #cursorDot{width:22px;height:30px}
+    /* Rounded tailless pointer (Cream / Onyx / Pulsar) */
+    body.cur-blob #cursorDot{width:23px;height:23px;border-radius:0;background:transparent;background-color:var(--cur-dot,#efe7d6);transform:translate(-18%,-18%);transition:transform .12s var(--tr);-webkit-mask:var(--cur-blob) 0 0/100% 100% no-repeat;mask:var(--cur-blob) 0 0/100% 100% no-repeat;filter:drop-shadow(0 0 1.4px var(--cur-ring,#2c281f)) drop-shadow(0 1px 3px rgba(0,0,0,.4));box-shadow:none}
+    body.cur-blob.cursor-active #cursorDot{transform:translate(-18%,-18%) scale(.84)}
+    body.cur-blob.cursor-hover #cursorDot{transform:translate(-18%,-18%) scale(1.08)}
+    /* Pulsar = blob + leap: reveal the magnetic ring that morphs onto focusable items */
+    body.cur-anim-leap #cursorRing{display:block;background:var(--cur-fill,rgba(120,180,255,.14));border-width:2px}
+    #cursorRing.cur-leaping{animation:curLeapPop .42s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes curLeapPop{0%{transform:translate(-50%,-50%) scale(.74)}45%{transform:translate(-50%,-50%) scale(1.16)}100%{transform:translate(-50%,-50%) scale(1)}}
+    /* Cursor animations */
+    @keyframes curPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.85}50%{transform:translate(-50%,-50%) scale(1.45);opacity:.35}}
+    @keyframes curBreathe{0%,100%{transform:translate(-50%,-50%) scale(.8)}50%{transform:translate(-50%,-50%) scale(1.4)}}
+    @keyframes curSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+    body.cur-anim-pulse #cursorRing{animation:curPulse 1.5s ease-in-out infinite}
+    body.cur-anim-breathe #cursorRing{animation:curBreathe 2.6s ease-in-out infinite}
+    body.cur-anim-spin #cursorRing{border-top-color:transparent;border-right-color:transparent;animation:curSpin 1s linear infinite}
+    .cur-trail{position:fixed;z-index:99996;width:7px;height:7px;border-radius:50%;background:var(--cur-dot,var(--accent));box-shadow:var(--cur-glow-dot,none);pointer-events:none;transform:translate(-50%,-50%);animation:curTrailOut .55s var(--tr) forwards}
+    @keyframes curTrailOut{from{opacity:.7;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(.2)}}
+    .ripple{position:fixed;z-index:99997;pointer-events:none;border-radius:50%;border:1.5px solid var(--cur-ring,rgba(196,161,60,.6));transform:translate(-50%,-50%) scale(0);animation:rippleOut .6s var(--tr) forwards}
     @keyframes rippleOut{from{transform:translate(-50%,-50%) scale(0);opacity:1;width:10px;height:10px}to{transform:translate(-50%,-50%) scale(1);opacity:0;width:80px;height:80px}}
 
     /* HEADER */
@@ -225,8 +347,10 @@
     /* PAGES */
     #main{padding-top:var(--header-h);min-height:100vh}
     .page{display:none;opacity:0;transform:translateY(16px);transition:opacity .45s var(--tr),transform .45s var(--tr)}
-    .page.active{display:block;animation:pageEnter .5s var(--tr) forwards}
-    @keyframes pageEnter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .page.active{display:block;animation:pageEnter .6s var(--tr) forwards;will-change:opacity,transform,filter}
+    /* Elite tab reveal: a soft blur-and-rise that settles into place. */
+    @keyframes pageEnter{0%{opacity:0;transform:translateY(24px) scale(.99);filter:blur(7px)}55%{filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+    @media (prefers-reduced-motion: reduce){.page.active{animation-duration:.01ms}}
 
     /* HOME PAGE */
     .page-hero{padding:72px 40px 48px;max-width:1600px;margin:0 auto;border-bottom:1px solid var(--border)}
@@ -605,6 +729,7 @@
       transition:color .2s,background .2s,border-color .2s;white-space:nowrap;flex-shrink:0;
     }
     .pdf-tbtn:hover{color:var(--text);background:var(--bg4);border-color:var(--border-md)}
+    .pdf-tbtn.disabled{opacity:.32;pointer-events:none}
     .pdf-tbtn.accent:hover{color:var(--accent);border-color:rgba(196,161,60,.35)}
     .pdf-tbtn.danger:hover{color:var(--red);border-color:rgba(196,92,92,.3)}
     .pdf-tbtn svg{width:13px;height:13px;flex-shrink:0}
@@ -630,17 +755,28 @@
     /* Only allow horizontal scroll when user has manually zoomed past fit width */
     .pdf-body.pdf-zoomed{overflow-x:auto}
     .pdf-canvas-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px}
-    #pdfCanvas{display:block;box-shadow:0 8px 40px rgba(0,0,0,.6);border-radius:2px;transition:opacity .3s}
-    #pdfCanvas.loading-page{opacity:.4}
+    #pdfCanvas{display:block;box-shadow:0 8px 40px rgba(0,0,0,.6);border-radius:2px;transition:opacity .35s var(--tr),filter .35s var(--tr)}
+    #pdfCanvas.loading-page{opacity:.55;filter:blur(3px)}
+    #pdfCanvas.pdf-reveal{animation:pdfReveal .55s var(--tr)}
+    @keyframes pdfReveal{from{opacity:0;transform:scale(.975);filter:blur(8px)}to{opacity:1;transform:scale(1);filter:blur(0)}}
 
-    /* Compiling overlay inside pdf-body */
+    /* Compiling / loading overlay inside pdf-body — fades instead of snapping. */
     .pdf-overlay{
       position:absolute;inset:0;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;gap:18px;
+      align-items:center;justify-content:center;gap:20px;
       background:var(--bg);z-index:10;
+      transition:opacity .4s var(--tr),visibility .4s var(--tr);
     }
-    .pdf-overlay.hidden{display:none}
-    .compile-spinner{width:36px;height:36px;border:2.5px solid var(--bg4);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+    .pdf-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
+    /* Elite ring loader — indeterminate spin, or a determinate download fill. */
+    .pdf-loader{position:relative;width:62px;height:62px}
+    .pdf-loader svg{width:100%;height:100%;transform:rotate(-90deg)}
+    .pdf-loader-track{fill:none;stroke:var(--bg4);stroke-width:3.2}
+    .pdf-loader-arc{fill:none;stroke:var(--accent);stroke-width:3.2;stroke-linecap:round;stroke-dasharray:125.66;stroke-dashoffset:125.66;filter:drop-shadow(0 0 6px var(--accent-glow));transition:stroke-dashoffset .3s var(--tr)}
+    .pdf-loader.indet svg{animation:spin 1s linear infinite}
+    .pdf-loader.indet .pdf-loader-arc{stroke-dasharray:88 125.66;stroke-dashoffset:0;transition:none}
+    .pdf-loader-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;color:var(--text2)}
+    .pdf-loader.indet .pdf-loader-pct{opacity:0}
     .compile-label{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
     .compile-log{
       font-family:var(--font-mono);font-size:11px;line-height:1.6;
@@ -1961,6 +2097,7 @@
   <div id="cursorDot"></div>
   <div id="cursorRing"></div>
   <div id="noiseOverlay"></div>
+  <div class="net-banner" id="netBanner" role="status" aria-live="polite"></div>
   <div class="toast" id="toast"></div>
 
   <!-- HEADER -->
@@ -2305,6 +2442,7 @@
             <div class="chat-thread-head">
               <button class="chat-back" id="chatBack" type="button" aria-label="Back">‹</button>
               <div class="chat-thread-title" id="chatThreadTitle"></div>
+              <span class="chat-presence" id="chatPresence" hidden></span>
               <button class="chat-mini" id="chatAddMember" type="button" style="display:none">+ Add</button>
             </div>
             <div class="chat-msgs" id="chatMsgs"></div>
@@ -2432,7 +2570,10 @@
     <div class="pdf-body" id="pdfBody">
       <!-- Loading / compiling overlay -->
       <div class="pdf-overlay" id="pdfOverlay">
-        <div class="compile-spinner"></div>
+        <div class="pdf-loader indet" id="pdfLoader">
+          <svg viewBox="0 0 50 50"><circle class="pdf-loader-track" cx="25" cy="25" r="20"/><circle class="pdf-loader-arc" id="pdfLoaderArc" cx="25" cy="25" r="20"/></svg>
+          <span class="pdf-loader-pct" id="pdfLoaderPct"></span>
+        </div>
         <div class="compile-label" id="compileLabel">Compiling LaTeX…</div>
         <pre class="compile-log" id="compileLogLive"></pre>
       </div>
@@ -2695,6 +2836,55 @@
                 </div>
                 <div class="thm-saved" id="thmSaved" style="margin-top:8px"></div>
                 <div class="thm-hint" data-i18n="stgRclickHint" style="margin-top:8px">Right-click the theme button in the header to apply your right-click theme.</div>
+              </div>
+            </div>
+          </div>
+          <div class="stg-row" id="stgCursorRow">
+            <div class="thm-studio">
+              <div>
+                <div class="thm-group-lbl" data-i18n="stgCursorThemes">Cursor themes</div>
+                <div class="thm-presets cur-presets" id="curPresets"></div>
+              </div>
+              <div>
+                <div class="thm-group-lbl" data-i18n="stgCursorColors">Cursor colors</div>
+                <div class="thm-pickers">
+                  <div class="thm-pick"><label data-i18n="stgCurPrimary">Primary</label><input type="color" id="stgCurPrimary" class="stg-color" value="#c4a13c" aria-label="Cursor primary color"></div>
+                  <div class="thm-pick"><label data-i18n="stgCurAccent">Accent</label><input type="color" id="stgCurAccent" class="stg-color" value="#e8c96a" aria-label="Cursor accent color"></div>
+                </div>
+              </div>
+              <div class="thm-pickers">
+                <div class="thm-pick"><label data-i18n="stgCurShape">Shape</label>
+                  <select id="stgCurKind" class="cur-select" aria-label="Cursor shape">
+                    <option value="dotring" data-i18n="stgCurShapeDotring">Dot + ring</option>
+                    <option value="dot" data-i18n="stgCurShapeDot">Dot</option>
+                    <option value="ring" data-i18n="stgCurShapeRing">Ring</option>
+                    <option value="blob" data-i18n="stgCurShapeRound">Round</option>
+                    <option value="arrow" data-i18n="stgCurShapeArrow">Arrow</option>
+                  </select>
+                </div>
+                <div class="thm-pick"><label data-i18n="stgCurAnimLbl">Animation</label>
+                  <select id="stgCurAnim" class="cur-select" aria-label="Cursor animation">
+                    <option value="none" data-i18n="stgCurAnimNone">None</option>
+                    <option value="pulse" data-i18n="stgCurAnimPulse">Pulse</option>
+                    <option value="spin" data-i18n="stgCurAnimSpin">Spin</option>
+                    <option value="breathe" data-i18n="stgCurAnimBreathe">Breathe</option>
+                    <option value="rainbow" data-i18n="stgCurAnimRainbow">Rainbow</option>
+                    <option value="trail" data-i18n="stgCurAnimTrail">Trail</option>
+                    <option value="leap" data-i18n="stgCurAnimLeap">Leap (magnetic)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="thm-row-flex">
+                <div><div class="stg-lbl" data-i18n="stgCurGlow">Glow</div><div class="stg-sublbl" data-i18n="stgCurGlowSub">Soft luminous halo</div></div>
+                <div class="thm-switch" id="stgCurGlow" role="switch" tabindex="0" aria-label="Cursor glow"></div>
+              </div>
+              <div>
+                <div class="thm-group-lbl" data-i18n="stgCurSaved">Saved cursors</div>
+                <div class="thm-save-row">
+                  <input type="text" class="thm-name-input" id="curNameInput" maxlength="32" placeholder="Name this cursor…" data-i18n-ph="stgCurNamePh">
+                  <button class="thm-mini" id="curSaveBtn" data-i18n="stgSave">Save</button>
+                </div>
+                <div class="thm-saved" id="curSaved" style="margin-top:8px"></div>
               </div>
             </div>
           </div>
@@ -3110,6 +3300,30 @@
         stgRclickSet:   'Right-click theme set',
         stgThemeApplied:'Theme applied',
         stgNoSaved:     'No saved themes yet.',
+        stgCursorThemes:'Cursor themes',
+        stgCursorColors:'Cursor colors',
+        stgCurPrimary:  'Primary',
+        stgCurAccent:   'Accent',
+        stgCurShape:    'Shape',
+        stgCurShapeDotring:'Dot + ring',
+        stgCurShapeDot: 'Dot',
+        stgCurShapeRing:'Ring',
+        stgCurShapeRound:'Round',
+        stgCurShapeArrow:'Arrow',
+        stgCurAnimLbl:  'Animation',
+        stgCurAnimNone: 'None',
+        stgCurAnimPulse:'Pulse',
+        stgCurAnimSpin: 'Spin',
+        stgCurAnimBreathe:'Breathe',
+        stgCurAnimRainbow:'Rainbow',
+        stgCurAnimTrail:'Trail',
+        stgCurAnimLeap: 'Leap (magnetic)',
+        stgCurGlow:     'Glow',
+        stgCurGlowSub:  'Soft luminous halo',
+        stgCurSaved:    'Saved cursors',
+        stgCurNamePh:   'Name this cursor…',
+        stgCurNoSaved:  'No saved cursors yet.',
+        stgCurSavedMsg: 'Cursor saved',
         stgLanguage:    'Language',
         stgLangLabel:   'Interface language',
         stgPdfViewer:   'PDF Viewer',
@@ -3370,6 +3584,30 @@
         stgRclickSet:   'Jobbklikk-téma beállítva',
         stgThemeApplied:'Téma alkalmazva',
         stgNoSaved:     'Még nincs mentett téma.',
+        stgCursorThemes:'Kurzor témák',
+        stgCursorColors:'Kurzor színek',
+        stgCurPrimary:  'Elsődleges',
+        stgCurAccent:   'Kiemelő',
+        stgCurShape:    'Forma',
+        stgCurShapeDotring:'Pont + gyűrű',
+        stgCurShapeDot: 'Pont',
+        stgCurShapeRing:'Gyűrű',
+        stgCurShapeRound:'Lekerekített',
+        stgCurShapeArrow:'Nyíl',
+        stgCurAnimLbl:  'Animáció',
+        stgCurAnimNone: 'Nincs',
+        stgCurAnimPulse:'Pulzálás',
+        stgCurAnimSpin: 'Forgás',
+        stgCurAnimBreathe:'Lélegzés',
+        stgCurAnimRainbow:'Szivárvány',
+        stgCurAnimTrail:'Csóva',
+        stgCurAnimLeap: 'Ugrás (mágneses)',
+        stgCurGlow:     'Ragyogás',
+        stgCurGlowSub:  'Lágy fénykör',
+        stgCurSaved:    'Mentett kurzorok',
+        stgCurNamePh:   'Kurzor neve…',
+        stgCurNoSaved:  'Még nincs mentett kurzor.',
+        stgCurSavedMsg: 'Kurzor elmentve',
         stgLanguage:    'Nyelv',
         stgLangLabel:   'Felhasználói felület nyelve',
         stgPdfViewer:   'PDF nézegető',
@@ -3742,7 +3980,7 @@
         dots.appendChild(d1); dots.appendChild(d2); sw.appendChild(dots);
         var nm=document.createElement('div'); nm.className='thm-preset-name'; nm.textContent=p.name;
         card.appendChild(sw); card.appendChild(nm);
-        card.addEventListener('click', function(){ applyThemeObject(p); if(typeof syncSettingsUI==='function') syncSettingsUI(); if(typeof markDirty==='function') markDirty(); });
+        card.addEventListener('click', function(){ applyThemeObject(p); if(typeof syncSettingsUI==='function') syncSettingsUI(); callMarkDirty(); });
         host.appendChild(card);
       });
     }
@@ -3757,11 +3995,11 @@
         sw.style.boxShadow='inset 0 0 0 2px '+s.accent;
         var nm=document.createElement('span'); nm.className='thm-saved-name'; nm.textContent=s.name;
         var bA=document.createElement('button'); bA.className='thm-mini'; bA.textContent=t('stgApply');
-        bA.addEventListener('click', function(){ applySavedTheme(s.id); if(typeof syncSettingsUI==='function') syncSettingsUI(); if(typeof markDirty==='function') markDirty(); });
+        bA.addEventListener('click', function(){ applySavedTheme(s.id); if(typeof syncSettingsUI==='function') syncSettingsUI(); callMarkDirty(); });
         var bR=document.createElement('button'); bR.className='thm-mini'+(rid===s.id?' is-rclick':''); bR.textContent=t('stgSetRclick');
-        bR.addEventListener('click', function(){ setRclickTheme(s.id); renderSavedThemes(); if(typeof showToast==='function') showToast(t('stgRclickSet')); if(typeof markDirty==='function') markDirty(); });
+        bR.addEventListener('click', function(){ setRclickTheme(s.id); renderSavedThemes(); if(typeof showToast==='function') showToast(t('stgRclickSet')); callMarkDirty(); });
         var bD=document.createElement('button'); bD.className='thm-mini danger'; bD.textContent=t('stgDelete');
-        bD.addEventListener('click', function(){ deleteSavedTheme(s.id); renderSavedThemes(); if(typeof markDirty==='function') markDirty(); });
+        bD.addEventListener('click', function(){ deleteSavedTheme(s.id); renderSavedThemes(); callMarkDirty(); });
         row.appendChild(sw); row.appendChild(nm); row.appendChild(bA); row.appendChild(bR); row.appendChild(bD);
         host.appendChild(row);
       });
@@ -3769,9 +4007,9 @@
     function updateStudioInputs(){
       var c=getCustom();
       var map={ stgCustomAccent:c.accent, stgCustomAccent2:c.accent2, stgCustomBg:c.bg, stgCustomText:c.text, stgRadiantColor:c.radiantColor };
-      Object.keys(map).forEach(function(id){ var el=document.getElementById(id); if(el) el.value=map[id]; });
+      Object.keys(map).forEach(function(id){ var el=document.getElementById(id); if(el){ el.value=map[id]; if(el._syncSwatch) el._syncSwatch(); } });
       var rt=document.getElementById('stgRadiantToggle'); if(rt) rt.classList.toggle('on', !!c.radiant);
-      var rc=document.getElementById('stgRadiantColor'); if(rc) rc.style.display = c.radiant ? '' : 'none';
+      var rc=document.getElementById('stgRadiantColor'); if(rc){ var w=rc._wrap||rc; w.style.display = c.radiant ? '' : 'none'; }
     }
 
     // Load persisted theme — fall back to OS preference
@@ -3800,9 +4038,17 @@
     let mx = -200, my = -200, rx = -200, ry = -200;
     const LERP = 0.14;
     const lerp = (a, b, t) => a + (b - a) * t;
+    // Cursor-theme animation state (driven by applyCursorTheme).
+    let _curFrame = 0, _curTrail = false, _curRainbow = false, _curRingExact = false, _lastTX = -999, _lastTY = -999;
+    // Magnetic "Pulsar" mode: the ring eases onto the focusable element under the pointer,
+    // letting the browser's own hit-testing make things easier to aim at and click.
+    let _curMagnetic = false, _magEl = null, _rw = 30, _rh = 30, _rr = 15;
+    const RING_BASE = 30;
+    const MAGNET_SEL = 'a,button,input,textarea,select,summary,label,[role="button"],[role="switch"],[role="link"],[role="tab"],[tabindex]:not([tabindex="-1"]),.card,.article-card,.thm-preset,.modal-btn,.chat-conv,.cl-ref,.ccol-sv,.ccol-hue,.kidate-day,[data-hover]';
+    function _magnetTarget(x, y) { const el = document.elementFromPoint(x, y); return (el && el.closest) ? el.closest(MAGNET_SEL) : null; }
 
-    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-    document.addEventListener('mousedown', e => { body.classList.add('cursor-active'); spawnRipple(e.clientX, e.clientY); });
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; if (_curMagnetic) _magEl = _magnetTarget(mx, my); });
+    document.addEventListener('mousedown', e => { body.classList.add('cursor-active'); spawnRipple(e.clientX, e.clientY); if (_curMagnetic && _magnetTarget(e.clientX, e.clientY)) triggerLeap(); });
     document.addEventListener('mouseup',   () => body.classList.remove('cursor-active'));
     document.addEventListener('mouseleave',() => { dot.style.opacity='0'; ring.style.opacity='0'; });
     document.addEventListener('mouseenter',() => { dot.style.opacity='1'; ring.style.opacity='1'; });
@@ -3812,9 +4058,42 @@
     document.addEventListener('mouseout',  e => { if (e.target.closest(HOVER_SEL)) body.classList.remove('cursor-hover'); });
 
     (function animCursor() {
+      _curFrame++;
       dot.style.left  = mx + 'px'; dot.style.top  = my + 'px';
-      rx = lerp(rx, mx, LERP);     ry = lerp(ry, my, LERP);
-      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      if (_curMagnetic) {
+        // Ease the ring onto the focusable element under the pointer (or follow the
+        // cursor as a small circle when there's nothing to grab).
+        let tx = mx, ty = my, tw = RING_BASE, th = RING_BASE, tr = RING_BASE / 2;
+        if (_magEl) {
+          const r = _magEl.getBoundingClientRect();
+          if (r.width && r.height) {
+            tx = r.left + r.width / 2; ty = r.top + r.height / 2;
+            tw = r.width + 12; th = r.height + 12;
+            const br = parseFloat(getComputedStyle(_magEl).borderRadius) || 0;
+            tr = Math.max(br + 5, 10); // keep the element's own corner radius (a rounded rect)
+          }
+        }
+        const E = 0.2;
+        rx = lerp(rx, tx, E); ry = lerp(ry, ty, E);
+        _rw = lerp(_rw, tw, E); _rh = lerp(_rh, th, E); _rr = lerp(_rr, tr, E);
+        ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+        ring.style.width = _rw + 'px'; ring.style.height = _rh + 'px';
+        // Clamp radius to half the (eased) size, so the shape only becomes a full circle
+        // once it has actually shrunk down — no instant snap-to-round on un-hover.
+        ring.style.borderRadius = Math.min(_rr, Math.min(_rw, _rh) / 2) + 'px';
+      } else {
+        const rt = _curRingExact ? 1 : LERP;
+        rx = lerp(rx, mx, rt);       ry = lerp(ry, my, rt);
+        ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      }
+      if (_curRainbow) {
+        const h = (_curFrame * 2.4) % 360, rs = document.documentElement.style;
+        rs.setProperty('--cur-dot',  'hsl(' + h.toFixed(0) + ',95%,62%)');
+        rs.setProperty('--cur-ring', 'hsl(' + ((h + 40) % 360).toFixed(0) + ',95%,66%)');
+      }
+      if (_curTrail && (Math.abs(mx - _lastTX) + Math.abs(my - _lastTY) > 5)) {
+        spawnTrail(mx, my); _lastTX = mx; _lastTY = my;
+      }
       requestAnimationFrame(animCursor);
     })();
 
@@ -3825,8 +4104,302 @@
       document.body.appendChild(r);
       r.addEventListener('animationend', () => r.remove());
     }
+    function spawnTrail(x, y) {
+      const tdv = document.createElement('div');
+      tdv.className = 'cur-trail';
+      tdv.style.left = x + 'px'; tdv.style.top = y + 'px';
+      document.body.appendChild(tdv);
+      tdv.addEventListener('animationend', () => tdv.remove());
+    }
+    // Pulsar "leap": a smooth spring pop of the ring as it lands on the clicked element.
+    function triggerLeap() { ring.classList.remove('cur-leaping'); void ring.offsetWidth; ring.classList.add('cur-leaping'); }
+    ring.addEventListener('animationend', e => { if (e.animationName === 'curLeapPop') ring.classList.remove('cur-leaping'); });
 
     const body = document.body;
+
+    /* ── Cursor themes ──────────────────────────────────────────────── */
+    const CURSOR_KEY = 'ki_cursor', CURSOR_SAVED_KEY = 'ki_cursor_saved';
+    const CURSOR_KINDS = ['dotring','arrow','dot','ring','blob'];
+    const CURSOR_ANIMS = ['none','pulse','spin','breathe','rainbow','trail','leap'];
+    const DEFAULT_CURSOR = { name:'Pulsar', kind:'blob', dot:'#6cc6ff', ring:'#3f9bff', anim:'leap', glow:true };
+    const CURSOR_PRESETS = [
+      { name:'Theme',   kind:'dotring', dot:null,      ring:null,      anim:'none',    glow:false },
+      { name:'Cream',   kind:'blob',    dot:'#efe7d6', ring:'#2c281f', anim:'none',    glow:false },
+      { name:'Onyx',    kind:'blob',    dot:'#17171b', ring:'#eef0f5', anim:'none',    glow:false },
+      { name:'Pulsar',  kind:'blob',    dot:'#6cc6ff', ring:'#3f9bff', anim:'leap',    glow:true  },
+      { name:'Halo',    kind:'dotring', dot:'#ffffff', ring:'#b98cff', anim:'pulse',   glow:true  },
+      { name:'Neon',    kind:'ring',    dot:'#39ff14', ring:'#39ff14', anim:'spin',    glow:true  },
+      { name:'Comet',   kind:'dot',     dot:'#7ec8ff', ring:'#7ec8ff', anim:'trail',   glow:true  },
+      { name:'Rainbow', kind:'dotring', dot:'#ff5e5e', ring:'#ff5e5e', anim:'rainbow', glow:true  },
+      { name:'Bubble',  kind:'ring',    dot:'#e0b3ff', ring:'#b98cff', anim:'breathe', glow:false },
+      { name:'Ember',   kind:'dotring', dot:'#ffd166', ring:'#ff5e7a', anim:'spin',    glow:true  },
+      { name:'Mint',    kind:'dot',     dot:'#4fd1b0', ring:'#4fd1b0', anim:'trail',   glow:true  },
+      { name:'Minimal', kind:'dot',     dot:'#e6e6e6', ring:'#e6e6e6', anim:'none',    glow:false },
+      { name:'Loop',    kind:'ring',    dot:'#7ec8ff', ring:'#7ec8ff', anim:'spin',    glow:false }
+    ];
+    function _curHex(v){ return (typeof v==='string' && /^#?[0-9a-fA-F]{3,8}$/.test(v)) ? (v[0]==='#'?v:'#'+v) : null; }
+    function _normCursor(c){
+      c = (c && typeof c==='object') ? c : {};
+      return {
+        name: (c.name || 'Cursor'),
+        kind: CURSOR_KINDS.indexOf(c.kind)>=0 ? c.kind : 'dotring',
+        anim: CURSOR_ANIMS.indexOf(c.anim)>=0 ? c.anim : 'none',
+        dot:  _curHex(c.dot), ring: _curHex(c.ring), glow: !!c.glow
+      };
+    }
+    function _normCursorSaved(s){ if(!s||typeof s!=='object') return null; var c=_normCursor(s); c.id=s.id||('c'+Math.random().toString(36).slice(2,9)); return c; }
+    function _sameCursor(a,b){ return a.kind===b.kind && a.anim===b.anim && (a.dot||'')===(b.dot||'') && (a.ring||'')===(b.ring||'') && (!!a.glow)===(!!b.glow); }
+    function getCursor(){ try{ var r=localStorage.getItem(CURSOR_KEY); return r?_normCursor(JSON.parse(r)):Object.assign({},DEFAULT_CURSOR); }catch(e){ return Object.assign({},DEFAULT_CURSOR); } }
+    function setCursor(c){ c=_normCursor(c); try{ localStorage.setItem(CURSOR_KEY, JSON.stringify(c)); }catch(e){} applyCursorTheme(c); }
+    function getCursorSaved(){ try{ var a=JSON.parse(localStorage.getItem(CURSOR_SAVED_KEY)||'[]'); return Array.isArray(a)?a.map(_normCursorSaved).filter(Boolean):[]; }catch(e){ return []; } }
+    function setCursorSaved(a){ try{ localStorage.setItem(CURSOR_SAVED_KEY, JSON.stringify(a)); }catch(e){} }
+    // markDirty() lives in the settings-modal init scope (not global), so it registers
+    // itself on this hook — letting these top-level cursor helpers flag the panel dirty.
+    var _markDirtyHook = null;
+    function callMarkDirty(){ if (_markDirtyHook) _markDirtyHook(); }
+    function applyCursorTheme(c){
+      c = _normCursor(c);
+      var root = document.documentElement.style;
+      if (c.dot)  root.setProperty('--cur-dot', c.dot);  else root.removeProperty('--cur-dot');
+      if (c.ring) root.setProperty('--cur-ring', c.ring); else root.removeProperty('--cur-ring');
+      root.setProperty('--cur-glow-dot',  c.glow ? (c.dot ? ('0 0 8px '+hexToRgba(c.dot,.95)+', 0 0 16px '+hexToRgba(c.dot,.55)) : '0 0 9px var(--accent)') : 'none');
+      root.setProperty('--cur-glow-ring', c.glow ? (c.ring ? ('0 0 14px '+hexToRgba(c.ring,.6)) : '0 0 12px var(--accent)') : 'none');
+      root.setProperty('--cur-fill', c.ring ? hexToRgba(c.ring, .16) : 'rgba(120,180,255,.16)');
+      CURSOR_KINDS.forEach(function(k){ body.classList.remove('cur-'+k); }); body.classList.add('cur-'+c.kind);
+      CURSOR_ANIMS.forEach(function(a){ body.classList.remove('cur-anim-'+a); }); if (c.anim!=='none') body.classList.add('cur-anim-'+c.anim);
+      _curTrail = (c.anim==='trail'); _curRainbow = (c.anim==='rainbow');
+      // Shapes that ARE the pointer (ring/arrow/blob) track the cursor exactly; the
+      // dot-and-ring shape lets its ring lag behind for the trailing-halo effect.
+      _curRingExact = (c.kind==='ring' || c.kind==='arrow' || c.kind==='blob');
+      _curMagnetic = (c.anim==='leap');
+      // Hand the ring back to CSS sizing when leaving magnetic mode.
+      if (!_curMagnetic) { ring.style.width=''; ring.style.height=''; ring.style.borderRadius=''; _rw = RING_BASE; _rh = RING_BASE; _rr = RING_BASE / 2; }
+    }
+    function _curPreviewHTML(c){
+      var dotc = c.dot || 'var(--accent)', ringc = c.ring || 'var(--accent)';
+      if (c.kind==='arrow') return '<span class="cur-prev-arrow" style="background-color:'+(c.dot||'#efe7d6')+';filter:drop-shadow(0 0 1px '+(c.ring||'#2c281f')+')"></span>';
+      if (c.kind==='blob')  return (c.anim==='leap' ? '<span class="cur-prev-ring" style="border-color:'+ringc+';width:26px;height:17px;border-radius:6px;opacity:.65"></span>' : '') + '<span class="cur-prev-blob" style="background-color:'+(c.dot||'#efe7d6')+';filter:drop-shadow(0 0 1.4px '+(c.ring||'#2c281f')+')"></span>';
+      if (c.kind==='dot')   return '<span class="cur-prev-dot" style="background:'+dotc+';color:'+dotc+'"></span>';
+      if (c.kind==='ring')  return '<span class="cur-prev-ring" style="border-color:'+ringc+'"></span>';
+      return '<span class="cur-prev-ring" style="border-color:'+ringc+'"></span><span class="cur-prev-dot" style="background:'+dotc+';color:'+dotc+'"></span>';
+    }
+    function renderCursorPresets(){
+      var host=document.getElementById('curPresets'); if(!host) return;
+      var cur=getCursor(); host.innerHTML='';
+      CURSOR_PRESETS.forEach(function(p){
+        var pc=_normCursor(p);
+        var card=document.createElement('div'); card.className='thm-preset'+(_sameCursor(pc,cur)?' active':'');
+        var pv=document.createElement('div'); pv.className='cur-preview'+(pc.glow?' glow':'')+((pc.anim&&pc.anim!=='none')?(' anim-'+pc.anim):'');
+        pv.innerHTML=_curPreviewHTML(pc);
+        var nm=document.createElement('div'); nm.className='thm-preset-name'; nm.textContent=p.name;
+        card.appendChild(pv); card.appendChild(nm);
+        card.addEventListener('click', function(){ setCursor(pc); renderCursorPresets(); updateCursorInputs(); callMarkDirty(); });
+        host.appendChild(card);
+      });
+    }
+    function updateCursorInputs(){
+      var c=getCursor();
+      var p=document.getElementById('stgCurPrimary'); if(p){ p.value=c.dot||'#c4a13c'; if(p._syncSwatch) p._syncSwatch(); }
+      var s=document.getElementById('stgCurAccent');  if(s){ s.value=c.ring||'#e8c96a'; if(s._syncSwatch) s._syncSwatch(); }
+      var kn=document.getElementById('stgCurKind');   if(kn){ kn.value=c.kind; if(kn._syncLabel) kn._syncLabel(); }
+      var an=document.getElementById('stgCurAnim');   if(an){ an.value=c.anim; if(an._syncLabel) an._syncLabel(); }
+      var g=document.getElementById('stgCurGlow');    if(g) g.classList.toggle('on', !!c.glow);
+    }
+    function renderCursorSaved(){
+      var host=document.getElementById('curSaved'); if(!host) return;
+      var arr=getCursorSaved(); host.innerHTML='';
+      if(!arr.length){ var em=document.createElement('div'); em.className='thm-hint'; em.textContent=t('stgCurNoSaved'); host.appendChild(em); return; }
+      arr.forEach(function(s){
+        var row=document.createElement('div'); row.className='thm-saved-item';
+        var sw=document.createElement('span'); sw.className='thm-saved-sw'; sw.style.background=s.dot||'var(--accent)'; sw.style.boxShadow='inset 0 0 0 2px '+(s.ring||'var(--accent)');
+        var nm=document.createElement('span'); nm.className='thm-saved-name'; nm.textContent=s.name;
+        var bA=document.createElement('button'); bA.className='thm-mini'; bA.textContent=t('stgApply'); bA.addEventListener('click',function(){ setCursor(s); renderCursorPresets(); updateCursorInputs(); callMarkDirty(); });
+        var bD=document.createElement('button'); bD.className='thm-mini danger'; bD.textContent=t('stgDelete'); bD.addEventListener('click',function(){ setCursorSaved(getCursorSaved().filter(function(x){return x.id!==s.id;})); renderCursorSaved(); callMarkDirty(); });
+        row.appendChild(sw); row.appendChild(nm); row.appendChild(bA); row.appendChild(bD);
+        host.appendChild(row);
+      });
+    }
+    applyCursorTheme(getCursor());
+
+    /* ── Custom form controls (no native OS UI, so the custom cursor stays) ── */
+    // Lift a popover to <body> with fixed positioning so it can't be clipped or
+    // out-stacked by an ancestor (e.g. the timeline canvas paints over an in-flow
+    // popover). That also keeps it hit-testable via elementFromPoint, which is what
+    // lets the magnetic cursor grab — and the user actually click — its items.
+    function floatPopover(pop, anchor){
+      if (pop.parentNode !== document.body) document.body.appendChild(pop);
+      pop.style.position = 'fixed'; pop.style.zIndex = '9600'; pop.style.right = 'auto'; pop.style.margin = '0';
+      pop._anchor = anchor;
+      if (pop.classList.contains('cdd-menu')) pop.style.minWidth = anchor.getBoundingClientRect().width + 'px';
+      positionPopover(pop);
+    }
+    function positionPopover(pop){
+      var anchor = pop._anchor; if (!anchor) return;
+      var a = anchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+      var left = a.left, top = a.bottom + 6;
+      if (left + w > window.innerWidth - 8) left = Math.max(8, window.innerWidth - w - 8);
+      if (left < 8) left = 8;
+      if (top + h > window.innerHeight - 8 && a.top - h - 6 > 8) top = a.top - h - 6; // flip above when it would overflow
+      pop.style.left = left + 'px'; pop.style.top = top + 'px';
+    }
+    // Keep any open floated popover glued to its anchor while scrolling/resizing.
+    ['scroll','resize'].forEach(function(ev){
+      window.addEventListener(ev, function(){ document.querySelectorAll('.kidate-pop.open,.ccol-pop.open,.cdd-menu.open').forEach(positionPopover); }, true);
+    });
+    // Call close() on any click outside every element in `els`. Popovers are portaled
+    // to <body>, so the trigger wrapper and the popover are checked separately.
+    function onOutsideClick(els, close){ document.addEventListener('click', function(e){ for (var i = 0; i < els.length; i++) if (els[i].contains(e.target)) return; close(); }); }
+
+    // A themed, cursor-friendly overlay scrollbar for a scroll container (native
+    // scrollbars are hidden because the OS arrow cursor can't be themed away).
+    function customScrollbar(el, opts){
+      if (!el || el._csb) return; el._csb = true;
+      opts = opts || {};
+      var bar = document.createElement('div'); bar.className = 'csb';
+      if (opts.z) bar.style.zIndex = opts.z; // above its modal when needed
+      var thumb = document.createElement('div'); thumb.className = 'csb-thumb';
+      bar.appendChild(thumb); document.body.appendChild(bar);
+      function update(){
+        var sh = el.scrollHeight, ch = el.clientHeight, r = el.getBoundingClientRect();
+        var visible = opts.visible ? opts.visible() : (el.offsetParent !== null);
+        if (!visible || sh <= ch + 1 || r.height <= 0) { bar.classList.remove('show'); return; }
+        var trackTop = r.top + 4, trackH = r.height - 8, thumbH = Math.max(30, trackH * ch / sh);
+        var maxScroll = sh - ch, top = (maxScroll > 0 ? el.scrollTop / maxScroll : 0) * (trackH - thumbH);
+        bar.style.top = trackTop + 'px'; bar.style.height = trackH + 'px'; bar.style.left = (r.right - 12) + 'px';
+        thumb.style.top = top + 'px'; thumb.style.height = thumbH + 'px';
+        bar.classList.add('show');
+      }
+      el.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
+      if (window.ResizeObserver) { try { new ResizeObserver(update).observe(el); } catch (e) {} }
+      // Content height (scrollHeight) changes on navigation/load don't trigger
+      // ResizeObserver, so watch the subtree too (coalesced to one update per frame).
+      if (window.MutationObserver) { var _raf = 0; try { new MutationObserver(function(){ if (!_raf) _raf = requestAnimationFrame(function(){ _raf = 0; update(); }); }).observe(el, { childList: true, subtree: true }); } catch (e) {} }
+      thumb.addEventListener('pointerdown', function(e){
+        e.preventDefault(); bar.classList.add('dragging');
+        var sh = el.scrollHeight, ch = el.clientHeight, r = el.getBoundingClientRect();
+        var trackH = r.height - 8, thumbH = Math.max(30, trackH * ch / sh);
+        var startY = e.clientY, startTop = parseFloat(thumb.style.top) || 0, span = trackH - thumbH;
+        var mv = function(ev){ var nt = Math.max(0, Math.min(span, startTop + ev.clientY - startY)); el.scrollTop = (span > 0 ? nt / span : 0) * (sh - ch); };
+        var up = function(){ bar.classList.remove('dragging'); document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
+        document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+      });
+      el._csbUpdate = update;
+      update(); setTimeout(update, 200); setTimeout(update, 800);
+    }
+    customScrollbar(document.getElementById('main'));
+    (function(){
+      // Settings body is in an opacity-toggled modal (always laid out), so gate its bar
+      // on the modal being open and lift it above the modal (z 9500, below popovers).
+      var stgBody = document.querySelector('#settingsModal .stg-body');
+      var stgModal = document.getElementById('settingsModal');
+      if (stgBody && stgModal) customScrollbar(stgBody, { z: 9500, visible: function(){ return stgModal.classList.contains('open'); } });
+      customScrollbar(document.getElementById('chatMsgs')); // a display:none page → default offsetParent check works
+    })();
+
+    // Enhance a native <select> into a themed dropdown that mirrors it and
+    // re-dispatches 'change', so existing listeners keep working untouched.
+    function customSelect(sel){
+      if (!sel || sel._enhanced) return; sel._enhanced = true;
+      sel.style.display = 'none';
+      var wrap = document.createElement('div'); wrap.className = 'cdd';
+      var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'cdd-btn';
+      var lab = document.createElement('span'); lab.className = 'cdd-label';
+      var chev = document.createElement('span'); chev.className = 'cdd-chev';
+      chev.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>';
+      btn.appendChild(lab); btn.appendChild(chev);
+      var menu = document.createElement('div'); menu.className = 'cdd-menu';
+      function build(){
+        menu.innerHTML = '';
+        [].forEach.call(sel.options, function(opt){
+          var it = document.createElement('button'); it.type = 'button';
+          it.className = 'cdd-item' + (opt.value === sel.value ? ' active' : '');
+          it.textContent = opt.textContent; it.dataset.value = opt.value;
+          it.addEventListener('click', function(e){ e.stopPropagation(); sel.value = opt.value; sel.dispatchEvent(new Event('change', { bubbles:true })); sync(); close(); });
+          menu.appendChild(it);
+        });
+      }
+      function sync(){ var o = sel.options[sel.selectedIndex]; lab.textContent = o ? o.textContent : ''; menu.querySelectorAll('.cdd-item').forEach(function(it){ it.classList.toggle('active', it.dataset.value === sel.value); }); }
+      function open(){ build(); sync(); menu.classList.add('open'); wrap.classList.add('open'); floatPopover(menu, btn); }
+      function close(){ menu.classList.remove('open'); wrap.classList.remove('open'); }
+      btn.addEventListener('click', function(e){ e.stopPropagation(); (menu.classList.contains('open') ? close : open)(); });
+      onOutsideClick([wrap, menu], close);
+      sel.parentNode.insertBefore(wrap, sel.nextSibling); wrap.appendChild(btn); wrap.appendChild(menu);
+      sel._syncLabel = sync; build(); sync();
+    }
+
+    // Theme-adaptive calendar (ported from DevTools), dispatches 'change' on pick.
+    var _DP_MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    function customDate(input){
+      if (!input || input._enhanced) return; input._enhanced = true;
+      input.type = 'text'; input.readOnly = true; input.classList.add('kidate-input');
+      var wrap = document.createElement('div'); wrap.className = 'kidate';
+      input.parentNode.insertBefore(wrap, input); wrap.appendChild(input);
+      var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'kidate-btn';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+      var pop = document.createElement('div'); pop.className = 'kidate-pop';
+      wrap.appendChild(btn); wrap.appendChild(pop);
+      var view = new Date();
+      var parse = function(v){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; };
+      var fmt = function(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+      function emit(){ input.dispatchEvent(new Event('change', { bubbles:true })); }
+      function render(){
+        var sel = parse(input.value), y = view.getFullYear(), mo = view.getMonth();
+        var start = (new Date(y, mo, 1).getDay() + 6) % 7, days = new Date(y, mo+1, 0).getDate(), todayStr = fmt(new Date());
+        var h = '<div class="kidate-hd"><button type="button" data-nav="-1">‹</button><span>' + _DP_MN[mo] + ' ' + y + '</span><button type="button" data-nav="1">›</button></div><div class="kidate-grid">';
+        ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(function(d){ h += '<span class="kidate-dow">' + d + '</span>'; });
+        for (var i = 0; i < start; i++) h += '<span></span>';
+        for (var d = 1; d <= days; d++){ var ds = fmt(new Date(y, mo, d)); var cls = ['kidate-day']; if (sel && fmt(sel) === ds) cls.push('sel'); if (ds === todayStr) cls.push('today'); h += '<button type="button" class="' + cls.join(' ') + '" data-day="' + ds + '">' + d + '</button>'; }
+        h += '</div><div class="kidate-foot"><button type="button" data-act="today">Today</button><button type="button" data-act="clear">Clear</button></div>';
+        pop.innerHTML = h;
+      }
+      var open = function(){ view = parse(input.value) || new Date(); render(); pop.classList.add('open'); floatPopover(pop, wrap); };
+      var close = function(){ pop.classList.remove('open'); };
+      input.addEventListener('click', function(){ pop.classList.contains('open') ? close() : open(); });
+      btn.addEventListener('click', function(){ pop.classList.contains('open') ? close() : open(); });
+      pop.addEventListener('click', function(e){
+        e.stopPropagation();
+        var nav = e.target.closest('[data-nav]'); if (nav){ view = new Date(view.getFullYear(), view.getMonth() + (+nav.dataset.nav), 1); render(); return; }
+        var day = e.target.closest('[data-day]'); if (day){ input.value = day.dataset.day; emit(); close(); return; }
+        var act = e.target.closest('[data-act]'); if (act){ input.value = act.dataset.act === 'today' ? fmt(new Date()) : ''; emit(); close(); return; }
+      });
+      onOutsideClick([wrap, pop], close);
+    }
+
+    // Custom HSV colour picker. Hides the native <input type=color>, drives it,
+    // and re-dispatches 'input' so theme/cursor studios react unchanged.
+    function _rgb2hsv(r,g,b){ r/=255; g/=255; b/=255; var mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn, h=0; if(d){ if(mx===r) h=((g-b)/d)%6; else if(mx===g) h=(b-r)/d+2; else h=(r-g)/d+4; h*=60; if(h<0) h+=360; } return [h, mx?d/mx:0, mx]; }
+    function _hsv2rgb(h,s,v){ var c=v*s, x=c*(1-Math.abs((h/60)%2-1)), m=v-c, r=0,g=0,b=0; if(h<60){r=c;g=x;} else if(h<120){r=x;g=c;} else if(h<180){g=c;b=x;} else if(h<240){g=x;b=c;} else if(h<300){r=x;b=c;} else {r=c;b=x;} return [(r+m)*255,(g+m)*255,(b+m)*255]; }
+    function customColor(input){
+      if (!input || input._enhanced) return; input._enhanced = true;
+      input.style.display = 'none';
+      var wrap = document.createElement('span'); wrap.className = 'ccol';
+      var sw = document.createElement('button'); sw.type = 'button'; sw.className = 'ccol-sw'; sw.setAttribute('aria-label','Pick colour');
+      var pop = document.createElement('div'); pop.className = 'ccol-pop';
+      pop.innerHTML = '<div class="ccol-sv"><div class="ccol-sv-white"></div><div class="ccol-sv-black"></div><div class="ccol-sv-thumb"></div></div><div class="ccol-hue"><div class="ccol-hue-thumb"></div></div><div class="ccol-row"><span class="ccol-prev"></span><input class="ccol-hex" maxlength="7" spellcheck="false"></div>';
+      input.parentNode.insertBefore(wrap, input.nextSibling); wrap.appendChild(sw); wrap.appendChild(pop);
+      input._wrap = wrap;
+      var sv = pop.querySelector('.ccol-sv'), svT = pop.querySelector('.ccol-sv-thumb');
+      var hue = pop.querySelector('.ccol-hue'), hueT = pop.querySelector('.ccol-hue-thumb');
+      var hex = pop.querySelector('.ccol-hex'), prev = pop.querySelector('.ccol-prev');
+      var H=0,S=0,V=0;
+      function fromInput(){ var c=_h2(input.value||'#000000'); var v=_rgb2hsv(c[0],c[1],c[2]); H=v[0]; S=v[1]; V=v[2]; }
+      function cur(){ var r=_hsv2rgb(H,S,V); return _2h(r[0],r[1],r[2]); }
+      function paint(){ sv.style.background='hsl('+H.toFixed(0)+',100%,50%)'; svT.style.left=(S*100)+'%'; svT.style.top=((1-V)*100)+'%'; hueT.style.left=((H/360)*100)+'%'; var hx=cur(); prev.style.background=hx; sw.style.background=hx; svT.style.background=hx; if (document.activeElement!==hex) hex.value=hx; }
+      function commit(){ input.value=cur(); input.dispatchEvent(new Event('input',{bubbles:true})); }
+      function svSet(e){ var r=sv.getBoundingClientRect(); S=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)); V=1-Math.min(1,Math.max(0,(e.clientY-r.top)/r.height)); paint(); commit(); }
+      function hueSet(e){ var r=hue.getBoundingClientRect(); H=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*360; paint(); commit(); }
+      function drag(el, fn){ el.addEventListener('pointerdown', function(e){ e.preventDefault(); try{ el.setPointerCapture(e.pointerId); }catch(_){} fn(e); var mv=function(ev){ fn(ev); }; var up=function(){ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); }; document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up); }); }
+      drag(sv, svSet); drag(hue, hueSet);
+      hex.addEventListener('input', function(){ var v=hex.value.trim(); if(!/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)) return; var c=_h2(v); var hv=_rgb2hsv(c[0],c[1],c[2]); H=hv[0]; S=hv[1]; V=hv[2]; paint(); commit(); });
+      var open=function(){ fromInput(); paint(); pop.classList.add('open'); floatPopover(pop, sw); };
+      var close=function(){ pop.classList.remove('open'); };
+      sw.addEventListener('click', function(e){ e.stopPropagation(); (pop.classList.contains('open')?close:open)(); });
+      pop.addEventListener('click', function(e){ e.stopPropagation(); });
+      onOutsideClick([wrap, pop], close);
+      input._syncSwatch = function(){ sw.style.background = input.value || '#000'; };
+      sw.style.background = input.value || '#000';
+    }
 
     /* ── Toast ──────────────────────────────────────────────────────── */
     let toastT;
@@ -3927,6 +4500,17 @@
       }
       return null;
     }
+    /* Returns the selected ancestor folder that currently EXCLUDES itemPath (so the
+       item shows unselected even though its parent is selected) — lets a re-click re-add it. */
+    function getExcludingFolder(itemPath) {
+      for (const [selPath, selItem] of selection) {
+        if (selItem.type !== 'folder') continue;
+        if (!itemPath.startsWith(selPath + '/')) continue;
+        const excl = folderExclusions.get(selPath);
+        if (excl && excl.has(itemPath)) return selItem;
+      }
+      return null;
+    }
 
     /* ── Breadcrumb ─────────────────────────────────────────────────── */
     function renderBreadcrumb() {
@@ -3937,7 +4521,7 @@
         const sep = document.createElement('span');
         sep.className='bc-sep'; sep.textContent=' / ';
         bar.appendChild(sep);
-        appendBc(bar, node.name, i, i===pathStack.length-1);
+        appendBc(bar, getDisplayName(node), i, i===pathStack.length-1);
       });
     }
     function appendBc(bar, label, depth, isLast) {
@@ -4069,7 +4653,7 @@
             hdr.className = 'section-header';
             const label = document.createElement('span');
             label.className = 'section-label';
-            label.textContent = subject.name.toUpperCase();
+            label.textContent = getDisplayName(subject).toUpperCase();
             const rule = document.createElement('div');
             rule.className = 'section-rule';
             hdr.appendChild(label); hdr.appendChild(rule);
@@ -4127,7 +4711,7 @@
             hdr.className = 'section-header';
             const label = document.createElement('span');
             label.className = 'section-label';
-            label.textContent = section.name.toUpperCase();
+            label.textContent = getDisplayName(section).toUpperCase();
             const rule = document.createElement('div');
             rule.className = 'section-rule';
             hdr.appendChild(label); hdr.appendChild(rule);
@@ -4285,12 +4869,7 @@
       // Checkbox click — always look up current coverage state at click time
       card.querySelector('.card-cb').addEventListener('click', e => {
         e.stopPropagation();
-        const currentCovering = getCoveringFolder(item.path);
-        if (currentCovering) {
-          toggleSelectByPath(currentCovering);
-        } else {
-          toggleSelect(item, card);
-        }
+        toggleCardSelection(item, card);
       });
 
       // Split-overlay clicks (bilingual mode)
@@ -4318,7 +4897,7 @@
           lpTimer = null;
           card.classList.remove('press-active');
           navigator.vibrate && navigator.vibrate(30);
-          toggleSelect(item, card);
+          toggleCardSelection(item, card);
         }, 480);
       }, { passive: true });
       card.addEventListener('touchend', () => {
@@ -4412,7 +4991,7 @@
 
     /* ── Per-account settings sync (falls back to per-device localStorage) ──── */
     let _applyingSettings = false, _pushTimer = null;
-    const _SETTINGS_KEYS = new Set(['ki_lang', 'ki_mat_lang', 'ki_theme', 'ki_section_by', 'ki_section_order', 'ki_child_orders', 'ki_notify', 'ki_open_lang', 'ki_custom_accent', 'ki_custom_accent2', 'ki_custom_theme', 'ki_saved_themes', 'ki_rclick_theme']);
+    const _SETTINGS_KEYS = new Set(['ki_lang', 'ki_mat_lang', 'ki_theme', 'ki_section_by', 'ki_section_order', 'ki_child_orders', 'ki_notify', 'ki_open_lang', 'ki_custom_accent', 'ki_custom_accent2', 'ki_custom_theme', 'ki_saved_themes', 'ki_rclick_theme', 'ki_cursor', 'ki_cursor_saved']);
     (function () {
       const orig = localStorage.setItem.bind(localStorage);
       localStorage.setItem = function (k, v) { orig(k, v); if (_SETTINGS_KEYS.has(k)) scheduleSettingsPush(); };
@@ -4428,6 +5007,8 @@
         customTheme:  localStorage.getItem('ki_custom_theme')  || undefined,
         savedThemes:  localStorage.getItem('ki_saved_themes')  || undefined,
         rclickTheme:  localStorage.getItem('ki_rclick_theme')  || undefined,
+        cursor:       localStorage.getItem('ki_cursor')        || undefined,
+        cursorSaved:  localStorage.getItem('ki_cursor_saved')  || undefined,
         sectionBy:    localStorage.getItem('ki_section_by')    || undefined,
         sectionOrder: localStorage.getItem('ki_section_order') || undefined,
         childOrders:  localStorage.getItem('ki_child_orders')  || undefined,
@@ -4459,6 +5040,8 @@
         if (typeof s.customTheme === 'string') localStorage.setItem('ki_custom_theme', s.customTheme);
         if (typeof s.savedThemes === 'string') localStorage.setItem('ki_saved_themes', s.savedThemes);
         if (typeof s.rclickTheme === 'string') localStorage.setItem('ki_rclick_theme', s.rclickTheme);
+        if (typeof s.cursor === 'string') { localStorage.setItem('ki_cursor', s.cursor); try { applyCursorTheme(getCursor()); } catch (e) {} }
+        if (typeof s.cursorSaved === 'string') localStorage.setItem('ki_cursor_saved', s.cursorSaved);
         if (s.theme) applyTheme(s.theme);
         if (s.lang === 'en' || s.lang === 'hu') { LANG = s.lang; localStorage.setItem('ki_lang', LANG); }
         if (s.matLang === 'en' || s.matLang === 'hu' || s.matLang === 'both') {
@@ -4596,7 +5179,7 @@
     const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 
     let _accessCtx = null, _msgPollTimer = null;
-    let CHAT = { me: null, convos: [], curId: null, cur: null, users: [], pickMode: null, pickSel: new Set(), pendingTo: null, replyTo: null, seen: {}, _seeded: false };
+    let CHAT = { me: null, convos: [], curId: null, cur: null, curOther: null, users: [], pickMode: null, pickSel: new Set(), pendingTo: null, replyTo: null, seen: {}, _seeded: false };
 
     function MSGT(en, hu) { return LANG === 'hu' ? hu : en; }
     function chatFmtTime(iso) { try { const d = new Date(iso), now = new Date(); return (d.toDateString() === now.toDateString()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString(); } catch { return ''; } }
@@ -4699,9 +5282,11 @@
         const r = await fetch('/api/chat/messages?id=' + encodeURIComponent(id)); const d = await r.json();
         if (!d || !d.ok) { showToast(MSGT('Conversation not found.', 'A besz\u00e9lget\u00e9s nem tal\u00e1lhat\u00f3.'), true); return; }
         CHAT.cur = d;
+        CHAT.curOther = (d.type !== 'group') ? ((d.participants || []).find(p => String(p).toLowerCase() !== String(CHAT.me).toLowerCase()) || null) : null;
         const sub = d.type === 'group' ? (d.participants || []).join(', ') : '';
         document.getElementById('chatThreadTitle').innerHTML = esc(d.title) + (sub ? '<small>' + esc(sub) + '</small>' : '');
         document.getElementById('chatAddMember').style.display = d.type === 'group' ? '' : 'none';
+        updateConvPresence(d.presence, d.now);
         renderThread(d.messages || [], d.type);
         fetch('/api/chat/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).then(() => { const c = CHAT.convos.find(x => x.id === id); if (c) c.unread = 0; renderConvList(); pollUnread(); }).catch(() => {});
       } catch {}
@@ -4745,6 +5330,7 @@
       box.querySelectorAll('.chat-quote').forEach(q => q.addEventListener('click', () => { const t = box.querySelector('[data-mid="' + q.dataset.goto + '"]'); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('chat-flash'); setTimeout(() => t.classList.remove('chat-flash'), 1100); } }));
       box.querySelectorAll('.chat-noteref').forEach(el => el.addEventListener('click', () => openNoteByPath(el.dataset.nrPath, el.dataset.nrLang)));
       box.scrollTop = box.scrollHeight;
+      renderOutboxBubbles();
     }
 
     async function respondAccess(id, decision, reason) {
@@ -4769,19 +5355,170 @@
     }
     function cancelReply() { CHAT.replyTo = null; const b = document.getElementById('chatReplyBar'); if (b) b.hidden = true; }
     function chatAutosize() { const t = document.getElementById('chatInput'); if (!t) return; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; t.style.overflowY = t.scrollHeight > 120 ? 'auto' : 'hidden'; }
+    /* ── Connectivity, presence & a per-device offline outbox ─────────────── */
+    const NET = { online: (typeof navigator !== 'undefined' ? navigator.onLine !== false : true) };
+    function updateNetUI() {
+      const b = document.getElementById('netBanner');
+      if (b) {
+        b.innerHTML = '<span class="nb-dot"></span>' + esc(MSGT('You are offline — messages will be sent when you reconnect.', 'Nincs internetkapcsolat — az üzenetek a kapcsolat helyreálltakor lesznek elküldve.'));
+        b.classList.toggle('show', !NET.online && !!AUTH.user);
+      }
+    }
+    function setNetOnline(v) {
+      v = !!v;
+      const changed = v !== NET.online;
+      NET.online = v; updateNetUI();
+      if (changed && v) { _outboxReset(false); retryOutbox(); } // back online → drop back-off, flush queue
+    }
+    async function pingServer() {
+      try {
+        const r = await fetch('/api/presence', { cache: 'no-store' });
+        setNetOnline(!!(r && r.ok)); return !!(r && r.ok);
+      } catch (e) { setNetOnline(false); return false; }
+    }
+    async function sendPresenceBeat(users) {
+      if (!AUTH.user) return null;
+      try {
+        const q = (users && users.length) ? ('?users=' + encodeURIComponent(users.join(','))) : '';
+        const r = await fetch('/api/presence' + q, { cache: 'no-store' });
+        const d = await r.json(); setNetOnline(true); return d;
+      } catch (e) { setNetOnline(false); return null; }
+    }
+
+    function _outboxKey() { return 'ki_outbox_' + (AUTH.user ? String(AUTH.user).toLowerCase() : 'anon'); }
+    function getOutbox() { try { const a = JSON.parse(localStorage.getItem(_outboxKey()) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+    function setOutboxArr(a) { try { localStorage.setItem(_outboxKey(), JSON.stringify(a)); } catch (e) {} }
+    function enqueueOutbox(item) { const a = getOutbox(); a.push(item); setOutboxArr(a); }
+    function _removeOutbox(id) { setOutboxArr(getOutbox().filter(x => x.tempId !== id)); }
+    function _setOutboxStatus(id, st) { const a = getOutbox(); const it = a.find(x => x.tempId === id); if (it) { it.status = st; setOutboxArr(a); } }
+    // Give up after this many transient failures; back off exponentially up to 5 min.
+    const OUTBOX_MAX_TRIES = 8;
+    function _outboxBackoff(tries) { return Math.min(20000 * Math.pow(2, Math.max(0, tries - 1)), 5 * 60 * 1000); }
+    function _outboxDue(it, now) { return it.status !== 'dead' && (!it.nextAt || it.nextAt <= now); }
+    // Clear back-off so due items retry promptly; reviveDead also resurrects given-up items.
+    function _outboxReset(reviveDead) { const a = getOutbox(); a.forEach(it => { it.nextAt = 0; if (reviveDead && it.status === 'dead') { it.status = 'failed'; it.tries = 0; } }); setOutboxArr(a); }
+    // Deliver one queued item. Returns {ok} on success, or {ok:false, permanent} where
+    // permanent=true for 4xx client errors (bad recipient, dead conversation, expired
+    // session) that retrying can never fix — only transient errors are worth retrying.
+    async function _deliverOutbox(it) {
+      var url, payload;
+      if (it.kind === 'note') { url = '/api/note/discussion'; payload = { path: it.path, lang: it.lang, body: it.body }; }
+      else {
+        url = '/api/chat/send';
+        payload = it.convId ? { id: it.convId, body: it.body } : { to: it.to, body: it.body };
+        if (it.replyTo) payload.replyTo = it.replyTo;
+        if (it.noteRef) payload.noteRef = it.noteRef;
+      }
+      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const d = await r.json().catch(function () { return null; });
+      if (d && d.ok) { if (it.kind !== 'note') it._convId = d.id; return { ok: true }; }
+      return { ok: false, permanent: r.status >= 400 && r.status < 500 && r.status !== 429 };
+    }
+    let _retrying = false;
+    async function retryOutbox() {
+      if (_retrying || !AUTH.user) return;
+      const a = getOutbox(); const _now = Date.now();
+      if (!a.some(it => _outboxDue(it, _now))) return; // nothing ready to (re)send
+      _retrying = true;
+      let delivered = false, changed = false, noteDelivered = false;
+      try {
+        for (const it of a) {
+          if (!_outboxDue(it, Date.now())) continue; // skip given-up + still-backing-off items
+          try {
+            const res = await _deliverOutbox(it);
+            if (res.ok) { it._done = true; delivered = true; changed = true; if (it.kind === 'note') noteDelivered = true; }
+            else {
+              it.tries = (it.tries || 0) + 1; changed = true;
+              if (res.permanent || it.tries >= OUTBOX_MAX_TRIES) { it.status = 'dead'; it.nextAt = 0; }
+              else { it.status = 'failed'; it.nextAt = Date.now() + _outboxBackoff(it.tries); }
+            }
+          } catch (e) {
+            it.tries = (it.tries || 0) + 1; changed = true;
+            it.status = it.tries >= OUTBOX_MAX_TRIES ? 'dead' : 'failed';
+            it.nextAt = Date.now() + _outboxBackoff(it.tries);
+            setNetOnline(false); break; // connectivity gone — stop this pass
+          }
+        }
+      } finally {
+        // Persist outcomes: drop delivered, carry status/tries/nextAt back, keep anything enqueued mid-run.
+        const doneIds = new Set(a.filter(x => x._done).map(x => x.tempId));
+        const upd = {}; a.forEach(x => { upd[x.tempId] = { status: x.status, tries: x.tries, nextAt: x.nextAt }; });
+        setOutboxArr(getOutbox().filter(x => !doneIds.has(x.tempId)).map(x => upd[x.tempId] ? Object.assign({}, x, upd[x.tempId]) : x));
+        _retrying = false;
+      }
+      const chatActive = document.getElementById('page-chat') && document.getElementById('page-chat').classList.contains('active');
+      if (delivered && chatActive) { await loadConversations(); if (CHAT.curId) { openConversation(CHAT.curId); return; } }
+      if (noteDelivered && typeof loadNoteDiscussion === 'function' && _npRef) { try { loadNoteDiscussion(); } catch (e) {} }
+      if (changed) renderOutboxBubbles();
+    }
+    // Manual "Retry": resurrect given-up items, clear back-off, and try right away.
+    function retryOutboxNow() { _outboxReset(true); if (NET.online) retryOutbox(); else pingServer(); }
+    function outboxForCurrentView() {
+      const pend = CHAT.pendingTo ? String(CHAT.pendingTo).toLowerCase() : null;
+      return getOutbox().filter(it => it.kind === 'chat' && ((it.convId && it.convId === CHAT.curId) || (!it.convId && pend && it.to && String(it.to).toLowerCase() === pend)));
+    }
+    function renderOutboxBubbles() {
+      const box = document.getElementById('chatMsgs'); if (!box) return;
+      box.querySelectorAll('.chat-row.pending').forEach(el => el.remove());
+      outboxForCurrentView().forEach(it => {
+        const failed = it.status === 'failed' || it.status === 'dead';
+        const failLabel = it.status === 'dead' ? MSGT('Not sent', 'Nem ment el') : MSGT('Not sent — will retry', 'Nem ment el — újrapróbálom');
+        const stat = failed
+          ? ('<span class="cb-stat failed">' + esc(failLabel) + '<button class="cb-retry" data-retry="' + esc(it.tempId) + '">' + esc(MSGT('Retry', 'Újra')) + '</button></span>')
+          : ('<span class="cb-stat sending">' + esc(MSGT('Sending…', 'Küldés…')) + '</span>');
+        const row = document.createElement('div');
+        row.className = 'chat-row me pending' + (failed ? ' failed' : '');
+        row.innerHTML = '<div class="chat-bubble me"><div>' + renderRefText(it.body) + '</div><div class="chat-time">' + stat + '</div></div>';
+        box.appendChild(row);
+      });
+      box.querySelectorAll('.cb-retry').forEach(b => b.addEventListener('click', retryOutboxNow));
+      box.scrollTop = box.scrollHeight;
+    }
+
+    /* presence (1:1 conversations) */
+    function relTime(ms) {
+      const s = Math.floor(ms / 1000);
+      if (s < 90) return MSGT('just now', 'az imént');
+      const m = Math.floor(s / 60); if (m < 60) return m + ' ' + MSGT('min ago', 'perce');
+      const h = Math.floor(m / 60); if (h < 24) return h + ' ' + MSGT('h ago', 'órája');
+      return Math.floor(h / 24) + ' ' + MSGT('d ago', 'napja');
+    }
+    function updateConvPresence(pres, /*now*/ _n) {
+      const el = document.getElementById('chatPresence'); if (!el) return;
+      if (!CHAT.cur || CHAT.cur.type === 'group' || !CHAT.curOther) { el.hidden = true; return; }
+      const ms = pres ? pres[String(CHAT.curOther).toLowerCase()] : undefined;
+      let on = false, text;
+      if (ms == null) text = MSGT('offline', 'nem elérhető');
+      else if (ms < 60000) { on = true; text = MSGT('online', 'elérhető'); }
+      else text = MSGT('last seen ', 'utoljára ') + relTime(ms);
+      el.hidden = false;
+      el.className = 'chat-presence' + (on ? ' on' : '');
+      el.innerHTML = '<span class="cp-dot"></span>' + esc(text);
+    }
+    async function presenceTick() {
+      if (!AUTH.user) return;
+      const users = (CHAT.cur && CHAT.cur.type !== 'group' && CHAT.curOther) ? [CHAT.curOther] : [];
+      const d = await sendPresenceBeat(users);
+      if (d && CHAT.cur && CHAT.curOther) updateConvPresence(d.users, d.now);
+    }
+
     async function sendChatMessage() {
       const inp = document.getElementById('chatInput'); if (!inp) return;
       const text = inp.value.trim(); if (!text) return;
       if (!CHAT.curId && !CHAT.pendingTo) return;
       inp.value = ''; chatAutosize();
-      const payload = CHAT.curId ? { id: CHAT.curId, body: text } : { to: CHAT.pendingTo, body: text };
-      if (CHAT.replyTo) payload.replyTo = CHAT.replyTo;
+      const item = { tempId: 'o' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), kind: 'chat', convId: CHAT.curId || null, to: CHAT.pendingTo || null, replyTo: CHAT.replyTo || null, body: text, ts: Date.now(), tries: 0, status: 'sending' };
+      enqueueOutbox(item);
+      cancelReply();
+      renderOutboxBubbles();
       try {
-        const r = await fetch('/api/chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        const d = await r.json();
-        if (d && d.ok) { CHAT.pendingTo = null; cancelReply(); await loadConversations(); openConversation(d.id); }
-        else { showToast((d && d.error) || MSGT('Error', 'Hiba'), true); inp.value = text; chatAutosize(); }
-      } catch { showToast(MSGT('Error', 'Hiba'), true); inp.value = text; chatAutosize(); }
+        const res = await _deliverOutbox(item);
+        if (res.ok) { _removeOutbox(item.tempId); CHAT.pendingTo = null; await loadConversations(); openConversation(item._convId || CHAT.curId); }
+        else { _setOutboxStatus(item.tempId, res.permanent ? 'dead' : 'failed'); renderOutboxBubbles(); showToast(MSGT('Message queued — will retry', 'Üzenet sorba állítva — újrapróbálom'), true); }
+      } catch (e) {
+        setNetOnline(false); _setOutboxStatus(item.tempId, 'failed'); renderOutboxBubbles();
+        showToast(MSGT('You appear offline — message saved', 'Nincs kapcsolat — üzenet elmentve'), true);
+      }
     }
 
     function startDM(username) {
@@ -4916,6 +5653,14 @@
       const cp = document.getElementById('chatPicker'); if (cp) cp.addEventListener('click', e => { if (e.target.id === 'chatPicker') closePicker(); });
       document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAccessModal(); closePicker(); } });
       _msgPollTimer = setInterval(pollUnread, 45000);
+      // Connectivity + presence heartbeat + offline-outbox retry
+      window.addEventListener('online',  () => pingServer());
+      window.addEventListener('offline', () => setNetOnline(false));
+      window.addEventListener('focus',   () => { if (AUTH.user) { pingServer(); retryOutbox(); } });
+      setInterval(presenceTick, 20000);
+      setInterval(() => { if (AUTH.user && getOutbox().some(it => it.status !== 'dead')) retryOutbox(); }, 20000);
+      updateNetUI();
+      setTimeout(() => { if (AUTH.user) { pingServer(); retryOutbox(); } }, 1200);
     })();
     async function submitRegister() {
       const u = document.getElementById('regUserInput').value.trim();
@@ -5070,6 +5815,7 @@
       // Show overlay with spinner
       compLabel.textContent = t('compilingLabel');
       compLog.style.display = 'none'; compLog.textContent = '';
+      setPdfProgress(null);
       pdfOverlay.classList.remove('hidden');
       pdfModal.classList.add('open');
       document.body.style.overflow = 'hidden';
@@ -5092,12 +5838,27 @@
 
       compLabel.textContent=t('loadingLabel');
       compLog.style.display='none';
+      setPdfProgress(null);
       pdfOverlay.classList.remove('hidden');
       pdfModal.classList.add('open');
       document.body.style.overflow='hidden';
       document.body.classList.add('pdf-open');
 
-      fetch(url).then(r=>r.arrayBuffer()).then(buf => {
+      // Stream the download so we can show a real progress ring, not a dead spinner.
+      fetch(url).then(resp => {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const total = +(resp.headers.get('Content-Length') || 0);
+        if (!resp.body || !resp.body.getReader || !total) return resp.arrayBuffer();
+        const reader = resp.body.getReader(); let received = 0; const chunks = [];
+        setPdfProgress(0);
+        return (function pump(){
+          return reader.read().then(function(res){
+            if (res.done) { const all = new Uint8Array(received); let pos = 0; chunks.forEach(function(ch){ all.set(ch, pos); pos += ch.length; }); return all.buffer; }
+            chunks.push(res.value); received += res.value.length; setPdfProgress(received / total); return pump();
+          });
+        })();
+      }).then(buf => {
+        setPdfProgress(null); // parsing has no progress — back to the spinner
         pdfBytes = new Uint8Array(buf);
         loadPdfBytes(pdfBytes);
       }).catch(e => showCompileFail('Failed to load PDF:\n'+e.message, ''));
@@ -5154,6 +5915,13 @@
     const PDF_FULL_DOC_KEY = 'ki_pdf_full_doc';
     let pdfFullDocMode = localStorage.getItem(PDF_FULL_DOC_KEY) !== '0';
 
+    // Drive the ring loader: null = indeterminate spin, 0..1 = determinate fill.
+    function setPdfProgress(p) {
+      var loader = document.getElementById('pdfLoader'), arc = document.getElementById('pdfLoaderArc'), pct = document.getElementById('pdfLoaderPct');
+      if (!loader) return;
+      if (p == null) { loader.classList.add('indet'); if (pct) pct.textContent = ''; if (arc) arc.style.strokeDashoffset = ''; }
+      else { loader.classList.remove('indet'); var C = 125.66, v = Math.max(0, Math.min(1, p)); if (arc) arc.style.strokeDashoffset = (C * (1 - v)).toFixed(1); if (pct) pct.textContent = Math.round(v * 100) + '%'; }
+    }
     function loadPdfBytes(bytes) {
       pdfjsLib.getDocument({ data: bytes }).promise.then(doc => {
         pdfDoc = doc;
@@ -5163,6 +5931,8 @@
         pdfOverlay.classList.add('hidden');
         document.getElementById('pdfNavPrev').classList.remove('nav-disabled');
         document.getElementById('pdfNavNext').classList.remove('nav-disabled');
+        // Elite reveal of the first rendered page.
+        pdfCanvas.classList.remove('pdf-reveal'); void pdfCanvas.offsetWidth; pdfCanvas.classList.add('pdf-reveal');
         // fitToWidth handles both single-page and full-doc modes
         fitToWidth();
         updateSideNavState();
@@ -5230,6 +6000,7 @@
           body.scrollTop = Math.round(savedST * (newH / prevH));
         });
       }
+      updateSideNavState(); // page-nav is disabled in full-doc mode
     }
 
     /* ── Exit full-doc mode back to single-page ───────────────────────── */
@@ -5241,6 +6012,7 @@
       wrap.innerHTML = '';
       wrap.appendChild(pdfCanvas);
       fitToWidth(); // always re-fit so we open clean with no x-scrollbar
+      updateSideNavState(); // re-enable page-nav now we're back to single-page
     }
 
     function renderPage(num) {
@@ -5278,10 +6050,16 @@
     function updateSideNavState() {
       const prev = document.getElementById('pdfNavPrev');
       const next = document.getElementById('pdfNavNext');
-      if (!prev || !next) return;
-      if (pdfFullDocMode) { prev.classList.add('nav-disabled'); next.classList.add('nav-disabled'); return; }
-      prev.classList.toggle('nav-disabled', !pdfDoc || pdfPage <= 1);
-      next.classList.toggle('nav-disabled', !pdfDoc || pdfPage >= (pdfDoc ? pdfDoc.numPages : 1));
+      const tPrev = document.getElementById('pdfPrevPage');
+      const tNext = document.getElementById('pdfNextPage');
+      const atFirst = !pdfDoc || pdfPage <= 1;
+      const atLast  = !pdfDoc || pdfPage >= (pdfDoc ? pdfDoc.numPages : 1);
+      // Page-by-page nav is meaningless in full-document (scroll) mode → disable it.
+      const offFirst = pdfFullDocMode || atFirst, offLast = pdfFullDocMode || atLast;
+      if (prev)  prev.classList.toggle('nav-disabled', offFirst);
+      if (next)  next.classList.toggle('nav-disabled', offLast);
+      if (tPrev) tPrev.classList.toggle('disabled', offFirst);
+      if (tNext) tNext.classList.toggle('disabled', offLast);
     }
 
     /* pdfFitZoom — zoom level that exactly fills the viewer width.
@@ -6603,6 +7381,17 @@
       toggleSelect(item, cardEl);
     }
 
+    // A card's primary select toggle. If the item is covered by a selected ancestor
+    // folder, toggle only THIS item's coverage (exclude/re-include) — so deselecting one
+    // child never drops its siblings. Otherwise it's an ordinary select/deselect.
+    function toggleCardSelection(item, card) {
+      const covering = getCoveringFolder(item.path);
+      if (covering) { excludeChild(covering.path, item.path); updateCardStates(); renderSelPanel(); return; }
+      const excluding = getExcludingFolder(item.path);
+      if (excluding) { const excl = folderExclusions.get(excluding.path); if (excl) excl.delete(item.path); updateCardStates(); renderSelPanel(); return; }
+      toggleSelect(item, card);
+    }
+
     function renderSelPanel(newlyAddedPath = null) {
       const panel = document.getElementById('selPanel');
       const list  = document.getElementById('selList');
@@ -6787,7 +7576,7 @@
           }
         }
       } catch {}
-      _discussRef = { path: notePath, lang: noteLang || 'en', label, from, to };
+      _discussRef = { path: notePath, lang: noteLang || 'en', label, from, to, name: noteName };
       const nm = displayFileName(noteName);
       document.getElementById('discussNoteRef').innerHTML =
         '<div style="font-size:12px;color:var(--text2);margin-bottom:4px">' + (label ? MSGT('Referencing a selection from', 'Hivatkozott részlet innen') : MSGT('Referencing note', 'Hivatkozott jegyzet')) + '</div>' +
@@ -6797,9 +7586,9 @@
       const sel = document.getElementById('discussTo');
       sel.innerHTML = '<option value="">' + MSGT('Choose a person…', 'Válassz személyt…') + '</option>' +
         (CHAT.users || []).map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('');
+      if (typeof customSelect === 'function') { customSelect(sel); if (sel._syncLabel) sel._syncLabel(); } // themed dropdown (keeps the custom cursor)
       document.getElementById('discussMsg').value = '';
       document.getElementById('discussModal').classList.add('open');
-      setTimeout(() => document.getElementById('discussTo').focus(), 60);
     }
     function closeDiscuss() { document.getElementById('discussModal').classList.remove('open'); _discussRef = null; }
     async function sendDiscuss() {
@@ -6810,10 +7599,19 @@
       if (!body) { showToast(MSGT('Write a message first', 'Elsőként írj egy üzenetet')); return; }
       const noteRef = { path: _discussRef.path, lang: _discussRef.lang, label: _discussRef.label || '' };
       if (_discussRef.from != null && _discussRef.to != null) { noteRef.from = _discussRef.from; noteRef.to = _discussRef.to; }
+      // Copy the same ki:// reference link the chat picker inserts — within the click
+      // gesture (before the fetch await) so the clipboard write is allowed.
+      const refName = displayFileName(_discussRef.name || _discussRef.path.split('/').pop());
+      const token = '[' + refName + '](ki://note/' + encodeURIComponent(_discussRef.path) + (_discussRef.lang ? ('?lang=' + _discussRef.lang) : '') + ')';
+      let copied = false;
+      try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(token); copied = true; } } catch (e) {}
+      if (!copied) { // execCommand fallback (works when the async clipboard API is blocked)
+        try { const ta = document.createElement('textarea'); ta.value = token; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); copied = document.execCommand('copy'); ta.remove(); } catch (e) {}
+      }
       try {
         const r = await fetch('/api/chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to, body, noteRef }) });
         const d = await r.json();
-        if (d && d.ok) { closeDiscuss(); showToast(MSGT('Message sent', 'Üzenet elküldve')); }
+        if (d && d.ok) { closeDiscuss(); showToast(copied ? MSGT('Message sent · link copied', 'Üzenet elküldve · link másolva') : MSGT('Message sent', 'Üzenet elküldve')); }
         else showToast((d && d.error) || MSGT('Could not send', 'Nem sikerült elküldeni'));
       } catch { showToast(MSGT('Could not send', 'Nem sikerült elküldeni')); }
     }
@@ -7014,9 +7812,16 @@
     }
 
     function getDisplayName(item) {
-      if (item.type === 'folder') return item.name;
+      // In bilingual "both" mode, show the name in the preferred note language for
+      // linked folders/files (e.g. "Reál tárgyak" instead of "STEM" when pref = HU).
+      let nm = item.name;
+      if (MAT_LANG === 'both') {
+        if (OPEN_LANG === 'hu') { if (item.huName) nm = item.huName; }
+        else if (item.enName) nm = item.enName;
+      }
+      if (item.type === 'folder') return nm;
       // Strip everything from first { or end of name (remove extension too)
-      const nameNoExt = item.name.replace(/\.[^.]+$/, '');
+      const nameNoExt = nm.replace(/\.[^.]+$/, '');
       const braceIdx = nameNoExt.indexOf(' {');
       return braceIdx !== -1 ? nameNoExt.slice(0, braceIdx).trim() : nameNoExt.trim();
     }
@@ -7203,10 +8008,19 @@
           lang:         LANG,
           matLang:      MAT_LANG,
           openLang:     OPEN_LANG,
+          notify:       localStorage.getItem('ki_notify') || '',
           fullDoc:      pdfFullDocMode,
           sectionBy:    sectionBy,
           sectionOrder: localStorage.getItem('ki_section_order') || 'null',
           childOrders:  localStorage.getItem('ki_child_orders')  || '{}',
+          // Custom theme colours + cursor are persisted live, so capture them too —
+          // otherwise editing a colour or cursor never marks the panel dirty (Apply
+          // stays disabled) and Cancel can't revert it.
+          customTheme:  localStorage.getItem('ki_custom_theme')  || '',
+          savedThemes:  localStorage.getItem('ki_saved_themes')  || '',
+          rclickTheme:  localStorage.getItem('ki_rclick_theme')  || '',
+          cursor:       localStorage.getItem('ki_cursor')        || '',
+          cursorSaved:  localStorage.getItem('ki_cursor_saved')  || '',
         };
       }
 
@@ -7216,21 +8030,37 @@
         return now.theme       !== _snap.theme
             || now.lang        !== _snap.lang
             || now.matLang     !== _snap.matLang
+            || now.openLang    !== _snap.openLang
+            || now.notify      !== _snap.notify
             || now.fullDoc     !== _snap.fullDoc
             || now.sectionBy   !== _snap.sectionBy
             || now.sectionOrder !== _snap.sectionOrder
-            || now.childOrders  !== _snap.childOrders;
+            || now.childOrders  !== _snap.childOrders
+            || now.customTheme !== _snap.customTheme
+            || now.savedThemes !== _snap.savedThemes
+            || now.rclickTheme !== _snap.rclickTheme
+            || now.cursor      !== _snap.cursor
+            || now.cursorSaved !== _snap.cursorSaved;
       }
 
       function markDirty() {
         modal.classList.toggle('dirty', isDirty());
       }
+      _markDirtyHook = markDirty; // let top-level callMarkDirty() reach this
 
       /* Revert every setting to the snapshot */
       function discardChanges() {
         if (!_snap) return;
-        // Theme
-        if (takeSnapshot().theme !== _snap.theme) applyTheme(_snap.theme);
+        // Theme (name + custom colours + saved/right-click presets) and cursor — restore
+        // the persisted values from the snapshot, then re-apply so the live page reverts.
+        const _restore = (key, val) => { if (val) localStorage.setItem(key, val); else localStorage.removeItem(key); };
+        _restore('ki_custom_theme', _snap.customTheme);
+        _restore('ki_saved_themes', _snap.savedThemes);
+        _restore('ki_rclick_theme', _snap.rclickTheme);
+        applyTheme(_snap.theme); // re-derives custom colours from the restored ki_custom_theme
+        _restore('ki_cursor', _snap.cursor);
+        _restore('ki_cursor_saved', _snap.cursorSaved);
+        applyCursorTheme(getCursor());
         // Language
         if (LANG !== _snap.lang) switchLang(_snap.lang);
         // Full-doc
@@ -7251,6 +8081,11 @@
         if (OPEN_LANG !== _snap.openLang) {
           OPEN_LANG = _snap.openLang;
           localStorage.setItem('ki_open_lang', OPEN_LANG);
+        }
+        // Notifications
+        if ((localStorage.getItem('ki_notify') || '') !== _snap.notify) {
+          if (_snap.notify) localStorage.setItem('ki_notify', _snap.notify); else localStorage.removeItem('ki_notify');
+          const _nt = document.getElementById('stgNotifToggle'); if (_nt) _nt.classList.toggle('on', _snap.notify === '1');
         }
         // Section-by
         if (sectionBy !== _snap.sectionBy) {
@@ -7274,13 +8109,16 @@
         modal.classList.remove('dirty');
         syncSettingsUI();
         buildSectionList();
+        _refreshStgScrollbar();
       }
 
       function closeSettings() {
         modal.classList.remove('open');
         modal.classList.remove('dirty');
         _snap = null;
+        _refreshStgScrollbar(); // hide the overlay scrollbar now the panel is closed
       }
+      function _refreshStgScrollbar(){ var sb = document.querySelector('#settingsModal .stg-body'); if (sb && sb._csbUpdate) sb._csbUpdate(); }
 
       /* Called whenever the user tries to dismiss settings */
       function tryClose() {
@@ -7377,6 +8215,27 @@
       renderThemePresets();
       renderSavedThemes();
 
+      /* ── Cursor theme studio ───────────────────────────────────────── */
+      (function(){
+        function curField(id, key){ var el=document.getElementById(id); if(!el) return; el.addEventListener('input', function(){ var c=getCursor(); c[key]=el.value; setCursor(c); renderCursorPresets(); callMarkDirty(); }); }
+        curField('stgCurPrimary','dot'); curField('stgCurAccent','ring');
+        var kn=document.getElementById('stgCurKind'); if(kn) kn.addEventListener('change', function(){ var c=getCursor(); c.kind=kn.value; setCursor(c); renderCursorPresets(); callMarkDirty(); });
+        var an=document.getElementById('stgCurAnim'); if(an) an.addEventListener('change', function(){ var c=getCursor(); c.anim=an.value; setCursor(c); renderCursorPresets(); callMarkDirty(); });
+        var g=document.getElementById('stgCurGlow'); if(g){ var tog=function(){ var c=getCursor(); c.glow=!c.glow; setCursor(c); updateCursorInputs(); renderCursorPresets(); callMarkDirty(); }; g.addEventListener('click', tog); g.addEventListener('keydown', function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); tog(); } }); }
+        var sv=document.getElementById('curSaveBtn'), nm=document.getElementById('curNameInput');
+        function doSaveCur(){ var c=getCursor(); c.name=(((nm&&nm.value)||'').trim()||c.name||'Cursor').slice(0,32); var rec=_normCursorSaved(Object.assign({},c)); var a=getCursorSaved(); a.push(rec); setCursorSaved(a); if(nm) nm.value=''; renderCursorSaved(); if(typeof showToast==='function') showToast(t('stgCurSavedMsg')); callMarkDirty(); }
+        if (sv) sv.addEventListener('click', doSaveCur);
+        if (nm) nm.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); doSaveCur(); } });
+      })();
+      updateCursorInputs();
+      renderCursorPresets();
+      renderCursorSaved();
+      // Swap native colour/select inputs for cursor-friendly custom controls.
+      ['stgCustomAccent','stgCustomAccent2','stgCustomBg','stgCustomText','stgRadiantColor','stgCurPrimary','stgCurAccent'].forEach(function(id){ customColor(document.getElementById(id)); });
+      customSelect(document.getElementById('stgCurKind'));
+      customSelect(document.getElementById('stgCurAnim'));
+      updateStudioInputs(); updateCursorInputs();
+
       /* ── Language segment ──────────────────────────────────────────── */
       document.getElementById('stgLangSeg').querySelectorAll('.stg-seg-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -7419,6 +8278,8 @@
           OPEN_LANG = btn.dataset.openlang === 'hu' ? 'hu' : 'en';
           localStorage.setItem('ki_open_lang', OPEN_LANG);
           document.querySelectorAll('#stgOpenLangSeg .mat-lang-btn').forEach(b => b.classList.toggle('active', b === btn));
+          // Preferred language also drives displayed names of linked folders/files.
+          if (MAT_LANG === 'both') { renderBreadcrumb(); renderGrid(currentNode); }
           markDirty();
         });
       });
@@ -7429,6 +8290,7 @@
         if (turningOn) { const okp = await requestNotifyPermission(); if (!okp) return; localStorage.setItem('ki_notify', '1'); }
         else localStorage.setItem('ki_notify', '0');
         notifToggle.classList.toggle('on');
+        markDirty();
       });
       const fdToggle = document.getElementById('stgFullDocToggle');
       fdToggle.addEventListener('click', () => {
@@ -7607,6 +8469,7 @@
         updateStudioInputs();
         renderThemePresets();
         renderSavedThemes();
+        if (typeof updateCursorInputs==='function') { updateCursorInputs(); renderCursorPresets(); renderCursorSaved(); }
         // Language
         document.querySelectorAll('#stgLangSeg .stg-seg-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.lang === LANG);
@@ -7842,12 +8705,12 @@
       var inp = document.getElementById('npInput'); if (!inp || !_npRef) return;
       var text = inp.value.trim(); if (!text) return;
       inp.value = ''; npAutosize();
+      var item = { tempId: 'o' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), kind: 'note', path: _npRef.path, lang: _npRef.lang, body: text, ts: Date.now(), tries: 0, status: 'sending' };
       try {
-        var res = await fetch('/api/note/discussion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: _npRef.path, lang: _npRef.lang, body: text }) });
-        var d = await res.json();
-        if (d && d.ok) { await loadNoteDiscussion(); }
-        else { showToast((d && d.error) || MSGT('Could not send', 'Nem sikerült elküldeni'), true); inp.value = text; npAutosize(); }
-      } catch { showToast(MSGT('Could not send', 'Nem sikerült elküldeni'), true); inp.value = text; npAutosize(); }
+        var res = await _deliverOutbox(item);
+        if (res.ok) { await loadNoteDiscussion(); }
+        else { item.status = res.permanent ? 'dead' : 'failed'; enqueueOutbox(item); showToast(MSGT('Message queued — will retry', 'Üzenet sorba állítva — újrapróbálom'), true); }
+      } catch (e) { setNetOnline(false); enqueueOutbox(item); showToast(MSGT('You appear offline — message saved', 'Nincs kapcsolat — üzenet elmentve'), true); }
     }
     async function deleteNoteDiscussion(id){
       if (!_npRef) return;
@@ -7992,6 +8855,9 @@
 
     /* ── Learning timeline ─────────────────────────────────────────────── */
     var _tlUnchecked = {}, _tlPx = 3, _tlBasis = 'period';
+    // Initial/auto-fit zoom relative to an exact fit (the Fit button stays exact = 1).
+    // <1 means the default view opens more zoomed out than a tight fit, leaving breathing room.
+    var TL_DEFAULT_ZOOM = 0.6;
     var TL_PALETTE = ['#b98cff','#4fd1b0','#ff7a59','#f0648c','#88c0d0','#3fc16b','#e0455e','#7ec8ff','#ffd166','#c4a13c','#9a6bff','#2bd6a7'];
     function tlDay(s){ if(!s) return null; var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s)); if(!m) return null; var t=Date.UTC(+m[1],+m[2]-1,+m[3]); return isNaN(t)?null:Math.floor(t/86400000); }
     function tlDayToDate(day){ return new Date(day*86400000); }
@@ -8034,11 +8900,12 @@
       if(ext){ var pad=Math.max(14,Math.round((ext[1]-ext[0])*0.05)); fI.value=tlFmtDay(ext[0]-pad); tI.value=tlFmtDay(ext[1]+pad); }
       else { var td=tlDay(new Date().toISOString().slice(0,10)); fI.value=tlFmtDay(td-180); tI.value=tlFmtDay(td+180); }
     }
-    function tlFit(){
+    function tlFit(factor){
+      var f=(typeof factor==='number'&&factor>0)?factor:1;
       var fI=document.getElementById('tlFrom'),tI=document.getElementById('tlTo'); var from=tlDay(fI.value),to=tlDay(tI.value);
       if(from==null||to==null||to<=from){ tlRender(); return; }
       var wrap=document.getElementById('tlCanvasWrap'); var avail=Math.max(320,(wrap.clientWidth||800)-60);
-      _tlPx=Math.max(0.04,Math.min(40,avail/(to-from))); tlRender();
+      _tlPx=Math.max(0.04,Math.min(40,avail/(to-from)*f)); tlRender();
     }
     function tlRenderSubjects(){
       var host=document.getElementById('tlSubjectList'); if(!host) return; var tops=tlTopFolders(); host.innerHTML='';
@@ -8089,17 +8956,17 @@
     }
     function openTimeline(){
       document.body.classList.add('tl-open'); document.getElementById('timelineModal').classList.add('open');
-      var go=function(){ tlInitRange(); tlRenderSubjects(); tlFit(); };
+      var go=function(){ tlInitRange(); tlRenderSubjects(); tlFit(TL_DEFAULT_ZOOM); };
       if(!treeData){ (loadTree()||Promise.resolve()).then(go).catch(go); } else go();
     }
     function closeTimeline(){ document.getElementById('timelineModal').classList.remove('open'); document.body.classList.remove('tl-open'); }
     (function(){
       var byId=function(id){return document.getElementById(id);};
       var c=byId('tlClose'); if(c) c.addEventListener('click', closeTimeline);
-      var b=byId('tlBasis'); if(b) b.addEventListener('change', function(){ _tlBasis=b.value; tlInitRange(); tlFit(); });
-      var f=byId('tlFrom'); if(f) f.addEventListener('change', tlRender);
-      var tt=byId('tlTo'); if(tt) tt.addEventListener('change', tlRender);
-      var fit=byId('tlFit'); if(fit) fit.addEventListener('click', tlFit);
+      var b=byId('tlBasis'); if(b){ b.addEventListener('change', function(){ _tlBasis=b.value; tlInitRange(); tlFit(TL_DEFAULT_ZOOM); }); customSelect(b); }
+      var f=byId('tlFrom'); if(f){ f.addEventListener('change', tlRender); customDate(f); }
+      var tt=byId('tlTo'); if(tt){ tt.addEventListener('change', tlRender); customDate(tt); }
+      var fit=byId('tlFit'); if(fit) fit.addEventListener('click', function(){ tlFit(); });
       var zi=byId('tlZoomIn'); if(zi) zi.addEventListener('click', function(){ _tlPx=Math.min(40,_tlPx*1.4); tlRender(); });
       var zo=byId('tlZoomOut'); if(zo) zo.addEventListener('click', function(){ _tlPx=Math.max(0.04,_tlPx/1.4); tlRender(); });
       var sb=byId('tlSubjectsBtn'); if(sb) sb.addEventListener('click', function(){ var collapsed=byId('timelineModal').classList.toggle('subjects-collapsed'); sb.classList.toggle('on', !collapsed); });

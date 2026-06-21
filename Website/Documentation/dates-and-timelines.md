@@ -47,10 +47,14 @@ all its materials; unchecking a single subfolder hides just that one. Top-level 
 carry a colour dot matching their bars.
 
 **Range & zoom**
-- **From / To** date inputs bound the visible window; they auto-default to the data's own
-  span (with a little padding) and refit when you switch basis.
+- **From / To** use a themed, cursor-friendly **calendar picker** (the same one DevTools uses,
+  ported into the app) instead of the native date input; they auto-default to the data's own
+  span (with a little padding) and refit when you switch basis. The **Show** basis selector is a
+  custom dropdown (see [[theme-features]] → Custom controls).
 - **Fit** scales everything to the viewport; **+ / −** zoom in and out (the axis switches
   between monthly and yearly ticks automatically as you zoom).
+- The view **opens a little more zoomed out than Fit** (≈60% of the fit scale, so there's
+  breathing room and context around your materials); pressing **Fit** still snaps to an exact fit.
 - A dashed accent line marks **today** when it falls inside the window.
 
 **Reading it**

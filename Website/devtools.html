@@ -96,6 +96,9 @@
   .who b{color:var(--text)}
   .ghost-btn{padding:8px 14px;border:1px solid var(--border-md);border-radius:99px;background:var(--bg2);color:var(--text2);font-size:12px;font-weight:600;transition:.2s}
   .ghost-btn:hover{color:var(--text);border-color:var(--accent)}
+  a.ghost-btn{text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  a.ghost-btn .arr{font-size:14px;line-height:1;transition:transform .2s}
+  a.ghost-btn:hover .arr{transform:translateX(-3px)}
 
   /* ── Tabs ───────────────────────────────────────────── */
   .tabs{display:flex;gap:4px;padding:0 22px;border-bottom:1px solid var(--border);background:var(--bg)}
@@ -205,6 +208,15 @@
 
   /* picker rows reuse .row styling but compact */
   #pickerList .row{padding:11px 14px;cursor:pointer}
+  /* Folder-link picker */
+  #flCrumbs{margin-bottom:10px}
+  .fl-list{max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg)}
+  .fl-list .row{padding:11px 14px;cursor:pointer}
+  .fl-list .row:last-child{border-bottom:none}
+  .fl-list .row.fl-sel{background:var(--accent-dim)}
+  .fl-list .row.fl-sel .nm{color:var(--accent);font-weight:600}
+  .fl-list .body{flex:1}
+  .fl-nav{flex:none}
   .picker-none{display:flex;align-items:center;gap:11px;padding:14px 16px;border:1px solid var(--accent);background:var(--accent-dim);
     border-radius:var(--radius);color:var(--accent);font-weight:700;font-size:14px;margin-bottom:14px;width:100%;text-align:left}
   .picker-none:hover{background:var(--accent);color:#0b0b0e}
@@ -246,10 +258,36 @@
   .wl-ac-item:hover,.wl-ac-item.active{background:var(--accent-dim);color:var(--accent2)}
   .hidden{display:none!important}
   @media (max-width:640px){
-    h1{font-size:27px}
+    h1{font-size:25px}
     .grid2{grid-template-columns:1fr}
     .who{display:none}
-    main{padding:22px 14px 80px}
+    main{padding:20px 13px 80px}
+    /* Header: let everything wrap instead of overflowing off-screen. */
+    header{flex-wrap:wrap;gap:8px 10px;padding:11px 13px}
+    .hgrow{display:none}
+    .brand{font-size:14px;gap:8px}
+    .brand .glyph{width:26px;height:26px;font-size:14px}
+    .seg button{padding:6px 11px;font-size:11px}
+    .ghost-btn{padding:7px 11px;font-size:11px}
+    .dt-presets{padding:9px 13px}
+    /* Tabs scroll horizontally rather than wrapping/squashing. */
+    .tabs{padding:0 13px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{padding:13px 13px 12px;font-size:12.5px;flex:0 0 auto;white-space:nowrap}
+    /* Modals + rows: tighter, and footers wrap so buttons never clip. */
+    .ov{padding:18px 10px}
+    .sheet-hd,.sheet-bd,.sheet-ft{padding-left:16px;padding-right:16px}
+    .sheet-hd h3{font-size:19px}
+    .sheet-ft{flex-wrap:wrap}
+    .row{gap:10px;padding:11px 12px}
+    .row .ico{width:30px;height:30px}
+    .toolbar{gap:9px}
+    .fl-list{max-height:50vh}
+  }
+  @media (max-width:380px){
+    .seg button{padding:6px 9px;font-size:10.5px}
+    .row .acts{gap:5px}
+    .icon-btn{width:32px;height:32px}
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -289,6 +327,7 @@
       <button data-theme="custom">Custom</button>
     </div>
     <span class="who">Signed in as <b id="whoName">—</b></span>
+    <a class="ghost-btn" id="toMainBtn" href="/" title="Back to the main page"><span class="arr">←</span> Main page</a>
     <button class="ghost-btn" id="logoutBtn">Sign out</button>
   </header>
   <div id="dtPresets" class="dt-presets"></div>
@@ -608,8 +647,11 @@
     </div>
     <div class="sheet-bd">
       <p style="color:var(--text2);font-size:13px;margin:0 0 12px" id="flHint"></p>
-      <label class="fld"><span id="flLabel"></span>
-        <input type="text" id="flInput" placeholder="Exact folder name in the other language" spellcheck="false" autocapitalize="off" autocomplete="off">
+      <div class="fld-lbl" id="flLabel" style="font-size:12px;color:var(--text2);margin-bottom:6px"></div>
+      <div class="crumbs" id="flCrumbs"></div>
+      <div class="fl-list" id="flList"></div>
+      <label class="fld" style="margin-top:12px"><span style="font-size:11px;color:var(--text3)">Selected counterpart</span>
+        <input type="text" id="flInput" readonly placeholder="Click a folder above to pick it…" spellcheck="false" autocapitalize="off" autocomplete="off">
       </label>
     </div>
     <div class="sheet-ft">
@@ -1163,16 +1205,39 @@
   function closePicker() { $('pickerOv').classList.remove('open'); }
 
   // ── folder counterpart link ────────────────────────────────────────
-  let _flItem = null;
+  let _flItem = null, _flLang = 'hu', _flDir = '';
   function openFolderLink(item) {
     _flItem = item;
     const other = counterpartKeyLang();
     const cur = (other === 'hu') ? (item.altHu || '') : (item.altEn || '');
-    $('flLabel').textContent = (other === 'hu') ? 'Hungarian counterpart folder' : 'English counterpart folder';
-    $('flHint').innerHTML = 'Link \u201c' + esc(item.display || item.name) + '\u201d to the folder that holds the same content in the other language. Their notes then merge in the bilingual view.';
+    $('flLabel').textContent = (other === 'hu') ? 'Pick the Hungarian counterpart folder:' : 'Pick the English counterpart folder:';
+    $('flHint').innerHTML = 'Link \u201c' + esc(item.display || item.name) + '\u201d to the folder that holds the same content in the other language. Their notes then merge in the bilingual view. No typing needed \u2014 just click the matching folder below.';
     $('flInput').value = cur;
+    _flLang = other; _flDir = '';
     $('folderLinkOv').classList.add('open');
-    setTimeout(() => { $('flInput').focus(); $('flInput').select(); }, 60);
+    loadFolderLinkPicker();
+  }
+  const FL_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>';
+  async function loadFolderLinkPicker() {
+    const list = $('flList');
+    list.innerHTML = '<div class="empty">Loading\u2026</div>';
+    renderCrumbs($('flCrumbs'), (_flLang === 'hu' ? 'DataHU' : 'Data'), _flDir ? _flDir.split('/') : [], d => { _flDir = d; loadFolderLinkPicker(); });
+    let data;
+    try { data = await api('/api/admin/browse?lang=' + _flLang + '&dir=' + encodeURIComponent(_flDir)); }
+    catch (e) { list.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    if (data.missing) { list.innerHTML = '<div class="empty">No ' + (_flLang === 'hu' ? 'DataHU' : 'Data') + ' directory to link against.</div>'; return; }
+    const folders = (data.items || []).filter(it => it.type === 'folder');
+    if (!folders.length) { list.innerHTML = '<div class="empty">No sub-folders here.</div>'; return; }
+    const picked = $('flInput').value.trim();
+    list.innerHTML = '';
+    folders.forEach(it => {
+      const name = it.display || it.name;
+      const row = document.createElement('div'); row.className = 'row folder' + (name === picked ? ' fl-sel' : '');
+      row.innerHTML = '<div class="ico">' + FOLDER_SVG + '</div><div class="body"><div class="nm">' + esc(name) + '</div></div><button class="icon-btn fl-nav" title="Open this folder">' + FL_CHEVRON + '</button>';
+      row.querySelector('.body').onclick = () => { $('flInput').value = name; list.querySelectorAll('.row').forEach(r => r.classList.remove('fl-sel')); row.classList.add('fl-sel'); };
+      row.querySelector('.fl-nav').onclick = e => { e.stopPropagation(); _flDir = it.path; loadFolderLinkPicker(); };
+      list.appendChild(row);
+    });
   }
   function closeFolderLink() { $('folderLinkOv').classList.remove('open'); _flItem = null; }
   async function saveFolderLink(clear) {
@@ -1182,7 +1247,7 @@
     const body = { lang, dir: _flItem.path };
     if (other === 'hu') body.altHu = val; else body.altEn = val;
     try {
-      const d = await api('/api/admin/folder/meta', { method: 'POST', body: JSON.stringify(body) });
+      const d = await api('/api/admin/folder/meta', { method: 'POST', body });
       if (d && d.ok) { toast(val ? 'Folder linked' : 'Folder link cleared'); closeFolderLink(); loadBrowse(); }
       else toast((d && d.error) || 'Failed to save link', true);
     } catch (e) { toast('Failed: ' + e.message, true); }

@@ -202,6 +202,13 @@ function stripDisplayName(name) {
   return name.replace(/\.[^.]+$/, '').replace(/\s*\{[^}]*\}/g, '').trim();
 }
 
+// Normalised comparison key for matching names across the two language dirs.
+// NFC-folds first so accented names compare equal whether stored decomposed
+// (NFD, common on macOS) or precomposed (NFC, common on Windows) -- a mismatch
+// otherwise silently breaks folder links, so a linked EN/HU subject pair would
+// wrongly render as two sections instead of one.
+function nkey(s) { return String(s == null ? '' : s).normalize('NFC').toLowerCase(); }
+
 function findMeta(fileName, sections) {
   const dl = stripDisplayName(fileName).toLowerCase();
   for (const [key, val] of Object.entries(sections)) {
@@ -309,8 +316,8 @@ function buildMergedTree(enDir, huDir, relEn = '', relHu = relEn) {
   const enFolderNames = new Set(enEntries.filter(e => e.isDirectory()).map(e => e.name));
 
   function findByDisplay(entries, displayName) {
-    const dl = displayName.toLowerCase();
-    return entries.find(e => e.isFile && e.isFile() && stripDisplayName(e.name).toLowerCase() === dl);
+    const dl = nkey(stripDisplayName(displayName));
+    return entries.find(e => e.isFile && e.isFile() && nkey(stripDisplayName(e.name)) === dl);
   }
   const joinRel = (base, name) => base ? `${base}/${name}` : name;
 
@@ -321,13 +328,15 @@ function buildMergedTree(enDir, huDir, relEn = '', relHu = relEn) {
     if (e.isDirectory()) {
       const fm = folderMeta(path.join(enDir, e.name));
       let huName = e.name;
-      if (fm.alt_hu) { const mm = huEntries.find(h => h.isDirectory() && stripDisplayName(h.name).toLowerCase() === stripDisplayName(fm.alt_hu).toLowerCase()); if (mm) huName = mm.name; }
-      else if (!huEntries.some(h => h.isDirectory() && h.name === e.name)) { const rev = huEntries.find(h => h.isDirectory() && (folderMeta(path.join(huDir, h.name)).alt_en || '').trim().toLowerCase() === e.name.toLowerCase()); if (rev) huName = rev.name; }
+      if (fm.alt_hu) { const _want = nkey(stripDisplayName(fm.alt_hu)); const mm = huEntries.find(h => h.isDirectory() && nkey(stripDisplayName(h.name)) === _want); if (mm) huName = mm.name; }
+      else if (!huEntries.some(h => h.isDirectory() && nkey(h.name) === nkey(e.name))) { const _en = nkey(e.name); const rev = huEntries.find(h => h.isDirectory() && nkey((folderMeta(path.join(huDir, h.name)).alt_en || '').trim()) === _en); if (rev) huName = rev.name; }
       huFolderMatched.add(huName);
+      const huExists = huEntries.some(h => h.isDirectory() && h.name === huName); // a real HU counterpart folder
       const children = buildMergedTree(path.join(enDir, e.name), path.join(huDir, huName), childRelEn, joinRel(relHu, huName));
       let mtime = null;
       try { mtime = fs.statSync(path.join(enDir, e.name)).mtime.toISOString(); } catch {}
-      result.push({ name: e.name, type: 'folder', path: childRelEn, children, count: children.length, mtime, altHu: fm.alt_hu || null, altEn: fm.alt_en || null });
+      result.push({ name: e.name, type: 'folder', path: childRelEn, children, count: children.length, mtime, altHu: fm.alt_hu || null, altEn: fm.alt_en || null,
+        enName: e.name, huName: huExists ? huName : null, enPath: childRelEn, huPath: huExists ? joinRel(relHu, huName) : null });
       continue;
     }
     const meta = findMeta(e.name, enSecs) || {};
@@ -353,7 +362,8 @@ function buildMergedTree(enDir, huDir, relEn = '', relHu = relEn) {
       const children = buildMergedTree(path.join(enDir, e.name), path.join(huDir, e.name), joinRel(relEn, e.name), childRelHu);
       let mtime = null;
       try { mtime = fs.statSync(path.join(huDir, e.name)).mtime.toISOString(); } catch {}
-      result.push({ name: e.name, type: 'folder', path: childRelHu, children, count: children.length, mtime, altHu: fm.alt_hu || null, altEn: fm.alt_en || null });
+      result.push({ name: e.name, type: 'folder', path: childRelHu, children, count: children.length, mtime, altHu: fm.alt_hu || null, altEn: fm.alt_en || null,
+        enName: null, huName: e.name, enPath: null, huPath: childRelHu });
       continue;
     }
     if (!e.isFile || !e.isFile()) continue;
@@ -534,18 +544,18 @@ function buildSoloTree(primaryDir, otherDir, primaryLang, rel = '') {
     let counter = null;
     if (otherExists) {
       const altKey    = (primaryLang === 'en' ? meta.alt_hu : meta.alt_en);
-      const myDisplay = stripDisplayName(e.name).toLowerCase();
-      const want      = (altKey || stripDisplayName(e.name)).toLowerCase();
+      const myDisplay = nkey(stripDisplayName(e.name));
+      const want      = nkey(stripDisplayName(altKey || e.name));
       // forward: this note names its counterpart, or an identical display name exists
-      counter = otherEntries.find(o => o.isFile && o.isFile() && stripDisplayName(o.name).toLowerCase() === want)
-             || otherEntries.find(o => o.isFile && o.isFile() && stripDisplayName(o.name).toLowerCase() === myDisplay);
+      counter = otherEntries.find(o => o.isFile && o.isFile() && nkey(stripDisplayName(o.name)) === want)
+             || otherEntries.find(o => o.isFile && o.isFile() && nkey(stripDisplayName(o.name)) === myDisplay);
       // reverse: a note in the other dir names THIS note via its alt key
       if (!counter) {
         for (const o of otherEntries) {
           if (!(o.isFile && o.isFile())) continue;
           const om = findMeta(o.name, otherSecs) || {};
           const back = (primaryLang === 'hu') ? om.alt_hu : om.alt_en;
-          if (back && back.toLowerCase() === myDisplay) { counter = o; break; }
+          if (back && nkey(stripDisplayName(back)) === myDisplay) { counter = o; break; }
         }
       }
     }
@@ -916,6 +926,8 @@ function cleanSettings(j) {
     if (typeof j.customTheme   === 'string' && j.customTheme.length   <= 4096)  out.customTheme   = j.customTheme;
     if (typeof j.savedThemes   === 'string' && j.savedThemes.length   <= 65536) out.savedThemes   = j.savedThemes;
     if (typeof j.rclickTheme   === 'string' && j.rclickTheme.length   <= 64)    out.rclickTheme   = j.rclickTheme;
+    if (typeof j.cursor        === 'string' && j.cursor.length        <= 1024)  out.cursor        = j.cursor;
+    if (typeof j.cursorSaved   === 'string' && j.cursorSaved.length   <= 65536) out.cursorSaved   = j.cursorSaved;
     if (j.sectionBy === 'type' || j.sectionBy === 'subject') out.sectionBy = j.sectionBy;
     if (typeof j.sectionOrder === 'string' && j.sectionOrder.length <= 8192) out.sectionOrder = j.sectionOrder;
     if (typeof j.childOrders === 'string' && j.childOrders.length <= 65536) out.childOrders = j.childOrders;
@@ -952,6 +964,17 @@ function findDM(chats, a, b) { const A = String(a).toLowerCase(), B = String(b).
 function ensureDM(chats, a, b) { let c = findDM(chats, a, b); if (!c) { c = { id: crypto.randomUUID(), type: 'dm', title: '', participants: [a, b], createdBy: a, created: new Date().toISOString(), messages: [], reads: {} }; chats.conversations.push(c); } return c; }
 function chatTitleFor(c, me) { if (c.type === 'group') return c.title || 'Group'; const other = (c.participants || []).find(p => String(p).toLowerCase() !== String(me).toLowerCase()); return other || 'Direct message'; }
 function chatPreview(m) { if (!m) return ''; if (m.kind === 'access-request') return '\uD83D\uDD12 ' + ((m.note && m.note.label) || 'access request'); if (m.kind === 'access-result') return 'access ' + (m.decision || ''); return m.body || ''; }
+
+// Presence: in-memory last-seen heartbeats. A user is "online" while their
+// heartbeats keep arriving; when they lose their connection the heartbeats stop,
+// so other participants automatically see them drop offline.
+const _presence = new Map(); // username(lowercased) -> last-seen epoch ms (ephemeral; lost on restart)
+function touchPresence(name) { if (name) _presence.set(String(name).toLowerCase(), Date.now()); }
+function lastSeenAgo(name, now) { const t = _presence.get(String(name).toLowerCase()); return t ? ((now || Date.now()) - t) : null; }
+function presenceFor(names, now) { const out = {}; for (const p of names || []) { const k = String(p).toLowerCase(); if (!(k in out)) out[k] = lastSeenAgo(p, now); } return out; }
+// Evict long-stale entries so the Map can't grow without bound over a long uptime
+// (a missing entry already reads as "offline", so old rows carry no information).
+setInterval(() => { const cutoff = Date.now() - 24 * 3600 * 1000; for (const [k, t] of _presence) if (t < cutoff) _presence.delete(k); }, 3600 * 1000).unref?.();
 // A fixed dummy salt so a login attempt for a non-existent user still spends
 // ~the same time hashing — closes the username-enumeration timing side channel.
 const DUMMY_SALT = crypto.randomBytes(16).toString('hex');
@@ -1604,26 +1627,41 @@ const server = http.createServer((req, res) => {
     for (const c of loadChats().conversations) if (chatParticipant(c, me)) unread += chatUnread(c, me);
     return sendJSON(res, { ok: true, unread });
   }
+  // Presence heartbeat + lookup. Touches the caller's last-seen and returns how
+  // long ago each requested user was last seen (ms), or null if never. Doubles as
+  // a lightweight reachability ping for the client's connection indicator.
+  if (pathname === '/api/presence' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (s) touchPresence(s.username);
+    const now = Date.now();
+    const want = String(query.users || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 50);
+    return sendJSON(res, { ok: true, now, me: s ? s.username : null, users: presenceFor(want, now) });
+  }
   if (pathname === '/api/chat/list' && req.method === 'GET') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
-    const me = s.username, out = [];
+    const me = s.username, out = []; touchPresence(me);
+    const everyone = new Set();
     for (const c of loadChats().conversations) {
       if (!chatParticipant(c, me)) continue;
       const last = (c.messages || [])[c.messages.length - 1] || null;
+      (c.participants || []).forEach(p => everyone.add(p));
       out.push({ id: c.id, type: c.type, title: chatTitleFor(c, me), participants: c.participants || [],
         unread: chatUnread(c, me), last: last ? { from: last.from, body: chatPreview(last), date: last.date, kind: last.kind } : null,
         lastDate: last ? last.date : c.created });
     }
     out.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
-    return sendJSON(res, { ok: true, me, conversations: out });
+    const now = Date.now();
+    return sendJSON(res, { ok: true, me, conversations: out, presence: presenceFor([...everyone], now), now });
   }
   if (pathname === '/api/chat/messages' && req.method === 'GET') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
     const me = s.username, c = loadChats().conversations.find(x => x.id === query.id);
     if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
-    return sendJSON(res, { ok: true, id: c.id, type: c.type, title: chatTitleFor(c, me), participants: c.participants || [], createdBy: c.createdBy, messages: c.messages || [] });
+    touchPresence(me);
+    const now = Date.now();
+    return sendJSON(res, { ok: true, id: c.id, type: c.type, title: chatTitleFor(c, me), participants: c.participants || [], createdBy: c.createdBy, messages: c.messages || [], presence: presenceFor(c.participants || [], now), now });
   }
   // ── Site-side note management: a member's own notes ─────────────────────────
   if (pathname === '/api/mynotes' && req.method === 'GET') {
@@ -1754,7 +1792,7 @@ const server = http.createServer((req, res) => {
       let text = String(j.body || '').trim();
       if (!text) return sendJSON(res, { ok: false, error: 'Message is empty.' }, 400);
       if (text.length > 8000) text = text.slice(0, 8000);
-      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats();
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats(); touchPresence(me);
       let c;
       if (j.id) {
         c = chats.conversations.find(x => x.id === j.id);

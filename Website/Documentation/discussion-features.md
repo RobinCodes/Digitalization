@@ -46,6 +46,37 @@ same tokens the app already renders elsewhere, so they show up as clickable link
 message and jump to the note / article / changelog entry / external URL when clicked. (External
 links stay restricted to `http(s)` by the existing `navigateToRef` guard.)
 
+## 4. Connection status, offline outbox & presence
+
+Messaging is now honest about connectivity (applies to both the chat composer and the note
+**Discussion** panel).
+
+- **Connection state.** A `NET` layer tracks `navigator.onLine` plus the `online`/`offline`
+  events, and confirms real reachability with a lightweight `GET /api/presence` ping (on focus,
+  on reconnect, and periodically). When you're offline a banner appears under the header:
+  *"You are offline — messages will be sent when you reconnect."*
+- **Exact send status.** Each message you send renders immediately with its state: **Sending…**
+  (animated), **Sent** (it appears as a normal delivered bubble), or **Not sent — will retry**
+  with a manual **Retry** button.
+- **Per-device outbox (not per-session).** Unsent messages are persisted to
+  `localStorage` under `ki_outbox_<user>`, so they survive a reload or browser restart. A retry
+  runs on reconnect, on window focus, and every 20 s; on success the item is removed. Retries are
+  **bounded**: transient failures back off exponentially (20 s → … → 5 min) and give up after 8
+  attempts, while permanent rejections (4xx — unknown recipient, deleted conversation, expired
+  session) fail fast and stop immediately instead of hammering the server forever. Given-up
+  messages stay visible as **Not sent** with a manual **Retry** that revives them.
+- **Presence.** `server.js` keeps an in-memory last-seen map (`touchPresence`) updated on every
+  authenticated chat hit and on the `/api/presence` heartbeat; `/api/chat/list` and
+  `/api/chat/messages` now include a `presence` map. A 1:1 conversation header shows the other
+  person as **online**, **last seen …**, or **offline**. Because presence is heartbeat-driven,
+  when *this* user loses their connection their heartbeats stop and the other party sees them go
+  offline automatically — no explicit "I went offline" message is needed (which couldn't be sent
+  anyway).
+
+`GET /api/presence?users=a,b` touches the caller's last-seen and returns, for each requested
+user, how many ms ago they were last seen (or `null` = never). It also works anonymously, so it
+doubles as the client's reachability ping.
+
 ## Notes
 
 - Hungarian strings are a solid first pass — tweak in the `T.hu` block if you want.
