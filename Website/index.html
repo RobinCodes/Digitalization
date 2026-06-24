@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Knowledge Index</title>
   <link rel="icon" href="/Assets/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,6 +52,11 @@
     .thm-preset.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
     .thm-swatch{height:34px;border-radius:6px;padding:5px 6px;display:flex;align-items:flex-end;border:1px solid rgba(255,255,255,.08)}
     .thm-preset-name{font-family:var(--font-ui);font-size:11px;color:var(--text);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:6px}
+    /* Per-preset "set as right-click theme" corner toggle */
+    .thm-preset-rc{position:absolute;top:5px;right:5px;width:21px;height:21px;display:flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid var(--border-md);background:var(--bg);color:var(--text2);line-height:1;cursor:pointer;opacity:0;transition:opacity .15s,color .15s,background .15s,border-color .15s;z-index:2;padding:0}
+    .thm-preset:hover .thm-preset-rc{opacity:1}
+    .thm-preset-rc:hover{color:var(--accent);border-color:var(--accent)}
+    .thm-preset-rc.is-rclick{opacity:1;color:var(--bg);background:var(--accent);border-color:var(--accent)}
     .thm-pickers{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
     .thm-pick{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
     .thm-pick label{font-family:var(--font-ui);font-size:12px;color:var(--text2)}
@@ -169,6 +174,9 @@
     /* ── Per-note discussion side panel (feature 2) ──────────────────── */
     #notePanel{position:fixed;top:0;right:0;bottom:0;width:min(420px,92vw);background:var(--bg2);border-left:1px solid var(--border);z-index:8600;display:flex;flex-direction:column;transform:translateX(101%);transition:transform .28s var(--tr-spring);box-shadow:-16px 0 48px rgba(0,0,0,.34)}
     #notePanel.open{transform:translateX(0)}
+    /* Second discussion panel — docks on the LEFT (left pane in split view) */
+    #notePanel2{position:fixed;top:0;left:0;bottom:0;width:min(420px,92vw);background:var(--bg2);border-right:1px solid var(--border);z-index:8600;display:flex;flex-direction:column;transform:translateX(-101%);transition:transform .28s var(--tr-spring);box-shadow:16px 0 48px rgba(0,0,0,.34)}
+    #notePanel2.open{transform:translateX(0)}
     .np-head{flex:none;display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
     .np-titles{flex:1;min-width:0}
     .np-title{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
@@ -290,6 +298,28 @@
     }
     a{color:inherit;text-decoration:none;cursor:none}
     button{cursor:none;border:none;background:none;font-family:inherit;color:inherit}
+    /* Touch / coarse-pointer devices: drop the custom JS cursor entirely and hand
+       control back to the OS — Pulsar's magnetic Leap feels wrong on a phone. The
+       only !important cursor rule elsewhere is the pre-paint *{cursor:none}, which
+       this later *{cursor:auto!important} overrides on touch. */
+    @media (hover:none),(pointer:coarse){
+      *{cursor:auto!important}
+      #cursorDot,#cursorRing{display:none!important}
+    }
+    /* ── Mobile polish ─────────────────────────────────────────────────── */
+    @media (max-width:480px){
+      /* Reference picker becomes a comfortable bottom sheet instead of a tiny popover */
+      #refPicker{width:100vw!important;max-width:none;left:0!important;right:0;top:auto!important;bottom:0;border-radius:14px 14px 0 0;max-height:80vh;overflow-y:auto}
+      /* Roomier tap targets for composer controls (WCAG ~44px) */
+      .chat-ref-btn,.np-ref-btn,.chat-send{width:44px;height:44px}
+      /* Dialogs use the full small screen and stay scrollable (dvh dodges the URL bar) */
+      .modal-box,.msg-box,.pdm-box,.auth-box{max-height:calc(100dvh - 16px)}
+    }
+    @media (hover:none){
+      /* No hover on touch — keep per-message / per-conversation actions reachable */
+      .chat-reply-btn,.chat-msg-menu,.chat-conv-menu{opacity:.85}
+      .thm-preset-rc{opacity:1}
+    }
     ::selection{background:var(--accent-dim);color:var(--accent2)}
 
     /* CURSOR — themeable via --cur-* vars (set by the cursor-theme engine). */
@@ -373,10 +403,10 @@
     .file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
 
     /* CARDS */
-    .card{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 18px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;overflow:visible;transition:border-color .25s,box-shadow .25s,transform .25s var(--tr-spring),background .25s;animation:cardIn .4s var(--tr) both}
+    .card{position:relative;background:linear-gradient(168deg,var(--bg3),var(--bg2) 62%);border:1px solid var(--border-md);border-radius:var(--radius-lg);padding:22px 18px 18px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.045);transition:border-color .25s,box-shadow .3s,transform .25s var(--tr-spring),background .25s;animation:cardIn .4s var(--tr) both}
     @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-    .card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,var(--accent-dim),transparent 60%);opacity:0;transition:opacity .3s}
-    .card:hover{border-color:rgba(196,161,60,.35);box-shadow:0 0 0 1px rgba(196,161,60,.12),0 8px 30px rgba(0,0,0,.4);transform:translateY(-4px);background:var(--bg3)}
+    .card::before{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120% 90% at 50% -12%,var(--accent-dim),transparent 55%);opacity:.4;transition:opacity .3s;pointer-events:none}
+    .card:hover{border-color:rgba(196,161,60,.45);box-shadow:0 0 0 1px rgba(196,161,60,.18),0 16px 42px -12px rgba(0,0,0,.6),0 0 34px -14px var(--accent-glow);transform:translateY(-5px);background:linear-gradient(168deg,var(--bg4),var(--bg3) 62%)}
     .card:hover::before{opacity:1}
     .card:active{transform:translateY(-2px) scale(0.99)}
     .card-icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;transition:transform .3s var(--tr-spring)}
@@ -519,6 +549,8 @@
     .sel-hbtn{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:5px;font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;color:var(--text2);background:var(--bg3);border:1px solid var(--border);transition:color .25s,background .25s,border-color .25s,box-shadow .25s}
     .sel-hbtn:hover{color:var(--text);background:var(--bg4);border-color:var(--border-md)}
     .sel-hbtn.share:hover{color:var(--accent);border-color:rgba(196,161,60,.4);box-shadow:0 0 10px rgba(196,161,60,.15)}
+    #selCompileBtn:hover{color:#1a1408;background:var(--accent);border-color:var(--accent)}
+    .sel-hbtn.on{color:var(--accent);background:var(--accent-dim);border-color:rgba(196,161,60,.45)}
     .sel-hbtn.clear:hover{color:var(--red);border-color:rgba(196,92,92,.35)}
     .sel-hbtn svg{width:11px;height:11px}
 
@@ -759,6 +791,12 @@
     #pdfCanvas.loading-page{opacity:.55;filter:blur(3px)}
     #pdfCanvas.pdf-reveal{animation:pdfReveal .55s var(--tr)}
     @keyframes pdfReveal{from{opacity:0;transform:scale(.975);filter:blur(8px)}to{opacity:1;transform:scale(1);filter:blur(0)}}
+    /* Theme switch: each page re-tints with a slow diagonal wipe that sweeps in the
+       new colours from the top-left corner toward the bottom-right. */
+    .pdf-canvas-wrap canvas{transition:opacity .2s ease}
+    .pdf-canvas-wrap canvas.pdf-theme-swap{opacity:.3}
+    @keyframes pdfThemeWipe{0%{clip-path:polygon(0 0,0 0,0 0);opacity:.55}18%{opacity:1}100%{clip-path:polygon(0 0,230% 0,0 230%);opacity:1}}
+    #pdfCanvas.pdf-theme-wipe,.pdf-canvas-wrap canvas.pdf-theme-wipe,.pp2-body canvas.pdf-theme-wipe{animation:pdfThemeWipe .9s cubic-bezier(.45,0,.18,1) both}
 
     /* Compiling / loading overlay inside pdf-body — fades instead of snapping. */
     .pdf-overlay{
@@ -1704,6 +1742,7 @@
     .cl-entry.cl-clickable:hover{border-color:rgba(196,161,60,.4);box-shadow:0 0 0 1px rgba(196,161,60,.08)}
     .cl-ref{color:var(--accent);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
     .cl-ref:hover{color:var(--accent2)}
+    .cl-ref .clr-ico{display:none}  /* icon only shows on the card-style refs (chat / discussion) */
     .cl-ref-hint{display:inline-flex;align-items:center;gap:6px;margin-top:2px;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--accent);text-transform:uppercase}
     .cl-ref-arrow{font-size:13px;line-height:1}
     @keyframes clFlash{0%,100%{box-shadow:0 0 0 0 rgba(196,161,60,0)}30%{box-shadow:0 0 0 3px rgba(196,161,60,.5)}}
@@ -1775,6 +1814,56 @@
     .pdf-qs-lang-btn{height:28px;padding:0 7px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;color:var(--text2);transition:all .2s;white-space:nowrap}
     .pdf-qs-lang-btn:hover{background:var(--bg4);color:var(--text)}
     .pdf-qs-lang-btn.active{background:var(--accent-dim);border-color:rgba(196,161,60,.4);color:var(--accent)}
+    /* PDF viewer gear settings popover */
+    .pdf-gear-wrap{position:relative;display:inline-flex}
+    .pdf-gear-pop{position:absolute;top:calc(100% + 8px);right:0;z-index:60;min-width:248px;background:var(--bg2);border:1px solid var(--border-md);border-radius:12px;padding:12px;box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.03);opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .16s,transform .16s}
+    .pdf-gear-pop.open{opacity:1;transform:translateY(0);pointer-events:all}
+    .pgp-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:7px 2px}
+    .pgp-row+.pgp-row{border-top:1px solid var(--border)}
+    .pgp-row>span{font-size:12.5px;color:var(--text2)}
+    .pgp-seg{display:inline-flex;border:1px solid var(--border-md);border-radius:8px;overflow:hidden;background:var(--bg3)}
+    .pgp-seg button{padding:5px 11px;border:0;background:transparent;color:var(--text2);font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;transition:background .15s,color .15s}
+    .pgp-seg button.active{background:var(--accent);color:#1a1408;font-weight:700}
+    /* ── Dual-note split view ───────────────────────────────────────────── */
+    .pdf-panes{flex:1;display:flex;min-height:0;overflow:hidden}
+    #pdfPane1{flex:1 1 100%;min-width:0;display:flex;flex-direction:column}
+    #pdfPane1>#pdfBody{flex:1;min-height:0}
+    #pdfPanes.split>#pdfPane1{flex:1 1 50%;border-right:1px solid var(--border-md)}
+    #pdfPane2{flex:1 1 50%;min-width:0;display:none;flex-direction:column;background:var(--bg)}
+    #pdfPanes.split #pdfPane2{display:flex}
+    /* In split view each pane carries its own equal header; the big top bar is hidden. */
+    .pp1-bar{display:none}
+    #pdfPanes.split .pp1-bar{display:flex}
+    #pdfModal.split-on .pdf-topbar{display:none}
+    .pp2-bar{flex:none;display:flex;align-items:center;gap:5px;padding:7px 9px;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;scrollbar-width:none}
+    .pp2-bar::-webkit-scrollbar{display:none}
+    .pp2-name{font-family:var(--font-mono);font-size:11px;color:var(--text);white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+    .pp2-spacer{flex:1}
+    .pp2-btn{flex:none;height:28px;min-width:28px;padding:0 7px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border-md);border-radius:6px;background:var(--bg3);color:var(--text2);font-family:var(--font-mono);font-size:12px;line-height:1;transition:color .15s,border-color .15s,background .15s}
+    .pp2-btn:hover{color:var(--accent);border-color:var(--accent)}
+    .pp2-btn.danger:hover{color:var(--red);border-color:var(--red)}
+    .pp2-btn.on{background:var(--accent-dim);border-color:rgba(196,161,60,.4);color:var(--accent)}
+    .pp2-btn.nav-disabled{opacity:.3;pointer-events:none}
+    .pp2-btn svg{width:15px;height:15px}
+    .pp2-pct{font-family:var(--font-mono);font-size:10px;color:var(--text2);min-width:34px;text-align:center}
+    .pp2-page{font-family:var(--font-mono);font-size:10px;color:var(--text2);min-width:40px;text-align:center}
+    .pp2-div{width:1px;height:18px;background:var(--border);flex:none}
+    .pp2-lang{display:inline-flex;border:1px solid var(--border-md);border-radius:6px;overflow:hidden;flex:none}
+    .pp2-lang button{height:26px;padding:0 8px;border:0;background:var(--bg3);color:var(--text2);font-family:var(--font-mono);font-size:10px;cursor:pointer}
+    .pp2-lang button.active{background:var(--accent-dim);color:var(--accent)}
+    .pp2-lang button:disabled{opacity:.35;cursor:not-allowed}
+    .pp2-gear-wrap{position:relative;display:inline-flex}
+    #pp2GearPop{top:calc(100% + 8px)}
+    .pp2-body{flex:1;position:relative;overflow:auto;background:linear-gradient(180deg,var(--bg),var(--bg2));display:flex;flex-direction:column;align-items:center;padding:18px 16px}
+    .pp2-body .pdf-canvas-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+    .pp2-body canvas{display:block;box-shadow:0 8px 40px rgba(0,0,0,.5);border-radius:2px;max-width:100%}
+    .pp2-body canvas.loading-page{opacity:.55;filter:blur(3px)}
+    @media (max-width:768px){
+      #pdfPanes.split>#pdfPane1{flex:1 1 100%;border-right:none}
+      #pdfPanes.split #pdfPane2{display:none}
+      .pdf-split-btn,.pp1-bar{display:none!important}
+      #pdfModal.split-on .pdf-topbar{display:flex}
+    }
     .pdf-qs-docmode-btn{opacity:.55;transition:opacity .2s,color .2s,border-color .2s}
     .pdf-qs-docmode-btn.on{opacity:1;color:var(--accent);border-color:rgba(196,161,60,.4)!important}
     /* ── CODE MODAL COPY BUTTON ──────────────────────────────────────────── */
@@ -1871,6 +1960,7 @@
     .msg-primary:disabled{opacity:.5;cursor:not-allowed}
     .msg-ghost{background:transparent;border:1px solid var(--border);border-radius:8px;padding:7px 14px;color:var(--text2);font-weight:600;cursor:pointer}
     .msg-ghost:hover{color:var(--accent);border-color:var(--accent)}
+    .msg-primary.danger{background:var(--red,#d9534f);color:#fff}
     .msg-compose{border-top:1px solid var(--border);padding:14px 16px;background:var(--bg)}
     .msg-compose h4{margin:0 0 4px;font-size:13px}
     .msg-compose-row{display:flex;gap:8px;margin-top:10px;align-items:center}
@@ -1930,7 +2020,13 @@
     .chat-bubble{max-width:74%;padding:8px 13px;border-radius:16px;font-size:13.5px;line-height:1.5;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.12)}
     .chat-bubble.me{align-self:flex-end;background:var(--accent);color:#1a1408;border-bottom-right-radius:4px}
     .chat-bubble.them{align-self:flex-start;background:var(--bg3);color:var(--text);border-bottom-left-radius:4px}
-    .chat-bubble .cl-ref{color:inherit;text-decoration:underline;cursor:pointer;font-weight:600}
+    /* A reference inside a message renders as the SAME card as a sent note reference
+       (.chat-noteref) — so a reference looks identical whether it came from the chat
+       composer or from "Reference this note". */
+    .chat-bubble .cl-ref,.np-body .cl-ref{display:inline-flex;align-items:center;gap:7px;max-width:100%;margin:3px 2px 1px 0;padding:7px 11px;border-radius:10px;background:var(--bg2);color:var(--text);border:1px solid var(--border-md);box-shadow:0 1px 3px rgba(0,0,0,.2);text-decoration:none;font-weight:600;font-size:12px;line-height:1.3;cursor:pointer;vertical-align:middle;transition:border-color .15s,background .15s}
+    .chat-bubble .cl-ref:hover,.np-body .cl-ref:hover{border-color:var(--accent);background:var(--bg3);color:var(--text)}
+    .chat-bubble .cl-ref .clr-ico,.np-body .cl-ref .clr-ico{display:inline-block;flex:none;color:var(--accent)}
+    .chat-bubble .cl-ref .clr-label,.np-body .cl-ref .clr-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .chat-sender{font-size:10.5px;font-weight:700;color:var(--accent);margin-bottom:2px}
     .chat-bubble.me .chat-sender{display:none}
     .chat-time{font-size:9.5px;opacity:.6;margin-top:3px;text-align:right}
@@ -1967,14 +2063,53 @@
     /* quoted reply inside a bubble */
     .chat-quote{display:block;border-left:3px solid currentColor;padding:3px 8px;margin:0 0 6px;border-radius:5px;background:rgba(255,255,255,.10);font-size:12px;line-height:1.4;cursor:pointer}
     .chat-bubble.them .chat-quote{background:rgba(255,255,255,.05)}
-    .chat-noteref{display:inline-flex;align-items:center;gap:6px;margin-top:7px;padding:5px 10px;border-radius:9px;background:var(--accent-dim);color:var(--accent);font-size:12px;cursor:pointer;max-width:100%;border:1px solid var(--accent-glow)}
-    .chat-noteref:hover{filter:brightness(1.12)}
-    .chat-noteref svg{flex:none}
-    .chat-noteref .cnr-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    #discussModal,#myNotesModal,#manageModal{position:fixed;inset:0;z-index:8700;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
-    #discussModal.open,#myNotesModal.open,#manageModal.open{opacity:1;pointer-events:all}
-    #discussModal .msg-sheet,#myNotesModal .msg-sheet,#manageModal .msg-sheet{transform:scale(.96) translateY(8px);transition:transform .25s}
-    #discussModal.open .msg-sheet,#myNotesModal.open .msg-sheet,#manageModal.open .msg-sheet{transform:scale(1) translateY(0)}
+    /* ── Chat management: per-message + per-conversation actions ─────────── */
+    .chat-acts{flex:none;display:flex;align-items:center;gap:4px;min-width:56px;justify-content:center}
+    .chat-msg-menu{flex:none;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .12s,color .12s,border-color .12s;font-size:15px;line-height:1}
+    .chat-row:hover .chat-msg-menu{opacity:1}
+    .chat-msg-menu:hover{color:var(--accent);border-color:var(--accent)}
+    @media (hover:none){.chat-msg-menu{opacity:.5}}
+    .chat-edited{font-size:9px;opacity:.6;margin-left:5px}
+    .chat-bubble.chat-deleted{background:var(--bg3);color:var(--text3);font-style:italic;box-shadow:none;border:1px dashed var(--border-md)}
+    .chat-conv-menu{font-size:18px;line-height:1;padding:0 8px}
+    /* Portaled dropdown menu for conversation / message actions */
+    .chat-float-menu{position:fixed;z-index:9700;min-width:178px;background:var(--bg2);border:1px solid var(--border-md);border-radius:10px;padding:5px;box-shadow:0 16px 46px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.03)}
+    .chat-float-menu .cdd-item{color:var(--text)}
+    .chat-float-menu .cdd-item.danger{color:var(--red,#d9534f)}
+    .chat-float-menu .cdd-item.danger:hover{background:var(--red,#d9534f);color:#fff}
+    .chat-float-menu .cdd-sep{height:1px;background:var(--border);margin:4px 6px}
+    /* Members & permissions list */
+    .cm-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border)}
+    .cm-row:last-child{border-bottom:none}
+    .cm-name{flex:1;min-width:0;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cm-name .cm-you{color:var(--text3);font-weight:400;font-size:11px;margin-left:5px}
+    .cm-role-pill{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);border:1px solid var(--border-md);border-radius:6px;padding:2px 7px}
+    .cm-role-pill.owner{color:var(--accent);border-color:var(--accent)}
+    .cm-role select{background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:5px 7px;font:inherit;font-size:12px}
+    .cm-remove{flex:none;background:none;border:1px solid var(--border);border-radius:7px;color:var(--text3);width:28px;height:28px;cursor:pointer;font-size:13px}
+    .cm-remove:hover{color:var(--red,#d9534f);border-color:var(--red,#d9534f)}
+    /* "Editing message" bar above the composer (mirrors the reply bar) */
+    .chat-edit-bar{display:flex;align-items:center;gap:8px;padding:6px 12px;border-top:1px solid var(--border);background:var(--accent-dim);font-size:12px;color:var(--text2)}
+    .chat-edit-bar[hidden]{display:none}
+    .chat-edit-bar .ceb-x{margin-left:auto;background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px}
+    /* Archived conversations divider in the list */
+    .chat-arch-divider{display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:11px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:1px solid var(--border);letter-spacing:.03em}
+    .chat-arch-divider:hover{color:var(--accent)}
+    .chat-conv.archived{opacity:.62}
+    /* Note-reference card inside a message. A solid raised surface so it stays fully
+       legible on BOTH the accent "me" bubble and the dark "them" bubble (the old
+       translucent accent-dim fill vanished against the accent bubble background). */
+    .chat-noteref{display:inline-flex;align-items:center;gap:7px;margin-top:7px;padding:7px 11px;border-radius:10px;background:var(--bg2);color:var(--text);font-size:12px;cursor:pointer;max-width:100%;border:1px solid var(--border-md);box-shadow:0 1px 3px rgba(0,0,0,.2);transition:border-color .15s,background .15s}
+    .chat-noteref:hover{border-color:var(--accent);background:var(--bg3)}
+    .chat-noteref svg{flex:none;color:var(--accent)}
+    .chat-noteref .cnr-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+    #discussModal,#myNotesModal,#manageModal,#chatManageModal,#chatConfirmModal,#chatTransferModal{position:fixed;inset:0;z-index:8700;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+    #discussModal.open,#myNotesModal.open,#manageModal.open,#chatManageModal.open,#chatConfirmModal.open,#chatTransferModal.open{opacity:1;pointer-events:all}
+    #chatConfirmModal,#chatTransferModal{z-index:8900}
+    #discussModal .msg-sheet,#myNotesModal .msg-sheet,#manageModal .msg-sheet,#chatManageModal .msg-sheet,#chatConfirmModal .msg-sheet,#chatTransferModal .msg-sheet{transform:scale(.96) translateY(8px);transition:transform .25s}
+    #discussModal.open .msg-sheet,#myNotesModal.open .msg-sheet,#manageModal.open .msg-sheet,#chatManageModal.open .msg-sheet,#chatConfirmModal.open .msg-sheet,#chatTransferModal.open .msg-sheet{transform:scale(1) translateY(0)}
+    .ct-opt{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:13px;color:var(--text);cursor:pointer}
+    .ct-opt input{width:auto;accent-color:var(--accent)}
     .mn-list{max-height:min(60vh,520px);overflow:auto;margin:-2px -2px 0;padding:2px}
     .mn-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
     .mn-row .mn-main{flex:1;min-width:0}
@@ -2302,6 +2437,39 @@
       </div>
     </div>
   </div>
+  <!-- Group members & permissions -->
+  <div id="chatManageModal">
+    <div class="msg-sheet" style="max-width:460px">
+      <div class="msg-head"><h2 id="cmTitle">Members &amp; permissions</h2><button class="msg-x" id="cmClose" type="button" aria-label="Close">&times;</button></div>
+      <div class="access-box" style="max-height:min(70vh,560px);overflow:auto">
+        <div class="cm-list" id="cmList"></div>
+        <div class="msg-compose-row" style="margin-top:14px"><button class="msg-ghost" id="cmAdd" type="button" style="display:none">+ Add members</button><span style="flex:1"></span><button class="msg-primary" id="cmDone" type="button">Done</button></div>
+      </div>
+    </div>
+  </div>
+  <!-- Lightweight confirm dialog (the site hides the OS cursor, so no native confirm) -->
+  <div id="chatConfirmModal">
+    <div class="msg-sheet" style="max-width:380px">
+      <div class="msg-head"><h2 id="ccTitle">Confirm</h2><button class="msg-x" id="ccX" type="button" aria-label="Close">&times;</button></div>
+      <div class="access-box">
+        <div id="ccText" style="font-size:13.5px;line-height:1.55;color:var(--text)"></div>
+        <div class="msg-compose-row" style="margin-top:18px"><span style="flex:1"></span><button class="msg-ghost" id="ccNo" type="button">Cancel</button><button class="msg-primary" id="ccYes" type="button">Confirm</button></div>
+      </div>
+    </div>
+  </div>
+  <!-- Transfer ownership when a group owner leaves -->
+  <div id="chatTransferModal">
+    <div class="msg-sheet" style="max-width:420px">
+      <div class="msg-head"><h2 id="ctTitle">Leave group</h2><button class="msg-x" id="ctX" type="button" aria-label="Close">&times;</button></div>
+      <div class="access-box">
+        <div id="ctText" style="font-size:13.5px;line-height:1.55;color:var(--text);margin-bottom:12px"></div>
+        <label class="ct-opt"><input type="radio" name="ctMode" value="auto" checked><span id="ctAutoLbl">Transfer to the longest-standing member</span></label>
+        <label class="ct-opt"><input type="radio" name="ctMode" value="choose"><span id="ctChooseLbl">Transfer to a specific person</span></label>
+        <div id="ctPickWrap" style="margin-top:8px;display:none"><select id="ctHeir"></select></div>
+        <div class="msg-compose-row" style="margin-top:18px"><span style="flex:1"></span><button class="msg-ghost" id="ctCancel" type="button">Cancel</button><button class="msg-primary danger" id="ctConfirm" type="button">Leave &amp; transfer</button></div>
+      </div>
+    </div>
+  </div>
   <!-- MAIN -->
   <main id="main">
 
@@ -2444,6 +2612,7 @@
               <div class="chat-thread-title" id="chatThreadTitle"></div>
               <span class="chat-presence" id="chatPresence" hidden></span>
               <button class="chat-mini" id="chatAddMember" type="button" style="display:none">+ Add</button>
+              <button class="chat-mini chat-conv-menu" id="chatConvMenu" type="button" aria-label="Conversation options" style="display:none">⋮</button>
             </div>
             <div class="chat-msgs" id="chatMsgs"></div>
             <div class="chat-compose-wrap">
@@ -2451,6 +2620,10 @@
                 <span class="crb-bar"></span>
                 <div class="crb-text"><span class="crb-to" id="chatReplyTo"></span><span class="crb-snip" id="chatReplyText"></span></div>
                 <button class="crb-x" id="chatReplyCancel" type="button" aria-label="Cancel reply">✕</button>
+              </div>
+              <div class="chat-edit-bar" id="chatEditBar" hidden>
+                <span id="chatEditLabel">Editing message</span>
+                <button class="ceb-x" id="chatEditCancel" type="button" aria-label="Cancel edit">✕</button>
               </div>
               <div class="chat-compose">
                 <button class="chat-ref-btn" id="chatRefBtn" type="button" aria-label="Insert reference" title="Insert reference"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
@@ -2517,6 +2690,23 @@
         <div class="pdf-sep"></div>
       </div>
       <div class="pdf-topbar-right">
+        <div class="pdf-gear-wrap">
+          <button class="pdf-tbtn" id="pdfGear" title="Viewer settings" aria-label="Viewer settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <div class="pdf-gear-pop" id="pdfGearPop">
+            <div class="pgp-row"><span data-i18n="pgpInterfaceLang">Interface language</span>
+              <div class="pgp-seg" id="pgpLang"><button type="button" data-l="en">EN</button><button type="button" data-l="hu">HU</button></div></div>
+            <div class="pgp-row"><span data-i18n="pgpDownloadFmt">Download format</span>
+              <div class="pgp-seg" id="pgpFmt"><button type="button" data-f="pdf">PDF</button><button type="button" data-f="tex">TeX</button></div></div>
+            <div class="pgp-row"><span data-i18n="pgpPagesPerView">Pages per view</span>
+              <div class="pgp-seg" id="pgpPPV"><button type="button" data-p="1">1</button><button type="button" data-p="2">2</button><button type="button" data-p="3">3</button></div></div>
+          </div>
+        </div>
+        <button class="pdf-tbtn pdf-split-btn" id="pdfSplit" title="Open a second note side by side">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          <span data-i18n="split">Split</span>
+        </button>
         <button class="pdf-tbtn accent" id="pdfDownload">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           <span data-i18n="download">Download</span>
@@ -2567,6 +2757,36 @@
       </button>
     </div>
 
+    <div class="pdf-panes" id="pdfPanes">
+    <div class="pdf-pane1" id="pdfPane1">
+    <!-- Left-pane header (shown only in split view, so both panes are equal peers) -->
+    <div class="pp2-bar pp1-bar" id="pp1Bar">
+      <span class="pp2-name" id="pp1Name">document</span>
+      <span class="pp2-spacer"></span>
+      <button class="pp2-btn" id="pp1ZoomOut" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+      <span class="pp2-pct" id="pp1Pct">100%</span>
+      <button class="pp2-btn" id="pp1ZoomIn" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+      <button class="pp2-btn" id="pp1Fit">Fit</button>
+      <span class="pp2-div"></span>
+      <button class="pp2-btn" id="pp1Prev" aria-label="Previous">‹</button>
+      <span class="pp2-page" id="pp1PageInfo">—</span>
+      <button class="pp2-btn" id="pp1Next" aria-label="Next">›</button>
+      <span class="pp2-div"></span>
+      <div class="pp2-lang"><button id="pp1EN">EN</button><button id="pp1HU">HU</button></div>
+      <button class="pp2-btn" id="pp1DocMode" aria-label="Full document"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg></button>
+      <button class="pp2-btn" id="pp1Download" aria-label="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+      <button class="pp2-btn" id="pp1Print" aria-label="Print"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
+      <button class="pp2-btn" id="pp1Discussion" aria-label="Discussion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button>
+      <div class="pp2-gear-wrap">
+        <button class="pp2-btn" id="pp1Gear" aria-label="Pane settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        <div class="pdf-gear-pop" id="pp1GearPop">
+          <div class="pgp-row"><span>Interface language</span><div class="pgp-seg" id="pp1Lang"><button type="button" data-l="en">EN</button><button type="button" data-l="hu">HU</button></div></div>
+          <div class="pgp-row"><span>Download format</span><div class="pgp-seg" id="pp1Fmt"><button type="button" data-f="pdf">PDF</button><button type="button" data-f="tex">TeX</button></div></div>
+          <div class="pgp-row"><span>Pages per view</span><div class="pgp-seg" id="pp1PPV"><button type="button" data-p="1">1</button><button type="button" data-p="2">2</button><button type="button" data-p="3">3</button></div></div>
+        </div>
+      </div>
+      <button class="pp2-btn danger" id="pp1Close" aria-label="Close viewer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
     <div class="pdf-body" id="pdfBody">
       <!-- Loading / compiling overlay -->
       <div class="pdf-overlay" id="pdfOverlay">
@@ -2581,6 +2801,41 @@
       <div class="pdf-canvas-wrap">
         <canvas id="pdfCanvas"></canvas>
       </div>
+    </div>
+    </div>
+    <!-- ── Second pane (split / dual-note view; desktop only) ───────────── -->
+    <div id="pdfPane2" hidden>
+      <div class="pp2-bar">
+        <span class="pp2-name" id="pp2Name">document</span>
+        <span class="pp2-spacer"></span>
+        <button class="pp2-btn" id="pp2ZoomOut" title="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+        <span class="pp2-pct" id="pp2Pct">100%</span>
+        <button class="pp2-btn" id="pp2ZoomIn" title="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+        <button class="pp2-btn" id="pp2Fit">Fit</button>
+        <span class="pp2-div"></span>
+        <button class="pp2-btn" id="pp2Prev" title="Previous">‹</button>
+        <span class="pp2-page" id="pp2PageInfo">—</span>
+        <button class="pp2-btn" id="pp2Next" title="Next">›</button>
+        <span class="pp2-div"></span>
+        <div class="pp2-lang"><button id="pp2EN">EN</button><button id="pp2HU">HU</button></div>
+        <button class="pp2-btn" id="pp2DocMode" title="Full document"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg></button>
+        <button class="pp2-btn" id="pp2Download" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        <button class="pp2-btn" id="pp2Print" title="Print"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
+        <button class="pp2-btn" id="pp2Discussion" title="Discussion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button>
+        <div class="pp2-gear-wrap">
+          <button class="pp2-btn" id="pp2Gear" title="Pane settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+          <div class="pdf-gear-pop" id="pp2GearPop">
+            <div class="pgp-row"><span>Download format</span><div class="pgp-seg" id="pp2Fmt"><button type="button" data-f="pdf">PDF</button><button type="button" data-f="tex">TeX</button></div></div>
+            <div class="pgp-row"><span>Pages per view</span><div class="pgp-seg" id="pp2PPV"><button type="button" data-p="1">1</button><button type="button" data-p="2">2</button><button type="button" data-p="3">3</button></div></div>
+          </div>
+        </div>
+        <button class="pp2-btn danger" id="pp2Close" title="Close split"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="pp2-body" id="pp2Body">
+        <div class="pdf-overlay" id="pp2Overlay"><div class="pdf-loader indet"><svg viewBox="0 0 50 50"><circle class="pdf-loader-track" cx="25" cy="25" r="20"/><circle class="pdf-loader-arc" cx="25" cy="25" r="20"/></svg></div><div class="compile-label" id="pp2CompLabel">Compiling…</div></div>
+        <div class="pdf-canvas-wrap"><canvas id="pp2Canvas"></canvas></div>
+      </div>
+    </div>
     </div>
 
     <!-- Vertical zoom slider — mobile only -->
@@ -2742,6 +2997,10 @@
         <span class="sel-count" id="selCount">0</span>
       </span>
       <div class="sel-header-btns">
+        <button class="sel-hbtn" id="selViewBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span data-i18n="selView">View</span>
+        </button>
         <button class="sel-hbtn share" id="selShareBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           <span data-i18n="share">Share</span>
@@ -2871,6 +3130,12 @@
                     <option value="rainbow" data-i18n="stgCurAnimRainbow">Rainbow</option>
                     <option value="trail" data-i18n="stgCurAnimTrail">Trail</option>
                     <option value="leap" data-i18n="stgCurAnimLeap">Leap (magnetic)</option>
+                  </select>
+                </div>
+                <div class="thm-pick"><label data-i18n="stgCurMechLbl">Mechanics</label>
+                  <select id="stgCurMech" class="cur-select" aria-label="Cursor mechanics">
+                    <option value="none" data-i18n="stgCurMechNone">None</option>
+                    <option value="magnet" data-i18n="stgCurMechMagnet">Magnetism</option>
                   </select>
                 </div>
               </div>
@@ -3108,6 +3373,22 @@
       <button class="chat-send" id="npSend" type="button" aria-label="Send">➤</button>
     </div>
   </aside>
+  <!-- Second discussion panel (docks left; used by the left pane in split view) -->
+  <aside id="notePanel2" aria-label="Note discussion (left)">
+    <div class="np-head">
+      <div class="np-titles">
+        <div class="np-title"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span data-i18n="npTitle">Discussion</span></div>
+        <div class="np-note" id="np2NoteName"></div>
+      </div>
+      <button class="np-x" id="np2Close" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div class="np-thread" id="np2Thread"></div>
+    <div class="np-compose">
+      <button class="np-ref-btn" id="np2RefBtn" type="button" aria-label="Insert reference"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+      <textarea id="np2Input" rows="1" placeholder="Write a message" data-i18n-ph="npPlaceholder"></textarea>
+      <button class="chat-send" id="np2Send" type="button" aria-label="Send">➤</button>
+    </div>
+  </aside>
   <!-- Reference picker (feature 3) -->
   <div id="refPicker" role="dialog" aria-label="Insert reference">
     <div class="refp-head">
@@ -3238,6 +3519,14 @@
         npPlaceholder:  'Write a message',
         npEmpty:        'No messages yet — start the discussion.',
         npFailed:       'Could not load the discussion.',
+        npSignIn:       'Sign in to view and join this discussion.',
+        npNoAccess:     'You don’t have access to this note’s discussion.',
+        pgpInterfaceLang: 'Interface language',
+        pgpDownloadFmt: 'Download format',
+        pgpPagesPerView: 'Pages per view',
+        selCompile:     'Compile',
+        selView:        'View',
+        split:          'Split',
         refInsertTitle: 'Insert reference',
         refKindNote:    'Note',
         refKindArticle: 'Article',
@@ -3318,6 +3607,9 @@
         stgCurAnimRainbow:'Rainbow',
         stgCurAnimTrail:'Trail',
         stgCurAnimLeap: 'Leap (magnetic)',
+        stgCurMechLbl:  'Mechanics',
+        stgCurMechNone: 'None',
+        stgCurMechMagnet:'Magnetism',
         stgCurGlow:     'Glow',
         stgCurGlowSub:  'Soft luminous halo',
         stgCurSaved:    'Saved cursors',
@@ -3522,6 +3814,14 @@
         npPlaceholder:  'Írj üzenetet',
         npEmpty:        'Még nincs üzenet — kezdd el a beszélgetést.',
         npFailed:       'Nem sikerült betölteni a beszélgetést.',
+        npSignIn:       'Jelentkezz be a beszélgetés megtekintéséhez és csatlakozáshoz.',
+        npNoAccess:     'Nincs hozzáférésed ehhez a jegyzet beszélgetéséhez.',
+        pgpInterfaceLang: 'Felület nyelve',
+        pgpDownloadFmt: 'Letöltési formátum',
+        pgpPagesPerView: 'Oldalak nézetenként',
+        selCompile:     'Fordítás',
+        selView:        'Nézet',
+        split:          'Osztott',
         refInsertTitle: 'Hivatkozás beszúrása',
         refKindNote:    'Jegyzet',
         refKindArticle: 'Cikk',
@@ -3602,6 +3902,9 @@
         stgCurAnimRainbow:'Szivárvány',
         stgCurAnimTrail:'Csóva',
         stgCurAnimLeap: 'Ugrás (mágneses)',
+        stgCurMechLbl:  'Mechanika',
+        stgCurMechNone: 'Nincs',
+        stgCurMechMagnet:'Mágnesesség',
         stgCurGlow:     'Ragyogás',
         stgCurGlowSub:  'Lágy fénykör',
         stgCurSaved:    'Mentett kurzorok',
@@ -3953,6 +4256,7 @@
       if (theme==='custom') applyCustomColors();
       localStorage.setItem(THEME_KEY, theme);
       if (window._rerenderPdfTheme) window._rerenderPdfTheme();
+      if (window._rerenderPane2) window._rerenderPane2();
     }
     // Store a full theme object as the current custom theme and switch to it.
     function applyThemeObject(obj){ setCustom(obj); applyTheme('custom'); }
@@ -3961,13 +4265,24 @@
     function applySavedTheme(id){ var r=getSaved().filter(function(s){return s.id===id;})[0]; if(r) applyThemeObject(r); return !!r; }
     function deleteSavedTheme(id){ setSaved(getSaved().filter(function(s){return s.id!==id;})); if(localStorage.getItem(RCLICK_KEY)===id) localStorage.removeItem(RCLICK_KEY); }
     function setRclickTheme(id){ if(localStorage.getItem(RCLICK_KEY)===id) localStorage.removeItem(RCLICK_KEY); else localStorage.setItem(RCLICK_KEY, id); }
-    // Applied when the header theme button is right-clicked.
-    function applyRclickTheme(){ var id=localStorage.getItem(RCLICK_KEY); if (id && applySavedTheme(id)) return; applyThemeObject(PRESETS.filter(function(p){return p.name==='Amethyst';})[0] || DEFAULT_CUSTOM); }
+    // A built-in preset can be the right-click target directly (no save needed). It is
+    // stored as the sentinel 'preset:<name>' to tell it apart from a saved-theme id.
+    function setRclickPreset(name){ var key='preset:'+name; if(localStorage.getItem(RCLICK_KEY)===key) localStorage.removeItem(RCLICK_KEY); else localStorage.setItem(RCLICK_KEY, key); }
+    // Applied when the header theme button is right-clicked. Resolves a 'preset:' sentinel,
+    // then a saved-theme id, and finally falls back to the Amethyst preset.
+    function applyRclickTheme(){
+      var val=localStorage.getItem(RCLICK_KEY);
+      if (val){
+        if (val.indexOf('preset:')===0){ var pr=PRESETS.filter(function(p){return p.name===val.slice(7);})[0]; if(pr){ applyThemeObject(pr); return; } }
+        else if (applySavedTheme(val)) return;
+      }
+      applyThemeObject(PRESETS.filter(function(p){return p.name==='Amethyst';})[0] || DEFAULT_CUSTOM);
+    }
 
     function _sameTheme(a,b){ return a.accent===b.accent && a.accent2===b.accent2 && a.bg===b.bg && a.text===b.text && (!!a.radiant)===(!!b.radiant) && a.radiantColor===b.radiantColor; }
     function renderThemePresets(){
       var host=document.getElementById('thmPresets'); if(!host) return;
-      var cur=getCustom(); host.innerHTML='';
+      var cur=getCustom(), rid=localStorage.getItem(RCLICK_KEY); host.innerHTML='';
       PRESETS.forEach(function(p){
         var card=document.createElement('div'); card.className='thm-preset'+(_sameTheme(_normTheme(p),cur)?' active':'');
         var sw=document.createElement('div'); sw.className='thm-swatch';
@@ -3980,7 +4295,14 @@
         dots.appendChild(d1); dots.appendChild(d2); sw.appendChild(dots);
         var nm=document.createElement('div'); nm.className='thm-preset-name'; nm.textContent=p.name;
         card.appendChild(sw); card.appendChild(nm);
-        card.addEventListener('click', function(){ applyThemeObject(p); if(typeof syncSettingsUI==='function') syncSettingsUI(); callMarkDirty(); });
+        // Corner toggle: designate this preset as the right-click theme instantly.
+        var rc=document.createElement('button'); rc.type='button';
+        rc.className='thm-preset-rc'+(rid===('preset:'+p.name)?' is-rclick':'');
+        rc.title=t('stgSetRclick'); rc.setAttribute('aria-label', t('stgSetRclick'));
+        rc.innerHTML='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="6"/><line x1="12" y1="7" x2="12" y2="11"/></svg>';
+        rc.addEventListener('click', function(e){ e.stopPropagation(); setRclickPreset(p.name); renderThemePresets(); if(typeof showToast==='function') showToast(t('stgRclickSet')); callMarkDirty(); });
+        card.appendChild(rc);
+        card.addEventListener('click', function(){ applyThemeObject(p); renderThemePresets(); if(typeof syncSettingsUI==='function') syncSettingsUI(); callMarkDirty(); });
         host.appendChild(card);
       });
     }
@@ -4031,10 +4353,31 @@
       if (typeof syncSettingsUI==='function') syncSettingsUI();
     });
 
+    /* ── No native hover tooltips ───────────────────────────────────────
+       Drop every `title` attribute (the ~1.5s hover popups) site-wide, moving
+       its text to aria-label first so screen readers keep the info. A small
+       observer catches dynamically-rendered elements too. */
+    (function killTitles(){
+      function one(el){ if(!el||el.nodeType!==1||!el.hasAttribute('title')) return; var ti=el.getAttribute('title'); if(ti && !el.getAttribute('aria-label')) el.setAttribute('aria-label', ti); el.removeAttribute('title'); }
+      function strip(root){ if(!root) return; one(root); if(root.querySelectorAll) root.querySelectorAll('[title]').forEach(one); }
+      strip(document);
+      try {
+        new MutationObserver(function(muts){
+          for (var i=0;i<muts.length;i++){ var m=muts[i];
+            if (m.type==='attributes') one(m.target);
+            if (m.addedNodes) for (var j=0;j<m.addedNodes.length;j++) strip(m.addedNodes[j]);
+          }
+        }).observe(document.documentElement, { subtree:true, childList:true, attributes:true, attributeFilter:['title'] });
+      } catch(e){}
+    })();
+
 
     /* ── Cursor ─────────────────────────────────────────────────────── */
     const dot  = document.getElementById('cursorDot');
     const ring = document.getElementById('cursorRing');
+    // Phones/tablets (coarse pointer / no hover) keep the native OS cursor — the
+    // whole custom-cursor engine is skipped, so Pulsar's magnetic Leap never runs.
+    const isTouch = !!(window.matchMedia && (window.matchMedia('(pointer:coarse)').matches || window.matchMedia('(hover:none)').matches));
     let mx = -200, my = -200, rx = -200, ry = -200;
     const LERP = 0.14;
     const lerp = (a, b, t) => a + (b - a) * t;
@@ -4042,22 +4385,60 @@
     let _curFrame = 0, _curTrail = false, _curRainbow = false, _curRingExact = false, _lastTX = -999, _lastTY = -999;
     // Magnetic "Pulsar" mode: the ring eases onto the focusable element under the pointer,
     // letting the browser's own hit-testing make things easier to aim at and click.
-    let _curMagnetic = false, _magEl = null, _rw = 30, _rh = 30, _rr = 15;
+    let _curMagnetic = false, _curMech = false, _magEl = null, _rw = 30, _rh = 30, _rr = 15;
+    let _vmx = 0, _vmy = 0; // smoothed pointer velocity (for directional magnetism)
     const RING_BASE = 30;
-    const MAGNET_SEL = 'a,button,input,textarea,select,summary,label,[role="button"],[role="switch"],[role="link"],[role="tab"],[tabindex]:not([tabindex="-1"]),.card,.article-card,.thm-preset,.modal-btn,.chat-conv,.cl-ref,.ccol-sv,.ccol-hue,.kidate-day,[data-hover]';
+    // Everything the magnetic ring can lock onto. NB: `label` is deliberately excluded —
+    // a wrapping <label> would magnetise the whole field row (e.g. the "Send to" container);
+    // the actual control inside it (input/select→.cdd-btn/button) is the real target.
+    const MAGNET_SEL = [
+      'a','button','input:not([type=hidden])','textarea','select','summary',
+      '[role="button"]','[role="switch"]','[role="link"]','[role="tab"]','[tabindex]:not([tabindex="-1"])',
+      '.card','.article-card','.bc-item','.ctx-item','.modal-btn',
+      '.thm-preset','.thm-preset-rc','.thm-mini','.cur-select',
+      '.chat-conv','.chat-reply-btn','.chat-msg-menu','.chat-conv-menu','.cl-ref','.chat-noteref','.sel-item','.sel-item-rm',
+      '.pdf-tbtn','.pp2-btn','.pp2-lang button','.sel-hbtn','.refp-kind','.refp-item','.refp-back','.refp-x',
+      '.cdd-btn','.cdd-item','.sort-dd-btn','.sort-dd-item','.pgp-seg button','.cm-remove','.np-del','.np-ref-btn','.chat-ref-btn','.chat-send','.lock-btn',
+      '.ccol-sv','.ccol-hue','.ccol-sw','.kidate-day','.kidate-btn','.csb-thumb','.pzs-track','.crb-x','.ceb-x',
+      '[data-hover]'
+    ].join(',');
     function _magnetTarget(x, y) { const el = document.elementFromPoint(x, y); return (el && el.closest) ? el.closest(MAGNET_SEL) : null; }
+    // Directional magnetism: when nothing is directly under the pointer, cast a few
+    // points ahead along the movement vector so the ring reaches toward the clickable
+    // you are heading for — making targets feel "attracted" to the cursor.
+    function _magnetSeek(x, y, vx, vy) {
+      const direct = _magnetTarget(x, y);
+      if (direct) return direct;
+      const speed = Math.hypot(vx, vy);
+      if (speed < 0.6) return null;
+      const ux = vx / speed, uy = vy / speed;
+      for (let d = 16; d <= 92; d += 13) {
+        const el = document.elementFromPoint(x + ux * d, y + uy * d);
+        const t = (el && el.closest) ? el.closest(MAGNET_SEL) : null;
+        if (t) { const r = t.getBoundingClientRect(); if (r.width && r.height && r.width < 560 && r.height < 380) return t; }
+      }
+      return null;
+    }
 
-    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; if (_curMagnetic) _magEl = _magnetTarget(mx, my); });
-    document.addEventListener('mousedown', e => { body.classList.add('cursor-active'); spawnRipple(e.clientX, e.clientY); if (_curMagnetic && _magnetTarget(e.clientX, e.clientY)) triggerLeap(); });
-    document.addEventListener('mouseup',   () => body.classList.remove('cursor-active'));
-    document.addEventListener('mouseleave',() => { dot.style.opacity='0'; ring.style.opacity='0'; });
-    document.addEventListener('mouseenter',() => { dot.style.opacity='1'; ring.style.opacity='1'; });
+    if (!isTouch) {
+      document.addEventListener('mousemove', e => {
+        const nx = e.clientX, ny = e.clientY;
+        _vmx = _vmx * 0.6 + (nx - mx) * 0.4; _vmy = _vmy * 0.6 + (ny - my) * 0.4; // smoothed velocity
+        mx = nx; my = ny;
+        if (_curMagnetic) _magEl = _curMech ? _magnetSeek(mx, my, _vmx, _vmy) : _magnetTarget(mx, my);
+      });
+      document.addEventListener('mousedown', e => { body.classList.add('cursor-active'); spawnRipple(e.clientX, e.clientY); if (_curMagnetic && _magnetTarget(e.clientX, e.clientY)) triggerLeap(); });
+      document.addEventListener('mouseup',   () => body.classList.remove('cursor-active'));
+      document.addEventListener('mouseleave',() => { dot.style.opacity='0'; ring.style.opacity='0'; });
+      document.addEventListener('mouseenter',() => { dot.style.opacity='1'; ring.style.opacity='1'; });
 
-    const HOVER_SEL = 'a,button,.card,.article-card,.bc-item,.ctx-item,.modal-btn,.pdf-tbtn,.pdf-page-input,[data-hover]';
-    document.addEventListener('mouseover', e => { if (e.target.closest(HOVER_SEL)) body.classList.add('cursor-hover'); });
-    document.addEventListener('mouseout',  e => { if (e.target.closest(HOVER_SEL)) body.classList.remove('cursor-hover'); });
+      const HOVER_SEL = 'a,button,.card,.article-card,.bc-item,.ctx-item,.modal-btn,.pdf-tbtn,.pdf-page-input,[data-hover]';
+      document.addEventListener('mouseover', e => { if (e.target.closest(HOVER_SEL)) body.classList.add('cursor-hover'); });
+      document.addEventListener('mouseout',  e => { if (e.target.closest(HOVER_SEL)) body.classList.remove('cursor-hover'); });
+    }
 
     (function animCursor() {
+      if (isTouch) return; // native cursor on touch — don't run the rAF loop
       _curFrame++;
       dot.style.left  = mx + 'px'; dot.style.top  = my + 'px';
       if (_curMagnetic) {
@@ -4121,12 +4502,13 @@
     const CURSOR_KEY = 'ki_cursor', CURSOR_SAVED_KEY = 'ki_cursor_saved';
     const CURSOR_KINDS = ['dotring','arrow','dot','ring','blob'];
     const CURSOR_ANIMS = ['none','pulse','spin','breathe','rainbow','trail','leap'];
-    const DEFAULT_CURSOR = { name:'Pulsar', kind:'blob', dot:'#6cc6ff', ring:'#3f9bff', anim:'leap', glow:true };
+    const CURSOR_MECHS = ['none','magnet']; // cursor "mechanics": magnetism attracts the ring to clickables
+    const DEFAULT_CURSOR = { name:'Pulsar', kind:'blob', dot:'#6cc6ff', ring:'#3f9bff', anim:'leap', mech:'magnet', glow:true };
     const CURSOR_PRESETS = [
       { name:'Theme',   kind:'dotring', dot:null,      ring:null,      anim:'none',    glow:false },
       { name:'Cream',   kind:'blob',    dot:'#efe7d6', ring:'#2c281f', anim:'none',    glow:false },
       { name:'Onyx',    kind:'blob',    dot:'#17171b', ring:'#eef0f5', anim:'none',    glow:false },
-      { name:'Pulsar',  kind:'blob',    dot:'#6cc6ff', ring:'#3f9bff', anim:'leap',    glow:true  },
+      { name:'Pulsar',  kind:'blob',    dot:'#6cc6ff', ring:'#3f9bff', anim:'leap',    mech:'magnet', glow:true  },
       { name:'Halo',    kind:'dotring', dot:'#ffffff', ring:'#b98cff', anim:'pulse',   glow:true  },
       { name:'Neon',    kind:'ring',    dot:'#39ff14', ring:'#39ff14', anim:'spin',    glow:true  },
       { name:'Comet',   kind:'dot',     dot:'#7ec8ff', ring:'#7ec8ff', anim:'trail',   glow:true  },
@@ -4144,11 +4526,13 @@
         name: (c.name || 'Cursor'),
         kind: CURSOR_KINDS.indexOf(c.kind)>=0 ? c.kind : 'dotring',
         anim: CURSOR_ANIMS.indexOf(c.anim)>=0 ? c.anim : 'none',
+        mech: CURSOR_MECHS.indexOf(c.mech)>=0 ? c.mech : (c.anim==='leap' ? 'magnet' : 'none'), // leap cursors get magnetism by default
+
         dot:  _curHex(c.dot), ring: _curHex(c.ring), glow: !!c.glow
       };
     }
     function _normCursorSaved(s){ if(!s||typeof s!=='object') return null; var c=_normCursor(s); c.id=s.id||('c'+Math.random().toString(36).slice(2,9)); return c; }
-    function _sameCursor(a,b){ return a.kind===b.kind && a.anim===b.anim && (a.dot||'')===(b.dot||'') && (a.ring||'')===(b.ring||'') && (!!a.glow)===(!!b.glow); }
+    function _sameCursor(a,b){ return a.kind===b.kind && a.anim===b.anim && (a.mech||'none')===(b.mech||'none') && (a.dot||'')===(b.dot||'') && (a.ring||'')===(b.ring||'') && (!!a.glow)===(!!b.glow); }
     function getCursor(){ try{ var r=localStorage.getItem(CURSOR_KEY); return r?_normCursor(JSON.parse(r)):Object.assign({},DEFAULT_CURSOR); }catch(e){ return Object.assign({},DEFAULT_CURSOR); } }
     function setCursor(c){ c=_normCursor(c); try{ localStorage.setItem(CURSOR_KEY, JSON.stringify(c)); }catch(e){} applyCursorTheme(c); }
     function getCursorSaved(){ try{ var a=JSON.parse(localStorage.getItem(CURSOR_SAVED_KEY)||'[]'); return Array.isArray(a)?a.map(_normCursorSaved).filter(Boolean):[]; }catch(e){ return []; } }
@@ -4171,7 +4555,8 @@
       // Shapes that ARE the pointer (ring/arrow/blob) track the cursor exactly; the
       // dot-and-ring shape lets its ring lag behind for the trailing-halo effect.
       _curRingExact = (c.kind==='ring' || c.kind==='arrow' || c.kind==='blob');
-      _curMagnetic = (c.anim==='leap');
+      _curMech = (c.mech === 'magnet');
+      _curMagnetic = (c.anim==='leap') || _curMech; // magnetism reuses the ring-ease machinery
       // Hand the ring back to CSS sizing when leaving magnetic mode.
       if (!_curMagnetic) { ring.style.width=''; ring.style.height=''; ring.style.borderRadius=''; _rw = RING_BASE; _rh = RING_BASE; _rr = RING_BASE / 2; }
     }
@@ -4203,6 +4588,7 @@
       var s=document.getElementById('stgCurAccent');  if(s){ s.value=c.ring||'#e8c96a'; if(s._syncSwatch) s._syncSwatch(); }
       var kn=document.getElementById('stgCurKind');   if(kn){ kn.value=c.kind; if(kn._syncLabel) kn._syncLabel(); }
       var an=document.getElementById('stgCurAnim');   if(an){ an.value=c.anim; if(an._syncLabel) an._syncLabel(); }
+      var mh=document.getElementById('stgCurMech');    if(mh){ mh.value=c.mech||'none'; if(mh._syncLabel) mh._syncLabel(); }
       var g=document.getElementById('stgCurGlow');    if(g) g.classList.toggle('on', !!c.glow);
     }
     function renderCursorSaved(){
@@ -4219,7 +4605,7 @@
         host.appendChild(row);
       });
     }
-    applyCursorTheme(getCursor());
+    if (!isTouch) applyCursorTheme(getCursor());
 
     /* ── Custom form controls (no native OS UI, so the custom cursor stays) ── */
     // Lift a popover to <body> with fixed positioning so it can't be clipped or
@@ -4253,6 +4639,7 @@
     // A themed, cursor-friendly overlay scrollbar for a scroll container (native
     // scrollbars are hidden because the OS arrow cursor can't be themed away).
     function customScrollbar(el, opts){
+      if (isTouch) return;                 // native scrollbars are fine on touch
       if (!el || el._csb) return; el._csb = true;
       opts = opts || {};
       var bar = document.createElement('div'); bar.className = 'csb';
@@ -4556,10 +4943,24 @@
     const IMAGE_EXTS_SET = new Set(['.png','.jpg','.jpeg','.gif','.webp','.svg']);
 
 
+    let selViewMode = false; // "selection view": the grid shows only the selected items
     function renderGrid(node) {
       const grid  = document.getElementById('fileGrid');
       const count = document.getElementById('gridCount');
       const rawItems = node ? (node.children||[]) : [];
+
+      // ── Selection view: overlap the tree with ONLY the selected items ──
+      if (selViewMode && selection.size) {
+        clearSearch();
+        grid.innerHTML = '';
+        const cntEl = document.getElementById('searchCount'); if (cntEl) cntEl.textContent = '';
+        [...selection.values()].forEach((item, idx) => { const card = buildCard(item); card.style.animationDelay = (idx * 20) + 'ms'; grid.appendChild(card); });
+        count.textContent = selection.size + ' ' + MSGT('selected', 'kijelölve');
+        const vb = document.getElementById('selViewBtn'); if (vb) vb.classList.add('on');
+        return;
+      }
+      if (selViewMode && !selection.size) selViewMode = false;
+      { const vb = document.getElementById('selViewBtn'); if (vb) vb.classList.remove('on'); }
 
       // ── Global search mode ───────────────────────────────────────────
       const isSearching = searchQuery.length > 0 || activeTagFilters.size > 0;
@@ -4926,6 +5327,7 @@
 
     function handleClick(item) {
       if (item.type==='folder') {
+        selViewMode = false; // navigating folders exits the selection view
         clearSearch();
         pathStack.push(item); currentNode = item;
         renderBreadcrumb(); renderGrid(item);
@@ -5139,6 +5541,9 @@
         loadTree();
         pullSettings();
         pollUnread();
+        // If we're on the Chat tab, swap the sign-in prompt for the real chat now
+        // (otherwise it would keep showing "sign in" until a manual reload).
+        if (document.getElementById('page-chat') && document.getElementById('page-chat').classList.contains('active')) openChatPage();
       } catch { err.textContent = t('authBadCreds'); }
       finally { btn.disabled = false; }
     }
@@ -5258,18 +5663,26 @@
       const box = document.getElementById('chatList'); if (!box) return;
       if (!CHAT.convos.length) { box.innerHTML = '<div class="chat-empty-list">' + MSGT('No conversations yet. Start one with \u201c+ Chat\u201d.', 'M\u00e9g nincs besz\u00e9lget\u00e9s. Ind\u00edts egyet a \u201e+ \u00dczenet\u201d gombbal.') + '</div>'; return; }
       const me = String(CHAT.me).toLowerCase();
-      box.innerHTML = CHAT.convos.map(c => {
+      const row = c => {
         const isG = c.type === 'group';
         const av = '<div class="chat-av' + (isG ? ' group' : '') + '">' + (isG ? '\uD83D\uDC65' : esc(chatInitials(c.title))) + '</div>';
         const time = c.last ? '<span class="chat-conv-time">' + esc(chatFmtTime(c.last.date)) + '</span>' : '';
         const unread = c.unread ? '<span class="chat-unread">' + (c.unread > 99 ? '99+' : c.unread) + '</span>' : '';
         let snip = '';
         if (c.last) { const mineLast = String(c.last.from).toLowerCase() === me; snip = (c.last.kind === 'text' && mineLast ? MSGT('You: ', 'Te: ') : '') + plainChat(c.last.body); }
-        return '<div class="chat-conv' + (c.id === CHAT.curId ? ' active' : '') + '" data-id="' + esc(c.id) + '">' + av +
+        return '<div class="chat-conv' + (c.id === CHAT.curId ? ' active' : '') + (c.archived ? ' archived' : '') + '" data-id="' + esc(c.id) + '">' + av +
           '<div class="chat-conv-main"><div class="chat-conv-top"><span class="chat-conv-name">' + esc(c.title) + '</span>' + time + '</div>' +
           '<div class="chat-conv-snip">' + esc(snip) + '</div></div>' + unread + '</div>';
-      }).join('');
+      };
+      const active = CHAT.convos.filter(c => !c.archived), archived = CHAT.convos.filter(c => c.archived);
+      let html = active.map(row).join('');
+      if (archived.length) {
+        html += '<div class="chat-arch-divider" data-arch-toggle="1">' + (CHAT.showArchived ? '\u25BE ' : '\u25B8 ') + MSGT('Archived', 'Archiv\u00E1lt') + ' (' + archived.length + ')</div>';
+        if (CHAT.showArchived) html += archived.map(row).join('');
+      }
+      box.innerHTML = html || ('<div class="chat-empty-list">' + MSGT('No conversations yet. Start one with \u201C+ Chat\u201D.', 'M\u00E9g nincs besz\u00E9lget\u00E9s. Ind\u00EDts egyet a \u201E+ \u00DCzenet\u201D gombbal.') + '</div>');
       box.querySelectorAll('.chat-conv').forEach(el => el.addEventListener('click', () => openConversation(el.dataset.id)));
+      const at = box.querySelector('[data-arch-toggle]'); if (at) at.addEventListener('click', () => { CHAT.showArchived = !CHAT.showArchived; renderConvList(); });
     }
 
     async function openConversation(id) {
@@ -5283,9 +5696,14 @@
         if (!d || !d.ok) { showToast(MSGT('Conversation not found.', 'A besz\u00e9lget\u00e9s nem tal\u00e1lhat\u00f3.'), true); return; }
         CHAT.cur = d;
         CHAT.curOther = (d.type !== 'group') ? ((d.participants || []).find(p => String(p).toLowerCase() !== String(CHAT.me).toLowerCase()) || null) : null;
+        const _lc = CHAT.convos.find(x => x.id === id) || {};
+        CHAT.curBlocked = !!_lc.blocked; CHAT.curArchived = !!(d.archived || _lc.archived);
         const sub = d.type === 'group' ? (d.participants || []).join(', ') : '';
         document.getElementById('chatThreadTitle').innerHTML = esc(d.title) + (sub ? '<small>' + esc(sub) + '</small>' : '');
-        document.getElementById('chatAddMember').style.display = d.type === 'group' ? '' : 'none';
+        document.getElementById('chatAddMember').style.display = (d.type === 'group' && (d.myRole === 'owner' || d.myRole === 'admin')) ? '' : 'none';
+        document.getElementById('chatConvMenu').style.display = '';
+        cancelEdit();
+        updateComposerState();
         updateConvPresence(d.presence, d.now);
         renderThread(d.messages || [], d.type);
         fetch('/api/chat/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).then(() => { const c = CHAT.convos.find(x => x.id === id); if (c) c.unread = 0; renderConvList(); pollUnread(); }).catch(() => {});
@@ -5298,6 +5716,7 @@
       box.innerHTML = msgs.map(m => {
         const mine = String(m.from).toLowerCase() === me;
         if (m.kind === 'system') return '<div class="chat-sys">' + esc(plainChat(m.body)) + '</div>';
+        if (m.deleted) return '<div class="chat-row ' + (mine ? 'me' : 'them') + '"><div class="chat-acts"></div><div class="chat-bubble ' + (mine ? 'me' : 'them') + ' chat-deleted">' + esc(MSGT('🚫 Message deleted', '🚫 Üzenet törölve')) + '</div></div>';
         if (m.kind === 'access-request') {
           const noteRef = JSON.stringify({ kind: 'note', target: (m.note && m.note.path) || '', lang: (m.note && m.note.lang) || 'en', label: (m.note && m.note.label) || '' });
           const noteLink = '<a class="cl-ref" href="#" data-ref="' + esc(noteRef) + '">' + esc((m.note && m.note.label) || (m.note && m.note.path) || '') + '</a>';
@@ -5320,13 +5739,17 @@
         const sender = (type === 'group' && !mine) ? '<div class="chat-sender">' + esc(m.from) + '</div>' : '';
         const quote = m.replyTo ? '<div class="chat-quote" data-goto="' + esc(m.replyTo) + '"><span class="cq-from">' + esc(m.replyFrom || '') + '</span><span class="cq-snip">' + esc(String(m.replyText || '').slice(0, 140)) + '</span></div>' : '';
         const noteRefHtml = m.noteRef ? '<div class="chat-noteref" data-nr-path="' + esc(m.noteRef.path) + '" data-nr-lang="' + esc(m.noteRef.lang || 'en') + '"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="cnr-label">' + esc(m.noteRef.label || String(m.noteRef.path).split('/').pop()) + '</span></div>' : '';
-        const bubble = '<div class="chat-bubble ' + (mine ? 'me' : 'them') + '" data-mid="' + esc(m.id) + '">' + sender + quote + '<div>' + renderRefText(m.body) + '</div>' + noteRefHtml + '<div class="chat-time">' + esc(chatFmtTime(m.date)) + '</div></div>';
+        const editedTag = m.edited ? '<span class="chat-edited">' + esc(MSGT('edited', 'szerk.')) + '</span>' : '';
+        const bodyHtml = m.body ? '<div>' + renderRefText(m.body) + '</div>' : '';
+        const bubble = '<div class="chat-bubble ' + (mine ? 'me' : 'them') + '" data-mid="' + esc(m.id) + '">' + sender + quote + bodyHtml + noteRefHtml + '<div class="chat-time">' + esc(chatFmtTime(m.date)) + editedTag + '</div></div>';
         const rbtn = '<button class="chat-reply-btn" type="button" data-reply="' + esc(m.id) + '" title="' + MSGT('Reply', 'Válasz') + '" aria-label="Reply">↩</button>';
-        return '<div class="chat-row ' + (mine ? 'me' : 'them') + '">' + rbtn + bubble + '</div>';
+        const mbtn = '<button class="chat-msg-menu" type="button" data-menu="' + esc(m.id) + '" aria-label="Message options">⋮</button>';
+        return '<div class="chat-row ' + (mine ? 'me' : 'them') + '"><div class="chat-acts">' + rbtn + mbtn + '</div>' + bubble + '</div>';
       }).join('');
       box.querySelectorAll('.cl-ref').forEach(a => a.addEventListener('click', e => { e.preventDefault(); try { navigateToRef(JSON.parse(a.getAttribute('data-ref'))); } catch {} }));
       box.querySelectorAll('.ar-act').forEach(b => b.addEventListener('click', () => { const id = b.dataset.id, dec = b.dataset.act; const ri = box.querySelector('.ar-reason[data-id="' + id + '"]'); respondAccess(id, dec, ri ? ri.value.trim() : ''); }));
       box.querySelectorAll('.chat-reply-btn').forEach(b => b.addEventListener('click', () => setReplyTarget(b.dataset.reply)));
+      box.querySelectorAll('.chat-msg-menu').forEach(b => b.addEventListener('click', () => openMsgMenu(b.dataset.menu, b)));
       box.querySelectorAll('.chat-quote').forEach(q => q.addEventListener('click', () => { const t = box.querySelector('[data-mid="' + q.dataset.goto + '"]'); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('chat-flash'); setTimeout(() => t.classList.remove('chat-flash'), 1100); } }));
       box.querySelectorAll('.chat-noteref').forEach(el => el.addEventListener('click', () => openNoteByPath(el.dataset.nrPath, el.dataset.nrLang)));
       box.scrollTop = box.scrollHeight;
@@ -5355,6 +5778,269 @@
     }
     function cancelReply() { CHAT.replyTo = null; const b = document.getElementById('chatReplyBar'); if (b) b.hidden = true; }
     function chatAutosize() { const t = document.getElementById('chatInput'); if (!t) return; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; t.style.overflowY = t.scrollHeight > 120 ? 'auto' : 'hidden'; }
+
+    /* ── Chat management: menus, edit/delete, archive, leave, block, roles ─── */
+    // A small themed confirm dialog (the site hides the OS cursor, so window.confirm
+    // would look wrong). Returns a Promise<boolean>.
+    function chatConfirm(message, opts){
+      opts = opts || {};
+      return new Promise(function(resolve){
+        var modal = document.getElementById('chatConfirmModal');
+        document.getElementById('ccText').textContent = message;
+        document.getElementById('ccTitle').textContent = opts.title || MSGT('Please confirm', 'Megerősítés');
+        var yes = document.getElementById('ccYes'), no = document.getElementById('ccNo'), x = document.getElementById('ccX');
+        yes.textContent = opts.confirmLabel || MSGT('Confirm', 'Megerősítés');
+        no.textContent = MSGT('Cancel', 'Mégse');
+        yes.classList.toggle('danger', !!opts.danger);
+        function done(v){ modal.classList.remove('open'); yes.removeEventListener('click', onYes); no.removeEventListener('click', onNo); x.removeEventListener('click', onNo); modal.removeEventListener('click', onBg); resolve(v); }
+        function onYes(){ done(true); } function onNo(){ done(false); }
+        function onBg(e){ if (e.target === modal) done(false); }
+        yes.addEventListener('click', onYes); no.addEventListener('click', onNo); x.addEventListener('click', onNo); modal.addEventListener('click', onBg);
+        modal.classList.add('open');
+      });
+    }
+
+    // Portaled dropdown menu used for both the conversation header and per-message actions.
+    var _floatMenuEl = null;
+    function closeFloatMenu(){ if (_floatMenuEl){ _floatMenuEl.remove(); _floatMenuEl = null; document.removeEventListener('mousedown', _floatMenuOutside, true); document.removeEventListener('keydown', _floatMenuEsc, true); } }
+    function _floatMenuOutside(e){ if (_floatMenuEl && !_floatMenuEl.contains(e.target)) closeFloatMenu(); }
+    function _floatMenuEsc(e){ if (e.key === 'Escape') closeFloatMenu(); }
+    function openFloatMenu(anchor, items){
+      closeFloatMenu();
+      var m = document.createElement('div'); m.className = 'chat-float-menu';
+      items.forEach(function(it){
+        if (!it) return;
+        if (it.sep){ var s = document.createElement('div'); s.className = 'cdd-sep'; m.appendChild(s); return; }
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'cdd-item' + (it.danger ? ' danger' : '');
+        b.textContent = it.label;
+        b.addEventListener('click', function(){ closeFloatMenu(); if (it.act) it.act(); });
+        m.appendChild(b);
+      });
+      document.body.appendChild(m); _floatMenuEl = m;
+      var r = anchor.getBoundingClientRect(), mw = m.offsetWidth, mh = m.offsetHeight;
+      var left = Math.min(r.left, window.innerWidth - mw - 8); if (left < 8) left = 8;
+      var top = r.bottom + 6; if (top + mh > window.innerHeight - 8 && r.top - mh - 6 > 8) top = r.top - mh - 6;
+      m.style.left = left + 'px'; m.style.top = top + 'px';
+      setTimeout(function(){ document.addEventListener('mousedown', _floatMenuOutside, true); document.addEventListener('keydown', _floatMenuEsc, true); }, 0);
+    }
+
+    // Per-message overflow menu: Copy / Edit (own text) / Delete (own, or a moderator).
+    function openMsgMenu(mid, anchor){
+      if (!CHAT.cur) return;
+      var m = (CHAT.cur.messages || []).find(function(x){ return x.id === mid; });
+      if (!m || m.deleted || m.kind === 'system') return;
+      var mineMsg = String(m.from).toLowerCase() === String(CHAT.me).toLowerCase();
+      var canManage = CHAT.cur.myRole === 'owner' || CHAT.cur.myRole === 'admin';
+      var items = [];
+      if (m.kind === 'text' && m.body) items.push({ label: MSGT('Copy text', 'Szöveg másolása'), act: function(){ copyMessageText(m.body); } });
+      if (mineMsg && m.kind === 'text') items.push({ label: MSGT('Edit', 'Szerkesztés'), act: function(){ startEditMessage(mid); } });
+      if (mineMsg || canManage) items.push({ label: MSGT('Delete', 'Törlés'), danger: true, act: function(){ deleteChatMessage(mid); } });
+      if (items.length) openFloatMenu(anchor, items);
+    }
+    function copyMessageText(text){
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function(){ showToast(MSGT('Copied', 'Másolva')); }).catch(function(){}); }
+        else { var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); showToast(MSGT('Copied', 'Másolva')); } catch (e) {} ta.remove(); }
+      } catch (e) {}
+    }
+    function startEditMessage(mid){
+      if (!CHAT.cur) return;
+      var m = (CHAT.cur.messages || []).find(function(x){ return x.id === mid; }); if (!m || m.kind !== 'text') return;
+      cancelReply(); CHAT.editMid = mid;
+      var inp = document.getElementById('chatInput'); if (inp){ inp.value = m.body || ''; inp.focus(); chatAutosize(); }
+      document.getElementById('chatEditBar').hidden = false;
+    }
+    // Clears edit mode AND the composer draft (used on cancel, conversation switch, and after a save).
+    function cancelEdit(){ CHAT.editMid = null; var b = document.getElementById('chatEditBar'); if (b) b.hidden = true; var inp = document.getElementById('chatInput'); if (inp){ inp.value = ''; chatAutosize(); } }
+    async function saveEditMessage(text){
+      var mid = CHAT.editMid, id = CHAT.curId; if (!mid || !id){ cancelEdit(); return; }
+      try {
+        var r = await fetch('/api/chat/message/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, mid: mid, body: text }) });
+        var d = await r.json();
+        if (d && d.ok){ cancelEdit(); openConversation(id); }
+        else showToast((d && d.error) || MSGT('Could not edit the message', 'Nem sikerült szerkeszteni'), true);
+      } catch { showToast(MSGT('Could not edit the message', 'Nem sikerült szerkeszteni'), true); }
+    }
+    async function deleteChatMessage(mid){
+      var id = CHAT.curId; if (!id) return;
+      if (!(await chatConfirm(MSGT('Delete this message? This cannot be undone.', 'Törlöd ezt az üzenetet? Ez nem vonható vissza.'), { danger: true, confirmLabel: MSGT('Delete', 'Törlés') }))) return;
+      try {
+        var r = await fetch('/api/chat/message/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, mid: mid }) });
+        var d = await r.json();
+        if (d && d.ok) openConversation(id);
+        else showToast((d && d.error) || MSGT('Could not delete', 'Nem sikerült törölni'), true);
+      } catch { showToast(MSGT('Could not delete', 'Nem sikerült törölni'), true); }
+    }
+
+    // Disable the composer when the DM is blocked or the group role is read-only.
+    function updateComposerState(){
+      var inp = document.getElementById('chatInput'), send = document.getElementById('chatSend'), ref = document.getElementById('chatRefBtn');
+      if (!inp || !CHAT.cur) return;
+      var readonly = CHAT.cur.type === 'group' && CHAT.cur.myRole === 'readonly';
+      var blocked = CHAT.cur.type !== 'group' && CHAT.curBlocked;
+      var off = readonly || blocked;
+      inp.disabled = off; if (send) send.disabled = off; if (ref) ref.disabled = off;
+      inp.placeholder = blocked ? MSGT('You blocked this person — unblock to message', 'Letiltottad — oldd fel az üzenetküldéshez')
+        : readonly ? MSGT('You have read-only access here', 'Itt csak olvasási jogod van')
+        : MSGT('Write a message', 'Írj üzenetet');
+    }
+
+    function _closeThreadView(){
+      document.getElementById('chatThreadWrap').style.display = 'none';
+      document.getElementById('chatThreadEmpty').style.display = '';
+      document.getElementById('chatShell').classList.remove('thread-open');
+      document.getElementById('chatConvMenu').style.display = 'none';
+      document.getElementById('chatAddMember').style.display = 'none';
+      CHAT.curId = null; CHAT.cur = null;
+    }
+
+    // ── Conversation-level menu (header ⋮) ──────────────────────────────────
+    function openConvMenu(anchor){
+      var c = CHAT.cur; if (!c) return;
+      var items = [];
+      if (c.type === 'group'){
+        items.push({ label: MSGT('Members & permissions', 'Tagok és jogosultságok'), act: openManageMembers });
+        items.push({ label: CHAT.curArchived ? MSGT('Unarchive', 'Archiválás visszavonása') : MSGT('Archive', 'Archiválás'), act: chatArchiveToggle });
+        items.push({ sep: true });
+        items.push({ label: MSGT('Leave group', 'Csoport elhagyása'), danger: true, act: chatLeaveGroup });
+        if (c.myRole === 'owner') items.push({ label: MSGT('Delete group', 'Csoport törlése'), danger: true, act: chatDeleteConv });
+      } else {
+        items.push({ label: CHAT.curArchived ? MSGT('Unarchive', 'Archiválás visszavonása') : MSGT('Archive', 'Archiválás'), act: chatArchiveToggle });
+        items.push({ label: CHAT.curBlocked ? MSGT('Unblock', 'Feloldás') : MSGT('Block', 'Letiltás'), danger: !CHAT.curBlocked, act: chatBlockToggle });
+        items.push({ sep: true });
+        items.push({ label: MSGT('Delete for me', 'Törlés nálam'), danger: true, act: function(){ chatDeleteConv(false); } });
+        items.push({ label: MSGT('Delete for everyone', 'Törlés mindenkinél'), danger: true, act: function(){ chatDeleteConv(true); } });
+      }
+      openFloatMenu(anchor, items);
+    }
+    async function chatArchiveToggle(){
+      var id = CHAT.curId; if (!id) return;
+      try { var r = await fetch('/api/chat/archive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, archive: !CHAT.curArchived }) }); var d = await r.json();
+        if (d && d.ok){ CHAT.curArchived = !!d.archived; showToast(d.archived ? MSGT('Archived', 'Archiválva') : MSGT('Unarchived', 'Visszaállítva')); await loadConversations(); }
+        else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
+      } catch { showToast(MSGT('Error', 'Hiba'), true); }
+    }
+    async function chatLeaveGroup(){
+      var id = CHAT.curId, c = CHAT.cur; if (!id || !c) return;
+      var meLc = String(CHAT.me).toLowerCase();
+      var others = (c.participants || []).filter(function(p){ return String(p).toLowerCase() !== meLc; });
+      // An owner handing off a non-empty group must pick a successor first.
+      if (c.myRole === 'owner' && others.length){ openTransferModal(others); return; }
+      if (!(await chatConfirm(MSGT('Leave this group? You will stop receiving its messages.', 'Elhagyod a csoportot? Nem kapsz több üzenetet tőle.'), { danger: true, confirmLabel: MSGT('Leave', 'Elhagyom') }))) return;
+      doLeave(id, null);
+    }
+    function openTransferModal(others){
+      document.getElementById('ctTitle').textContent = MSGT('Leave group', 'Csoport elhagyása');
+      document.getElementById('ctText').textContent = MSGT('You own this group. Choose who becomes the new owner when you leave.', 'Te vagy a csoport tulajdonosa. Válaszd ki, ki legyen az új tulajdonos, miután kilépsz.');
+      document.getElementById('ctAutoLbl').textContent = MSGT('Transfer to the longest-standing member', 'Átadás a legrégebbi tagnak');
+      document.getElementById('ctChooseLbl').textContent = MSGT('Transfer to a specific person', 'Átadás egy adott személynek');
+      document.getElementById('ctCancel').textContent = MSGT('Cancel', 'Mégse');
+      document.getElementById('ctConfirm').textContent = MSGT('Leave & transfer', 'Kilépés és átadás');
+      var sel = document.getElementById('ctHeir');
+      sel.innerHTML = others.map(function(u){ return '<option value="' + esc(u) + '">' + esc(u) + '</option>'; }).join('');
+      sel.selectedIndex = 0;
+      if (typeof customSelect === 'function') { customSelect(sel); if (sel._syncLabel) sel._syncLabel(); }
+      document.querySelectorAll('#chatTransferModal input[name="ctMode"]').forEach(function(r){ r.checked = (r.value === 'auto'); });
+      document.getElementById('ctPickWrap').style.display = 'none';
+      document.getElementById('chatTransferModal').classList.add('open');
+    }
+    function closeTransferModal(){ document.getElementById('chatTransferModal').classList.remove('open'); }
+    async function doLeave(id, heir){
+      try { var body = { id: id }; if (heir) body.heir = heir;
+        var r = await fetch('/api/chat/leave', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); var d = await r.json();
+        if (d && d.ok){ closeTransferModal(); _closeThreadView(); showToast(MSGT('You left the group', 'Elhagytad a csoportot')); await loadConversations(); }
+        else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
+      } catch { showToast(MSGT('Error', 'Hiba'), true); }
+    }
+    async function chatDeleteConv(everyone){
+      var id = CHAT.curId, c = CHAT.cur; if (!id || !c) return;
+      var msg = c.type === 'group' ? MSGT('Delete this group for everyone? This cannot be undone.', 'Törlöd a csoportot mindenkinek? Ez nem vonható vissza.')
+              : everyone           ? MSGT('Delete this conversation for everyone? You and the other person will both lose it. This cannot be undone.', 'Törlöd a beszélgetést mindkettőtöknél? Te és a másik fél is elveszíti. Ez nem vonható vissza.')
+                                   : MSGT('Delete this conversation? It will be removed from your list only.', 'Törlöd ezt a beszélgetést? Csak a te listádról tűnik el.');
+      if (!(await chatConfirm(msg, { danger: true, confirmLabel: MSGT('Delete', 'Törlés') }))) return;
+      try { var body = { id: id }; if (everyone) body.everyone = true;
+        var r = await fetch('/api/chat/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); var d = await r.json();
+        if (d && d.ok){ _closeThreadView(); showToast(MSGT('Deleted', 'Törölve')); await loadConversations(); }
+        else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
+      } catch { showToast(MSGT('Error', 'Hiba'), true); }
+    }
+    async function chatBlockToggle(){
+      var other = CHAT.curOther; if (!other) return;
+      var blocking = !CHAT.curBlocked;
+      if (blocking && !(await chatConfirm(MSGT('Block ', 'Letiltod: ') + other + MSGT('? Neither of you will be able to message the other.', '? Egyikőtök sem tud majd üzenni a másiknak.'), { danger: true, confirmLabel: MSGT('Block', 'Letiltás') }))) return;
+      try { var r = await fetch('/api/chat/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: other, block: blocking }) }); var d = await r.json();
+        if (d && d.ok){ CHAT.curBlocked = !!d.blocked; showToast(d.blocked ? MSGT('Blocked', 'Letiltva') : MSGT('Unblocked', 'Feloldva')); updateComposerState(); await loadConversations(); }
+        else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
+      } catch { showToast(MSGT('Error', 'Hiba'), true); }
+    }
+
+    // ── Members & permissions modal ─────────────────────────────────────────
+    function openManageMembers(){
+      if (!CHAT.cur || CHAT.cur.type !== 'group') return;
+      document.getElementById('cmTitle').textContent = MSGT('Members & permissions', 'Tagok és jogosultságok');
+      var canManage = CHAT.cur.myRole === 'owner' || CHAT.cur.myRole === 'admin';
+      var addBtn = document.getElementById('cmAdd'); addBtn.style.display = canManage ? '' : 'none'; addBtn.textContent = MSGT('+ Add members', '+ Tagok hozzáadása');
+      document.getElementById('cmDone').textContent = MSGT('Done', 'Kész');
+      renderManageMembers();
+      document.getElementById('chatManageModal').classList.add('open');
+    }
+    function closeManageMembers(){ document.getElementById('chatManageModal').classList.remove('open'); }
+    function _roleLabel(role){ return role === 'owner' ? MSGT('Owner', 'Tulajdonos') : role === 'admin' ? MSGT('Admin', 'Adminisztrátor') : role === 'readonly' ? MSGT('Read-only', 'Csak olvasó') : MSGT('Member', 'Tag'); }
+    function renderManageMembers(){
+      var c = CHAT.cur; if (!c) return;
+      var box = document.getElementById('cmList'); var meLc = String(CHAT.me).toLowerCase();
+      var iAmOwner = c.myRole === 'owner';
+      var roles = c.roles || {};
+      box.innerHTML = '';
+      (c.participants || []).forEach(function(p){
+        var role = roles[p] || roles[String(p).toLowerCase()] || (String(p).toLowerCase() === String(c.createdBy || '').toLowerCase() ? 'owner' : 'member');
+        var row = document.createElement('div'); row.className = 'cm-row';
+        var nm = document.createElement('div'); nm.className = 'cm-name'; nm.textContent = p;
+        if (String(p).toLowerCase() === meLc){ var you = document.createElement('span'); you.className = 'cm-you'; you.textContent = MSGT('(you)', '(te)'); nm.appendChild(you); }
+        row.appendChild(nm);
+        if (iAmOwner && String(p).toLowerCase() !== meLc){
+          var sel = document.createElement('div'); sel.className = 'cm-role';
+          var s = document.createElement('select');
+          ['member', 'admin', 'readonly', 'owner'].forEach(function(rv){ var o = document.createElement('option'); o.value = rv; o.textContent = _roleLabel(rv); if (rv === role) o.selected = true; s.appendChild(o); });
+          s.addEventListener('change', function(){ cmSetRole(p, s.value); });
+          sel.appendChild(s); row.appendChild(sel);
+        } else {
+          var pill = document.createElement('span'); pill.className = 'cm-role-pill' + (role === 'owner' ? ' owner' : ''); pill.textContent = _roleLabel(role); row.appendChild(pill);
+        }
+        var canRemove = (c.myRole === 'owner' || c.myRole === 'admin') && String(p).toLowerCase() !== meLc && role !== 'owner' && !(role === 'admin' && c.myRole !== 'owner');
+        if (canRemove){ var rm = document.createElement('button'); rm.className = 'cm-remove'; rm.type = 'button'; rm.title = MSGT('Remove', 'Eltávolítás'); rm.textContent = '✕'; rm.addEventListener('click', function(){ cmRemove(p); }); row.appendChild(rm); }
+        box.appendChild(row);
+      });
+      // Use the app's themed dropdown (keeps the custom cursor) for each role selector.
+      box.querySelectorAll('.cm-role select').forEach(function(s){ if (typeof customSelect === 'function') { customSelect(s); if (s._syncLabel) s._syncLabel(); } });
+    }
+    async function cmSetRole(target, role){
+      var id = CHAT.curId; if (!id) return;
+      // Confirm the consequential promotions; on cancel, re-render to reset the dropdown.
+      if (role === 'owner') {
+        if (!(await chatConfirm(MSGT('Transfer ownership to ', 'Tulajdonjog átadása neki: ') + target + MSGT('? You will be demoted to admin.', '? Téged adminisztrátorrá fokoznak le.'), { danger: true, confirmLabel: MSGT('Transfer', 'Átadás') }))) { renderManageMembers(); return; }
+      } else if (role === 'admin') {
+        if (!(await chatConfirm(MSGT('Make ', 'Kinevezed őt: ') + target + MSGT(' an admin? They will be able to manage members and delete others’ messages.', ' adminná? Kezelheti a tagokat és törölheti mások üzeneteit.'), { confirmLabel: MSGT('Make admin', 'Admin kinevezése') }))) { renderManageMembers(); return; }
+      }
+      try { var r = await fetch('/api/chat/setRole', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, target: target, role: role }) }); var d = await r.json();
+        if (d && d.ok) showToast(MSGT('Role updated', 'Szerep frissítve'));
+        else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
+      } catch { showToast(MSGT('Error', 'Hiba'), true); }
+      await _refreshCur(); renderManageMembers();
+    }
+    async function cmRemove(target){
+      var id = CHAT.curId; if (!id) return;
+      if (!(await chatConfirm(MSGT('Remove ', 'Eltávolítod: ') + target + MSGT(' from the group?', ' a csoportból?'), { danger: true, confirmLabel: MSGT('Remove', 'Eltávolítás') }))) return;
+      try { var r = await fetch('/api/chat/removeMember', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, target: target }) }); var d = await r.json();
+        if (d && d.ok){ await _refreshCur(); renderManageMembers(); showToast(MSGT('Removed', 'Eltávolítva')); }
+        else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
+      } catch { showToast(MSGT('Error', 'Hiba'), true); }
+    }
+    // Re-pull the open conversation (after a membership/role change) without leaving the modal.
+    async function _refreshCur(){
+      var id = CHAT.curId; if (!id) return;
+      try { var r = await fetch('/api/chat/messages?id=' + encodeURIComponent(id)); var d = await r.json(); if (d && d.ok){ CHAT.cur = d; renderThread(d.messages || [], d.type); updateComposerState(); } } catch {}
+    }
     /* ── Connectivity, presence & a per-device offline outbox ─────────────── */
     const NET = { online: (typeof navigator !== 'undefined' ? navigator.onLine !== false : true) };
     function updateNetUI() {
@@ -5505,6 +6191,7 @@
     async function sendChatMessage() {
       const inp = document.getElementById('chatInput'); if (!inp) return;
       const text = inp.value.trim(); if (!text) return;
+      if (CHAT.editMid) return saveEditMessage(text);   // edit-in-place, not a new message
       if (!CHAT.curId && !CHAT.pendingTo) return;
       inp.value = ''; chatAutosize();
       const item = { tempId: 'o' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), kind: 'chat', convId: CHAT.curId || null, to: CHAT.pendingTo || null, replyTo: CHAT.replyTo || null, body: text, ts: Date.now(), tries: 0, status: 'sending' };
@@ -5636,7 +6323,7 @@
       on('chatNewDm', () => openPicker('dm'));
       on('chatNewGroup', () => openPicker('group'));
       on('chatAddMember', () => openPicker('add'));
-      on('chatBack', () => { document.getElementById('chatShell').classList.remove('thread-open'); CHAT.curId = null; CHAT.pendingTo = null; cancelReply(); renderConvList(); });
+      on('chatBack', () => { document.getElementById('chatShell').classList.remove('thread-open'); CHAT.curId = null; CHAT.cur = null; CHAT.pendingTo = null; cancelReply(); cancelEdit(); document.getElementById('chatConvMenu').style.display = 'none'; document.getElementById('chatAddMember').style.display = 'none'; renderConvList(); });
       on('chatSend', sendChatMessage);
       on('chatInput', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }, 'keydown');
       on('chatInput', chatAutosize, 'input');
@@ -5644,6 +6331,17 @@
       on('chatPickCancel', closePicker);
       on('chatPickGo', pickerGo);
       on('chatReplyCancel', cancelReply);
+      on('chatEditCancel', cancelEdit);
+      on('chatConvMenu', () => openConvMenu(document.getElementById('chatConvMenu')));
+      on('cmClose', closeManageMembers);
+      on('cmDone', closeManageMembers);
+      on('cmAdd', () => { closeManageMembers(); openPicker('add'); });
+      const cmm = document.getElementById('chatManageModal'); if (cmm) cmm.addEventListener('click', e => { if (e.target.id === 'chatManageModal') closeManageMembers(); });
+      on('ctX', closeTransferModal);
+      on('ctCancel', closeTransferModal);
+      on('ctConfirm', () => { const mode = (document.querySelector('#chatTransferModal input[name="ctMode"]:checked') || {}).value; const heir = mode === 'choose' ? document.getElementById('ctHeir').value : null; doLeave(CHAT.curId, heir); });
+      document.querySelectorAll('#chatTransferModal input[name="ctMode"]').forEach(r => r.addEventListener('change', () => { document.getElementById('ctPickWrap').style.display = (document.querySelector('#chatTransferModal input[name="ctMode"]:checked') || {}).value === 'choose' ? '' : 'none'; }));
+      const ctm = document.getElementById('chatTransferModal'); if (ctm) ctm.addEventListener('click', e => { if (e.target.id === 'chatTransferModal') closeTransferModal(); });
       on('mobSettingsBtn', () => { const dr = document.getElementById('mobileMenuDrawer'); const mb = document.getElementById('mobileMenuBtn'); if (dr) dr.classList.remove('open'); if (mb) mb.classList.remove('open'); const sb = document.getElementById('settingsBtn'); if (sb) sb.click(); });
       on('chatUserFilter', renderPickerUsers, 'input');
       on('accessClose', closeAccessModal);
@@ -5651,7 +6349,7 @@
       on('accessSend', sendAccessRequest);
       const am = document.getElementById('accessModal'); if (am) am.addEventListener('click', e => { if (e.target.id === 'accessModal') closeAccessModal(); });
       const cp = document.getElementById('chatPicker'); if (cp) cp.addEventListener('click', e => { if (e.target.id === 'chatPicker') closePicker(); });
-      document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAccessModal(); closePicker(); } });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAccessModal(); closePicker(); closeManageMembers(); closeTransferModal(); closeFloatMenu(); } });
       _msgPollTimer = setInterval(pollUnread, 45000);
       // Connectivity + presence heartbeat + offline-outbox retry
       window.addEventListener('online',  () => pingServer());
@@ -5751,19 +6449,36 @@
     let pdfCurrentLang= 'en';  // material language of the open document
     let codeCurPath = '', codeCurName = '', codeCurLang = 'en';
     let pdfViewerCtx  = null;  // { enPath,enName,huPath,huName,enAvailable,huAvailable,curLang }
+    // Viewer gear settings: download format ('pdf'|'tex') and pages shown at once in single-page mode.
+    let pdfDlFmt = (localStorage.getItem('ki_pdf_dlfmt') === 'tex') ? 'tex' : 'pdf';
+    let pdfPPV   = Math.min(3, Math.max(1, parseInt(localStorage.getItem('ki_pdf_ppv'), 10) || 1));
+    function pdfWindowMode() { return pdfPPV > 1 && !pdfFullDocMode; }
+    function pdfPageStep() { return pdfWindowMode() ? pdfPPV : 1; }
 
     // Build the viewer's language context from the clicked item so the EN/HU
     // toggle inside the viewer can recompile the counterpart document.
     function setPdfViewerCtx(item, texPath, texName, lang) {
+      // If we were handed a thin item (e.g. opened from a search/shared link) that
+      // lacks counterpart info, recover the full node from the live tree so the
+      // in-viewer EN/HU switch can still find the other-language file.
+      if ((!item || (!item.enPath && !item.huPath)) && typeof treeData !== 'undefined' && treeData && typeof collectAllItems === 'function') {
+        try {
+          const files = collectAllItems(treeData).filter(it => it.type === 'file');
+          const np = String(texPath), base = np.split('/').pop();
+          const found = files.find(it => it.path === np || it.enPath === np || it.huPath === np)
+                     || files.find(it => [it.path, it.enPath, it.huPath].some(p => p && String(p).split('/').pop() === base));
+          if (found) item = found;
+        } catch (e) {}
+      }
       if (item) {
+        // Availability is derived from whether a path exists on each side — more
+        // robust than trusting separate *Available flags that some entry points omit.
+        const enP = item.enPath || (item.lang === 'en' ? item.path : (lang === 'en' ? texPath : null));
+        const huP = item.huPath || (item.lang === 'hu' ? item.path : (lang === 'hu' ? texPath : null));
         pdfViewerCtx = {
-          enPath: item.enPath || (item.lang === 'en' ? item.path : null),
-          enName: item.enName || (item.lang === 'en' ? item.name : null),
-          huPath: item.huPath || (item.lang === 'hu' ? item.path : null),
-          huName: item.huName || (item.lang === 'hu' ? item.name : null),
-          enAvailable: item.enAvailable !== undefined ? !!item.enAvailable : (lang === 'en'),
-          huAvailable: item.huAvailable !== undefined ? !!item.huAvailable : (lang === 'hu'),
-          curLang: lang,
+          enPath: enP, enName: item.enName || (item.lang === 'en' ? item.name : (lang === 'en' ? texName : null)),
+          huPath: huP, huName: item.huName || (item.lang === 'hu' ? item.name : (lang === 'hu' ? texName : null)),
+          enAvailable: !!enP, huAvailable: !!huP, curLang: lang,
         };
       } else {
         pdfViewerCtx = {
@@ -5771,6 +6486,20 @@
           huPath: lang === 'hu' ? texPath : null, huName: lang === 'hu' ? texName : null,
           enAvailable: lang !== 'hu', huAvailable: lang === 'hu', curLang: lang,
         };
+      }
+      // If a counterpart side is still missing, ask the server (it resolves links the
+      // local tree may have missed) and enable the EN/HU switch when it comes back.
+      if (pdfViewerCtx && (!pdfViewerCtx.enPath || !pdfViewerCtx.huPath)) {
+        const _forPath = texPath;
+        fetch('/api/note/counterpart?lang=' + (lang === 'hu' ? 'hu' : 'en') + '&path=' + encodeURIComponent(texPath))
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            if (!d || !d.ok || d.none || !d.path) return;
+            if (pdfCurrentPath !== _forPath || !pdfViewerCtx) return; // a different note is open now
+            if (d.lang === 'en' && !pdfViewerCtx.enPath) { pdfViewerCtx.enPath = d.path; pdfViewerCtx.enName = d.name; pdfViewerCtx.enAvailable = true; }
+            else if (d.lang === 'hu' && !pdfViewerCtx.huPath) { pdfViewerCtx.huPath = d.path; pdfViewerCtx.huName = d.name; pdfViewerCtx.huAvailable = true; }
+            if (window._syncPdfQs) window._syncPdfQs();
+          }).catch(function(){});
       }
     }
 
@@ -5933,8 +6662,9 @@
         document.getElementById('pdfNavNext').classList.remove('nav-disabled');
         // Elite reveal of the first rendered page.
         pdfCanvas.classList.remove('pdf-reveal'); void pdfCanvas.offsetWidth; pdfCanvas.classList.add('pdf-reveal');
-        // fitToWidth handles both single-page and full-doc modes
-        fitToWidth();
+        // fitToWidth handles both single-page and full-doc modes; `true` opens a
+        // touch below fit (two zoom steps) as the default view.
+        fitToWidth(true);
         updateSideNavState();
         // Sync quick-settings buttons
         if (window._syncPdfQs) window._syncPdfQs();
@@ -6003,6 +6733,33 @@
       updateSideNavState(); // page-nav is disabled in full-doc mode
     }
 
+    /* Restore the single persistent canvas into the wrap (after full-doc / window mode). */
+    function ensureSingleCanvas() {
+      const wrap = document.querySelector('#pdfBody .pdf-canvas-wrap');
+      if (wrap && !wrap.contains(pdfCanvas)) { wrap.innerHTML = ''; wrap.appendChild(pdfCanvas); }
+    }
+    /* Single-page mode showing N pages at once (the gear's "pages per view"). Renders a
+       window [pdfPage … pdfPage+N-1] as stacked canvases; page-nav steps by N. */
+    function renderWindow() {
+      if (!pdfDoc) return;
+      const body = document.getElementById('pdfBody');
+      const wrap = body.querySelector('.pdf-canvas-wrap');
+      body.classList.remove('full-doc-mode'); // keep page-nav enabled in windowed mode
+      const from = Math.max(1, Math.min(pdfPage, pdfDoc.numPages));
+      const to   = Math.min(pdfDoc.numPages, from + pdfPPV - 1);
+      pdfPage = from;
+      wrap.innerHTML = '';
+      for (let n = from; n <= to; n++) {
+        const cv = document.createElement('canvas'); cv.dataset.pageNum = n;
+        wrap.appendChild(cv);
+        pdfDoc.getPage(n).then(page => renderPageToCanvas(page, cv, pdfZoom)).catch(() => {});
+      }
+      body.scrollTop = 0;
+      document.getElementById('pdfPageInput').value = from;
+      updateMobileBar();
+      updateSideNavState();
+    }
+
     /* ── Exit full-doc mode back to single-page ───────────────────────── */
     function exitFullDocMode() {
       const body = document.getElementById('pdfBody');
@@ -6011,13 +6768,15 @@
       body.classList.remove('pdf-zoomed');
       wrap.innerHTML = '';
       wrap.appendChild(pdfCanvas);
-      fitToWidth(); // always re-fit so we open clean with no x-scrollbar
+      fitToWidth(true); // re-apply the default (comfortable) fit zoom for the new mode
       updateSideNavState(); // re-enable page-nav now we're back to single-page
     }
 
     function renderPage(num) {
       if (!pdfDoc) return;
       if (pdfFullDocMode) { renderFullDoc(); return; } // redirect to full-doc
+      if (pdfPPV > 1) { pdfPage = Math.max(1, Math.min(num, pdfDoc.numPages)); renderWindow(); return; } // multi-page window
+      ensureSingleCanvas();
       if (pdfRendering) { pdfPendingPage = num; return; }
       pdfRendering = true;
       pdfCanvas.classList.add('loading-page');
@@ -6041,11 +6800,33 @@
     // can call it safely before the viewer state exists at page load).
     window._rerenderPdfTheme = function() {
       if (!pdfDoc) return;
-      if (pdfFullDocMode) { renderFullDoc(); return; }
-      pdfRendering = false;
-      const cur = parseInt(document.getElementById('pdfPageInput').value, 10) || pdfPage || 1;
-      renderPage(cur);
+      let canvases;
+      if (pdfFullDocMode || pdfPPV > 1) {
+        const wrap = document.querySelector('#pdfBody .pdf-canvas-wrap');
+        canvases = wrap ? [].slice.call(wrap.querySelectorAll('canvas')) : [];
+        if (!canvases.length) { if (pdfFullDocMode) renderFullDoc(); else renderWindow(); return; }
+      } else {
+        pdfRendering = false; ensureSingleCanvas(); pdfCanvas.dataset.pageNum = pdfPage; canvases = [pdfCanvas];
+      }
+      pdfThemeSweep(pdfDoc, canvases, pdfZoom);
     };
+    // Re-tint pages with a slow diagonal wipe that sweeps in the new colours from the
+    // top-left toward the bottom-right (ordered by on-screen position, gently staggered
+    // so low-end devices stay smooth).
+    function pdfThemeSweep(doc, canvases, zoom) {
+      const list = canvases.slice().sort(function(a, b){ const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect(); return (ra.top - rb.top) || (ra.left - rb.left); });
+      let i = 0;
+      (function step() {
+        if (i >= list.length) return;
+        const cv = list[i++], n = parseInt(cv.dataset.pageNum, 10) || 1;
+        doc.getPage(n).then(function(page){ return renderPageToCanvas(page, cv, zoom); }).then(function(){
+          cv.classList.remove('pdf-theme-wipe'); void cv.offsetWidth; cv.classList.add('pdf-theme-wipe');
+          cv.addEventListener('animationend', function(){ cv.classList.remove('pdf-theme-wipe'); }, { once: true });
+        }).catch(function(){});
+        setTimeout(step, 130);
+      })();
+    }
+    window._pdfThemeSweep = pdfThemeSweep;
 
     function updateSideNavState() {
       const prev = document.getElementById('pdfNavPrev');
@@ -6053,7 +6834,7 @@
       const tPrev = document.getElementById('pdfPrevPage');
       const tNext = document.getElementById('pdfNextPage');
       const atFirst = !pdfDoc || pdfPage <= 1;
-      const atLast  = !pdfDoc || pdfPage >= (pdfDoc ? pdfDoc.numPages : 1);
+      const atLast  = !pdfDoc || (pdfPage + (pdfWindowMode() ? pdfPPV - 1 : 0)) >= (pdfDoc ? pdfDoc.numPages : 1);
       // Page-by-page nav is meaningless in full-document (scroll) mode → disable it.
       const offFirst = pdfFullDocMode || atFirst, offLast = pdfFullDocMode || atLast;
       if (prev)  prev.classList.toggle('nav-disabled', offFirst);
@@ -6073,7 +6854,7 @@
       else                              body.classList.remove('pdf-zoomed');
     }
 
-    function fitToWidth() {
+    function fitToWidth(initial) {
       if (!pdfDoc) return;
       // Double-rAF: first frame lets the browser finish painting the modal at full
       // size, second frame reads the now-stable clientWidth.
@@ -6084,6 +6865,9 @@
           const vp    = page.getViewport({ scale: 1 });
           pdfZoom    = bodyW > 0 ? Math.min(2.5, bodyW / vp.width) : 1.0;
           pdfFitZoom = pdfZoom; // remember the fit level
+          // On first open, default to two zoom steps below an exact fit so the page
+          // has a little breathing room instead of butting against the edges.
+          if (initial) pdfZoom = Math.max(0.25, pdfFitZoom - 0.30);
           document.getElementById('pdfZoomPct').textContent = Math.round(pdfZoom * 100) + '%';
           if (pdfFullDocMode) {
             renderFullDoc();
@@ -6100,11 +6884,11 @@
     /* PDF toolbar controls */
     document.getElementById('pdfPrevPage').addEventListener('click', () => {
       if (!pdfDoc || pdfPage<=1) return;
-      pdfPage--; renderPage(pdfPage);
+      pdfPage = Math.max(1, pdfPage - pdfPageStep()); renderPage(pdfPage);
     });
     document.getElementById('pdfNextPage').addEventListener('click', () => {
       if (!pdfDoc || pdfPage>=pdfDoc.numPages) return;
-      pdfPage++; renderPage(pdfPage);
+      pdfPage = Math.min(pdfDoc.numPages, pdfPage + pdfPageStep()); renderPage(pdfPage);
     });
     document.getElementById('pdfPageInput').addEventListener('change', function() {
       if (!pdfDoc) return;
@@ -6125,16 +6909,16 @@
       markZoomState();
       renderPage(pdfPage);
     });
-    document.getElementById('pdfZoomFit').addEventListener('click', fitToWidth);
+    document.getElementById('pdfZoomFit').addEventListener('click', () => fitToWidth()); // exact fit (no initial offset)
 
     /* ── PDF side navigation buttons ────────────────────────────────── */
     document.getElementById('pdfNavPrev').addEventListener('click', () => {
       if (!pdfDoc || pdfPage <= 1) return;
-      pdfPage--; renderPage(pdfPage); updateMobileBar(); updateSideNavState();
+      pdfPage = Math.max(1, pdfPage - pdfPageStep()); renderPage(pdfPage); updateMobileBar(); updateSideNavState();
     });
     document.getElementById('pdfNavNext').addEventListener('click', () => {
       if (!pdfDoc || pdfPage >= pdfDoc.numPages) return;
-      pdfPage++; renderPage(pdfPage); updateMobileBar(); updateSideNavState();
+      pdfPage = Math.min(pdfDoc.numPages, pdfPage + pdfPageStep()); renderPage(pdfPage); updateMobileBar(); updateSideNavState();
     });
 
     // Zoom percentage click-to-edit
@@ -6404,6 +7188,7 @@
         if (qsDM) qsDM.classList.toggle('on', pdfFullDocMode);
         const pshDM = document.getElementById('pshQsDocMode');
         if (pshDM) pshDM.style.borderColor = pdfFullDocMode ? 'rgba(196,161,60,.4)' : '';
+        if (window._syncPp1) window._syncPp1();
       }
 
       // Theme toggle in PDF
@@ -6438,7 +7223,7 @@
           localStorage.setItem(PDF_FULL_DOC_KEY, pdfFullDocMode ? '1' : '0');
           syncPdfQs();
           if (pdfDoc) {
-            if (pdfFullDocMode) renderFullDoc();
+            if (pdfFullDocMode) fitToWidth(true); // enter full-doc at the default fit zoom
             else exitFullDocMode();
           }
         });
@@ -6453,6 +7238,244 @@
 
       // Expose so settings modal toggle can call it too
       window._syncPdfQs = syncPdfQs;
+    })();
+
+    /* ── PDF viewer gear menu (interface language · download format · pages/view) ── */
+    (function() {
+      const gearBtn = document.getElementById('pdfGear'), gearPop = document.getElementById('pdfGearPop');
+      if (!gearBtn || !gearPop) return;
+      function syncGear() {
+        const setSeg = (id, val, attr) => { const c = document.getElementById(id); if (!c) return; c.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.getAttribute(attr) === String(val))); };
+        setSeg('pgpLang', LANG, 'data-l'); setSeg('pgpFmt', pdfDlFmt, 'data-f'); setSeg('pgpPPV', pdfPPV, 'data-p');
+      }
+      window._syncPdfGear = syncGear;
+      function closeGear() { gearPop.classList.remove('open'); document.removeEventListener('mousedown', _outside, true); }
+      function _outside(e) { if (!gearPop.contains(e.target) && !gearBtn.contains(e.target)) closeGear(); }
+      gearBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (gearPop.classList.contains('open')) { closeGear(); return; }
+        syncGear(); gearPop.classList.add('open');
+        setTimeout(() => document.addEventListener('mousedown', _outside, true), 0);
+      });
+      document.getElementById('pgpLang').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { switchLang(b.getAttribute('data-l')); syncGear(); }));
+      document.getElementById('pgpFmt').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { pdfDlFmt = b.getAttribute('data-f') === 'tex' ? 'tex' : 'pdf'; localStorage.setItem('ki_pdf_dlfmt', pdfDlFmt); syncGear(); }));
+      document.getElementById('pgpPPV').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        pdfPPV = Math.min(3, Math.max(1, parseInt(b.getAttribute('data-p'), 10) || 1));
+        localStorage.setItem('ki_pdf_ppv', String(pdfPPV)); syncGear();
+        if (pdfDoc && !pdfFullDocMode) { if (pdfPPV > 1) renderWindow(); else { ensureSingleCanvas(); renderPage(pdfPage); } }
+      }));
+      // Honour the TeX download-format preference: grab the source instead of the page-PDF modal.
+      document.getElementById('pdfDownload').addEventListener('click', e => {
+        if (pdfDlFmt === 'tex') { e.stopImmediatePropagation(); downloadTexSource(); }
+      }, true);
+      function downloadTexSource() {
+        const p = pdfCurrentPath, lang = pdfCurrentLang || LANG; if (!p) return;
+        const ext = (String(pdfCurrentName).match(/\.[a-z]+$/i) || ['.tex'])[0];
+        fetch('/data/' + encPath(p) + '?lang=' + lang)
+          .then(r => r.ok ? r.blob() : Promise.reject(new Error('http ' + r.status)))
+          .then(blob => {
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = displayFileName(pdfCurrentName) + ext;
+            document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+            showToast(MSGT('Source downloaded', 'Forrás letöltve'));
+          })
+          .catch(() => showToast(MSGT('Could not download the source', 'Nem sikerült letölteni a forrást'), true));
+      }
+    })();
+
+    // Re-fit the primary (left) pane after the split layout changes its width.
+    // In split view both panes default to exact fit; when not split, the comfortable
+    // (two-steps-below-fit) default is used.
+    window._refitPrimary = function() { if (pdfDoc) fitToWidth(!document.getElementById('pdfPanes').classList.contains('split')); };
+
+    /* ── Second viewer pane (dual-note split view) ──────────────────────── */
+    (function() {
+      const panes = document.getElementById('pdfPanes'), pane = document.getElementById('pdfPane2');
+      if (!panes || !pane) return;
+      const cv = document.getElementById('pp2Canvas'), body = document.getElementById('pp2Body'), overlay = document.getElementById('pp2Overlay');
+      const V2 = { doc:null, bytes:null, zoom:1, fit:1, page:1, fullDoc:false, ppv:1, dlfmt:'pdf', path:'', name:'', lang:'en', enPath:null, enName:null, huPath:null, huName:null };
+      const wrap = () => body.querySelector('.pdf-canvas-wrap');
+      const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      function ensureSingle() { const w = wrap(); if (w && !w.contains(cv)) { w.innerHTML = ''; w.appendChild(cv); } }
+      function showOverlay(label) { overlay.classList.remove('hidden'); const l = document.getElementById('pp2CompLabel'); if (l) l.textContent = label || t('compilingLabel'); }
+      function hideOverlay() { overlay.classList.add('hidden'); }
+
+      function _resolveItem(item) {
+        const enP = item.enPath || (item.lang === 'en' ? item.path : null);
+        const huP = item.huPath || (item.lang === 'hu' ? item.path : null);
+        const pref = (typeof OPEN_LANG !== 'undefined' && OPEN_LANG === 'hu') ? 'hu' : 'en';
+        let lang, p, nm;
+        if (pref === 'hu' && huP) { lang = 'hu'; p = huP; nm = item.huName || item.name; }
+        else if (enP) { lang = 'en'; p = enP; nm = item.enName || item.name; }
+        else if (huP) { lang = 'hu'; p = huP; nm = item.huName || item.name; }
+        else { lang = item.lang || 'en'; p = item.path; nm = item.name; }
+        return { lang, path: p, name: nm, enPath: enP, enName: item.enName || (item.lang === 'en' ? item.name : null), huPath: huP, huName: item.huName || (item.lang === 'hu' ? item.name : null) };
+      }
+      async function compileV2() {
+        showOverlay(); V2.doc = null;
+        const ext = (String(V2.name).match(/\.[a-z]+$/i) || ['.tex'])[0].toLowerCase();
+        try {
+          let bytes;
+          if (ext === '.pdf') {
+            const r = await fetch('/data/' + encPath(V2.path) + '?lang=' + V2.lang);
+            if (!r.ok) throw new Error('http ' + r.status);
+            bytes = new Uint8Array(await r.arrayBuffer());
+          } else {
+            const r = await fetch('/api/compile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: V2.path, lang: V2.lang }) });
+            const ctype = r.headers.get('content-type') || '';
+            if (!r.ok || !ctype.includes('application/pdf')) { let msg = ''; try { msg = (await r.json()).log || ''; } catch (e) {} throw new Error(msg || ('compile failed (' + r.status + ')')); }
+            bytes = new Uint8Array(await r.arrayBuffer());
+          }
+          V2.bytes = bytes;
+          V2.doc = await pdfjsLib.getDocument({ data: bytes }).promise;
+          V2.page = 1; hideOverlay(); fitV2(false); sync(); // split panes default to exact fit
+        } catch (e) {
+          showOverlay('⚠ ' + String((e && e.message) || 'Failed').split('\n')[0].slice(0, 140));
+        }
+      }
+      function fitV2(initial) {
+        if (!V2.doc) return;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          V2.doc.getPage(V2.page).then(pg => {
+            const bw = body.clientWidth - 36, vp = pg.getViewport({ scale: 1 });
+            V2.zoom = bw > 0 ? Math.min(2.5, bw / vp.width) : 1; V2.fit = V2.zoom;
+            if (initial) V2.zoom = Math.max(0.25, V2.fit - 0.30);
+            renderV2();
+          });
+        }));
+      }
+      function step() { return (!V2.fullDoc && V2.ppv > 1) ? V2.ppv : 1; }
+      function renderV2() {
+        if (!V2.doc) return;
+        const w = wrap(); if (!w) return;
+        if (V2.fullDoc || V2.ppv > 1) {
+          const from = V2.fullDoc ? 1 : Math.max(1, Math.min(V2.page, V2.doc.numPages));
+          const to   = V2.fullDoc ? V2.doc.numPages : Math.min(V2.doc.numPages, from + V2.ppv - 1);
+          V2.page = from; w.innerHTML = '';
+          for (let n = from; n <= to; n++) { const c = document.createElement('canvas'); c.dataset.pageNum = n; w.appendChild(c); V2.doc.getPage(n).then(pg => renderPageToCanvas(pg, c, V2.zoom)).catch(() => {}); }
+          body.scrollTop = 0;
+        } else {
+          ensureSingle(); cv.classList.add('loading-page');
+          V2.doc.getPage(V2.page).then(pg => renderPageToCanvas(pg, cv, V2.zoom)).then(() => cv.classList.remove('loading-page')).catch(() => cv.classList.remove('loading-page'));
+        }
+        setTxt('pp2Pct', Math.round(V2.zoom * 100) + '%');
+        setTxt('pp2PageInfo', V2.fullDoc ? ('1–' + V2.doc.numPages) : (V2.page + (V2.ppv > 1 ? ('–' + Math.min(V2.doc.numPages, V2.page + V2.ppv - 1)) : '') + ' / ' + V2.doc.numPages));
+        const atFirst = V2.page <= 1, atLast = (V2.page + ((!V2.fullDoc && V2.ppv > 1) ? V2.ppv - 1 : 0)) >= V2.doc.numPages;
+        const pv = document.getElementById('pp2Prev'), nx = document.getElementById('pp2Next');
+        if (pv) pv.classList.toggle('nav-disabled', atFirst || V2.fullDoc);
+        if (nx) nx.classList.toggle('nav-disabled', atLast || V2.fullDoc);
+      }
+      function sync() {
+        setTxt('pp2Name', displayFileName(V2.name));
+        const en = document.getElementById('pp2EN'), hu = document.getElementById('pp2HU');
+        if (en) { en.classList.toggle('active', V2.lang === 'en'); en.disabled = !V2.enPath; }
+        if (hu) { hu.classList.toggle('active', V2.lang === 'hu'); hu.disabled = !V2.huPath; }
+        const dm = document.getElementById('pp2DocMode'); if (dm) dm.classList.toggle('on', V2.fullDoc);
+        document.querySelectorAll('#pp2Fmt button').forEach(b => b.classList.toggle('active', b.getAttribute('data-f') === V2.dlfmt));
+        document.querySelectorAll('#pp2PPV button').forEach(b => b.classList.toggle('active', b.getAttribute('data-p') === String(V2.ppv)));
+      }
+      function open(item) {
+        const r = _resolveItem(item);
+        Object.assign(V2, { path: r.path, name: r.name, lang: r.lang, enPath: r.enPath, enName: r.enName, huPath: r.huPath, huName: r.huName, page: 1, fullDoc: false });
+        panes.classList.add('split'); pdfModal.classList.add('split-on'); sync();
+        if (window._refitPrimary) window._refitPrimary();
+        if (window._syncPdfQs) window._syncPdfQs();
+        if (window._syncPp1) window._syncPp1();
+        compileV2();
+      }
+      function close() { panes.classList.remove('split'); pdfModal.classList.remove('split-on'); V2.doc = null; V2.bytes = null; if (window._refitPrimary) window._refitPrimary(); }
+      window._openPane2 = open; window._closePane2 = close;
+      window._rerenderPane2 = function() {
+        if (!V2.doc || !panes.classList.contains('split')) return;
+        const w = wrap(); let canvases;
+        if (V2.fullDoc || V2.ppv > 1) { canvases = w ? [].slice.call(w.querySelectorAll('canvas')) : []; if (!canvases.length) { renderV2(); return; } }
+        else { ensureSingle(); cv.dataset.pageNum = V2.page; canvases = [cv]; }
+        if (window._pdfThemeSweep) window._pdfThemeSweep(V2.doc, canvases, V2.zoom); else renderV2();
+      };
+
+      const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+      on('pp2ZoomIn',  () => { V2.zoom = Math.min(3.5, V2.zoom + 0.15); renderV2(); });
+      on('pp2ZoomOut', () => { V2.zoom = Math.max(0.25, V2.zoom - 0.15); renderV2(); });
+      on('pp2Fit',     () => fitV2(false));
+      on('pp2Prev',    () => { if (V2.page <= 1) return; V2.page = Math.max(1, V2.page - step()); renderV2(); });
+      on('pp2Next',    () => { if (!V2.doc || V2.page >= V2.doc.numPages) return; V2.page = Math.min(V2.doc.numPages, V2.page + step()); renderV2(); });
+      on('pp2EN', () => { if (V2.lang === 'en' || !V2.enPath) return; V2.lang = 'en'; V2.path = V2.enPath; V2.name = V2.enName || V2.name; V2.page = 1; sync(); compileV2(); });
+      on('pp2HU', () => { if (V2.lang === 'hu' || !V2.huPath) return; V2.lang = 'hu'; V2.path = V2.huPath; V2.name = V2.huName || V2.name; V2.page = 1; sync(); compileV2(); });
+      on('pp2DocMode', () => { V2.fullDoc = !V2.fullDoc; sync(); fitV2(true); });
+      on('pp2Close', close);
+      on('pp2Download', () => {
+        if (V2.dlfmt === 'tex') {
+          const ext = (String(V2.name).match(/\.[a-z]+$/i) || ['.tex'])[0];
+          fetch('/data/' + encPath(V2.path) + '?lang=' + V2.lang).then(r => r.blob()).then(blob => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = displayFileName(V2.name) + ext; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }).catch(() => showToast(MSGT('Could not download', 'Nem sikerült letölteni'), true));
+        } else if (V2.bytes) {
+          const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([V2.bytes], { type: 'application/pdf' })); a.download = displayFileName(V2.name) + '.pdf'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+      });
+      on('pp2Print', () => { if (!V2.bytes) return; const u = URL.createObjectURL(new Blob([V2.bytes], { type: 'application/pdf' })); const w = window.open(u, '_blank'); if (w) w.addEventListener('load', () => { w.focus(); w.print(); }); setTimeout(() => URL.revokeObjectURL(u), 60000); });
+      on('pp2Discussion', () => { if (typeof openNotePanel === 'function') openNotePanel(V2.path, V2.name, V2.lang); });
+
+      const gearBtn = document.getElementById('pp2Gear'), gearPop = document.getElementById('pp2GearPop');
+      function closeGear() { gearPop.classList.remove('open'); document.removeEventListener('mousedown', _out, true); }
+      function _out(e) { if (!gearPop.contains(e.target) && !gearBtn.contains(e.target)) closeGear(); }
+      if (gearBtn) gearBtn.addEventListener('click', e => { e.stopPropagation(); if (gearPop.classList.contains('open')) { closeGear(); return; } sync(); gearPop.classList.add('open'); setTimeout(() => document.addEventListener('mousedown', _out, true), 0); });
+      document.querySelectorAll('#pp2Fmt button').forEach(b => b.addEventListener('click', () => { V2.dlfmt = b.getAttribute('data-f') === 'tex' ? 'tex' : 'pdf'; sync(); }));
+      document.querySelectorAll('#pp2PPV button').forEach(b => b.addEventListener('click', () => { V2.ppv = Math.min(3, Math.max(1, parseInt(b.getAttribute('data-p'), 10) || 1)); sync(); if (V2.doc && !V2.fullDoc) renderV2(); }));
+    })();
+
+    // Open two notes side by side: note A in the primary viewer, note B in the second pane.
+    function openDualNotes(a, b) {
+      handleClick(a);
+      if (window.innerWidth <= 768) { showToast(MSGT('Split view is desktop only', 'Az osztott nézet csak asztali gépen érhető el')); return; }
+      setTimeout(() => { if (window._openPane2) window._openPane2(b); }, 450);
+    }
+    // Open a note (by path) directly into the second pane (used by the Split picker).
+    function openPaneByPath(p, lang) {
+      let item = null;
+      try { item = collectAllItems(treeData).filter(it => it.type === 'file').find(it => it.path === p || it.enPath === p || it.huPath === p); } catch (e) {}
+      if (!item) item = { type: 'file', path: p, name: String(p).split('/').pop(), lang: lang || 'en' };
+      if (window._openPane2) window._openPane2(item);
+    }
+
+    /* ── Left-pane header (split view): proxies to the primary viewer controls so both
+       panes are equal peers, plus its own gear and a display sync. ── */
+    (function() {
+      const click = id => { const el = document.getElementById(id); if (el) el.click(); };
+      const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+      on('pp1ZoomOut', () => click('pdfZoomOut'));
+      on('pp1ZoomIn',  () => click('pdfZoomIn'));
+      on('pp1Fit',     () => click('pdfZoomFit'));
+      on('pp1Prev',    () => click('pdfPrevPage'));
+      on('pp1Next',    () => click('pdfNextPage'));
+      on('pp1EN',      () => { const b = document.getElementById('pdfQsEN'); if (b && !b.disabled) b.click(); });
+      on('pp1HU',      () => { const b = document.getElementById('pdfQsHU'); if (b && !b.disabled) b.click(); });
+      on('pp1DocMode', () => click('pdfQsDocMode'));
+      on('pp1Download',() => click('pdfDownload'));
+      on('pp1Print',   () => click('pdfPrint'));
+      on('pp1Discussion', () => { if (typeof openNotePanel2 === 'function') openNotePanel2(pdfCurrentPath, pdfCurrentName, pdfCurrentLang); });
+      on('pp1Close',   () => click('pdfClose'));
+      // pp1 gear → same global settings as the main gear.
+      const gb = document.getElementById('pp1Gear'), gp = document.getElementById('pp1GearPop');
+      function closeG() { gp.classList.remove('open'); document.removeEventListener('mousedown', outG, true); }
+      function outG(e) { if (!gp.contains(e.target) && !gb.contains(e.target)) closeG(); }
+      if (gb) gb.addEventListener('click', e => { e.stopPropagation(); if (gp.classList.contains('open')) { closeG(); return; } syncGearPP1(); gp.classList.add('open'); setTimeout(() => document.addEventListener('mousedown', outG, true), 0); });
+      function syncGearPP1() {
+        const seg = (id, val, attr) => { const c = document.getElementById(id); if (c) c.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.getAttribute(attr) === String(val))); };
+        seg('pp1Lang', LANG, 'data-l'); seg('pp1Fmt', pdfDlFmt, 'data-f'); seg('pp1PPV', pdfPPV, 'data-p');
+      }
+      document.querySelectorAll('#pp1Lang button').forEach(b => b.addEventListener('click', () => { switchLang(b.getAttribute('data-l')); syncGearPP1(); }));
+      document.querySelectorAll('#pp1Fmt button').forEach(b => b.addEventListener('click', () => { pdfDlFmt = b.getAttribute('data-f') === 'tex' ? 'tex' : 'pdf'; localStorage.setItem('ki_pdf_dlfmt', pdfDlFmt); syncGearPP1(); }));
+      document.querySelectorAll('#pp1PPV button').forEach(b => b.addEventListener('click', () => { pdfPPV = Math.min(3, Math.max(1, parseInt(b.getAttribute('data-p'), 10) || 1)); localStorage.setItem('ki_pdf_ppv', String(pdfPPV)); syncGearPP1(); if (pdfDoc && !pdfFullDocMode) { if (pdfPPV > 1) renderWindow(); else { ensureSingleCanvas(); renderPage(pdfPage); } } }));
+      // Mirror the primary viewer's state into the left-pane bar.
+      window._syncPp1 = function() {
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        set('pp1Name', (document.getElementById('pdfFilename') || {}).textContent || '');
+        set('pp1Pct', (document.getElementById('pdfZoomPct') || {}).textContent || '');
+        const pi = document.getElementById('pdfPageInput'), tp = document.getElementById('pdfTotalPages');
+        set('pp1PageInfo', pi && tp ? (pi.value + ' / ' + tp.textContent) : '—');
+        const cp = id => document.getElementById(id);
+        ['EN', 'HU'].forEach(L => { const src = cp('pdfQs' + L), dst = cp('pp1' + L); if (src && dst) { dst.classList.toggle('active', src.classList.contains('active')); dst.disabled = src.disabled; } });
+        const dm = cp('pp1DocMode'), sdm = cp('pdfQsDocMode'); if (dm && sdm) dm.classList.toggle('on', sdm.classList.contains('on'));
+      };
     })();
 
     /* Re-fit whenever the window is resized so fit mode stays exact
@@ -6472,10 +7495,20 @@
       document.body.style.overflow = '';
       document.body.classList.remove('pdf-open');
       document.getElementById('pdfSheet').classList.remove('open');
+      if (window._closePane2) window._closePane2(); // also tear down the split
+      if (typeof closeNotePanel === 'function') closeNotePanel();
+      if (typeof closeNotePanel2 === 'function') closeNotePanel2();
     }
+    // Split button: open a second note beside the current one (or close the split).
+    document.getElementById('pdfSplit').addEventListener('click', () => {
+      if (window.innerWidth <= 768) { showToast(MSGT('Split view is desktop only', 'Az osztott nézet csak asztali gépen érhető el')); return; }
+      if (document.getElementById('pdfPanes').classList.contains('split')) { if (window._closePane2) window._closePane2(); return; }
+      openSplitPicker(document.getElementById('pdfSplit'));
+    });
 
     /* ── Mobile PDF bar helpers ─────────────────────────────────────── */
     function updateMobileBar() {
+      if (window._syncPp1) window._syncPp1();
       const pi  = document.getElementById('pmbPageInfo');
       const zp  = document.getElementById('pmbZoomPct');
       const shz = document.getElementById('pshZoomPct');
@@ -7509,6 +8542,12 @@
       if (selection.size === 0) return;
       shareSelection();
     });
+    // Selection view + compile (also used by shared-selection auto-compile on load).
+    document.getElementById('selViewBtn').addEventListener('click', () => {
+      if (!selection.size) { showToast(MSGT('Nothing selected', 'Nincs kijelölés')); return; }
+      selViewMode = !selViewMode; renderGrid(currentNode);
+      if (selViewMode) { const g = document.getElementById('fileGrid'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
 
     // Hide/show panel with page navigation — keep selection in memory
     const _origNavigateTo = navigateTo;
@@ -7583,9 +8622,16 @@
         '<div style="font-weight:600">' + esc(nm) + '</div>' +
         (label ? '<div style="margin-top:6px;padding:7px 10px;border-left:3px solid var(--accent);background:var(--accent-dim);border-radius:6px;font-size:12.5px;max-height:80px;overflow:auto">“' + esc(label) + '”</div>' : '');
       await loadUsersForPicker();
+      // The recipient can be a person OR one of your group chats. Group chats are
+      // fetched here and tagged with a "g:" value prefix ("u:" for people) so the
+      // send handler can route to the right conversation.
+      let _grps = [];
+      try { const _gr = await fetch('/api/chat/list'); const _gd = await _gr.json(); if (_gd && _gd.ok && Array.isArray(_gd.conversations)) _grps = _gd.conversations.filter(g => g.type === 'group'); } catch {}
       const sel = document.getElementById('discussTo');
-      sel.innerHTML = '<option value="">' + MSGT('Choose a person…', 'Válassz személyt…') + '</option>' +
-        (CHAT.users || []).map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('');
+      let _opts = '<option value="">' + MSGT('Choose a recipient…', 'Válassz címzettet…') + '</option>' +
+        (CHAT.users || []).map(u => '<option value="u:' + esc(u) + '">' + esc(u) + '</option>').join('');
+      if (_grps.length) _opts += _grps.map(g => '<option value="g:' + esc(g.id) + '">👥 ' + esc(g.title) + '</option>').join('');
+      sel.innerHTML = _opts;
       if (typeof customSelect === 'function') { customSelect(sel); if (sel._syncLabel) sel._syncLabel(); } // themed dropdown (keeps the custom cursor)
       document.getElementById('discussMsg').value = '';
       document.getElementById('discussModal').classList.add('open');
@@ -7593,25 +8639,21 @@
     function closeDiscuss() { document.getElementById('discussModal').classList.remove('open'); _discussRef = null; }
     async function sendDiscuss() {
       if (!_discussRef) return;
-      const to = document.getElementById('discussTo').value;
+      const toVal = document.getElementById('discussTo').value;
       const body = document.getElementById('discussMsg').value.trim();
-      if (!to) { showToast(MSGT('Pick a recipient', 'Válassz címzettet')); return; }
-      if (!body) { showToast(MSGT('Write a message first', 'Elsőként írj egy üzenetet')); return; }
+      if (!toVal) { showToast(MSGT('Pick a recipient', 'Válassz címzettet')); return; }
+      // A message is optional — the note reference alone is enough to send.
       const noteRef = { path: _discussRef.path, lang: _discussRef.lang, label: _discussRef.label || '' };
       if (_discussRef.from != null && _discussRef.to != null) { noteRef.from = _discussRef.from; noteRef.to = _discussRef.to; }
-      // Copy the same ki:// reference link the chat picker inserts — within the click
-      // gesture (before the fetch await) so the clipboard write is allowed.
-      const refName = displayFileName(_discussRef.name || _discussRef.path.split('/').pop());
-      const token = '[' + refName + '](ki://note/' + encodeURIComponent(_discussRef.path) + (_discussRef.lang ? ('?lang=' + _discussRef.lang) : '') + ')';
-      let copied = false;
-      try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(token); copied = true; } } catch (e) {}
-      if (!copied) { // execCommand fallback (works when the async clipboard API is blocked)
-        try { const ta = document.createElement('textarea'); ta.value = token; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); copied = document.execCommand('copy'); ta.remove(); } catch (e) {}
-      }
+      // Route to a group conversation ("g:<id>") or a person ("u:<name>"). The
+      // reference is sent only — it is deliberately NOT copied to the clipboard.
+      const payload = { body, noteRef };
+      if (toVal.indexOf('g:') === 0) payload.id = toVal.slice(2);
+      else payload.to = (toVal.indexOf('u:') === 0) ? toVal.slice(2) : toVal;
       try {
-        const r = await fetch('/api/chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to, body, noteRef }) });
+        const r = await fetch('/api/chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         const d = await r.json();
-        if (d && d.ok) { closeDiscuss(); showToast(copied ? MSGT('Message sent · link copied', 'Üzenet elküldve · link másolva') : MSGT('Message sent', 'Üzenet elküldve')); }
+        if (d && d.ok) { closeDiscuss(); showToast(MSGT('Message sent', 'Üzenet elküldve')); }
         else showToast((d && d.error) || MSGT('Could not send', 'Nem sikerült elküldeni'));
       } catch { showToast(MSGT('Could not send', 'Nem sikerült elküldeni')); }
     }
@@ -7750,7 +8792,8 @@
           if (item) selection.set(p, item);
         }
         renderSelPanel();
-        // Refresh current grid to show checked state
+        // A shared selection opens straight into the selection view (only the shared items).
+        selViewMode = true;
         renderGrid(currentNode);
       }
 
@@ -8221,6 +9264,7 @@
         curField('stgCurPrimary','dot'); curField('stgCurAccent','ring');
         var kn=document.getElementById('stgCurKind'); if(kn) kn.addEventListener('change', function(){ var c=getCursor(); c.kind=kn.value; setCursor(c); renderCursorPresets(); callMarkDirty(); });
         var an=document.getElementById('stgCurAnim'); if(an) an.addEventListener('change', function(){ var c=getCursor(); c.anim=an.value; setCursor(c); renderCursorPresets(); callMarkDirty(); });
+        var mh=document.getElementById('stgCurMech'); if(mh) mh.addEventListener('change', function(){ var c=getCursor(); c.mech=mh.value; setCursor(c); renderCursorPresets(); callMarkDirty(); });
         var g=document.getElementById('stgCurGlow'); if(g){ var tog=function(){ var c=getCursor(); c.glow=!c.glow; setCursor(c); updateCursorInputs(); renderCursorPresets(); callMarkDirty(); }; g.addEventListener('click', tog); g.addEventListener('keydown', function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); tog(); } }); }
         var sv=document.getElementById('curSaveBtn'), nm=document.getElementById('curNameInput');
         function doSaveCur(){ var c=getCursor(); c.name=(((nm&&nm.value)||'').trim()||c.name||'Cursor').slice(0,32); var rec=_normCursorSaved(Object.assign({},c)); var a=getCursorSaved(); a.push(rec); setCursorSaved(a); if(nm) nm.value=''; renderCursorSaved(); if(typeof showToast==='function') showToast(t('stgCurSavedMsg')); callMarkDirty(); }
@@ -8234,6 +9278,7 @@
       ['stgCustomAccent','stgCustomAccent2','stgCustomBg','stgCustomText','stgRadiantColor','stgCurPrimary','stgCurAccent'].forEach(function(id){ customColor(document.getElementById(id)); });
       customSelect(document.getElementById('stgCurKind'));
       customSelect(document.getElementById('stgCurAnim'));
+      customSelect(document.getElementById('stgCurMech'));
       updateStudioInputs(); updateCursorInputs();
 
       /* ── Language segment ──────────────────────────────────────────── */
@@ -8642,14 +9687,39 @@
 
     // Open a note directly in the right viewer (used by changelog references).
     function openNoteByPath(notePath, lang) {
+      const want = (lang === 'hu') ? 'hu' : 'en';
+      // Re-resolve the reference against the live tree so the note opens on the right
+      // language side — and falls back to its counterpart when the requested side has
+      // no file of its own (e.g. a HU reference whose only file lives on the EN side).
+      let item = null;
+      try {
+        if (typeof treeData !== 'undefined' && treeData && typeof collectAllItems === 'function') {
+          const all = collectAllItems(treeData).filter(it => it.type === 'file');
+          const np = String(notePath), base = np.split('/').pop();
+          item = all.find(it => it.path === np || it.enPath === np || it.huPath === np)
+              || all.find(it => [it.path, it.enPath, it.huPath].some(p => p && String(p).split('/').pop() === base));
+        }
+      } catch (e) {}
+      if (item && typeof handleClick === 'function') {
+        const enPath = item.enPath || (item.lang === 'en' ? item.path : null);
+        const huPath = item.huPath || (item.lang === 'hu' ? item.path : null);
+        let useLang, usePath, useName;
+        if (want === 'hu' && huPath)      { useLang = 'hu'; usePath = huPath; useName = item.huName || item.name; }
+        else if (want === 'en' && enPath) { useLang = 'en'; usePath = enPath; useName = item.enName || item.name; }
+        else if (enPath)                  { useLang = 'en'; usePath = enPath; useName = item.enName || item.name; }
+        else if (huPath)                  { useLang = 'hu'; usePath = huPath; useName = item.huName || item.name; }
+        else                              { useLang = item.lang || want; usePath = item.path; useName = item.name; }
+        handleClick({ ...item, path: usePath, name: useName, _forceLang: useLang });
+        return;
+      }
+      // Not in the current tree → open the given path/lang directly.
       const name = String(notePath).split('/').pop();
       const ext  = ('.' + (name.split('.').pop() || '')).toLowerCase();
-      const ln   = lang || 'en';
-      const item = { type: 'file', path: notePath, name, ext, lang: ln, _forceLang: ln };
-      if (['.tex', '.sty', '.cls'].includes(ext)) { openPdfViewer(notePath, name, ln, item); return; }
-      if (ext === '.pdf') { openPdfDirect('/data/' + encPath(notePath) + '?lang=' + ln, name); return; }
-      if (['.bib', '.md', '.txt'].includes(ext)) { openCodeViewer(notePath, name, ln); return; }
-      window.open('/data/' + encPath(notePath) + '?lang=' + ln, '_blank');
+      const fb   = { type: 'file', path: notePath, name, ext, lang: want, _forceLang: want };
+      if (['.tex', '.sty', '.cls'].includes(ext)) { openPdfViewer(notePath, name, want, fb); return; }
+      if (ext === '.pdf') { openPdfDirect('/data/' + encPath(notePath) + '?lang=' + want, name); return; }
+      if (['.bib', '.md', '.txt'].includes(ext)) { openCodeViewer(notePath, name, want); return; }
+      window.open('/data/' + encPath(notePath) + '?lang=' + want, '_blank');
     }
 
     /* ── Per-note discussion panel (feature 2) ────────────────────────── */
@@ -8657,7 +9727,7 @@
     function openNotePanel(notePath, noteName, noteLang){
       if (!notePath) return;
       _npRef = { path: notePath, name: noteName || String(notePath).split('/').pop(), lang: noteLang === 'hu' ? 'hu' : 'en' };
-      var nm = document.getElementById('npNoteName'); if (nm) nm.textContent = _npRef.name;
+      var nm = document.getElementById('npNoteName'); if (nm) nm.textContent = displayFileName(_npRef.name);
       document.body.classList.add('np-open');
       document.getElementById('notePanel').classList.add('open');
       loadNoteDiscussion();
@@ -8669,11 +9739,16 @@
     }
     async function loadNoteDiscussion(){
       var thread = document.getElementById('npThread'); if (!thread || !_npRef) return;
+      var inp = document.getElementById('npInput');
+      // Signed-out visitors can't read or post; show a friendly prompt rather than
+      // letting the server's raw 401 ("unauthorized") leak into the panel.
+      if (!AUTH.user) { thread.innerHTML = '<div class="np-empty">' + esc(t('npSignIn')) + '</div>'; if (inp) inp.disabled = true; return; }
+      if (inp) inp.disabled = false;
       thread.innerHTML = '<div class="np-empty">…</div>';
       try {
         var res = await fetch('/api/note/discussion?path=' + encodeURIComponent(_npRef.path) + '&lang=' + _npRef.lang);
         var d = await res.json();
-        if (!d || !d.ok) { thread.innerHTML = '<div class="np-empty">' + esc((d && d.error) || t('npFailed')) + '</div>'; return; }
+        if (!d || !d.ok) { var msg = res.status === 401 ? t('npSignIn') : (res.status === 403 ? t('npNoAccess') : t('npFailed')); thread.innerHTML = '<div class="np-empty">' + esc(msg) + '</div>'; return; }
         renderNoteDiscussion(d.messages || []);
       } catch { thread.innerHTML = '<div class="np-empty">' + esc(t('npFailed')) + '</div>'; }
     }
@@ -8720,8 +9795,72 @@
       } catch {}
     }
 
+    // ── Second discussion panel (left pane in split view) — mirrors the primary ──
+    var _np2Ref = null;
+    function openNotePanel2(notePath, noteName, noteLang){
+      if (!notePath) return;
+      _np2Ref = { path: notePath, name: noteName || String(notePath).split('/').pop(), lang: noteLang === 'hu' ? 'hu' : 'en' };
+      var nm = document.getElementById('np2NoteName'); if (nm) nm.textContent = displayFileName(_np2Ref.name);
+      document.getElementById('notePanel2').classList.add('open');
+      loadNoteDiscussion2();
+      setTimeout(function(){ var i = document.getElementById('np2Input'); if (i) i.focus(); }, 90);
+    }
+    function closeNotePanel2(){ var p = document.getElementById('notePanel2'); if (p) p.classList.remove('open'); _np2Ref = null; }
+    async function loadNoteDiscussion2(){
+      var thread = document.getElementById('np2Thread'); if (!thread || !_np2Ref) return;
+      var inp = document.getElementById('np2Input');
+      if (!AUTH.user) { thread.innerHTML = '<div class="np-empty">' + esc(t('npSignIn')) + '</div>'; if (inp) inp.disabled = true; return; }
+      if (inp) inp.disabled = false;
+      thread.innerHTML = '<div class="np-empty">…</div>';
+      try {
+        var res = await fetch('/api/note/discussion?path=' + encodeURIComponent(_np2Ref.path) + '&lang=' + _np2Ref.lang);
+        var d = await res.json();
+        if (!d || !d.ok) { var msg = res.status === 401 ? t('npSignIn') : (res.status === 403 ? t('npNoAccess') : t('npFailed')); thread.innerHTML = '<div class="np-empty">' + esc(msg) + '</div>'; return; }
+        renderNoteDiscussion2(d.messages || []);
+      } catch { thread.innerHTML = '<div class="np-empty">' + esc(t('npFailed')) + '</div>'; }
+    }
+    function renderNoteDiscussion2(msgs){
+      var thread = document.getElementById('np2Thread'); if (!thread) return;
+      if (!msgs.length) { thread.innerHTML = '<div class="np-empty">' + esc(t('npEmpty')) + '</div>'; return; }
+      var me = (AUTH.user || '').toLowerCase(); thread.innerHTML = '';
+      msgs.forEach(function(m){
+        var wrap = document.createElement('div'); wrap.className = 'np-msg';
+        var head = document.createElement('div'); head.className = 'np-msg-head';
+        var from = document.createElement('span'); from.className = 'np-from'; from.textContent = m.from;
+        var time = document.createElement('span'); time.className = 'np-time'; time.textContent = (typeof chatFmtTime === 'function') ? chatFmtTime(m.date) : (m.date || '');
+        head.appendChild(from); head.appendChild(time);
+        var body = document.createElement('div'); body.className = 'np-body'; body.innerHTML = renderRefText(m.body || '');
+        wrap.appendChild(head); wrap.appendChild(body);
+        if (String(m.from).toLowerCase() === me) { var del = document.createElement('button'); del.className = 'np-del'; del.type = 'button'; del.textContent = '✕'; del.addEventListener('click', function(){ deleteNoteDiscussion2(m.id); }); wrap.appendChild(del); }
+        thread.appendChild(wrap);
+      });
+      thread.querySelectorAll('.np-body .cl-ref').forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); try { navigateToRef(JSON.parse(a.getAttribute('data-ref'))); } catch {} }); });
+      thread.scrollTop = thread.scrollHeight;
+    }
+    function np2Autosize(){ var x = document.getElementById('np2Input'); if (!x) return; x.style.height = 'auto'; x.style.height = Math.min(x.scrollHeight, 120) + 'px'; x.style.overflowY = x.scrollHeight > 120 ? 'auto' : 'hidden'; }
+    async function sendNoteDiscussion2(){
+      var inp = document.getElementById('np2Input'); if (!inp || !_np2Ref) return;
+      var text = inp.value.trim(); if (!text) return;
+      inp.value = ''; np2Autosize();
+      var item = { tempId: 'o' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), kind: 'note', path: _np2Ref.path, lang: _np2Ref.lang, body: text, ts: Date.now(), tries: 0, status: 'sending' };
+      try { var res = await _deliverOutbox(item);
+        if (res.ok) { await loadNoteDiscussion2(); }
+        else { item.status = res.permanent ? 'dead' : 'failed'; enqueueOutbox(item); showToast(MSGT('Message queued — will retry', 'Üzenet sorba állítva — újrapróbálom'), true); }
+      } catch (e) { setNetOnline(false); enqueueOutbox(item); showToast(MSGT('You appear offline — message saved', 'Nincs kapcsolat — üzenet elmentve'), true); }
+    }
+    async function deleteNoteDiscussion2(id){
+      if (!_np2Ref) return;
+      try { var res = await fetch('/api/note/discussion/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: _np2Ref.path, lang: _np2Ref.lang, id: id }) }); var d = await res.json(); if (d && d.ok) loadNoteDiscussion2(); } catch {}
+    }
+    (function(){
+      var c = document.getElementById('np2Close'); if (c) c.addEventListener('click', closeNotePanel2);
+      var s = document.getElementById('np2Send'); if (s) s.addEventListener('click', sendNoteDiscussion2);
+      var i = document.getElementById('np2Input'); if (i) { i.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendNoteDiscussion2(); } }); i.addEventListener('input', np2Autosize); }
+      var rb = document.getElementById('np2RefBtn'); if (rb) rb.addEventListener('click', function(){ openRefPicker(document.getElementById('np2Input'), rb); });
+    })();
+
     /* ── Reference picker (feature 3) ─────────────────────────────────── */
-    var _refTarget = null, _refArticles = null;
+    var _refTarget = null, _refArticles = null, _splitPickMode = false;
     var _REF_ICONS = {
       note:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
       article:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
@@ -8735,7 +9874,15 @@
       positionRefPicker(anchorEl);
       setTimeout(function(){ document.addEventListener('mousedown', _refOutside); }, 0);
     }
-    function closeRefPicker(){ var p = document.getElementById('refPicker'); if (p) p.classList.remove('open'); document.removeEventListener('mousedown', _refOutside); }
+    function closeRefPicker(){ var p = document.getElementById('refPicker'); if (p) p.classList.remove('open'); document.removeEventListener('mousedown', _refOutside); _splitPickMode = false; }
+    // Open the note picker to choose a second note for the split view.
+    function openSplitPicker(anchorEl){
+      _splitPickMode = true; _refTarget = null;
+      var p = document.getElementById('refPicker'); p.classList.add('open');
+      if (typeof positionRefPicker === 'function') positionRefPicker(anchorEl);
+      refShowKind('note');
+      setTimeout(function(){ document.addEventListener('mousedown', _refOutside); }, 0);
+    }
     function _refOutside(e){ var p = document.getElementById('refPicker'); if (p && !p.contains(e.target)) closeRefPicker(); }
     function positionRefPicker(anchorEl){
       var p = document.getElementById('refPicker'); if (!p) return;
@@ -8748,7 +9895,9 @@
     }
     function refSetHead(title, withBack){
       document.getElementById('refpTitle').textContent = title;
-      document.getElementById('refpBack').style.display = withBack ? '' : 'none';
+      // Must set a concrete value — '' would just clear the inline style and fall back
+      // to the stylesheet's `.refp-back{display:none}`, leaving the button hidden.
+      document.getElementById('refpBack').style.display = withBack ? 'block' : 'none';
     }
     function refShowKinds(){
       refSetHead(t('refInsertTitle'), false);
@@ -8789,7 +9938,7 @@
         filtered.forEach(function(it){
           var b = document.createElement('button'); b.className = 'refp-item'; b.type = 'button';
           b.innerHTML = esc(it.label) + (it.sub ? '<span class="refp-item-sub">' + esc(it.sub) + '</span>' : '');
-          b.addEventListener('click', function(){ insertRefToken(kind, it.target, it.lang || '', it.label); });
+          b.addEventListener('click', function(){ if (_splitPickMode) { _splitPickMode = false; closeRefPicker(); openPaneByPath(it.target, it.lang); } else insertRefToken(kind, it.target, it.lang || '', it.label); });
           list.appendChild(b);
         });
       }
@@ -8849,8 +9998,17 @@
       document.addEventListener('keydown', function(e){
         if (e.key !== 'Escape') return;
         if (document.getElementById('refPicker').classList.contains('open')) closeRefPicker();
+        else if (document.getElementById('notePanel2') && document.getElementById('notePanel2').classList.contains('open')) closeNotePanel2();
         else if (document.getElementById('notePanel').classList.contains('open')) closeNotePanel();
       });
+      // Click-off closes the discussion panel(s). Ignore clicks inside a panel, on a
+      // Discussion button, or on the (portaled) reference picker.
+      document.addEventListener('mousedown', function(e){
+        var keep = e.target.closest && e.target.closest('#notePanel,#notePanel2,#refPicker,#pdfDiscussion,#codeDiscussion,#pp2Discussion,#pp1Discussion');
+        if (keep) return;
+        var np = document.getElementById('notePanel'); if (np && np.classList.contains('open')) closeNotePanel();
+        var np2 = document.getElementById('notePanel2'); if (np2 && np2.classList.contains('open') && typeof closeNotePanel2 === 'function') closeNotePanel2();
+      }, true);
     })();
 
     /* ── Learning timeline ─────────────────────────────────────────────── */
@@ -8992,7 +10150,8 @@
         out += esc(raw.slice(last, m.index)).replace(/\n/g, '<br>');
         const label = m[1], kind = m[2], target = decodeURIComponent(m[3] || ''), lang = m[4] || '';
         const data = esc(JSON.stringify({ kind, target, lang, label }));
-        out += '<a class="cl-ref" href="#" data-ref="' + data + '">' + esc(label) + '</a>';
+        const ico = (typeof _REF_ICONS !== 'undefined' && _REF_ICONS[kind]) ? _REF_ICONS[kind] : (typeof _REF_ICONS !== 'undefined' ? _REF_ICONS.url : '');
+        out += '<a class="cl-ref" href="#" data-ref="' + data + '"><svg class="clr-ico" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg><span class="clr-label">' + esc(label) + '</span></a>';
         last = re.lastIndex;
       }
       out += esc(raw.slice(last)).replace(/\n/g, '<br>');
