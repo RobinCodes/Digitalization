@@ -24,6 +24,7 @@ const __SETTINGS    = path.join(__dirname, 'settings.json');
 const __GRANTS      = path.join(__dirname, 'grants.json');
 const __CHATS       = path.join(__dirname, 'chats.json');
 const __NOTE_DISCUSS = path.join(__dirname, 'note-discussions.json');
+const __BLOCKED     = path.join(__dirname, 'blocked.json');
 
 fs.mkdirSync(__CACHE, { recursive: true });
 
@@ -63,7 +64,7 @@ function safePath(base, relPath) {
 
 // Never expose server source, credential files, dotfiles (.git, .pdf-cache), or tests
 // over HTTP — important once the repo is public on GitHub.
-const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json', 'server.js',
+const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json', 'blocked.json', 'server.js',
   'make-admin.js', 'make-user.js', 'package.json', 'package-lock.json']);
 function isProtectedStatic(rel) {
   const parts = String(rel).split('/').filter(Boolean);
@@ -575,6 +576,20 @@ function buildSoloTree(primaryDir, otherDir, primaryLang, rel = '') {
     : (a.name || '').localeCompare(b.name || '', undefined, { numeric: true })));
   return out;
 }
+// Recursively find a note file in `dir` whose stripped display name matches `displayLc`
+// (NFC-folded, lowercased). Used as a permissive counterpart resolver for the viewer's
+// EN/HU switch, so a linked note opens its other-language file even when the folder
+// chain isn't fully paired in the merged tree.
+function findFileByDisplay(dir, displayLc, relBase = '') {
+  let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return null; }
+  for (const e of entries) {
+    if (e.name === 'data.txt') continue;
+    const rel = relBase ? relBase + '/' + e.name : e.name;
+    if (e.isDirectory()) { const f = findFileByDisplay(path.join(dir, e.name), displayLc, rel); if (f) return f; }
+    else if (e.isFile() && nkey(stripDisplayName(e.name)) === displayLc) return { path: rel, name: e.name };
+  }
+  return null;
+}
 // ── PDF cache ─────────────────────────────────────────────────────────────────
 function cacheKey(texPath, lang) {
   return crypto.createHash('md5').update(`${lang}:${texPath}`).digest('hex');
@@ -963,7 +978,44 @@ function chatUnread(c, name) { const n = String(name).toLowerCase(); const last 
 function findDM(chats, a, b) { const A = String(a).toLowerCase(), B = String(b).toLowerCase(); return chats.conversations.find(c => c.type === 'dm' && (c.participants || []).length === 2 && c.participants.map(x => String(x).toLowerCase()).includes(A) && c.participants.map(x => String(x).toLowerCase()).includes(B)); }
 function ensureDM(chats, a, b) { let c = findDM(chats, a, b); if (!c) { c = { id: crypto.randomUUID(), type: 'dm', title: '', participants: [a, b], createdBy: a, created: new Date().toISOString(), messages: [], reads: {} }; chats.conversations.push(c); } return c; }
 function chatTitleFor(c, me) { if (c.type === 'group') return c.title || 'Group'; const other = (c.participants || []).find(p => String(p).toLowerCase() !== String(me).toLowerCase()); return other || 'Direct message'; }
-function chatPreview(m) { if (!m) return ''; if (m.kind === 'access-request') return '\uD83D\uDD12 ' + ((m.note && m.note.label) || 'access request'); if (m.kind === 'access-result') return 'access ' + (m.decision || ''); return m.body || ''; }
+function chatPreview(m) { if (!m) return ''; if (m.deleted) return ''; if (m.kind === 'access-request') return '\uD83D\uDD12 ' + ((m.note && m.note.label) || 'access request'); if (m.kind === 'access-result') return 'access ' + (m.decision || ''); if (m.noteRef && !String(m.body || '').trim()) return '\uD83D\uDCC4 ' + (m.noteRef.label || 'note'); return m.body || ''; }
+
+// Role/permission model for group conversations. Back-compat: a conversation with no
+// `roles` map treats its createdBy as 'owner' and every other participant as 'member'.
+// Roles: owner > admin > member > readonly. DMs have no roles (both peers are equal).
+function chatRole(c, name) {
+  const n = String(name).toLowerCase();
+  if (!chatParticipant(c, name)) return null;
+  if (c.type !== 'group') return 'member';
+  const r = c.roles && c.roles[n];
+  if (r === 'owner' || r === 'admin' || r === 'member' || r === 'readonly') return r;
+  return (String(c.createdBy || '').toLowerCase() === n) ? 'owner' : 'member';
+}
+function chatCan(c, name, perm) {
+  const role = chatRole(c, name);
+  if (!role) return false;
+  if (c.type !== 'group') { return perm === 'read' || perm === 'write'; } // DMs: read+write only
+  switch (perm) {
+    case 'read':           return true;
+    case 'write':          return role !== 'readonly';
+    case 'manageMessages': return role === 'owner' || role === 'admin';
+    case 'manageMembers':  return role === 'owner' || role === 'admin';
+    case 'setRole':        return role === 'owner';
+    case 'deleteConv':     return role === 'owner';
+    default:               return false;
+  }
+}
+// Per-user "hidden" (deleted-for-me) and "archived" sets live on the conversation.
+function chatHiddenFor(c, name) { const n = String(name).toLowerCase(); return Array.isArray(c.deletedBy) && c.deletedBy.map(x => String(x).toLowerCase()).includes(n); }
+function chatArchivedFor(c, name) { const n = String(name).toLowerCase(); return Array.isArray(c.archivedBy) && c.archivedBy.map(x => String(x).toLowerCase()).includes(n); }
+function _unhide(c, name) { const n = String(name).toLowerCase(); if (Array.isArray(c.deletedBy)) c.deletedBy = c.deletedBy.filter(x => String(x).toLowerCase() !== n); }
+
+// Per-user block list (blocked.json: { userLc: [blockedUserLc, \u2026] }). Blocking is
+// mutual in effect \u2014 a DM between A and B is closed if either blocked the other.
+function loadBlocked() { try { const o = JSON.parse(fs.readFileSync(__BLOCKED, 'utf8')); return (o && typeof o === 'object') ? o : {}; } catch { return {}; } }
+function saveBlocked(o) { writeFileAtomic(__BLOCKED, JSON.stringify(o, null, 2) + '\n'); }
+function blockedSet(map, name) { const a = map[String(name).toLowerCase()]; return new Set(Array.isArray(a) ? a.map(x => String(x).toLowerCase()) : []); }
+function isBlockedBetween(map, a, b) { return blockedSet(map, a).has(String(b).toLowerCase()) || blockedSet(map, b).has(String(a).toLowerCase()); }
 
 // Presence: in-memory last-seen heartbeats. A user is "online" while their
 // heartbeats keep arriving; when they lose their connection the heartbeats stop,
@@ -1229,6 +1281,24 @@ const server = http.createServer((req, res) => {
     children = filterTreeForVisibility(children, _viewer);
     annotateLocks(children, req, matLang);
     return sendJSON(res, { name: 'root', type: 'folder', path: '', children, count: children.length, hasDualLang: HAS_DUAL_LANG, loggedIn: !!_viewer });
+  }
+
+  // Resolve a note's other-language counterpart for the PDF viewer's EN/HU switch.
+  // Tries the same relative path in the other dir, then a permissive same-display-name
+  // search — so the switch works even when the tree didn't pair the note's folder chain.
+  if (pathname === '/api/note/counterpart') {
+    const lang = query.lang === 'hu' ? 'hu' : 'en';
+    const p = String(query.path || '');
+    if (!p || !HAS_DUAL_LANG) return sendJSON(res, { ok: true, none: true });
+    const otherDir = lang === 'en' ? __DATA_HU : __DATA;
+    const otherLang = lang === 'en' ? 'hu' : 'en';
+    let found = null;
+    try { const full = safePath(otherDir, p); if (fs.existsSync(full) && fs.statSync(full).isFile()) found = { path: p.replace(/\\/g, '/'), name: path.basename(p) }; } catch {}
+    if (!found) { try { found = findFileByDisplay(otherDir, nkey(stripDisplayName(path.basename(p)))); } catch {} }
+    if (!found) return sendJSON(res, { ok: true, none: true });
+    // Respect visibility: don't reveal a counterpart the viewer can't see.
+    if (!canViewNote(req, found.path, otherLang)) return sendJSON(res, { ok: true, none: true });
+    return sendJSON(res, { ok: true, lang: otherLang, path: found.path, name: found.name });
   }
 
   // Articles
@@ -1640,19 +1710,24 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/chat/list' && req.method === 'GET') {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
-    const me = s.username, out = []; touchPresence(me);
+    const me = s.username, meLc = String(me).toLowerCase(), out = []; touchPresence(me);
     const everyone = new Set();
+    const blk = loadBlocked();
     for (const c of loadChats().conversations) {
       if (!chatParticipant(c, me)) continue;
+      if (chatHiddenFor(c, me)) continue;            // deleted-for-me
       const last = (c.messages || [])[c.messages.length - 1] || null;
       (c.participants || []).forEach(p => everyone.add(p));
+      const other = (c.type !== 'group') ? ((c.participants || []).find(p => String(p).toLowerCase() !== meLc) || null) : null;
       out.push({ id: c.id, type: c.type, title: chatTitleFor(c, me), participants: c.participants || [],
         unread: chatUnread(c, me), last: last ? { from: last.from, body: chatPreview(last), date: last.date, kind: last.kind } : null,
-        lastDate: last ? last.date : c.created });
+        lastDate: last ? last.date : c.created,
+        role: chatRole(c, me), archived: chatArchivedFor(c, me),
+        blocked: other ? isBlockedBetween(blk, me, other) : false });
     }
     out.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
     const now = Date.now();
-    return sendJSON(res, { ok: true, me, conversations: out, presence: presenceFor([...everyone], now), now });
+    return sendJSON(res, { ok: true, me, conversations: out, presence: presenceFor([...everyone], now), now, myBlocked: [...blockedSet(blk, me)] });
   }
   if (pathname === '/api/chat/messages' && req.method === 'GET') {
     const s = siteSession(req);
@@ -1661,7 +1736,8 @@ const server = http.createServer((req, res) => {
     if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
     touchPresence(me);
     const now = Date.now();
-    return sendJSON(res, { ok: true, id: c.id, type: c.type, title: chatTitleFor(c, me), participants: c.participants || [], createdBy: c.createdBy, messages: c.messages || [], presence: presenceFor(c.participants || [], now), now });
+    const rolesMap = {}; for (const p of (c.participants || [])) rolesMap[p] = chatRole(c, p);
+    return sendJSON(res, { ok: true, id: c.id, type: c.type, title: chatTitleFor(c, me), participants: c.participants || [], createdBy: c.createdBy, roles: rolesMap, myRole: chatRole(c, me), archived: chatArchivedFor(c, me), messages: c.messages || [], presence: presenceFor(c.participants || [], now), now });
   }
   // ── Site-side note management: a member's own notes ─────────────────────────
   if (pathname === '/api/mynotes' && req.method === 'GET') {
@@ -1790,19 +1866,24 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
       let text = String(j.body || '').trim();
-      if (!text) return sendJSON(res, { ok: false, error: 'Message is empty.' }, 400);
+      const hasNoteRef = j.noteRef && typeof j.noteRef === 'object' && j.noteRef.path;
+      if (!text && !hasNoteRef) return sendJSON(res, { ok: false, error: 'Message is empty.' }, 400);
       if (text.length > 8000) text = text.slice(0, 8000);
       const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats(); touchPresence(me);
+      const blk = loadBlocked();
       let c;
       if (j.id) {
         c = chats.conversations.find(x => x.id === j.id);
         if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'Conversation not found.' }, 404);
+        if (c.type !== 'group') { const other = (c.participants || []).find(p => String(p).toLowerCase() !== meLc); if (other && isBlockedBetween(blk, me, other)) return sendJSON(res, { ok: false, error: 'You can no longer message this person.' }, 403); }
       } else {
         const to = resolveUsername(j.to);
         if (!to) return sendJSON(res, { ok: false, error: 'Unknown recipient.' }, 400);
         if (String(to).toLowerCase() === meLc) return sendJSON(res, { ok: false, error: 'You cannot message yourself.' }, 400);
+        if (isBlockedBetween(blk, me, to)) return sendJSON(res, { ok: false, error: 'You can no longer message this person.' }, 403);
         c = ensureDM(chats, me, to);
       }
+      if (!chatCan(c, me, 'write')) return sendJSON(res, { ok: false, error: 'You do not have permission to post here.' }, 403);
       const msg = { id: crypto.randomUUID(), from: me, body: text, date: new Date().toISOString(), kind: 'text' };
       if (j.replyTo) { const src = (c.messages || []).find(m => m.id === j.replyTo); if (src) { msg.replyTo = src.id; msg.replyFrom = src.from; msg.replyText = (src.kind === 'text' ? (src.body || '') : chatPreview(src)).slice(0, 160); } }
       if (j.noteRef && typeof j.noteRef === 'object' && j.noteRef.path) {
@@ -1813,6 +1894,7 @@ const server = http.createServer((req, res) => {
       }
       c.messages.push(msg);
       if (c.messages.length > 1000) c.messages = c.messages.slice(-1000);
+      if (c.type !== 'group' && Array.isArray(c.deletedBy) && c.deletedBy.length) c.deletedBy = []; // new activity un-hides a deleted-for-me DM
       c.reads = c.reads || {}; c.reads[meLc] = msg.date;
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true, id: c.id });
@@ -1832,6 +1914,7 @@ const server = http.createServer((req, res) => {
       if (set.size < 2) return sendJSON(res, { ok: false, error: 'Add at least one other member.' }, 400);
       const chats = loadChats(), now = new Date().toISOString();
       const c = { id: crypto.randomUUID(), type: 'group', title, participants: [...set.values()], createdBy: me, created: now,
+        roles: { [String(me).toLowerCase()]: 'owner' },
         messages: [{ id: crypto.randomUUID(), from: me, kind: 'system', body: 'created the group', date: now }], reads: {} };
       chats.conversations.push(c);
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
@@ -1848,8 +1931,10 @@ const server = http.createServer((req, res) => {
       const me = s.username, chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
       if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
       if (c.type !== 'group') return sendJSON(res, { ok: false, error: 'Not a group chat.' }, 400);
+      if (!chatCan(c, me, 'manageMembers')) return sendJSON(res, { ok: false, error: 'You do not have permission to add members.' }, 403);
       const have = new Set((c.participants || []).map(p => String(p).toLowerCase())), added = [];
-      for (const nm of (Array.isArray(j.participants) ? j.participants : [])) { const r = resolveUsername(nm); if (r && !have.has(String(r).toLowerCase())) { c.participants.push(r); have.add(String(r).toLowerCase()); added.push(r); } }
+      c.roles = c.roles || {};
+      for (const nm of (Array.isArray(j.participants) ? j.participants : [])) { const r = resolveUsername(nm); if (r && !have.has(String(r).toLowerCase())) { c.participants.push(r); have.add(String(r).toLowerCase()); c.roles[String(r).toLowerCase()] = 'member'; added.push(r); } }
       if (added.length) {
         c.messages.push({ id: crypto.randomUUID(), from: me, kind: 'system', body: 'added ' + added.join(', '), date: new Date().toISOString() });
         try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
@@ -1869,6 +1954,190 @@ const server = http.createServer((req, res) => {
       c.reads = c.reads || {}; c.reads[String(me).toLowerCase()] = new Date().toISOString();
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+  // ── Chat management: leave / delete / archive / message edit+delete / roles / block ──
+  if (pathname === '/api/chat/leave' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
+      if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      if (c.type !== 'group') return sendJSON(res, { ok: false, error: 'You can only leave group chats.' }, 400);
+      const wasOwner = chatRole(c, me) === 'owner';
+      c.participants = (c.participants || []).filter(p => String(p).toLowerCase() !== meLc);
+      if (c.roles) delete c.roles[meLc];
+      if (!c.participants.length) { chats.conversations = chats.conversations.filter(x => x.id !== c.id); }
+      else {
+        if (wasOwner && !c.participants.some(p => chatRole(c, p) === 'owner')) {
+          let heir = null;
+          if (j.heir) { const h = resolveUsername(j.heir); if (h && c.participants.some(p => String(p).toLowerCase() === String(h).toLowerCase())) heir = h; }
+          if (!heir) heir = c.participants[0];   // longest-standing remaining member
+          c.roles = c.roles || {}; c.roles[String(heir).toLowerCase()] = 'owner';
+          c.messages.push({ id: crypto.randomUUID(), from: me, kind: 'system', body: 'left · ' + heir + ' is now the owner', date: new Date().toISOString() });
+        } else {
+          c.messages.push({ id: crypto.randomUUID(), from: me, kind: 'system', body: 'left the group', date: new Date().toISOString() });
+        }
+      }
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+  if (pathname === '/api/chat/delete' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
+      if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      if (c.type === 'group') {
+        if (!chatCan(c, me, 'deleteConv')) return sendJSON(res, { ok: false, error: 'Only the group owner can delete it.' }, 403);
+        chats.conversations = chats.conversations.filter(x => x.id !== c.id);     // purge for everyone
+      } else if (j.everyone) {
+        chats.conversations = chats.conversations.filter(x => x.id !== c.id);     // DM: delete for both participants
+      } else {
+        c.deletedBy = Array.isArray(c.deletedBy) ? c.deletedBy : [];              // DM: hide for me only
+        if (!c.deletedBy.map(x => String(x).toLowerCase()).includes(meLc)) c.deletedBy.push(me);
+        if ((c.participants || []).every(p => c.deletedBy.map(x => String(x).toLowerCase()).includes(String(p).toLowerCase()))) chats.conversations = chats.conversations.filter(x => x.id !== c.id);
+      }
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+  if (pathname === '/api/chat/archive' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
+      if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      c.archivedBy = Array.isArray(c.archivedBy) ? c.archivedBy : [];
+      const has = c.archivedBy.map(x => String(x).toLowerCase()).includes(meLc);
+      const want = (j.archive === undefined) ? !has : !!j.archive;
+      if (want && !has) c.archivedBy.push(me);
+      else if (!want && has) c.archivedBy = c.archivedBy.filter(x => String(x).toLowerCase() !== meLc);
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, archived: want });
+    });
+    return;
+  }
+  if (pathname === '/api/chat/message/delete' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
+      if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      const m = (c.messages || []).find(x => x.id === j.mid);
+      if (!m) return sendJSON(res, { ok: false, error: 'Message not found.' }, 404);
+      if (m.kind === 'system') return sendJSON(res, { ok: false, error: 'System messages cannot be deleted.' }, 400);
+      const mine = String(m.from).toLowerCase() === meLc;
+      if (!mine && !chatCan(c, me, 'manageMessages')) return sendJSON(res, { ok: false, error: 'You can only delete your own messages.' }, 403);
+      m.deleted = true; m.deletedBy = me; m.body = ''; delete m.noteRef;
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+  if (pathname === '/api/chat/message/edit' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
+      if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      const m = (c.messages || []).find(x => x.id === j.mid);
+      if (!m) return sendJSON(res, { ok: false, error: 'Message not found.' }, 404);
+      if (String(m.from).toLowerCase() !== meLc) return sendJSON(res, { ok: false, error: 'You can only edit your own messages.' }, 403);
+      if (m.kind !== 'text' || m.deleted) return sendJSON(res, { ok: false, error: 'This message cannot be edited.' }, 400);
+      let text = String(j.body || '').trim();
+      if (!text) return sendJSON(res, { ok: false, error: 'Message is empty.' }, 400);
+      if (text.length > 8000) text = text.slice(0, 8000);
+      m.body = text; m.edited = true; m.editedAt = new Date().toISOString();
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, message: m });
+    });
+    return;
+  }
+  if (pathname === '/api/chat/setRole' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
+      if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      if (c.type !== 'group') return sendJSON(res, { ok: false, error: 'Roles apply to group chats only.' }, 400);
+      if (!chatCan(c, me, 'setRole')) return sendJSON(res, { ok: false, error: 'Only the owner can change roles.' }, 403);
+      const target = resolveUsername(j.target); const tLc = target ? String(target).toLowerCase() : '';
+      if (!target || !chatParticipant(c, target)) return sendJSON(res, { ok: false, error: 'That person is not in this group.' }, 400);
+      if (tLc === meLc) return sendJSON(res, { ok: false, error: 'You cannot change your own role.' }, 400);
+      const role = j.role;
+      if (!['owner', 'admin', 'member', 'readonly'].includes(role)) return sendJSON(res, { ok: false, error: 'Unknown role.' }, 400);
+      c.roles = c.roles || {};
+      if (role === 'owner') {
+        for (const p of (c.participants || [])) if (chatRole(c, p) === 'owner') c.roles[String(p).toLowerCase()] = 'admin';
+        c.roles[tLc] = 'owner';
+      } else { c.roles[tLc] = role; }
+      c.messages.push({ id: crypto.randomUUID(), from: me, kind: 'system', body: 'set ' + target + ' as ' + role, date: new Date().toISOString() });
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+  if (pathname === '/api/chat/removeMember' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, meLc = String(me).toLowerCase(), chats = loadChats(), c = chats.conversations.find(x => x.id === j.id);
+      if (!c || !chatParticipant(c, me)) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      if (c.type !== 'group') return sendJSON(res, { ok: false, error: 'Group chats only.' }, 400);
+      if (!chatCan(c, me, 'manageMembers')) return sendJSON(res, { ok: false, error: 'You do not have permission to remove members.' }, 403);
+      const target = resolveUsername(j.target); const tLc = target ? String(target).toLowerCase() : '';
+      if (!target || !chatParticipant(c, target)) return sendJSON(res, { ok: false, error: 'That person is not in this group.' }, 400);
+      if (tLc === meLc) return sendJSON(res, { ok: false, error: 'Use Leave to remove yourself.' }, 400);
+      const tRole = chatRole(c, target);
+      if (tRole === 'owner') return sendJSON(res, { ok: false, error: 'You cannot remove the owner.' }, 403);
+      if (tRole === 'admin' && chatRole(c, me) !== 'owner') return sendJSON(res, { ok: false, error: 'Only the owner can remove an admin.' }, 403);
+      c.participants = (c.participants || []).filter(p => String(p).toLowerCase() !== tLc);
+      if (c.roles) delete c.roles[tLc];
+      c.messages.push({ id: crypto.randomUUID(), from: me, kind: 'system', body: 'removed ' + target, date: new Date().toISOString() });
+      try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+  if (pathname === '/api/chat/block' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const me = s.username, meLc = String(me).toLowerCase();
+      const target = resolveUsername(j.username);
+      if (!target) return sendJSON(res, { ok: false, error: 'Unknown user.' }, 400);
+      const tLc = String(target).toLowerCase();
+      if (tLc === meLc) return sendJSON(res, { ok: false, error: 'You cannot block yourself.' }, 400);
+      const map = loadBlocked();
+      const cur = Array.isArray(map[meLc]) ? map[meLc].map(x => String(x).toLowerCase()) : [];
+      const has = cur.includes(tLc);
+      const want = (j.block === undefined) ? !has : !!j.block;
+      let next = cur.filter(x => x !== tLc);
+      if (want) next.push(tLc);
+      if (next.length) map[meLc] = next; else delete map[meLc];
+      try { saveBlocked(map); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, blocked: want });
     });
     return;
   }
