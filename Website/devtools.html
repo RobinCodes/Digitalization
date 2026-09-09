@@ -392,6 +392,118 @@
     .row .acts{gap:5px}
     .icon-btn{width:32px;height:32px}
   }
+
+  /* ════════════════════════════════════════════════════════════════
+     Timetable editor + day log ("what happened this day")
+  ═════════════════════════════════════════════════════════════════ */
+  .tt-card{background:var(--bg2);border:1px solid var(--border-md);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:20px;box-shadow:var(--shadow-md)}
+  .tt-card > h2{font-family:var(--font-ui);font-size:14px;font-weight:800;letter-spacing:.04em;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+  .tt-card > h2 .n{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:.14em}
+  .tt-card > p.tip{color:var(--text2);font-size:12.5px;margin-bottom:16px;max-width:70ch}
+  .tt-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .tt-grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  .tt-inline{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .tt-dow-pick{display:flex;gap:6px;flex-wrap:wrap}
+  .tt-dow-pick button{padding:7px 13px;border:1px solid var(--border-md);border-radius:99px;background:var(--bg3);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;transition:.15s;font-family:var(--font-ui)}
+  .tt-dow-pick button.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+  .tt-list{display:flex;flex-direction:column;gap:8px}
+  .tt-item{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 11px}
+  .tt-item input[type=text],.tt-item input[type=time]{padding:7px 9px;font-size:13px;border-radius:7px;background:var(--bg);border:1px solid var(--border-md);color:var(--text);font-family:inherit;min-width:0}
+  .tt-item .grow{flex:1;min-width:70px}
+  .tt-swatch{width:30px;height:30px;flex:none;border-radius:8px;border:1px solid var(--border-md);cursor:pointer;padding:0;overflow:hidden}
+  .tt-swatch input{opacity:0;width:100%;height:100%;cursor:pointer;border:0;padding:0;background:none}
+  .tt-drag{color:var(--text3);cursor:grab;flex:none;font-size:14px;line-height:1;user-select:none}
+  .tt-x{flex:none;width:28px;height:28px;border:1px solid var(--border-md);border-radius:7px;background:var(--bg2);color:var(--text3);cursor:pointer;font-size:15px;line-height:1}
+  .tt-x:hover{color:var(--red);border-color:var(--red)}
+
+  /* Weekly grid */
+  .tt-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg)}
+  table.tt-week{border-collapse:separate;border-spacing:0;width:100%;min-width:640px;font-size:12.5px}
+  table.tt-week th,table.tt-week td{border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:0;vertical-align:top}
+  table.tt-week th{background:var(--bg2);font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);padding:9px 8px;font-weight:600;text-align:center;position:sticky;top:0;z-index:2}
+  table.tt-week th.tt-corner{text-align:left;width:96px;min-width:96px}
+  table.tt-week td.tt-per{background:var(--bg2);padding:8px;width:96px;min-width:96px}
+  .tt-per b{display:block;font-size:13px;color:var(--text)}
+  .tt-per span{font-family:var(--font-mono);font-size:10px;color:var(--text3);display:block;line-height:1.5}
+  .tt-cell{min-height:56px;padding:5px;display:flex;flex-direction:column;gap:4px}
+  .tt-slot{border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;border:0;text-align:left;width:100%;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+  .tt-slot small{font-family:var(--font-mono);font-size:9.5px;opacity:.85;font-weight:500}
+  .tt-slot .wk{margin-left:auto;font-family:var(--font-mono);font-size:9px;background:rgba(0,0,0,.28);border-radius:4px;padding:1px 4px}
+  .tt-add{border:1px dashed var(--border-md);background:none;color:var(--text3);border-radius:7px;padding:5px;font-size:16px;line-height:1;cursor:pointer;transition:.15s}
+  .tt-cell:hover .tt-add{color:var(--accent);border-color:var(--accent)}
+  .tt-legend{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+  .tt-leg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text2);font-family:var(--font-mono)}
+  .tt-leg i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  /* Day log list */
+  .dl-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .dl-toolbar input[type=text]{padding:9px 12px;border-radius:8px;background:var(--bg2);border:1px solid var(--border-md);color:var(--text);font-family:inherit;font-size:13px;min-width:200px;flex:1}
+  .dl-row{display:flex;align-items:center;gap:14px;padding:12px 15px;border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer}
+  .dl-row:last-child{border-bottom:0}
+  .dl-row:hover{background:var(--bg2)}
+  .dl-date{flex:none;width:74px;text-align:center;border:1px solid var(--border-md);border-radius:9px;padding:5px 4px;background:var(--bg3)}
+  .dl-date b{display:block;font-size:17px;line-height:1.1;font-family:var(--font-display);font-weight:600}
+  .dl-date span{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+  .dl-main{flex:1;min-width:0}
+  .dl-title{font-weight:700;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dl-title.none{color:var(--text3);font-weight:500;font-style:italic}
+  .dl-dots{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;align-items:center}
+  .dl-dot{width:9px;height:9px;border-radius:3px;flex:none}
+
+  /* Day editor */
+  .de-head{display:grid;grid-template-columns:minmax(200px,260px) 1fr;gap:16px;align-items:start;margin-bottom:18px}
+  .de-plan-note{font-family:var(--font-mono);font-size:11px;color:var(--text3);line-height:1.6}
+  .de-plan-note b{color:var(--accent)}
+  .de-lessons{display:flex;flex-direction:column;gap:10px}
+  .de-lesson{border:1px solid var(--border);border-radius:11px;background:var(--bg3);overflow:hidden;transition:border-color .18s}
+  .de-lesson.on{border-color:var(--accent);background:var(--bg2)}
+  .de-lhead{display:flex;align-items:center;gap:11px;padding:11px 13px;cursor:pointer;user-select:none}
+  .de-check{width:19px;height:19px;flex:none;border-radius:6px;border:1.5px solid var(--border-md);display:flex;align-items:center;justify-content:center;color:transparent;font-size:12px;font-weight:900}
+  .de-lesson.on .de-check{background:var(--accent);border-color:var(--accent);color:#0b0b0e}
+  .de-bar{width:4px;align-self:stretch;border-radius:2px;flex:none;min-height:26px}
+  .de-lname{font-weight:700;font-size:14px}
+  .de-ltime{font-family:var(--font-mono);font-size:10.5px;color:var(--text3);margin-top:2px}
+  .de-lgrow{flex:1;min-width:0}
+  .de-lsum{font-size:11.5px;color:var(--text2);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34ch}
+  .de-lbody{padding:0 13px 14px;display:none;border-top:1px solid var(--border)}
+  .de-lesson.on .de-lbody{display:block}
+  .de-lbody .fld{margin-top:13px}
+  .de-kinds{display:flex;flex-wrap:wrap;gap:5px;margin-top:13px}
+  .de-kinds button{padding:5px 11px;border:1px solid var(--border-md);border-radius:99px;background:var(--bg3);color:var(--text2);font-size:11.5px;font-weight:700;cursor:pointer;font-family:var(--font-ui);transition:.15s}
+  .de-kinds button.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+  .de-sub{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin:16px 0 7px;display:block}
+
+  /* Attachments + note links */
+  .de-drop{border:1.5px dashed var(--border-md);border-radius:11px;padding:16px;text-align:center;color:var(--text3);font-size:12.5px;cursor:pointer;transition:.15s;background:var(--bg)}
+  .de-drop:hover,.de-drop.over{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+  .de-drop b{display:block;color:var(--text2);font-size:13px;margin-bottom:3px}
+  .de-files{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px}
+  .de-file{width:132px;border:1px solid var(--border-md);border-radius:10px;background:var(--bg);overflow:hidden;position:relative}
+  .de-file .thumb{height:82px;background:var(--bg4);display:flex;align-items:center;justify-content:center;color:var(--text3);font-family:var(--font-mono);font-size:11px;overflow:hidden}
+  .de-file .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .de-file .fn{font-size:10.5px;padding:6px 7px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2)}
+  .de-file input.cap{width:100%;border:0;border-top:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:10.5px;padding:5px 7px;font-family:inherit}
+  .de-file .fx{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:6px;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:13px;line-height:1}
+  .de-file .fx:hover{background:var(--red)}
+  .de-file .fk{position:absolute;top:5px;left:5px;border:0;border-radius:5px;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:2px 5px;font-family:var(--font-mono);cursor:pointer;letter-spacing:.06em}
+  .de-file .fk.scan{background:var(--accent);color:#0b0b0e}
+  .de-file.up .thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--accent-glow),transparent);animation:deup 1.1s linear infinite}
+  @keyframes deup{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  .de-notes{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+  .de-note{display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 10px;font-size:12.5px}
+  .de-note .p{font-family:var(--font-mono);font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .de-note .lb{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .de-langchip{font-family:var(--font-mono);font-size:9px;padding:2px 5px;border-radius:4px;border:1px solid var(--border-md);color:var(--text3)}
+
+  @media (max-width:860px){
+    .tt-grid3,.tt-grid4{grid-template-columns:1fr 1fr}
+    .de-head{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){
+    .tt-grid3,.tt-grid4{grid-template-columns:1fr}
+    .de-file{width:calc(50% - 5px)}
+  }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -440,6 +552,8 @@
     <button class="tab" data-tab="changelog">Changelog</button>
     <button class="tab" data-tab="accounts">Accounts</button>
     <button class="tab" data-tab="articles">Articles</button>
+    <button class="tab" data-tab="timetable">Timetable</button>
+    <button class="tab" data-tab="days">Days</button>
   </div>
 
   <!-- NOTES TAB -->
@@ -516,6 +630,163 @@
     </div>
     <div id="acList" style="margin-top:20px"></div>
   </main>
+
+  <!-- TIMETABLE TAB -->
+  <main id="tab-timetable" class="hidden">
+    <span class="panel-label">/ timetable</span>
+    <h1>The <em>timetable</em></h1>
+    <p class="sub">The recurring weekly schedule. Everything below feeds the public <b>Days</b> page and pre-fills the lesson list whenever you log a day, so it is worth getting right once.</p>
+
+    <div class="tt-card">
+      <h2><span class="n">01</span> Setup</h2>
+      <p class="tip">Which days you have lessons on, whether the week alternates (A/B), and the school-year window the public calendar defaults to.</p>
+      <div class="grid2" style="margin-bottom:14px">
+        <label class="fld" style="margin:0"><span>Name <span style="color:var(--text3)">— shown above the public timetable</span></span><input type="text" id="ttTitle" placeholder="Class 10.B"></label>
+        <label class="fld" style="margin:0"><span>Name (Hungarian)</span><input type="text" id="ttTitleHu" placeholder="10.B osztály"></label>
+      </div>
+      <label class="fld" style="margin-bottom:8px"><span>Teaching days</span></label>
+      <div class="tt-dow-pick" id="ttDows"></div>
+      <div class="tt-grid4" style="margin-top:16px">
+        <label class="fld" style="margin:0"><span>Week cycle</span>
+          <select id="ttCycle"><option value="1">Same every week</option><option value="2">Alternating A / B</option></select>
+        </label>
+        <label class="fld" style="margin:0" id="ttAnchorWrap"><span>Week A starts</span><div class="dtdate" id="ttAnchorPick"><input type="text" id="ttAnchor" class="dtdate-input" readonly placeholder="YYYY-MM-DD" autocomplete="off"><button type="button" class="dtdate-btn" aria-label="Pick date">📅</button><div class="dtdate-pop"></div></div></label>
+        <label class="fld" style="margin:0"><span>Year starts</span><div class="dtdate" id="ttStartPick"><input type="text" id="ttStart" class="dtdate-input" readonly placeholder="YYYY-MM-DD" autocomplete="off"><button type="button" class="dtdate-btn" aria-label="Pick date">📅</button><div class="dtdate-pop"></div></div></label>
+        <label class="fld" style="margin:0"><span>Year ends</span><div class="dtdate" id="ttEndPick"><input type="text" id="ttEnd" class="dtdate-input" readonly placeholder="YYYY-MM-DD" autocomplete="off"><button type="button" class="dtdate-btn" aria-label="Pick date">📅</button><div class="dtdate-pop"></div></div></label>
+      </div>
+      <div class="row-toggle" id="ttVisToggle" style="margin:16px 0 0"><div class="switch"></div><span>Members only — hide the timetable and its calendar from signed-out visitors</span></div>
+    </div>
+
+    <div class="tt-card">
+      <h2><span class="n">02</span> Periods</h2>
+      <p class="tip">The rows of the grid. A label plus (optionally) start and end times — the times show on the public timetable and on each logged lesson.</p>
+      <div class="tt-list" id="ttPeriods"></div>
+      <button class="mini-btn" id="ttAddPeriod" style="margin-top:10px">+ Add period</button>
+    </div>
+
+    <div class="tt-card">
+      <h2><span class="n">03</span> Subjects</h2>
+      <p class="tip">Every subject you can place in the grid. The colour is used everywhere the subject appears. Linking a subject to a folder of digital notes makes that folder one click away when you log a lesson.</p>
+      <div class="tt-list" id="ttSubjects"></div>
+      <button class="mini-btn" id="ttAddSubject" style="margin-top:10px">+ Add subject</button>
+    </div>
+
+    <div class="tt-card">
+      <h2><span class="n">04</span> The week</h2>
+      <p class="tip">Click an empty cell to place a lesson, or a lesson to edit or remove it.</p>
+      <div class="tt-scroll"><table class="tt-week" id="ttGrid"></table></div>
+      <div class="tt-legend" id="ttLegend"></div>
+    </div>
+
+    <div class="tt-card">
+      <h2><span class="n">05</span> Holidays &amp; special dates</h2>
+      <p class="tip">Date ranges with no lessons (or with something else going on). They appear on the public calendar and warn you before you log a day that falls inside one.</p>
+      <div class="tt-list" id="ttEvents"></div>
+      <button class="mini-btn" id="ttAddEvent" style="margin-top:10px">+ Add date range</button>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;position:sticky;bottom:0;padding:14px 0;background:linear-gradient(180deg,transparent,var(--bg) 40%)">
+      <button class="btn-primary" id="ttSave">Save timetable</button>
+      <button class="btn-secondary" id="ttReload">Discard changes</button>
+      <span class="field-note" id="ttSaved" style="margin:0"></span>
+    </div>
+  </main>
+
+  <!-- DAYS TAB -->
+  <main id="tab-days" class="hidden">
+    <span class="panel-label">/ days</span>
+    <h1>What <em>happened</em></h1>
+    <p class="sub">One entry per school day: pick the lessons that actually took place, write what happened in each, attach photos or scans of your paper notes, and link the digital notes that cover the same material.</p>
+    <div class="dl-toolbar">
+      <button class="add-btn" id="dayAddBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add day
+      </button>
+      <input type="text" id="dayFilter" placeholder="Filter by date or title…" spellcheck="false" autocomplete="off">
+      <span class="field-note" id="dayCount" style="margin:0"></span>
+    </div>
+    <div class="rows" id="dayList"></div>
+  </main>
+</div>
+
+<!-- ══ TIMETABLE SLOT EDITOR ══════════════════════════ -->
+<div class="ov" id="slotOv">
+  <div class="sheet" style="max-width:460px">
+    <div class="sheet-hd">
+      <h3 id="slTitle">Lesson</h3>
+      <button class="icon-btn" id="slClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="sheet-bd">
+      <div class="field-note" id="slWhen" style="margin:0 0 14px"></div>
+      <label class="fld"><span>Subject</span><select id="slSubject"></select></label>
+      <div class="grid2">
+        <label class="fld" style="margin:0"><span>Room <span style="color:var(--text3)">— blank uses the subject's</span></span><input type="text" id="slRoom" placeholder="204"></label>
+        <label class="fld" style="margin:0"><span>Teacher</span><input type="text" id="slTeacher" placeholder="blank = subject default"></label>
+      </div>
+      <label class="fld" id="slWeekWrap"><span>Which week</span>
+        <select id="slWeek"><option value="0">Every week</option><option value="1">Week A only</option><option value="2">Week B only</option></select>
+      </label>
+      <label class="fld"><span>Note <span style="color:var(--text3)">— a short reminder shown in the cell</span></span><input type="text" id="slNote" placeholder="double lesson, lab"></label>
+    </div>
+    <div class="sheet-ft">
+      <button class="btn-danger" id="slDelete">Remove</button>
+      <span style="flex:1"></span>
+      <button class="btn-secondary" id="slCancel">Cancel</button>
+      <button class="btn-primary" id="slOk">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DAY EDITOR ═════════════════════════════════════ -->
+<div class="ov" id="dayOv">
+  <div class="sheet" style="max-width:820px">
+    <div class="sheet-hd">
+      <h3 id="deTitle">Add day</h3>
+      <button class="icon-btn" id="deClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="sheet-bd">
+      <div class="de-head">
+        <div>
+          <label class="fld" style="margin-bottom:10px"><span>Date</span><div class="dtdate" id="deDatePick"><input type="text" id="deDate" class="dtdate-input" readonly placeholder="YYYY-MM-DD" autocomplete="off"><button type="button" class="dtdate-btn" aria-label="Pick date">📅</button><div class="dtdate-pop"></div></div></label>
+          <div class="de-plan-note" id="dePlanNote"></div>
+        </div>
+        <div>
+          <div class="grid2" style="margin-bottom:0">
+            <label class="fld" style="margin:0"><span>Title <span style="color:var(--text3)">— optional</span></span><input type="text" id="deTitleIn" placeholder="Two tests and a lab"></label>
+            <label class="fld" style="margin:0"><span>Title (Hungarian)</span><input type="text" id="deTitleHu" placeholder="Két dolgozat és egy labor"></label>
+          </div>
+          <label class="fld" style="margin-top:12px;margin-bottom:0"><span>How the day went <span style="color:var(--text3)">— optional, shown at the top of the day</span></span><textarea id="deSummary" rows="2" placeholder="A short overview of the whole day."></textarea></label>
+          <label class="fld" style="margin-top:12px;margin-bottom:0"><span>How the day went (Hungarian)</span><textarea id="deSummaryHu" rows="2"></textarea></label>
+        </div>
+      </div>
+      <div class="row-toggle" id="deVisToggle" style="margin:0 0 18px"><div class="switch"></div><span>Members only — signed-out visitors don't see this day or its files</span></div>
+
+      <span class="de-sub">Lessons</span>
+      <div class="de-lessons" id="deLessons"></div>
+      <button class="mini-btn" id="deAddLesson" style="margin-top:12px">+ Add something not on the timetable</button>
+    </div>
+    <div class="sheet-ft">
+      <button class="btn-danger hidden" id="deDelete">Delete day</button>
+      <span style="flex:1"></span>
+      <button class="btn-secondary" id="deCancel">Cancel</button>
+      <button class="btn-primary" id="deSave">Save day</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NOTE PICKER (day editor) ═══════════════════════ -->
+<div class="ov" id="dnpOv">
+  <div class="sheet" style="max-width:540px">
+    <div class="sheet-hd">
+      <h3>Link a digital note</h3>
+      <button class="icon-btn" id="dnpClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="sheet-bd">
+      <div class="seg" id="dnpLangSeg" style="margin-bottom:14px"><button data-dlang="en" class="active">EN notes</button><button data-dlang="hu">HU notes</button></div>
+      <div class="crumbs" id="dnpCrumbs" style="margin-bottom:12px"></div>
+      <div class="rows" id="dnpList"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ EDITOR MODAL ═══════════════════════════════════ -->
@@ -635,6 +906,7 @@
       <div class="seg" id="refKindSeg" style="margin-bottom:14px">
         <button data-rkind="note" class="active">Note</button>
         <button data-rkind="article">Article</button>
+        <button data-rkind="day">Day</button>
         <button data-rkind="log">Changelog</button>
         <button data-rkind="url">URL</button>
       </div>
@@ -912,6 +1184,9 @@
       h += '</div><div class="dtdate-foot"><button type="button" data-act="today">Today</button><button type="button" data-act="clear">Clear</button></div>';
       pop.innerHTML = h;
     }
+    // Picking a date sets .value directly, which does not fire an event on its own —
+    // dispatch one so listeners (e.g. the day editor reloading for a new date) run.
+    const fire = () => input.dispatchEvent(new Event('change', { bubbles: true }));
     const open = () => { view = parse(input.value) || new Date(); render(); pop.classList.add('open'); };
     const close = () => pop.classList.remove('open');
     const toggle = () => pop.classList.contains('open') ? close() : open();
@@ -922,15 +1197,27 @@
       const nav = e.target.closest('[data-nav]');
       if (nav) { view = new Date(view.getFullYear(), view.getMonth() + (+nav.dataset.nav), 1); render(); return; }
       const day = e.target.closest('[data-day]');
-      if (day) { input.value = day.dataset.day; close(); return; }
+      if (day) { input.value = day.dataset.day; fire(); close(); return; }
       const act = e.target.closest('[data-act]');
-      if (act) { input.value = act.dataset.act === 'today' ? fmt(new Date()) : ''; close(); return; }
+      if (act) { input.value = act.dataset.act === 'today' ? fmt(new Date()) : ''; fire(); close(); return; }
     });
-    document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
   }
+  // One shared outside-click handler for every date picker. Registering one per
+  // instance would leak a listener (and a reference to a detached wrapper) for each
+  // dynamically-created row, and rows here are rebuilt on every edit.
+  document.addEventListener('click', e => {
+    document.querySelectorAll('.dtdate-pop.open').forEach(p => {
+      const w = p.closest('.dtdate');
+      if (!w || !w.contains(e.target)) p.classList.remove('open');
+    });
+  });
   makeDatePicker($('clDate'));
   makeDatePicker($('edDate'));
   makeDatePicker($('artDate'));
+  makeDatePicker($('ttAnchor'));
+  makeDatePicker($('ttStart'));
+  makeDatePicker($('ttEnd'));
+  makeDatePicker($('deDate'));
 
   // Reveal-eye buttons inside password inputs.
   (function () {
@@ -1001,8 +1288,12 @@
     $('tab-changelog').classList.toggle('hidden', tab !== 'changelog');
     $('tab-accounts').classList.toggle('hidden', tab !== 'accounts');
     $('tab-articles').classList.toggle('hidden', tab !== 'articles');
+    $('tab-timetable').classList.toggle('hidden', tab !== 'timetable');
+    $('tab-days').classList.toggle('hidden', tab !== 'days');
     if (tab === 'accounts') loadAccounts();
     if (tab === 'articles') loadArticlesAdmin();
+    if (tab === 'timetable') loadTimetableAdmin();
+    if (tab === 'days') { loadTimetableAdmin(); loadDaysAdmin(); }
   }));
 
   // ── language toggle ────────────────────────────────
@@ -1567,6 +1858,7 @@
     $('refBrowseWrap').style.display = k === 'url' ? 'none' : '';
     if (k === 'note') loadRefNotes();
     else if (k === 'article') loadRefArticles();
+    else if (k === 'day') loadRefDays();
     else if (k === 'log') loadRefLogs();
   }
   async function loadRefNotes() {
@@ -1598,6 +1890,21 @@
       const row = document.createElement('div'); row.className = 'row file';
       row.innerHTML = '<div class="ico">' + (it.kind === 'folder' ? FOLDER_SVG : fileSvg('.html')) + '</div><div class="body"><div class="nm">' + esc(it.title || it.path) + '</div><div class="meta"><span class="art-meta-line">' + esc(target) + '</span></div></div>';
       row.onclick = () => { refSelected = { kind: 'article', target, lang, label: (it.title || it.path) }; if (!$('refLabel').value) $('refLabel').value = refSelected.label; showRefPicked(); };
+      list.appendChild(row);
+    });
+  }
+  async function loadRefDays() {
+    $('refCrumbs').innerHTML = ''; const list = $('refList'); list.innerHTML = '<div class="empty">Loading…</div>';
+    let rows; try { rows = (await api('/api/admin/days')).days || []; }
+    catch (e) { list.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    if (!rows.length) { list.innerHTML = '<div class="empty"><b>No days logged yet</b>Log one in the Days tab first.</div>'; return; }
+    list.innerHTML = '';
+    rows.forEach(d => {
+      const c = d.counts || {};
+      const row = document.createElement('div'); row.className = 'row file';
+      row.innerHTML = '<div class="ico">' + fileSvg('.txt') + '</div><div class="body"><div class="nm">' + esc(d.title || prettyDate(d.date)) + '</div>' +
+        '<div class="meta"><span class="badge">' + esc(d.date) + '</span><span class="chip muted">' + (c.lessons || 0) + ' lesson' + ((c.lessons === 1) ? '' : 's') + '</span></div></div>';
+      row.onclick = () => { refSelected = { kind: 'day', target: d.date, label: (d.title || prettyDate(d.date)) }; if (!$('refLabel').value) $('refLabel').value = refSelected.label; showRefPicked(); };
       list.appendChild(row);
     });
   }
@@ -1803,8 +2110,775 @@
     if ($('confirmOv').classList.contains('open')) { $('confirmOv').classList.remove('open'); confirmFn = null; return; }
     if ($('editorOv').classList.contains('open')) return closeEditor();
   });
-  [['editorOv', closeEditor], ['pickerOv', closePicker], ['refOv', closeRefPicker], ['artOv', closeArtOv], ['confirmOv', () => { $('confirmOv').classList.remove('open'); confirmFn = null; }]]
+  [['editorOv', closeEditor], ['pickerOv', closePicker], ['refOv', closeRefPicker], ['artOv', closeArtOv], ['confirmOv', () => { $('confirmOv').classList.remove('open'); confirmFn = null; }],
+   ['slotOv', closeSlotEditor], ['dnpOv', closeNotePicker], ['dayOv', closeDayEditor]]
     .forEach(([id, fn]) => $(id).addEventListener('mousedown', e => { if (e.target === $(id)) fn(); }));
+
+  /* ══════════════════════════════════════════════════════════════════
+     TIMETABLE + DAY LOG
+     The timetable is one document edited live in memory and saved whole.
+     A day is a record of what actually happened, seeded from the timetable's
+     plan for that date but free to diverge (extra lessons, cancellations).
+  ═══════════════════════════════════════════════════════════════════ */
+  const DOW_NAMES  = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const DOW_SHORT  = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const LESSON_KINDS = [
+    ['lesson', 'Lesson'], ['test', 'Test'], ['exam', 'Exam'], ['lab', 'Lab'],
+    ['presentation', 'Presentation'], ['trip', 'Trip'], ['substitution', 'Substitution'],
+    ['selfstudy', 'Self-study'], ['cancelled', 'Cancelled'],
+  ];
+  const SUBJECT_PALETTE = ['#4a90d9','#d98b4a','#4ad98b','#c15fd9','#d94a6b','#4ac7d9','#d9c04a','#7a8cd9','#59b36b','#d96f8b','#8b6fd9','#4a9d9d'];
+
+  let TT = null;              // working copy of the timetable
+  let ttDirty = false;
+  let dayRows = [];           // admin day index
+  let DE = null;              // the day currently open in the editor
+
+  function uid() {
+    const b = new Uint8Array(9); crypto.getRandomValues(b);
+    return btoa(String.fromCharCode.apply(null, b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function isDateStr(s) { return /^\d{4}-\d{2}-\d{2}$/.test(String(s || '')); }
+  function dowOf(dateStr) { const d = new Date(dateStr + 'T00:00:00Z'); const g = d.getUTCDay(); return g === 0 ? 7 : g; }
+  function mondayOfISO(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() - (dowOf(dateStr) - 1));
+    return d.toISOString().slice(0, 10);
+  }
+  function weekParityOf(dateStr) {
+    const st = TT && TT.settings ? TT.settings : {};
+    const cycle = Number(st.weekCycle) || 1;
+    if (cycle < 2 || !isDateStr(dateStr)) return 0;
+    const anchor = isDateStr(st.cycleAnchor) ? st.cycleAnchor : '2024-09-02';
+    const weeks = Math.round((Date.parse(mondayOfISO(dateStr) + 'T00:00:00Z') - Date.parse(mondayOfISO(anchor) + 'T00:00:00Z')) / 604800000);
+    return ((weeks % cycle) + cycle) % cycle;
+  }
+  function prettyDate(dateStr) {
+    if (!isDateStr(dateStr)) return dateStr || '';
+    const d = new Date(dateStr + 'T00:00:00Z');
+    return DOW_SHORT[dowOf(dateStr)] + ' ' + d.getUTCDate() + ' ' + MONTH_SHORT[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+  }
+  function subjectById(id) { return (TT && TT.subjects || []).find(s => s.id === id) || null; }
+  function periodById(id) { return (TT && TT.settings.periods || []).find(p => p.id === id) || null; }
+  function markDirty() { ttDirty = true; $('ttSaved').textContent = 'Unsaved changes'; $('ttSaved').style.color = 'var(--accent)'; }
+
+  // ── loading / saving the timetable ─────────────────
+  async function loadTimetableAdmin(force) {
+    if (TT && !force) { renderTimetable(); return; }
+    try { const r = await api('/api/timetable', { auth: false }); TT = r.timetable || null; }
+    catch (e) { toast('Could not load the timetable: ' + e.message, true); }
+    if (!TT) TT = { settings: { visibility: 'all', title: '', titleHu: '', days: [1,2,3,4,5], weekCycle: 1, cycleAnchor: '', startDate: '', endDate: '', periods: [] }, subjects: [], slots: [], events: [] };
+    ttDirty = false; $('ttSaved').textContent = ''; renderTimetable();
+  }
+  async function saveTimetableAdmin() {
+    readTimetableForm();
+    $('ttSave').disabled = true;
+    try {
+      const r = await api('/api/admin/timetable', { method: 'POST', body: { timetable: TT } });
+      TT = r.timetable; ttDirty = false;
+      $('ttSaved').textContent = 'Saved'; $('ttSaved').style.color = 'var(--green)';
+      renderTimetable(); toast('Timetable saved');
+    } catch (e) { toast('Save failed: ' + e.message, true); }
+    finally { $('ttSave').disabled = false; }
+  }
+  // The free-text inputs are read on demand rather than on every keystroke.
+  function readTimetableForm() {
+    if (!TT) return;
+    TT.settings.title   = $('ttTitle').value.trim();
+    TT.settings.titleHu = $('ttTitleHu').value.trim();
+    TT.settings.weekCycle = Number($('ttCycle').value) || 1;
+    TT.settings.cycleAnchor = $('ttAnchor').value.trim();
+    TT.settings.startDate = $('ttStart').value.trim();
+    TT.settings.endDate = $('ttEnd').value.trim();
+    TT.settings.visibility = $('ttVisToggle').classList.contains('on') ? 'members' : 'all';
+  }
+
+  function renderTimetable() {
+    if (!TT) return;
+    $('ttTitle').value = TT.settings.title || '';
+    $('ttTitleHu').value = TT.settings.titleHu || '';
+    $('ttCycle').value = String(TT.settings.weekCycle || 1);
+    $('ttAnchor').value = TT.settings.cycleAnchor || '';
+    $('ttStart').value = TT.settings.startDate || '';
+    $('ttEnd').value = TT.settings.endDate || '';
+    $('ttVisToggle').classList.toggle('on', TT.settings.visibility === 'members');
+    $('ttAnchorWrap').style.opacity = (Number(TT.settings.weekCycle) > 1) ? '1' : '.42';
+    renderDows(); renderPeriods(); renderSubjects(); renderWeekGrid(); renderEvents();
+  }
+
+  function renderDows() {
+    const box = $('ttDows'); box.innerHTML = '';
+    for (let d = 1; d <= 7; d++) {
+      const b = document.createElement('button'); b.type = 'button';
+      b.textContent = DOW_SHORT[d];
+      b.className = TT.settings.days.includes(d) ? 'on' : '';
+      b.onclick = () => {
+        const i = TT.settings.days.indexOf(d);
+        if (i >= 0) {
+          if (TT.settings.days.length === 1) { toast('Keep at least one teaching day', true); return; }
+          TT.settings.days.splice(i, 1);
+        } else { TT.settings.days.push(d); TT.settings.days.sort((x, y) => x - y); }
+        markDirty(); renderDows(); renderWeekGrid();
+      };
+      box.appendChild(b);
+    }
+  }
+
+  function renderPeriods() {
+    const box = $('ttPeriods'); box.innerHTML = '';
+    if (!TT.settings.periods.length) box.innerHTML = '<div class="empty" style="padding:22px"><b>No periods yet</b>Add the lesson slots of a normal day (1, 2, 3 …).</div>';
+    TT.settings.periods.forEach((p, i) => {
+      const row = document.createElement('div'); row.className = 'tt-item';
+      row.innerHTML =
+        '<span class="tt-drag" title="Drag to reorder">⠿</span>' +
+        '<input type="text" class="pl" style="width:64px" placeholder="1" value="' + esc(p.label) + '">' +
+        '<input type="time" class="ps" value="' + esc(p.start) + '">' +
+        '<span style="color:var(--text3)">–</span>' +
+        '<input type="time" class="pe" value="' + esc(p.end) + '">' +
+        '<span class="grow"></span>' +
+        '<button class="tt-x" title="Remove">×</button>';
+      row.draggable = true;
+      row.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', 'p:' + i); e.dataTransfer.effectAllowed = 'move'; });
+      row.addEventListener('dragover', e => { e.preventDefault(); });
+      row.addEventListener('drop', e => {
+        e.preventDefault(); const raw = e.dataTransfer.getData('text/plain');
+        if (raw.slice(0, 2) !== 'p:') return;
+        const from = Number(raw.slice(2)); if (from === i || isNaN(from)) return;
+        const arr = TT.settings.periods; const [m] = arr.splice(from, 1); arr.splice(i, 0, m);
+        markDirty(); renderPeriods(); renderWeekGrid();
+      });
+      row.querySelector('.pl').oninput = e => { p.label = e.target.value; markDirty(); scheduleGridRefresh(); };
+      row.querySelector('.ps').onchange = e => { p.start = e.target.value; markDirty(); renderWeekGrid(); };
+      row.querySelector('.pe').onchange = e => { p.end = e.target.value; markDirty(); renderWeekGrid(); };
+      row.querySelector('.tt-x').onclick = () => {
+        const used = TT.slots.filter(s => s.periodId === p.id).length;
+        const go = () => { TT.settings.periods.splice(i, 1); TT.slots = TT.slots.filter(s => s.periodId !== p.id); markDirty(); renderPeriods(); renderWeekGrid(); };
+        if (used) askConfirm('Remove period?', 'Period <b>' + esc(p.label) + '</b> still has <b>' + used + '</b> lesson' + (used === 1 ? '' : 's') + ' in the grid. Removing it removes those too.', go);
+        else go();
+      };
+      box.appendChild(row);
+    });
+  }
+  let _gridT;
+  function scheduleGridRefresh() { clearTimeout(_gridT); _gridT = setTimeout(renderWeekGrid, 400); }
+
+  function renderSubjects() {
+    const box = $('ttSubjects'); box.innerHTML = '';
+    if (!TT.subjects.length) box.innerHTML = '<div class="empty" style="padding:22px"><b>No subjects yet</b>Add the subjects you have lessons in.</div>';
+    TT.subjects.forEach((s, i) => {
+      const row = document.createElement('div'); row.className = 'tt-item';
+      row.innerHTML =
+        '<label class="tt-swatch" style="background:' + esc(s.color) + '" title="Colour"><input type="color" value="' + esc(s.color) + '"></label>' +
+        '<input type="text" class="sn grow" placeholder="Mathematics" value="' + esc(s.name) + '">' +
+        '<input type="text" class="sh grow" placeholder="Matematika" value="' + esc(s.nameHu) + '">' +
+        '<input type="text" class="ss" style="width:70px" placeholder="Math" value="' + esc(s.short) + '">' +
+        '<input type="text" class="st" style="width:110px" placeholder="teacher" value="' + esc(s.teacher) + '">' +
+        '<input type="text" class="sr" style="width:74px" placeholder="room" value="' + esc(s.room) + '">' +
+        '<button class="mini-btn sf" style="white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis" title="Link a notes folder">' + (s.folder ? esc(s.folder) : '＋ notes folder') + '</button>' +
+        '<button class="tt-x" title="Remove">×</button>';
+      const sw = row.querySelector('.tt-swatch input');
+      sw.oninput = e => { s.color = e.target.value; row.querySelector('.tt-swatch').style.background = s.color; markDirty(); scheduleGridRefresh(); };
+      row.querySelector('.sn').oninput = e => { s.name = e.target.value; markDirty(); scheduleGridRefresh(); };
+      row.querySelector('.sh').oninput = e => { s.nameHu = e.target.value; markDirty(); };
+      row.querySelector('.ss').oninput = e => { s.short = e.target.value; markDirty(); scheduleGridRefresh(); };
+      row.querySelector('.st').oninput = e => { s.teacher = e.target.value; markDirty(); };
+      row.querySelector('.sr').oninput = e => { s.room = e.target.value; markDirty(); };
+      row.querySelector('.sf').onclick = () => openNotePicker({ folders: true, lang: s.folderLang || 'en' }, pick => {
+        s.folder = pick.path; s.folderLang = pick.lang; markDirty(); renderSubjects();
+      }, () => { s.folder = ''; markDirty(); renderSubjects(); });
+      row.querySelector('.tt-x').onclick = () => {
+        const used = TT.slots.filter(x => x.subjectId === s.id).length;
+        const go = () => { TT.subjects.splice(i, 1); TT.slots = TT.slots.filter(x => x.subjectId !== s.id); markDirty(); renderSubjects(); renderWeekGrid(); };
+        if (used) askConfirm('Remove subject?', '<b>' + esc(s.name) + '</b> is placed <b>' + used + '</b> time' + (used === 1 ? '' : 's') + ' in the grid. Removing it removes those lessons too. Days you already logged keep their record.', go);
+        else go();
+      };
+      box.appendChild(row);
+    });
+  }
+
+  function renderWeekGrid() {
+    const t = $('ttGrid'); t.innerHTML = '';
+    if (!TT.settings.periods.length || !TT.subjects.length) {
+      t.innerHTML = '<tr><td style="padding:26px;text-align:center;color:var(--text2)">Add at least one period and one subject first.</td></tr>';
+      return;
+    }
+    const days = TT.settings.days;
+    const head = document.createElement('tr');
+    head.innerHTML = '<th class="tt-corner">Period</th>' + days.map(d => '<th>' + DOW_NAMES[d] + '</th>').join('');
+    t.appendChild(head);
+    TT.settings.periods.forEach(p => {
+      const tr = document.createElement('tr');
+      const td0 = document.createElement('td'); td0.className = 'tt-per';
+      td0.innerHTML = '<b>' + esc(p.label || '·') + '</b>' + (p.start || p.end ? '<span>' + esc(p.start || '') + (p.end ? '–' + esc(p.end) : '') + '</span>' : '');
+      tr.appendChild(td0);
+      days.forEach(d => {
+        const td = document.createElement('td');
+        const cell = document.createElement('div'); cell.className = 'tt-cell';
+        TT.slots.filter(s => s.day === d && s.periodId === p.id).forEach(s => {
+          const subj = subjectById(s.subjectId);
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'tt-slot';
+          b.style.background = subj ? subj.color : '#666';
+          b.innerHTML = '<span>' + esc((subj && (subj.short || subj.name)) || '?') + (s.note ? '<small> · ' + esc(s.note) + '</small>' : '') + '</span>' +
+            (s.week ? '<span class="wk">' + (s.week === 1 ? 'A' : 'B') + '</span>' : '');
+          b.onclick = () => openSlotEditor(s, d, p);
+          cell.appendChild(b);
+        });
+        const add = document.createElement('button'); add.type = 'button'; add.className = 'tt-add'; add.textContent = '+';
+        add.title = 'Add a lesson here';
+        add.onclick = () => openSlotEditor(null, d, p);
+        cell.appendChild(add);
+        td.appendChild(cell); tr.appendChild(td);
+      });
+      t.appendChild(tr);
+    });
+    const leg = $('ttLegend'); leg.innerHTML = '';
+    TT.subjects.forEach(s => {
+      const el = document.createElement('span'); el.className = 'tt-leg';
+      el.innerHTML = '<i style="background:' + esc(s.color) + '"></i>' + esc(s.name);
+      leg.appendChild(el);
+    });
+  }
+
+  // ── slot editor ────────────────────────────────────
+  let _slot = null, _slotNew = null;
+  function openSlotEditor(slot, day, period) {
+    _slot = slot; _slotNew = slot ? null : { id: uid(), day, periodId: period.id, subjectId: (TT.subjects[0] || {}).id || '', room: '', teacher: '', week: 0, note: '' };
+    const s = slot || _slotNew;
+    $('slTitle').textContent = slot ? 'Edit lesson' : 'Add lesson';
+    $('slWhen').textContent = DOW_NAMES[day] + ' · period ' + (period.label || '?') + (period.start ? ' · ' + period.start + (period.end ? '–' + period.end : '') : '');
+    const sel = $('slSubject'); sel.innerHTML = '';
+    TT.subjects.forEach(su => { const o = document.createElement('option'); o.value = su.id; o.textContent = su.name; sel.appendChild(o); });
+    sel.value = s.subjectId || (TT.subjects[0] || {}).id || '';
+    $('slRoom').value = s.room || ''; $('slTeacher').value = s.teacher || '';
+    $('slWeek').value = String(s.week || 0); $('slNote').value = s.note || '';
+    $('slWeekWrap').style.display = (Number(TT.settings.weekCycle) > 1) ? '' : 'none';
+    $('slDelete').style.display = slot ? '' : 'none';
+    $('slotOv').classList.add('open');
+  }
+  function closeSlotEditor() { $('slotOv').classList.remove('open'); _slot = null; _slotNew = null; }
+
+  // ── holidays / special dates ───────────────────────
+  // A themed date field built on demand, so dynamically-created rows get the same
+  // calendar popover as the static ones instead of a native, unthemeable input.
+  let _dpn = 0;
+  function dateField(value, onChange) {
+    const wrap = document.createElement('div');
+    wrap.className = 'dtdate'; wrap.style.flex = '0 0 138px';
+    const id = 'dtd' + (++_dpn);
+    wrap.innerHTML = '<input type="text" id="' + id + '" class="dtdate-input" readonly placeholder="YYYY-MM-DD" autocomplete="off" style="width:100%">' +
+      '<button type="button" class="dtdate-btn" aria-label="Pick date">📅</button><div class="dtdate-pop"></div>';
+    const inp = wrap.querySelector('input');
+    inp.value = value || '';
+    makeDatePicker(inp);
+    inp.addEventListener('change', () => onChange(inp.value));
+    return wrap;
+  }
+  function renderEvents() {
+    const box = $('ttEvents'); box.innerHTML = '';
+    if (!TT.events.length) box.innerHTML = '<div class="empty" style="padding:20px"><b>Nothing yet</b>Breaks, exam weeks, trips — anything that changes a date range.</div>';
+    TT.events.slice().sort((a, b) => (a.from || '').localeCompare(b.from || '')).forEach(ev => {
+      const i = TT.events.indexOf(ev);
+      const row = document.createElement('div'); row.className = 'tt-item'; row.style.flexWrap = 'wrap';
+      row.innerHTML =
+        '<select class="ek" style="width:126px;flex:none">' + ['holiday','break','noSchool','exam','event']
+          .map(k => '<option value="' + k + '"' + (ev.kind === k ? ' selected' : '') + '>' + ({holiday:'Holiday',break:'Break',noSchool:'No school',exam:'Exam period',event:'Event'})[k] + '</option>').join('') + '</select>' +
+        '<span class="ef-slot" style="display:contents"></span>' +
+        '<span style="color:var(--text3)">→</span>' +
+        '<span class="et-slot" style="display:contents"></span>' +
+        '<input type="text" class="el grow" placeholder="Autumn break" style="min-width:140px" value="' + esc(ev.label) + '">' +
+        '<input type="text" class="eh grow" placeholder="Őszi szünet" style="min-width:140px" value="' + esc(ev.labelHu) + '">' +
+        '<button class="tt-x" title="Remove">×</button>';
+      row.querySelector('.ef-slot').replaceWith(dateField(ev.from, v => {
+        ev.from = v; markDirty();
+        if (!ev.to || ev.to < ev.from) { ev.to = ev.from; renderEvents(); }
+      }));
+      row.querySelector('.et-slot').replaceWith(dateField(ev.to, v => { ev.to = v; markDirty(); }));
+      row.querySelector('.ek').onchange = e => { ev.kind = e.target.value; markDirty(); };
+      row.querySelector('.el').oninput = e => { ev.label = e.target.value; markDirty(); };
+      row.querySelector('.eh').oninput = e => { ev.labelHu = e.target.value; markDirty(); };
+      row.querySelector('.tt-x').onclick = () => { TT.events.splice(i, 1); markDirty(); renderEvents(); };
+      box.appendChild(row);
+    });
+  }
+
+  // ── generic confirm (reuses the existing confirm modal) ─────────────
+  function askConfirm(title, html, fn) {
+    $('cfTitle').textContent = title; $('cfMsg').innerHTML = html;
+    confirmFn = fn; $('confirmOv').classList.add('open');
+  }
+
+  /* ── Note / folder picker used by the timetable and day editor ────── */
+  let _dnp = null;   // { opts, onPick, onClear, dir, lang }
+  function openNotePicker(opts, onPick, onClear) {
+    _dnp = { opts: opts || {}, onPick, onClear, dir: '', lang: (opts && opts.lang) || 'en' };
+    $('dnpLangSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.dlang === _dnp.lang));
+    $('dnpOv').classList.add('open');
+    loadNotePicker();
+  }
+  function closeNotePicker() { $('dnpOv').classList.remove('open'); _dnp = null; }
+  async function loadNotePicker() {
+    if (!_dnp) return;
+    const list = $('dnpList'); list.innerHTML = '<div class="empty">Loading…</div>';
+    renderCrumbs($('dnpCrumbs'), (_dnp.lang === 'hu' ? 'DataHU' : 'Data'), _dnp.dir ? _dnp.dir.split('/') : [], d => { _dnp.dir = d; loadNotePicker(); });
+    let data;
+    try { data = await api('/api/admin/browse?lang=' + _dnp.lang + '&dir=' + encodeURIComponent(_dnp.dir)); }
+    catch (e) { list.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    list.innerHTML = '';
+    if (_dnp.opts.folders) {
+      const use = document.createElement('button'); use.className = 'picker-none'; use.style.marginBottom = '10px';
+      use.textContent = _dnp.dir ? '✓ Use this folder — ' + _dnp.dir : 'Open a folder to pick it';
+      use.disabled = !_dnp.dir;
+      use.onclick = () => { const cb = _dnp.onPick, l = _dnp.lang, p = _dnp.dir; closeNotePicker(); cb({ path: p, lang: l, name: p.split('/').pop() }); };
+      list.appendChild(use);
+      if (_dnp.onClear) {
+        const clr = document.createElement('button'); clr.className = 'mini-btn danger'; clr.style.marginBottom = '12px';
+        clr.textContent = 'Clear the link';
+        clr.onclick = () => { const cb = _dnp.onClear; closeNotePicker(); cb(); };
+        list.appendChild(clr);
+      }
+    }
+    if (data.missing || !(data.items || []).length) {
+      const e = document.createElement('div'); e.className = 'empty';
+      e.textContent = data.missing ? 'No ' + (_dnp.lang === 'hu' ? 'DataHU' : 'Data') + ' directory.' : 'Nothing here.';
+      list.appendChild(e); return;
+    }
+    data.items.forEach(it => {
+      const row = document.createElement('div'); row.className = 'row ' + (it.type === 'folder' ? 'folder' : 'file');
+      const badge = it.type === 'folder' ? 'DIR' : (it.ext || '').replace('.', '').toUpperCase();
+      row.innerHTML = '<div class="ico">' + (it.type === 'folder' ? FOLDER_SVG : fileSvg(it.ext)) + '</div>' +
+        '<div class="body"><div class="nm">' + esc(it.display || it.name) + '</div>' +
+        '<div class="meta"><span class="badge">' + esc(badge) + '</span></div></div>';
+      row.style.cursor = 'pointer';
+      row.onclick = () => {
+        if (it.type === 'folder') { _dnp.dir = it.path; loadNotePicker(); return; }
+        if (_dnp.opts.folders) return;
+        const cb = _dnp.onPick, l = _dnp.lang;
+        closeNotePicker();
+        cb({ path: it.path, lang: l, name: it.display || it.name.replace(/\.[^.]+$/, '') });
+      };
+      list.appendChild(row);
+    });
+  }
+
+  /* ══ DAY LOG ═══════════════════════════════════════════════════════ */
+  async function loadDaysAdmin() {
+    const box = $('dayList'); box.innerHTML = '<div class="empty">Loading…</div>';
+    try { const r = await api('/api/admin/days'); dayRows = r.days || []; }
+    catch (e) { box.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    renderDaysAdmin();
+  }
+  function renderDaysAdmin() {
+    const box = $('dayList'); const q = $('dayFilter').value.trim().toLowerCase();
+    const rows = dayRows.filter(d => !q || (d.date + ' ' + (d.title || '') + ' ' + (d.titleHu || '')).toLowerCase().includes(q));
+    $('dayCount').textContent = rows.length + ' of ' + dayRows.length + ' day' + (dayRows.length === 1 ? '' : 's');
+    box.innerHTML = '';
+    if (!rows.length) {
+      box.innerHTML = '<div class="empty"><b>' + (dayRows.length ? 'Nothing matches' : 'No days logged yet') + '</b>' +
+        (dayRows.length ? 'Try a different filter.' : 'Press <b>Add day</b> to write up what happened.') + '</div>';
+      return;
+    }
+    rows.forEach(d => {
+      const el = document.createElement('div'); el.className = 'dl-row';
+      const dt = new Date(d.date + 'T00:00:00Z');
+      const c = d.counts || {};
+      el.innerHTML =
+        '<div class="dl-date"><b>' + dt.getUTCDate() + '</b><span>' + MONTH_SHORT[dt.getUTCMonth()] + ' ' + dt.getUTCFullYear() + '</span></div>' +
+        '<div class="dl-main">' +
+          '<div class="dl-title' + (d.title ? '' : ' none') + '">' + esc(d.title || DOW_NAMES[dowOf(d.date)] + ' — no title') + '</div>' +
+          '<div class="dl-dots">' +
+            '<span class="badge">' + (c.lessons || 0) + ' lesson' + ((c.lessons === 1) ? '' : 's') + '</span>' +
+            (c.files ? '<span class="chip tag">' + c.files + ' file' + (c.files === 1 ? '' : 's') + (c.scans ? ' · ' + c.scans + ' scan' + (c.scans === 1 ? '' : 's') : '') + '</span>' : '') +
+            (c.notes ? '<span class="chip author">' + c.notes + ' linked note' + (c.notes === 1 ? '' : 's') + '</span>' : '') +
+            (d.visibility === 'members' ? '<span class="chip members">members</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="acts"><button class="icon-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>' +
+        '<button class="icon-btn danger" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></div>';
+      const [edit, del] = el.querySelectorAll('.acts button');
+      el.onclick = e => { if (!e.target.closest('.acts')) openDayEditor(d.date); };
+      edit.onclick = e => { e.stopPropagation(); openDayEditor(d.date); };
+      del.onclick = e => {
+        e.stopPropagation();
+        askConfirm('Delete this day?', 'Delete the log for <b>' + esc(prettyDate(d.date)) + '</b>? Its uploaded files are deleted too. This cannot be undone.', async () => {
+          try { await api('/api/admin/day/delete', { method: 'POST', body: { id: d.id } }); toast('Day deleted'); loadDaysAdmin(); }
+          catch (err) { toast('Delete failed: ' + err.message, true); }
+        });
+      };
+      box.appendChild(el);
+    });
+  }
+
+  // ── the day editor ─────────────────────────────────
+  async function openDayEditor(date) {
+    if (!TT) await loadTimetableAdmin();
+    const d = isDateStr(date) ? date : todayISO();
+    $('deDate').value = d;
+    $('dayOv').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    await loadDayIntoEditor(d);
+  }
+  function closeDayEditor() { $('dayOv').classList.remove('open'); document.body.style.overflow = ''; DE = null; }
+
+  async function loadDayIntoEditor(date) {
+    $('deLessons').innerHTML = '<div class="empty">Loading…</div>';
+    let r;
+    try { r = await api('/api/admin/day?date=' + encodeURIComponent(date)); }
+    catch (e) { $('deLessons').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    const existing = r.day;
+    const plan = r.plan || { lessons: [], events: [], week: 0 };
+    DE = {
+      id: existing ? existing.id : uid(),
+      date,
+      isNew: !existing,
+      title: existing ? existing.title : '',
+      titleHu: existing ? existing.titleHu : '',
+      summary: existing ? existing.summary : '',
+      summaryHu: existing ? existing.summaryHu : '',
+      visibility: existing ? existing.visibility : 'all',
+      lessons: [],
+    };
+    // Merge: every scheduled lesson is offered (checked if already logged), plus
+    // anything logged that is no longer on the timetable.
+    const logged = existing ? existing.lessons.slice() : [];
+    const takenIdx = new Set();
+    plan.lessons.forEach(pl => {
+      let li = logged.findIndex((l, i) => !takenIdx.has(i) && ((l.slotId && l.slotId === pl.slotId) ||
+        (!l.slotId && l.subjectId === pl.subjectId && l.periodId === pl.periodId)));
+      if (li >= 0) takenIdx.add(li);
+      const l = li >= 0 ? logged[li] : null;
+      DE.lessons.push(Object.assign({
+        id: l ? l.id : uid(), on: !!l, scheduled: true,
+        slotId: pl.slotId, subjectId: pl.subjectId, subject: pl.subject, subjectHu: pl.subjectHu,
+        color: pl.color, periodId: pl.periodId, periodLabel: pl.periodLabel, start: pl.start, end: pl.end,
+        room: pl.room, teacher: pl.teacher, folder: pl.folder, folderLang: pl.folderLang,
+        kind: 'lesson', what: '', homework: '', topics: [], important: false, notes: [], attachments: [],
+      }, l ? { on: true, kind: l.kind, what: l.what, homework: l.homework, topics: l.topics,
+        important: l.important, notes: l.notes, attachments: l.attachments,
+        room: l.room || pl.room, teacher: l.teacher || pl.teacher } : {}));
+    });
+    logged.forEach((l, i) => {
+      if (takenIdx.has(i)) return;
+      DE.lessons.push(Object.assign({ on: true, scheduled: false, folder: '', folderLang: 'en' }, l));
+    });
+    $('deTitle').textContent = (existing ? 'Edit ' : 'Add ') + prettyDate(date);
+    $('deTitleIn').value = DE.title; $('deTitleHu').value = DE.titleHu;
+    $('deSummary').value = DE.summary; $('deSummaryHu').value = DE.summaryHu;
+    $('deVisToggle').classList.toggle('on', DE.visibility === 'members');
+    $('deDelete').classList.toggle('hidden', !existing);
+    const bits = [DOW_NAMES[dowOf(date)]];
+    if (Number(TT.settings.weekCycle) > 1) bits.push('<b>week ' + (weekParityOf(date) === 0 ? 'A' : 'B') + '</b>');
+    bits.push(plan.lessons.length + ' scheduled lesson' + (plan.lessons.length === 1 ? '' : 's'));
+    (plan.events || []).forEach(ev => bits.push('<b>' + esc(ev.label || ev.kind) + '</b>'));
+    if (existing) bits.push('logged by ' + esc(existing.updatedBy || existing.createdBy || '—'));
+    $('dePlanNote').innerHTML = bits.join('<br>');
+    renderDayLessons();
+  }
+
+  function renderDayLessons() {
+    const box = $('deLessons'); box.innerHTML = '';
+    if (!DE.lessons.length) {
+      box.innerHTML = '<div class="empty" style="padding:24px"><b>Nothing scheduled for this date</b>' +
+        'Either the timetable has no lessons on this weekday, or it isn\'t set up yet. You can still add lessons by hand below.</div>';
+      return;
+    }
+    DE.lessons.forEach((l, idx) => box.appendChild(buildLessonCard(l, idx)));
+  }
+
+  function buildLessonCard(l, idx) {
+    const card = document.createElement('div');
+    card.className = 'de-lesson' + (l.on ? ' on' : '');
+    const label = l.subject || l.customSubject || 'Lesson';
+    const timeBits = [];
+    if (l.periodLabel) timeBits.push('period ' + l.periodLabel);
+    if (l.start) timeBits.push(l.start + (l.end ? '–' + l.end : ''));
+    if (l.room) timeBits.push('room ' + l.room);
+    if (l.teacher) timeBits.push(l.teacher);
+    if (!l.scheduled) timeBits.push('added by hand');
+
+    const head = document.createElement('div'); head.className = 'de-lhead';
+    head.innerHTML =
+      '<span class="de-check">✓</span>' +
+      '<span class="de-bar" style="background:' + esc(l.color || '#8b8fa3') + '"></span>' +
+      '<span class="de-lgrow"><span class="de-lname">' + esc(label) + '</span>' +
+      '<div class="de-ltime">' + esc(timeBits.join(' · ')) + '</div></span>' +
+      '<span class="de-lsum">' + esc(l.on ? (l.what || '').split('\n')[0].slice(0, 48) : '') + '</span>';
+    head.onclick = () => {
+      l.on = !l.on; card.classList.toggle('on', l.on);
+      if (l.on && !card.dataset.built) buildLessonBody(card, l);
+    };
+    card.appendChild(head);
+
+    const body = document.createElement('div'); body.className = 'de-lbody';
+    card.appendChild(body);
+    if (l.on) buildLessonBody(card, l);
+    return card;
+  }
+
+  function buildLessonBody(card, l) {
+    const body = card.querySelector('.de-lbody');
+    card.dataset.built = '1';
+    body.innerHTML = '';
+
+    if (!l.scheduled) {
+      const nm = document.createElement('label'); nm.className = 'fld';
+      nm.innerHTML = '<span>What was it?</span><input type="text" placeholder="Class trip, extra maths, replacement lesson…">';
+      const inp = nm.querySelector('input'); inp.value = l.subject || '';
+      inp.oninput = e => { l.subject = e.target.value; card.querySelector('.de-lname').textContent = e.target.value || 'Lesson'; };
+      body.appendChild(nm);
+      const row = document.createElement('div'); row.className = 'grid2';
+      row.innerHTML = '<label class="fld" style="margin:0"><span>Time</span><input type="text" class="tm" placeholder="14:00–15:30"></label>' +
+                      '<label class="fld" style="margin:0"><span>Colour</span><input type="color" class="cl" style="height:42px;padding:4px"></label>';
+      row.querySelector('.tm').value = l.periodLabel || '';
+      row.querySelector('.tm').oninput = e => { l.periodLabel = e.target.value; };
+      row.querySelector('.cl').value = l.color || '#8b8fa3';
+      row.querySelector('.cl').oninput = e => { l.color = e.target.value; card.querySelector('.de-bar').style.background = e.target.value; };
+      body.appendChild(row);
+    }
+
+    // kind
+    const kinds = document.createElement('div'); kinds.className = 'de-kinds';
+    LESSON_KINDS.forEach(([k, lbl]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = lbl;
+      b.className = (l.kind || 'lesson') === k ? 'on' : '';
+      b.onclick = () => { l.kind = k; kinds.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); };
+      kinds.appendChild(b);
+    });
+    body.appendChild(kinds);
+
+    // what happened
+    const what = document.createElement('label'); what.className = 'fld';
+    what.innerHTML = '<span>What happened</span><textarea rows="4" placeholder="What was covered, what was said, what to remember…"></textarea>';
+    const wta = what.querySelector('textarea'); wta.value = l.what || '';
+    wta.oninput = e => { l.what = e.target.value; card.querySelector('.de-lsum').textContent = e.target.value.split('\n')[0].slice(0, 48); };
+    body.appendChild(what);
+
+    const two = document.createElement('div'); two.className = 'grid2';
+    two.innerHTML = '<label class="fld" style="margin:0"><span>Topics <span style="color:var(--text3)">— comma separated</span></span><input type="text" class="tp" placeholder="quadratics, factoring"></label>' +
+                    '<label class="fld" style="margin:0"><span>Homework</span><input type="text" class="hw" placeholder="Ex. 12–18 by Friday"></label>';
+    two.querySelector('.tp').value = (l.topics || []).join(', ');
+    two.querySelector('.tp').oninput = e => { l.topics = e.target.value.split(',').map(x => x.trim()).filter(Boolean); };
+    two.querySelector('.hw').value = l.homework || '';
+    two.querySelector('.hw').oninput = e => { l.homework = e.target.value; };
+    body.appendChild(two);
+
+    const imp = document.createElement('div'); imp.className = 'row-toggle' + (l.important ? ' on' : '');
+    imp.style.margin = '13px 0 0';
+    imp.innerHTML = '<div class="switch"></div><span>Highlight this lesson on the public day</span>';
+    imp.onclick = () => { l.important = !l.important; imp.classList.toggle('on', l.important); };
+    body.appendChild(imp);
+
+    // ── digital notes ──
+    const nHead = document.createElement('span'); nHead.className = 'de-sub'; nHead.textContent = 'Digital notes covering this';
+    body.appendChild(nHead);
+    const nList = document.createElement('div'); nList.className = 'de-notes';
+    body.appendChild(nList);
+    const nBtns = document.createElement('div'); nBtns.className = 'tt-inline'; nBtns.style.marginTop = '9px';
+    const addN = document.createElement('button'); addN.className = 'mini-btn'; addN.type = 'button'; addN.textContent = '+ Link a note';
+    addN.onclick = () => openNotePicker({ lang: l.folderLang || 'en', startDir: l.folder || '' }, pick => {
+      l.notes = l.notes || [];
+      if (l.notes.some(n => n.path === pick.path && n.lang === pick.lang)) { toast('Already linked'); return; }
+      l.notes.push({ path: pick.path, lang: pick.lang, label: pick.name });
+      drawNotes();
+    });
+    nBtns.appendChild(addN);
+    if (l.folder) {
+      const hint = document.createElement('span'); hint.className = 'field-note'; hint.style.margin = '0';
+      hint.textContent = 'subject folder: ' + l.folder;
+      nBtns.appendChild(hint);
+    }
+    body.appendChild(nBtns);
+    function drawNotes() {
+      nList.innerHTML = '';
+      (l.notes || []).forEach((n, i) => {
+        const row = document.createElement('div'); row.className = 'de-note';
+        row.innerHTML = '<span class="de-langchip">' + n.lang.toUpperCase() + '</span>' +
+          '<span class="lb">' + esc(n.label || n.path.split('/').pop()) + '<div class="p">' + esc(n.path) + '</div></span>' +
+          '<button class="tt-x">×</button>';
+        row.querySelector('.tt-x').onclick = () => { l.notes.splice(i, 1); drawNotes(); };
+        nList.appendChild(row);
+      });
+      if (!(l.notes || []).length) { nList.innerHTML = '<div class="field-note" style="margin:0">No digital note linked — that\'s fine, a day can be paper only.</div>'; }
+    }
+    drawNotes();
+
+    // ── files / scans ──
+    const fHead = document.createElement('span'); fHead.className = 'de-sub'; fHead.textContent = 'Files & scans of paper notes';
+    body.appendChild(fHead);
+    const drop = document.createElement('div'); drop.className = 'de-drop';
+    drop.innerHTML = '<b>Drop photos, scans or files here</b>or click to choose · images, PDF, audio, video, text (max ' + Math.round(DAY_UPLOAD_MAX / 1048576) + ' MB each)';
+    const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true; inp.style.display = 'none';
+    drop.onclick = () => inp.click();
+    inp.onchange = () => { uploadFiles(l, Array.from(inp.files), gallery); inp.value = ''; };
+    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+    drop.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) uploadFiles(l, Array.from(e.dataTransfer.files), gallery); });
+    body.appendChild(drop); body.appendChild(inp);
+    const gallery = document.createElement('div'); gallery.className = 'de-files';
+    body.appendChild(gallery);
+    drawFiles(l, gallery);
+  }
+
+  const DAY_UPLOAD_MAX = 25 * 1048576;
+  const IMG_RE = /\.(png|jpe?g|webp|gif|avif|bmp)$/i;
+  function drawFiles(l, gallery) {
+    gallery.innerHTML = '';
+    (l.attachments || []).forEach((a, i) => {
+      const url = '/uploads/days/' + DE.id + '/' + a.id + a.ext;
+      const el = document.createElement('div'); el.className = 'de-file';
+      el.innerHTML =
+        '<div class="thumb">' + (IMG_RE.test(a.name) ? '<img alt="" src="' + esc(url) + '">' : esc((a.ext || '').replace('.', '').toUpperCase() || 'FILE')) + '</div>' +
+        '<button class="fk' + (a.kind === 'scan' ? ' scan' : '') + '" title="Is this a scan of paper notes?">' + (a.kind === 'scan' ? 'SCAN' : 'FILE') + '</button>' +
+        '<button class="fx" title="Remove">×</button>' +
+        '<div class="fn" title="' + esc(a.name) + '">' + esc(a.name) + '</div>' +
+        '<input class="cap" placeholder="caption…">';
+      el.querySelector('.cap').value = a.caption || '';
+      el.querySelector('.cap').oninput = e => { a.caption = e.target.value; };
+      el.querySelector('.fk').onclick = () => {
+        a.kind = a.kind === 'scan' ? 'file' : 'scan';
+        const b = el.querySelector('.fk'); b.textContent = a.kind === 'scan' ? 'SCAN' : 'FILE';
+        b.classList.toggle('scan', a.kind === 'scan');
+      };
+      el.querySelector('.fx').onclick = () => { l.attachments.splice(i, 1); drawFiles(l, gallery); };
+      gallery.appendChild(el);
+    });
+  }
+  async function uploadFiles(l, files, gallery) {
+    l.attachments = l.attachments || [];
+    for (const f of files) {
+      if (f.size > DAY_UPLOAD_MAX) { toast(f.name + ' is too large (max ' + Math.round(DAY_UPLOAD_MAX / 1048576) + ' MB)', true); continue; }
+      const ph = document.createElement('div'); ph.className = 'de-file up';
+      ph.innerHTML = '<div class="thumb" style="position:relative">…</div><div class="fn">' + esc(f.name) + '</div>';
+      gallery.appendChild(ph);
+      try {
+        const kind = /^image\//.test(f.type) ? 'scan' : 'file';
+        const res = await fetch('/api/admin/day/upload?day=' + encodeURIComponent(DE.id) +
+          '&name=' + encodeURIComponent(f.name) + '&kind=' + kind,
+          { method: 'POST', headers: { 'X-Admin-Token': token, 'Content-Type': f.type || 'application/octet-stream' }, body: f });
+        const j = await res.json().catch(() => ({}));
+        if (!res.ok || !j.ok) throw new Error(j.error || ('HTTP ' + res.status));
+        l.attachments.push(j.attachment);
+      } catch (e) { toast('Upload failed for ' + f.name + ': ' + e.message, true); }
+      ph.remove();
+    }
+    drawFiles(l, gallery);
+  }
+
+  async function saveDay() {
+    if (!DE) return;
+    const payload = {
+      id: DE.id, date: $('deDate').value.trim(),
+      title: $('deTitleIn').value.trim(), titleHu: $('deTitleHu').value.trim(),
+      summary: $('deSummary').value, summaryHu: $('deSummaryHu').value,
+      visibility: $('deVisToggle').classList.contains('on') ? 'members' : 'all',
+      lessons: DE.lessons.filter(l => l.on).map(l => ({
+        id: l.id, slotId: l.slotId || '', subjectId: l.subjectId || '',
+        subject: l.subject || '', subjectHu: l.subjectHu || '', color: l.color || '#8b8fa3',
+        periodId: l.periodId || '', periodLabel: l.periodLabel || '', start: l.start || '', end: l.end || '',
+        room: l.room || '', teacher: l.teacher || '', kind: l.kind || 'lesson',
+        what: l.what || '', homework: l.homework || '', topics: l.topics || [], important: !!l.important,
+        notes: l.notes || [], attachments: l.attachments || [],
+      })),
+    };
+    if (!isDateStr(payload.date)) { toast('Pick a date first', true); return; }
+    $('deSave').disabled = true;
+    try {
+      await api('/api/admin/day', { method: 'POST', body: { day: payload } });
+      toast('Day saved'); closeDayEditor(); loadDaysAdmin();
+    } catch (e) { toast('Save failed: ' + e.message, true); }
+    finally { $('deSave').disabled = false; }
+  }
+
+  // ── wiring ─────────────────────────────────────────
+  $('ttSave').onclick = saveTimetableAdmin;
+  $('ttReload').onclick = () => askConfirm('Discard changes?', 'Reload the saved timetable and lose every unsaved edit?', () => loadTimetableAdmin(true));
+  $('ttAddPeriod').onclick = () => {
+    const n = TT.settings.periods.length + 1;
+    TT.settings.periods.push({ id: uid(), label: String(n), start: '', end: '' });
+    markDirty(); renderPeriods(); renderWeekGrid();
+  };
+  $('ttAddSubject').onclick = () => {
+    TT.subjects.push({ id: uid(), name: '', nameHu: '', short: '', color: SUBJECT_PALETTE[TT.subjects.length % SUBJECT_PALETTE.length], teacher: '', room: '', folder: '', folderLang: 'en' });
+    markDirty(); renderSubjects();
+    const inputs = $('ttSubjects').querySelectorAll('.tt-item .sn');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  };
+  $('ttAddEvent').onclick = () => { TT.events.push({ id: uid(), from: todayISO(), to: todayISO(), kind: 'holiday', label: '', labelHu: '' }); markDirty(); renderEvents(); };
+  $('ttCycle').onchange = () => { TT.settings.weekCycle = Number($('ttCycle').value) || 1; $('ttAnchorWrap').style.opacity = TT.settings.weekCycle > 1 ? '1' : '.42'; markDirty(); renderWeekGrid(); };
+  $('ttVisToggle').onclick = () => { $('ttVisToggle').classList.toggle('on'); markDirty(); };
+  ['ttTitle','ttTitleHu'].forEach(id => $(id).addEventListener('input', markDirty));
+  ['ttAnchor','ttStart','ttEnd'].forEach(id => $(id).addEventListener('change', markDirty));
+
+  $('slClose').onclick = closeSlotEditor;
+  $('slCancel').onclick = closeSlotEditor;
+  $('slOk').onclick = () => {
+    const s = _slot || _slotNew; if (!s) return closeSlotEditor();
+    s.subjectId = $('slSubject').value;
+    s.room = $('slRoom').value.trim(); s.teacher = $('slTeacher').value.trim();
+    s.week = Number($('slWeek').value) || 0; s.note = $('slNote').value.trim();
+    if (!s.subjectId) { toast('Pick a subject', true); return; }
+    if (_slotNew) TT.slots.push(_slotNew);
+    markDirty(); closeSlotEditor(); renderWeekGrid();
+  };
+  $('slDelete').onclick = () => {
+    if (_slot) { TT.slots = TT.slots.filter(x => x !== _slot); markDirty(); renderWeekGrid(); }
+    closeSlotEditor();
+  };
+
+  $('dnpClose').onclick = closeNotePicker;
+  $('dnpLangSeg').onclick = e => {
+    const b = e.target.closest('button[data-dlang]'); if (!b || !_dnp) return;
+    _dnp.lang = b.dataset.dlang; _dnp.dir = '';
+    $('dnpLangSeg').querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+    loadNotePicker();
+  };
+
+  $('dayAddBtn').onclick = () => openDayEditor(todayISO());
+  $('dayFilter').addEventListener('input', renderDaysAdmin);
+  // Changing the date re-seeds the editor from that date's timetable, so the date
+  // picker is how you choose which day you are logging. Anything already typed is
+  // protected by a confirm first.
+  $('deDate').addEventListener('change', () => {
+    const next = $('deDate').value.trim();
+    if (!DE || !isDateStr(next) || next === DE.date) return;
+    if (dayEditorHasContent()) {
+      $('deDate').value = DE.date;   // revert now; the confirmed path puts it back
+      askConfirm('Switch to another date?', 'This day has unsaved changes. Load <b>' + esc(prettyDate(next)) + '</b> and lose them?',
+        () => { $('deDate').value = next; loadDayIntoEditor(next); });
+      return;
+    }
+    loadDayIntoEditor(next);
+  });
+  function dayEditorHasContent() {
+    if (!DE) return false;
+    if ($('deTitleIn').value.trim() || $('deTitleHu').value.trim() || $('deSummary').value.trim() || $('deSummaryHu').value.trim()) return true;
+    return DE.lessons.some(l => l.on && (l.what || l.homework || (l.topics || []).length || (l.notes || []).length || (l.attachments || []).length));
+  }
+  $('deClose').onclick = closeDayEditor;
+  $('deCancel').onclick = closeDayEditor;
+  $('deSave').onclick = saveDay;
+  $('deVisToggle').onclick = () => $('deVisToggle').classList.toggle('on');
+  $('deAddLesson').onclick = () => {
+    if (!DE) return;
+    DE.lessons.push({ id: uid(), on: true, scheduled: false, slotId: '', subjectId: '', subject: '', subjectHu: '',
+      color: SUBJECT_PALETTE[DE.lessons.length % SUBJECT_PALETTE.length], periodId: '', periodLabel: '', start: '', end: '',
+      room: '', teacher: '', kind: 'lesson', what: '', homework: '', topics: [], important: false, notes: [], attachments: [], folder: '', folderLang: 'en' });
+    renderDayLessons();
+    const cards = $('deLessons').querySelectorAll('.de-lesson');
+    if (cards.length) cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+  $('deDelete').onclick = () => {
+    if (!DE) return;
+    const id = DE.id, when = DE.date;
+    askConfirm('Delete this day?', 'Delete the log for <b>' + esc(prettyDate(when)) + '</b>? Its uploaded files are deleted too.', async () => {
+      try { await api('/api/admin/day/delete', { method: 'POST', body: { id } }); toast('Day deleted'); closeDayEditor(); loadDaysAdmin(); }
+      catch (e) { toast('Delete failed: ' + e.message, true); }
+    });
+  };
 
   // ── boot ───────────────────────────────────────────
   (async () => {

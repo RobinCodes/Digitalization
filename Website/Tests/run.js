@@ -82,6 +82,22 @@ function req(method, p, { token, body, authToken, cookie } = {}) {
     r.end();
   });
 }
+// Raw-body POST (the day-attachment upload endpoint takes the file as the body).
+function reqRaw(method, p, buf, { token } = {}) {
+  return new Promise((resolve, reject) => {
+    const headers = { 'Content-Type': 'application/octet-stream', 'Content-Length': buf.length };
+    if (token) headers['X-Admin-Token'] = token;
+    const r = http.request({ host: '127.0.0.1', port: PORT, path: p, method, headers }, res => {
+      let out = ''; res.on('data', c => out += c);
+      res.on('end', () => {
+        let json = null; try { json = JSON.parse(out); } catch {}
+        resolve({ status: res.statusCode, body: out, json, headers: res.headers });
+      });
+    });
+    r.on('error', reject);
+    r.write(buf); r.end();
+  });
+}
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ── run ───────────────────────────────────────────────────────────────────────
@@ -694,6 +710,363 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     r = await req('POST', '/api/settings', { cookie: setCk, body: { theme: 'rainbow', lang: 'xx' } });
     r = await req('GET', '/api/settings', { cookie: setCk });
     ok('invalid settings values rejected', r.json && r.json.settings.theme === undefined && r.json.settings.lang === undefined);
+
+    // A plain viewer account, so members-only gating is tested without admin powers.
+    await req('POST', '/api/admin/users', { token, body: { username: 'dayreader', password: 'dayreader1' } });
+    const memberCk = (((await req('POST', '/api/login', { body: { username: 'dayreader', password: 'dayreader1' } })).headers['set-cookie'] || [''])[0] || '').split(';')[0];
+
+    // ── timetable + day log ──────────────────────────────────────────────────
+    const TT_DOC = {
+      settings: {
+        visibility: 'all', title: 'Class 10.B', days: [1, 2, 3, 4, 5], weekCycle: 2, cycleAnchor: '2026-09-01',
+        startDate: '2026-09-01', endDate: '2027-06-15',
+        periods: [
+          { id: 'p1', label: '1', start: '08:00', end: '08:45' },
+          { id: 'p2', label: '2', start: '08:55', end: '09:40' },
+          { id: 'p3', label: '3', start: '09:50', end: '10:35' },
+        ],
+      },
+      subjects: [
+        { id: 'math', name: 'Mathematics', nameHu: 'Matematika', short: 'Math', color: '#4A90D9', teacher: 'Kovacs', room: '204', folder: 'STEM/Mathematics', folderLang: 'en' },
+        { id: 'hist', name: 'History', nameHu: 'Tortenelem', color: 'not-a-colour' },
+      ],
+      slots: [
+        { id: 's1', day: 1, periodId: 'p1', subjectId: 'math', week: 0 },
+        { id: 's2', day: 1, periodId: 'p2', subjectId: 'hist', week: 0 },
+        { id: 's3', day: 1, periodId: 'p3', subjectId: 'math', week: 1 },
+        { id: 'bad1', day: 9, periodId: 'p1', subjectId: 'math', week: 0 },      // bad weekday
+        { id: 'bad2', day: 2, periodId: 'nope', subjectId: 'math', week: 0 },    // unknown period
+        { id: 'bad3', day: 2, periodId: 'p1', subjectId: 'ghost', week: 0 },     // unknown subject
+      ],
+      events: [{ id: 'e1', from: '2026-10-23', to: '2026-10-25', kind: 'holiday', label: 'Autumn break', labelHu: 'Oszi szunet' }],
+    };
+
+    r = await req('POST', '/api/admin/timetable', { body: { timetable: TT_DOC } });
+    ok('timetable save requires admin (401)', r.status === 401);
+
+    r = await req('POST', '/api/admin/timetable', { token, body: { timetable: TT_DOC } });
+    ok('timetable saved', r.status === 200 && r.json && r.json.ok === true);
+    ok('timetable drops invalid slots', r.json && r.json.timetable.slots.length === 3,
+       r.json && JSON.stringify(r.json.timetable.slots.map(s => s.id)));
+    ok('timetable normalises colours', r.json && r.json.timetable.subjects[0].color === '#4a90d9' && r.json.timetable.subjects[1].color === '#8b8fa3');
+
+    r = await req('GET', '/api/timetable');
+    ok('timetable readable anonymously', r.status === 200 && r.json.ok === true && r.json.timetable.settings.title === 'Class 10.B');
+
+    // Week parity: anchor 2026-09-01 → its Monday (08-31) is week A, so 09-07 is B.
+    r = await req('GET', '/api/admin/day?date=2026-09-07', { token });
+    ok('plan: week B skips the week-A-only slot', r.json && r.json.plan.week === 1 && r.json.plan.lessons.length === 2);
+    ok('plan: lessons come back in period order', r.json && r.json.plan.lessons.map(l => l.periodLabel).join(',') === '1,2');
+    r = await req('GET', '/api/admin/day?date=2026-09-14', { token });
+    ok('plan: week A includes the week-A-only slot', r.json && r.json.plan.week === 0 && r.json.plan.lessons.length === 3);
+    r = await req('GET', '/api/admin/day?date=2026-09-12', { token });
+    ok('plan: Saturday has no lessons', r.json && r.json.plan.lessons.length === 0);
+    r = await req('GET', '/api/admin/day?date=2026-10-24', { token });
+    ok('plan: a holiday date reports its event', r.json && r.json.plan.events.length === 1 && r.json.plan.events[0].label === 'Autumn break');
+
+    // Upload an attachment before the day exists — files are adopted on save.
+    const DAY_ID = 'testday001';
+    const PNG = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex');
+    let upl = await reqRaw('POST', '/api/admin/day/upload?day=' + DAY_ID + '&name=' + encodeURIComponent('page 1.png') + '&kind=scan', PNG, { token });
+    ok('day attachment uploads', upl.status === 200 && upl.json && upl.json.ok === true && /^\/uploads\/days\//.test(upl.json.url));
+    const att = upl.json && upl.json.attachment;
+    ok('attachment records name + kind', att && att.name === 'page 1.png' && att.kind === 'scan' && att.ext === '.png' && att.size === PNG.length);
+
+    upl = await reqRaw('POST', '/api/admin/day/upload?day=' + DAY_ID + '&name=evil.svg', Buffer.from('<svg onload="x"/>'), { token });
+    ok('upload rejects a scriptable type (.svg)', upl.status === 400);
+    upl = await reqRaw('POST', '/api/admin/day/upload?day=' + DAY_ID + '&name=a.png', PNG);
+    ok('upload requires admin (401)', upl.status === 401);
+    upl = await reqRaw('POST', '/api/admin/day/upload?day=../escape&name=a.png', PNG, { token });
+    ok('upload rejects a traversal day id (400)', upl.status === 400);
+
+    const DAY = {
+      id: DAY_ID, date: '2026-09-07', title: 'First real Monday', summary: 'Two tests announced.',
+      visibility: 'all',
+      lessons: [
+        { slotId: 's1', subjectId: 'math', subject: 'Mathematics', subjectHu: 'Matematika', color: '#4a90d9',
+          periodId: 'p1', periodLabel: '1', start: '08:00', end: '08:45', room: '204', teacher: 'Kovacs',
+          kind: 'lesson', what: 'Quadratic equations, completing the square.', homework: 'Ex. 12-18',
+          topics: ['quadratics', 'completing the square'],
+          notes: [{ path: 'STEM/Mathematics/Applied Algebra {Algebra}.tex', lang: 'en', label: 'Applied Algebra' }],
+          attachments: [att] },
+        { slotId: 's2', subjectId: 'hist', subject: 'History', periodId: 'p2', kind: 'nonsense', what: 'Surprise test.' },
+      ],
+    };
+    r = await req('POST', '/api/admin/day', { body: { day: DAY } });
+    ok('day save requires admin (401)', r.status === 401);
+    r = await req('POST', '/api/admin/day', { token, body: { day: { date: 'yesterday' } } });
+    ok('day save rejects a bad date (400)', r.status === 400);
+    r = await req('POST', '/api/admin/day', { token, body: { day: DAY } });
+    ok('day saved', r.status === 200 && r.json && r.json.ok === true);
+    ok('day records the week parity', r.json && r.json.day.week === 1);
+    ok('day normalises an unknown lesson kind', r.json && r.json.day.lessons[1].kind === 'lesson');
+    ok('day stamps the author', r.json && r.json.day.createdBy === 'admin' && r.json.day.updatedBy === 'admin');
+
+    r = await req('POST', '/api/admin/day', { token, body: { day: { id: 'otherid001', date: '2026-09-07', lessons: [] } } });
+    ok('a second entry for the same date is refused (409)', r.status === 409);
+
+    r = await req('GET', '/api/days');
+    ok('day feed is public', r.status === 200 && r.json.ok === true && r.json.total === 1 && r.json.days[0].title === 'First real Monday');
+    r = await req('GET', '/api/days?q=quadratic');
+    ok('day feed searches lesson text', r.json && r.json.total === 1);
+    r = await req('GET', '/api/days?q=nothinghere');
+    ok('day feed search misses cleanly', r.json && r.json.total === 0);
+    r = await req('GET', '/api/days?subject=hist');
+    ok('day feed filters by subject', r.json && r.json.total === 1);
+    r = await req('GET', '/api/days?subject=chem');
+    ok('day feed subject filter excludes', r.json && r.json.total === 0);
+    r = await req('GET', '/api/days?files=1');
+    ok('day feed filters to days with files', r.json && r.json.total === 1);
+    r = await req('GET', '/api/days?from=2026-09-08');
+    ok('day feed honours a date range', r.json && r.json.total === 0);
+
+    r = await req('GET', '/api/days/index');
+    ok('day index summarises counts', r.json && r.json.index.length === 1 && r.json.index[0].counts.files === 1 && r.json.index[0].counts.scans === 1 && r.json.index[0].counts.notes === 1);
+    ok('day index carries subject colours', r.json && r.json.index[0].subjects.length === 2);
+
+    r = await req('GET', '/api/day?date=2026-09-07');
+    ok('single day returns the log and the plan', r.json && r.json.day && r.json.plan && r.json.plan.lessons.length === 2);
+    r = await req('GET', '/api/day?date=2026-09-21');
+    ok('an unlogged date still returns its plan', r.json && r.json.ok === true && r.json.day === null && r.json.plan.lessons.length > 0);
+
+    r = await req('GET', '/api/note/days?path=' + encodeURIComponent('STEM/Mathematics/Applied Algebra {Algebra}.tex') + '&lang=en');
+    ok('note → days reverse link works', r.json && r.json.days.length === 1 && r.json.days[0].date === '2026-09-07');
+    r = await req('GET', '/api/note/days?path=' + encodeURIComponent('STEM/Physics/Mechanics {P}.tex') + '&lang=en');
+    ok('note → days is empty for an uncovered note', r.json && r.json.days.length === 0);
+
+    // attachment serving
+    r = await req('GET', ('/uploads/days/' + DAY_ID + '/' + att.id + att.ext));
+    ok('public day attachment is served', r.status === 200);
+    r = await req('GET', ('/uploads/days/' + DAY_ID + '/' + att.id + att.ext) + '?download=1');
+    ok('attachment download keeps its real filename', /filename="page%201.png"/.test(r.headers['content-disposition'] || ''));
+    r = await req('GET', '/uploads/days/' + DAY_ID + '/deadbeefdeadbeefdeadbeef.png');
+    ok('unknown attachment id → 404', r.status === 404);
+
+    // members-only day
+    r = await req('POST', '/api/admin/day', { token, body: { day: {
+      id: 'secretday01', date: '2026-09-08', title: 'Private', visibility: 'members',
+      lessons: [{ subject: 'Chemistry', what: 'members only', attachments: [] }] } } });
+    ok('members-only day saved', r.json && r.json.ok === true);
+    r = await req('GET', '/api/days');
+    ok('anonymous feed hides a members-only day', r.json && r.json.days.every(d => d.date !== '2026-09-08'));
+    r = await req('GET', '/api/day?date=2026-09-08');
+    ok('anonymous day detail hides a members-only day', r.json && r.json.day === null);
+    r = await req('GET', '/api/days/index');
+    ok('anonymous index hides a members-only day', r.json && r.json.index.every(d => d.date !== '2026-09-08'));
+    r = await req('GET', '/api/days', { cookie: memberCk });
+    ok('a signed-in member sees the members-only day', r.json && r.json.days.some(d => d.date === '2026-09-08'));
+
+    // members-only timetable
+    r = await req('POST', '/api/admin/timetable', { token, body: { timetable: { ...TT_DOC, settings: { ...TT_DOC.settings, visibility: 'members' } } } });
+    r = await req('GET', '/api/timetable');
+    ok('members-only timetable is withheld anonymously', r.json && r.json.restricted === true && r.json.timetable === null);
+    r = await req('GET', '/api/timetable', { cookie: memberCk });
+    ok('members-only timetable opens for a member', r.json && r.json.timetable && r.json.timetable.slots.length === 3);
+    await req('POST', '/api/admin/timetable', { token, body: { timetable: TT_DOC } });
+
+    // static routes must never expose the stores or the upload dir
+    for (const p of ['/days.json', '/timetable.json', '/DAYS.JSON', '/note-discussions.json', '/ADMINS.JSON']) {
+      r = await req('GET', p);
+      ok('static server hides ' + p + ' (404)', r.status === 404, 'got ' + r.status);
+    }
+
+    // data.txt is metadata, not a note
+    r = await req('GET', '/api/file?path=' + encodeURIComponent('STEM/Mathematics/data.txt'));
+    ok('/api/file refuses data.txt (404)', r.status === 404);
+
+    // ══ September 2026 audit — regressions ═══════════════════════════════════
+    // Each block below pins a defect found in the second audit pass. See
+    // Documentation/audit-2026-09.md.
+
+    // Fresh accounts: alice/bob were deleted earlier, and a note's owners must
+    // resolve to live accounts for the request flow to name them.
+    await req('POST', '/api/admin/users', { token, body: { username: 'owner1', password: 'owner1pass' } });
+    await req('POST', '/api/admin/users', { token, body: { username: 'stranger', password: 'strangerpw' } });
+    const ownerCk    = (((await req('POST', '/api/login', { body: { username: 'owner1', password: 'owner1pass' } })).headers['set-cookie'] || [''])[0] || '').split(';')[0];
+    const strangerCk = (((await req('POST', '/api/login', { body: { username: 'stranger', password: 'strangerpw' } })).headers['set-cookie'] || [''])[0] || '').split(';')[0];
+    ok('audit fixtures signed in', /ki_auth=/.test(ownerCk) && /ki_auth=/.test(strangerCk));
+
+    // ── the precompile surface must not leak or be a free job queue ──────────
+    // A restricted note the stranger may not see. autoPrecompile walks the whole
+    // archive at start-up and files every note under its full path in preStatus;
+    // that map used to be served to anyone.
+    r = await req('POST', '/api/admin/note', { token, body: { lang: 'en', dir: 'STEM/Mathematics',
+      filename: 'Hidden Draft {H}.tex',
+      content: '\\documentclass{article}\\begin{document}hidden\\end{document}',
+      meta: { canSee: 'whitelist', canRead: 'whitelist', seeAllow: 'owner1', readAllow: 'owner1', owners: 'owner1' } } });
+    ok('hidden note created for the precompile checks', r.json && r.json.ok === true);
+    const hiddenRel = 'STEM/Mathematics/Hidden Draft {H}.tex';
+    r = await req('GET', '/api/file?lang=en&path=' + encodeURIComponent(hiddenRel), { cookie: strangerCk });
+    ok('the hidden note really is hidden from the stranger (403)', r.status === 403, 'got ' + r.status);
+
+    r = await req('POST', '/api/precompile/folder', { token, body: { folderPath: '', lang: 'en' } });
+    ok('precompile/folder answers an admin', r.status === 200 && r.json && typeof r.json.queued === 'number', JSON.stringify(r.json));
+
+    r = await req('GET', '/api/precompile/status');
+    ok('anonymous precompile status still reports queue + running',
+      r.status === 200 && r.json && typeof r.json.queue === 'number' && typeof r.json.running === 'boolean', JSON.stringify(r.json));
+    ok('anonymous precompile status withholds the per-note map', r.json && r.json.status === undefined, JSON.stringify(r.json));
+    r = await req('GET', '/api/precompile/status', { token });
+    ok('admin precompile status still carries the per-note map', r.json && r.json.status && typeof r.json.status === 'object');
+
+    // The public "Compile all now" button may only queue what the caller can open.
+    r = await req('POST', '/api/precompile/folder', { body: { folderPath: 'STEM/Mathematics', lang: 'en' } });
+    ok('anonymous precompile/folder is still allowed', r.status === 200 && r.json && typeof r.json.queued === 'number');
+    r = await req('GET', '/api/precompile/status', { token });
+    const anonQueued = Object.keys((r.json && r.json.status) || {});
+    ok('anonymous precompile never queues a note the caller cannot see',
+      !anonQueued.some(k => k === 'en:' + hiddenRel && ['queued', 'compiling'].includes(r.json.status[k].state)),
+      JSON.stringify(anonQueued.filter(k => k.includes('Hidden Draft'))));
+
+    // ── /api/access/info must not name a hidden note's owners ────────────────
+    // The stranger is signed in but on no list for the hidden note, so they may not
+    // even know it exists — let alone who owns it.
+    r = await req('GET', '/api/access/info?lang=en&path=' + encodeURIComponent(hiddenRel), { cookie: strangerCk });
+    ok('access/info reports a hidden note as not applicable', r.json && r.json.ok === true && r.json.applicable === false && r.json.granted === false);
+    ok('access/info withholds the owners of a note the caller cannot see',
+      r.json && Array.isArray(r.json.recipients) && r.json.recipients.length === 0, JSON.stringify(r.json));
+
+    // A request-tier note *is* visible to everyone, so naming its owners is the
+    // whole point of the card — that must keep working.
+    const askRel = 'STEM/Mathematics/Ask First {A}.tex';
+    r = await req('POST', '/api/admin/note', { token, body: { lang: 'en', dir: 'STEM/Mathematics',
+      filename: 'Ask First {A}.tex',
+      content: '\\documentclass{article}\\begin{document}ask\\end{document}',
+      meta: { canSee: 'all', canRead: 'whitelist', readRequests: true, owners: 'owner1' } } });
+    ok('request-tier note created', r.json && r.json.ok === true);
+    r = await req('GET', '/api/access/info?lang=en&path=' + encodeURIComponent(askRel), { cookie: strangerCk });
+    ok('access/info still names the owners when a request is actually possible',
+      r.json && r.json.applicable === true && (r.json.recipients || []).includes('owner1'), JSON.stringify(r.json));
+
+    // ── an access request needs the see gate, not just the read gate ─────────
+    r = await req('POST', '/api/access/request', { cookie: strangerCk, body: { lang: 'en', path: hiddenRel } });
+    ok('access/request refuses a note the caller cannot see', r.status === 400 && r.json && r.json.ok === false, JSON.stringify(r.json));
+    r = await req('POST', '/api/access/request', { cookie: strangerCk, body: { lang: 'en', path: askRel } });
+    ok('access/request still works on a note the caller can see',
+      r.status === 200 && r.json && r.json.status === 'requested', JSON.stringify(r.json));
+
+    await req('POST', '/api/admin/note/delete', { token, body: { lang: 'en', dir: 'STEM/Mathematics', filename: 'Ask First {A}.tex' } });
+
+    // ── account rules apply wherever an account is created ───────────────────
+    r = await req('POST', '/api/admin/users', { token, body: { username: '<img src=x onerror=alert(1)>', password: 'longenough1' } });
+    ok('admin cannot create a user whose name is markup', r.status === 400 && r.json && r.json.ok === false, JSON.stringify(r.json));
+    r = await req('POST', '/api/admin/users', { token, body: { username: 'ok', password: 'longenough1' } });
+    ok('admin cannot create a too-short username', r.status === 400);
+    r = await req('POST', '/api/admin/users', { token, body: { username: 'shortpw', password: 'abc' } });
+    ok('admin cannot create an account with a weak password', r.status === 400);
+    r = await req('GET', '/api/admin/users', { token });
+    ok('none of the refused accounts were written',
+      !(r.json.users || []).some(u => /[<>]/.test(u) || u === 'ok' || u === 'shortpw'), JSON.stringify(r.json.users));
+
+    // ── a members-only day answers like a day that was never logged ──────────
+    // 403 vs 404 is an existence oracle: the status alone would confirm the day.
+    r = await req('GET', '/uploads/days/secretday01/' + 'a'.repeat(24) + '.png');
+    ok('members-only day attachment 404s anonymously (no existence oracle)', r.status === 404, 'got ' + r.status);
+    r = await req('GET', '/uploads/days/nosuchday999/' + 'a'.repeat(24) + '.png');
+    ok('an unknown day id answers identically', r.status === 404, 'got ' + r.status);
+
+    // ── data.txt can never gain a section from a value a member controls ─────
+    // A note owner may edit their own note's metadata. A newline in a value would
+    // otherwise open a second [Section] and rewrite a neighbouring note's access —
+    // here, the hidden note that sits in the same folder.
+    const injRel = 'STEM/Mathematics/Owned Note {O}.tex';
+    r = await req('POST', '/api/admin/note', { token, body: { lang: 'en', dir: 'STEM/Mathematics',
+      filename: 'Owned Note {O}.tex',
+      content: '\\documentclass{article}\\begin{document}owned\\end{document}',
+      meta: { canSee: 'all', canRead: 'all', owners: 'owner1' } } });
+    ok('owned note created', r.json && r.json.ok === true);
+    r = await req('POST', '/api/note/manage', { cookie: ownerCk, body: { lang: 'en', path: injRel,
+      patch: { description: 'one\ntwo\n[Hidden Draft]\ncan-see: all\ncan-read: all' } } });
+    ok('note/manage accepts the edit', r.json && r.json.ok === true, JSON.stringify(r.json));
+    const injTxt = fs.readFileSync(path.join(DATA, 'STEM', 'Mathematics', 'data.txt'), 'utf8');
+    const injSections = injTxt.split(/\r?\n/).filter(L => /^\[.+\]$/.test(L.trim())).map(L => L.trim());
+    ok('no duplicate section was injected',
+      injSections.length === new Set(injSections).size, JSON.stringify(injSections));
+    ok('the newlines were flattened into the one value',
+      /^description: one two \[Hidden Draft\] can-see: all can-read: all$/m.test(injTxt), JSON.stringify(injTxt.slice(-500)));
+    r = await req('GET', '/api/file?lang=en&path=' + encodeURIComponent(hiddenRel), { cookie: strangerCk });
+    ok('the neighbouring note kept its restriction', r.status === 403, 'got ' + r.status);
+    await req('POST', '/api/admin/note/delete', { token, body: { lang: 'en', dir: 'STEM/Mathematics', filename: 'Owned Note {O}.tex' } });
+    await req('POST', '/api/admin/note/delete', { token, body: { lang: 'en', dir: 'STEM/Mathematics', filename: 'Hidden Draft {H}.tex' } });
+
+    // ── a session must not outlive the account or the password behind it ─────
+    // The token store is the only thing between a removed account and the site;
+    // deleting the row in users.json does nothing to a browser already holding a
+    // token, so an ex-member stayed signed in for up to eight hours.
+    await req('POST', '/api/admin/users', { token, body: { username: 'expired1', password: 'expiredpw1' } });
+    const expCk = (((await req('POST', '/api/login', { body: { username: 'expired1', password: 'expiredpw1' } })).headers['set-cookie'] || [''])[0] || '').split(';')[0];
+    r = await req('GET', '/api/me', { cookie: expCk });
+    ok('the doomed account is signed in', r.json && r.json.ok === true && r.json.username === 'expired1');
+    r = await req('POST', '/api/admin/users/delete', { token, body: { username: 'expired1' } });
+    ok('deleting the account reports the sessions it ended', r.json && r.json.ok === true && r.json.revoked >= 1, JSON.stringify(r.json));
+    r = await req('GET', '/api/me', { cookie: expCk });
+    ok('a deleted account is signed out immediately', r.json && r.json.ok === false, JSON.stringify(r.json));
+    r = await req('GET', '/api/chat/list', { cookie: expCk });
+    ok('and its token no longer opens the member API', r.status === 401, 'got ' + r.status);
+
+    // An admin resetting a password is usually locking someone out.
+    await req('POST', '/api/admin/users', { token, body: { username: 'resetme1', password: 'resetmepw1' } });
+    const resetCk = (((await req('POST', '/api/login', { body: { username: 'resetme1', password: 'resetmepw1' } })).headers['set-cookie'] || [''])[0] || '').split(';')[0];
+    await req('POST', '/api/admin/users', { token, body: { username: 'resetme1', password: 'brandnewpw2' } });
+    r = await req('GET', '/api/me', { cookie: resetCk });
+    ok('an admin password reset ends the old sessions', r.json && r.json.ok === false, JSON.stringify(r.json));
+
+    // Changing your own password signs out your other devices but not this one.
+    const selfA = (((await req('POST', '/api/login', { body: { username: 'resetme1', password: 'brandnewpw2' } })).headers['set-cookie'] || [''])[0] || '').split(';')[0];
+    const selfB = (((await req('POST', '/api/login', { body: { username: 'resetme1', password: 'brandnewpw2' } })).headers['set-cookie'] || [''])[0] || '').split(';')[0];
+    ok('two sessions for the same account differ', selfA !== selfB);
+    r = await req('POST', '/api/account/password', { cookie: selfB, body: { oldPassword: 'brandnewpw2', newPassword: 'thirdpassw3' } });
+    ok('self-service password change succeeds', r.json && r.json.ok === true, JSON.stringify(r.json));
+    r = await req('GET', '/api/me', { cookie: selfB });
+    ok('the tab that changed it stays signed in', r.json && r.json.ok === true && r.json.username === 'resetme1');
+    r = await req('GET', '/api/me', { cookie: selfA });
+    ok('the other device is signed out', r.json && r.json.ok === false, JSON.stringify(r.json));
+    await req('POST', '/api/admin/users/delete', { token, body: { username: 'resetme1' } });
+
+    // ── HSTS is emitted on HTTPS only ────────────────────────────────────────
+    r = await req('GET', '/api/me');
+    ok('no HSTS over plain HTTP', !r.headers['strict-transport-security'], r.headers['strict-transport-security']);
+    ok('the other security headers are always present',
+      r.headers['x-content-type-options'] === 'nosniff' && !!r.headers['content-security-policy'] && !!r.headers['x-frame-options']);
+    const shellRes = await req('GET', '/devtools');
+    ok('shell CSP is nonce-based, not unsafe-inline',
+      /script-src 'self' 'nonce-[^']+'/.test(shellRes.headers['content-security-policy'] || '') &&
+      !/script-src[^;]*unsafe-inline/.test(shellRes.headers['content-security-policy'] || ''),
+      shellRes.headers['content-security-policy']);
+
+    // ── the compile endpoint is bounded ──────────────────────────────────────
+    // 90 requests per 5 minutes per IP; a cache miss forks two real pdflatex runs.
+    let compileStatuses = new Set();
+    for (let i = 0; i < 95; i++) {
+      const cr = await req('POST', '/api/compile', { body: { path: 'STEM/Mathematics/nope-' + i + '.tex', lang: 'en' } });
+      compileStatuses.add(cr.status);
+      if (cr.status === 429) break;
+    }
+    ok('/api/compile rate-limits a burst', compileStatuses.has(429), [...compileStatuses].join(','));
+
+    // ── the admin console cannot be brute-forced ─────────────────────────────
+    // Its own bucket, so this cannot lock the site sign-in used by later tests.
+    let adminLast = null;
+    for (let i = 0; i < 25; i++) {
+      adminLast = await req('POST', '/api/admin/login', { body: { username: 'admin', password: 'guess' + i } });
+      if (adminLast.status === 429) break;
+    }
+    ok('/api/admin/login rate-limits a brute-force run', adminLast.status === 429, 'got ' + adminLast.status);
+    r = await req('POST', '/api/login', { body: { username: 'owner1', password: 'owner1pass' } });
+    ok('the site sign-in keeps its own budget', r.status === 200 && r.json && r.json.ok === true, 'got ' + r.status);
+    // the existing admin token is unaffected by the lockout
+    r = await req('GET', '/api/admin/me', { token });
+    ok('an established admin session survives the lockout', r.json && r.json.ok === true);
+
+    // deleting a day removes its files
+    r = await req('POST', '/api/admin/day/delete', { token, body: { id: 'secretday01' } });
+    ok('day deleted', r.json && r.json.ok === true);
+    r = await req('POST', '/api/admin/day/delete', { token, body: { id: DAY_ID } });
+    ok('day with attachments deleted', r.json && r.json.ok === true);
+    r = await req('GET', ('/uploads/days/' + DAY_ID + '/' + att.id + att.ext));
+    ok('its attachment is gone (404)', r.status === 404);
+    r = await req('GET', '/api/days');
+    ok('feed is empty again', r.json && r.json.total === 0);
 
     // logout invalidates
     r = await req('POST', '/api/admin/logout', { token });

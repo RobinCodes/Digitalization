@@ -8,6 +8,14 @@ changelog.json
 settings.json
 note-discussions.json
 blocked.json
+timetable.json
+days.json
+
+# Day-log attachments (photographed / scanned paper notes). These are real content,
+# not secrets — but they are personal, can be large, and a day may be members-only,
+# so they stay out of a public repository by default. Back them up alongside
+# days.json if you want the day log preserved.
+Uploads/
 
 # Server-side PDF render cache
 .pdf-cache/
