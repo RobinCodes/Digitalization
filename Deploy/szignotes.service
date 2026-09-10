@@ -1,0 +1,46 @@
+[Unit]
+Description=SzigNotes — Digitalization knowledge index
+Documentation=https://github.com/RobinCodes/Digitalization
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+
+# server.js resolves Data/, DataHU/ and Music/ as ../Data etc., so the working
+# directory must be Website/ inside the repo checkout — not the repo root.
+WorkingDirectory=/opt/szignotes/Website
+ExecStart=/usr/bin/node server.js
+
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+# Without this every visitor shares one rate-limit budget, HSTS is never sent
+# and the session cookie never gets its Secure flag. See hosting-and-operations.md §1.
+Environment=TRUSTED_PROXIES=127.0.0.1
+
+Environment=SITE_ORIGIN=https://szignotes.hu
+
+# 4 vCPU box: two parallel pdflatex runs is the shipped default and fits fine.
+# Drop to 1 if you ever move to a 2-vCPU plan.
+Environment=COMPILE_CONCURRENCY=2
+
+Restart=always
+RestartSec=2
+
+# ── Hardening ────────────────────────────────────────────────────────────────
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+
+# The app writes its JSON stores, Uploads/ and .pdf-cache/ here.
+ReadWritePaths=/opt/szignotes/Website
+
+[Install]
+WantedBy=multi-user.target

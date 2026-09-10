@@ -1,0 +1,36 @@
+# /etc/caddy/Caddyfile
+#
+# Caddy obtains and renews the Let's Encrypt certificate on its own, so both
+# names must already resolve to this server before you reload it.
+
+szignotes.hu, www.szignotes.hu {
+
+	# server.js has no Content-Encoding path of its own — zlib in there is
+	# deflateRawSync for the backup .zip. index.html is ~750 KB raw, so this
+	# line is doing most of the work on page-load time.
+	encode zstd gzip
+
+	reverse_proxy 127.0.0.1:3000 {
+		# Caddy sets X-Forwarded-For / -Proto / -Host by default; the app
+		# believes them because TRUSTED_PROXIES=127.0.0.1 in the unit file.
+		health_uri /robots.txt
+	}
+
+	# Day attachments are capped at 25 MB by DAY_UPLOAD_MAX; leave headroom
+	# so the app returns its own error rather than Caddy cutting the body off.
+	request_body {
+		max_size 32MB
+	}
+
+	log {
+		output file /var/log/caddy/szignotes.log {
+			roll_size 20MB
+			roll_keep 10
+		}
+	}
+}
+
+# Once you own digitalization.hu, redirect it here rather than serving twice:
+# digitalization.hu, www.digitalization.hu {
+# 	redir https://szignotes.hu{uri} permanent
+# }

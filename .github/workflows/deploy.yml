@@ -1,0 +1,49 @@
+name: Test & deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two deploys overlap — the second would restart the server
+# mid-way through the first one's git reset.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Test suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Tests/run.js builds its own throwaway fixture under os.tmpdir() and
+      # copies server.js into it, so it needs no pdflatex and touches no state.
+      - name: Run tests
+        working-directory: Website
+        run: node Tests/run.js
+
+  deploy:
+    name: Deploy to netcup
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger deploy over SSH
+        env:
+          KEY:   ${{ secrets.DEPLOY_SSH_KEY }}
+          HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          HOST:  ${{ secrets.DEPLOY_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY"   > ~/.ssh/id_ed25519
+          printf '%s\n' "$HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+          # The server's authorized_keys pins this key to szignotes-deploy via
+          # command=, so whatever we send here is ignored. 'deploy' is a label.
+          ssh -o BatchMode=yes -i ~/.ssh/id_ed25519 "deploy@$HOST" deploy
