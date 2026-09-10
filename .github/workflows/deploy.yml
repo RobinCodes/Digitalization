@@ -33,7 +33,22 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
+      # Until the server exists and the secrets are set, skip rather than fail —
+      # otherwise every push to main shows a red X for a deploy that cannot work.
+      - name: Is a deploy target configured?
+        id: cfg
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$HOST" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DEPLOY_HOST is not set — tests ran, deploy skipped."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Trigger deploy over SSH
+        if: steps.cfg.outputs.ready == 'true'
         env:
           KEY:   ${{ secrets.DEPLOY_SSH_KEY }}
           HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
