@@ -1,0 +1,70 @@
+name: Test & deploy
+
+on:
+  push:
+    branches: [main]
+  # Run the suite on PRs too, so a red test blocks the merge instead of only
+  # reporting after main has already moved.
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two deploys overlap — the second would restart the server
+# mid-way through the first one's git reset.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Test suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Tests/run.js builds its own throwaway fixture under os.tmpdir() and
+      # copies server.js into it, so it needs no pdflatex and touches no state.
+      - name: Run tests
+        working-directory: Website
+        run: node Tests/run.js
+
+  deploy:
+    name: Deploy to netcup
+    needs: test
+    # Only real pushes to main deploy — never a pull request.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # Until the server exists and the secrets are set, skip rather than fail —
+      # otherwise every push to main shows a red X for a deploy that cannot work.
+      - name: Is a deploy target configured?
+        id: cfg
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$HOST" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DEPLOY_HOST is not set — tests ran, deploy skipped."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger deploy over SSH
+        if: steps.cfg.outputs.ready == 'true'
+        env:
+          KEY:   ${{ secrets.DEPLOY_SSH_KEY }}
+          HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          HOST:  ${{ secrets.DEPLOY_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY"   > ~/.ssh/id_ed25519
+          printf '%s\n' "$HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+          # The server's authorized_keys pins this key to szignotes-deploy via
+          # command=, so whatever we send here is ignored. 'deploy' is a label.
+          ssh -o BatchMode=yes -i ~/.ssh/id_ed25519 "deploy@$HOST" deploy

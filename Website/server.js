@@ -7,6 +7,7 @@ const path   = require('path');
 const url    = require('url');
 const os     = require('os');
 const crypto = require('crypto');
+const zlib   = require('zlib');
 const { spawnSync, spawn } = require('child_process');
 
 const PORT          = process.env.PORT || 3000;
@@ -54,8 +55,14 @@ const MIME = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+// Percent-decode a URL *path* fragment. Query values arrive already decoded from
+// url.parse(..., true), so only pathname-derived strings go through this.
+function decPath(p) { try { return decodeURIComponent(String(p)); } catch { return String(p); } }
+// `relPath` must already be decoded. safePath used to decode internally, which
+// double-decoded query values — so a real filename containing '%' (e.g. "100%.tex")
+// either resolved to the wrong file or threw URIError and 403'd.
 function safePath(base, relPath) {
-  const norm = path.normalize(decodeURIComponent(relPath)).replace(/^(\.\.[\\/])+/, '');
+  const norm = path.normalize(String(relPath)).replace(/^(\.\.[\\/])+/, '');
   const full = path.join(base, norm);
   if (!full.startsWith(path.normalize(base) + path.sep) && full !== path.normalize(base))
     throw new Error('Path traversal blocked');
@@ -64,19 +71,28 @@ function safePath(base, relPath) {
 
 // Never expose server source, credential files, dotfiles (.git, .pdf-cache), or tests
 // over HTTP — important once the repo is public on GitHub.
-const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json', 'blocked.json', 'server.js',
+const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json', 'blocked.json',
+  'timetable.json', 'days.json', 'note-discussions.json', 'changelog.json', 'server.js',
   'make-admin.js', 'make-user.js', 'package.json', 'package-lock.json']);
+// Compared case-insensitively: Windows/macOS filesystems are case-insensitive, so a
+// request for /ADMINS.JSON would otherwise walk straight past this guard and serve
+// the credential store. Uploads/ is likewise never static — day attachments are
+// access-checked by the /uploads/days/ route, which a cased URL could sidestep.
 function isProtectedStatic(rel) {
-  const parts = String(rel).split('/').filter(Boolean);
+  const parts = String(rel).split(/[\\/]/).filter(Boolean);
   if (parts.some(p => p.startsWith('.'))) return true;        // .git, .pdf-cache, dotfiles
-  if (parts[0] === 'tests' || parts[0] === 'node_modules') return true;
-  return PROTECTED_FILES.has(parts[parts.length - 1] || '');
+  const first = (parts[0] || '').toLowerCase();
+  if (first === 'tests' || first === 'node_modules' || first === 'uploads') return true;
+  return PROTECTED_FILES.has((parts[parts.length - 1] || '').toLowerCase());
 }
 
 // Optional CORS. Set CORS_ORIGIN to a specific origin to expose the API cross-site.
 // Default ('') sends no Access-Control-Allow-Origin — the app is same-origin, so
 // nothing breaks, and we never echo a wildcard (which would be unsafe with cookies).
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
+// Strict-Transport-Security lifetime in seconds, sent only on HTTPS requests.
+// Default 180 days; set HSTS_MAX_AGE=0 to disable.
+const HSTS_MAX_AGE = (() => { const v = process.env.HSTS_MAX_AGE; return v === undefined ? 15552000 : Math.max(0, Number(v) || 0); })();
 function cors(headers = {}) {
   if (CORS_ORIGIN) { headers['Access-Control-Allow-Origin'] = CORS_ORIGIN; headers['Vary'] = headers['Vary'] ? headers['Vary'] + ', Origin' : 'Origin'; }
   return headers;
@@ -88,6 +104,22 @@ function sendJSON(res, data, status = 200) {
     'Cache-Control': 'no-store',
   }));
   res.end(body);
+}
+
+// A missing page should look like part of the site, not like a crashed process.
+// Falls back to plain text if 404.html is absent, and never wastes a rendered page
+// on an API path (those callers want JSON) or a HEAD request.
+function notFoundPage(res, req, pathname) {
+  if (String(pathname || '').startsWith('/api/')) {
+    return sendJSON(res, { ok: false, error: 'Not Found' }, 404);
+  }
+  let html = null;
+  try { html = fs.readFileSync(path.join(__WEBSITE, '404.html'), 'utf8'); } catch {}
+  if (!html) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Not Found'); }
+  html = html.split('__CSP_NONCE__').join(res._cspNonce || '');
+  const buf = Buffer.from(html, 'utf8');
+  res.writeHead(404, cors({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Length': String(buf.length) }));
+  return res.end(req && req.method === 'HEAD' ? undefined : buf);
 }
 
 // Serve an app-shell HTML page with a per-request CSP nonce substituted in.
@@ -117,8 +149,12 @@ function serveFile(res, req, fullPath, forceDownload = false) {
     'Cache-Control': 'no-store',
     'Accept-Ranges': 'bytes',
   });
-  if (forceDownload)
-    headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(path.basename(fullPath))}"`;
+  // forceDownload may be `true` (use the on-disk name) or a string (use that name —
+  // day attachments are stored under a random id but should download as "scan.jpg").
+  if (forceDownload) {
+    const dlName = (typeof forceDownload === 'string' && forceDownload) ? forceDownload : path.basename(fullPath);
+    headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(dlName)}"`;
+  }
 
   // Stream a byte range with an error handler so a read failure can never throw
   // out of the request handler and crash the process.
@@ -162,6 +198,82 @@ function serveFile(res, req, fullPath, forceDownload = false) {
   pipeRange(200, 0, size - 1);
 }
 
+// ── Minimal ZIP writer (no dependencies) ──────────────────────────────────────
+// Enough of the format to produce a normal .zip: one local header + deflated data
+// per entry, then a central directory, then the end-of-central-directory record.
+// Entries are streamed to the response one file at a time, so a large Uploads/
+// tree never sits in memory whole — only the file currently being deflated does.
+const _CRC_TABLE = (() => {
+  const t = new Int32Array(256);
+  for (let i = 0; i < 256; i++) { let c = i; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[i] = c; }
+  return t;
+})();
+function crc32(buf) {
+  let c = -1;
+  for (let i = 0; i < buf.length; i++) c = _CRC_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ -1) >>> 0;
+}
+// DOS date/time, as the format wants them.
+function _dosTime(d) {
+  const y = Math.max(1980, d.getFullYear());
+  return { date: ((y - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate(),
+           time: (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1) };
+}
+function createZipWriter(out) {
+  const entries = [];
+  let offset = 0;
+  const push = buf => { out.write(buf); offset += buf.length; };
+  return {
+    // `name` uses forward slashes; `data` is a Buffer.
+    add(name, data, mtime) {
+      const nameBuf = Buffer.from(String(name).replace(/\\/g, '/'), 'utf8');
+      const crc = crc32(data);
+      let method = 8, body;
+      try { body = zlib.deflateRawSync(data, { level: 6 }); } catch { method = 0; body = data; }
+      if (body.length >= data.length) { method = 0; body = data; }   // storing is smaller for already-compressed files
+      const { date, time } = _dosTime(mtime instanceof Date && !isNaN(mtime) ? mtime : new Date());
+      const local = Buffer.alloc(30);
+      local.writeUInt32LE(0x04034b50, 0);
+      local.writeUInt16LE(20, 4);            // version needed
+      local.writeUInt16LE(0x0800, 6);        // UTF-8 names
+      local.writeUInt16LE(method, 8);
+      local.writeUInt16LE(time, 10); local.writeUInt16LE(date, 12);
+      local.writeUInt32LE(crc, 14);
+      local.writeUInt32LE(body.length, 18);
+      local.writeUInt32LE(data.length, 22);
+      local.writeUInt16LE(nameBuf.length, 26);
+      local.writeUInt16LE(0, 28);
+      entries.push({ nameBuf, crc, csize: body.length, size: data.length, method, time, date, offset });
+      push(local); push(nameBuf); push(body);
+    },
+    finish() {
+      const start = offset;
+      for (const e of entries) {
+        const c = Buffer.alloc(46);
+        c.writeUInt32LE(0x02014b50, 0);
+        c.writeUInt16LE(20, 4); c.writeUInt16LE(20, 6);
+        c.writeUInt16LE(0x0800, 8);
+        c.writeUInt16LE(e.method, 10);
+        c.writeUInt16LE(e.time, 12); c.writeUInt16LE(e.date, 14);
+        c.writeUInt32LE(e.crc, 16);
+        c.writeUInt32LE(e.csize, 20); c.writeUInt32LE(e.size, 24);
+        c.writeUInt16LE(e.nameBuf.length, 28);
+        // 30..41 (extra len, comment len, disk, attrs) stay zero — Buffer.alloc did that.
+        c.writeUInt32LE(e.offset, 42);          // relative offset of the local header
+        push(c); push(e.nameBuf);
+      }
+      const eocd = Buffer.alloc(22);
+      eocd.writeUInt32LE(0x06054b50, 0);
+      eocd.writeUInt16LE(entries.length, 8);
+      eocd.writeUInt16LE(entries.length, 10);
+      eocd.writeUInt32LE(offset - start, 12);
+      eocd.writeUInt32LE(start, 16);
+      push(eocd);
+      return entries.length;
+    },
+  };
+}
+
 function copyDirSync(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
   for (const e of fs.readdirSync(src, { withFileTypes: true })) {
@@ -176,8 +288,40 @@ function rmDirSync(dir) {
 }
 
 // ── data.txt parser ───────────────────────────────────────────────────────────
+// Parsed data.txt files are memoised on (path, mtime, size). /api/tree walks every
+// note and each note's access check re-reads its folder's data.txt (plus its
+// counterpart's), so an archive of N notes used to cost O(N) synchronous file reads
+// on every single tree request. The cache is invalidated automatically whenever the
+// file's mtime or size changes, so DevTools edits are still picked up immediately.
+const _dtCache = new Map();       // absolute data.txt path -> { key, sections }
+const _DT_CACHE_MAX = 4000;
 function parseDataTxt(dir) {
   const filePath = path.join(dir, 'data.txt');
+  let key = '';
+  try { const st = fs.statSync(filePath); key = st.mtimeMs + ':' + st.size; } catch { key = 'none'; }
+  const hit = _dtCache.get(filePath);
+  if (hit && hit.key === key) return hit.sections;
+  const sections = _parseDataTxtUncached(filePath);
+  if (_dtCache.size > _DT_CACHE_MAX) _dtCache.clear();
+  _dtCache.set(filePath, { key, sections });
+  return sections;
+}
+// Drop a folder's memoised data.txt right after we rewrite it, so a save is visible
+// even if the filesystem reports the same mtime (coarse timers on some platforms).
+function invalidateDataTxt(dir) { _dtCache.delete(path.join(dir, 'data.txt')); }
+// Read-modify-write paths need their own copy — the cached object is shared with
+// every reader, so mutating it in place would corrupt the cache for everyone else.
+function parseDataTxtMutable(dir) {
+  const src = parseDataTxt(dir), out = {};
+  for (const [k, v] of Object.entries(src)) out[k] = { ...v };
+  return out;
+}
+// Write data.txt atomically and refresh the memo in one place.
+function writeDataTxt(dir, sections) {
+  writeFileAtomic(path.join(dir, 'data.txt'), serializeDataTxt(sections));
+  invalidateDataTxt(dir);
+}
+function _parseDataTxtUncached(filePath) {
   const sections = {};
   try {
     const lines = fs.readFileSync(filePath, 'utf8').split(/\r?\n/);
@@ -271,6 +415,29 @@ function fileMeta(dir, name, sections) {
     altEn:       meta.alt_en      || null,
     ...deriveAccess(meta),
   };
+}
+
+// ── Note text, memoised for full-text search ──────────────────────────────────
+// /api/search reads every note body, so without a cache a search costs one full
+// read of the archive. Keyed on (mtime, size) like data.txt, and capped by total
+// bytes rather than entry count so one enormous note cannot own the whole cache.
+const SEARCHABLE_EXTS = new Set(['.tex', '.md', '.txt', '.bib']);
+const SEARCH_MAX_FILES = Number(process.env.SEARCH_MAX_FILES) || 4000;
+const SEARCH_MAX_HITS  = Number(process.env.SEARCH_MAX_HITS) || 200;
+const NOTE_TEXT_MAX    = 512 * 1024;                 // don't search or cache a huge file
+const _noteTextCache = new Map();                    // abs path -> { key, text }
+let _noteTextBytes = 0;
+function readNoteText(abs) {
+  let st; try { st = fs.statSync(abs); } catch { return ''; }
+  if (!st.isFile() || st.size > NOTE_TEXT_MAX) return '';
+  const key = st.mtimeMs + ':' + st.size;
+  const hit = _noteTextCache.get(abs);
+  if (hit && hit.key === key) return hit.text;
+  let text = ''; try { text = fs.readFileSync(abs, 'utf8'); } catch { return ''; }
+  if (_noteTextBytes > 48 * 1024 * 1024) { _noteTextCache.clear(); _noteTextBytes = 0; }
+  if (hit) _noteTextBytes -= hit.text.length;
+  _noteTextCache.set(abs, { key, text }); _noteTextBytes += text.length;
+  return text;
 }
 
 // ── Single-dir tree ────────────────────────────────────────────────────────────
@@ -630,8 +797,11 @@ function findPdflatex() {
   return 'pdflatex';
 }
 const PDFLATEX = findPdflatex();
+// Probed once, at start-up. Every compile request used to re-run `pdflatex --version`
+// synchronously, which stalled the event loop for no reason.
+const PDFLATEX_OK = (() => { try { const r = spawnSync(PDFLATEX, ['--version'], { timeout: 8000 }); return r.status === 0 || !!r.stdout; } catch { return false; } })();
 
-// ── On-demand compile (synchronous — runs in request handler) ─────────────────
+// ── On-demand compile ─────────────────────────────────────────────────────────
 // Strip server-side absolute paths out of anything we return to the client.
 function redactPaths(str) {
   let out = String(str == null ? '' : str);
@@ -640,11 +810,57 @@ function redactPaths(str) {
   }
   return out;
 }
-function compileTexSync(fullTex, texPath, lang) {
+// Run pdflatex once, without blocking the event loop.
+// This used to be spawnSync: a single on-demand compile froze the whole server for
+// as long as LaTeX took (up to 2 × 120 s), so one visitor opening an uncached note
+// stalled every other request — page loads, chat, everything. Now the request
+// handler awaits a child process instead, and concurrent compiles are queued.
+function runPdflatexOnce(args, opts) {
+  return new Promise(resolve => {
+    let child;
+    try { child = spawn(PDFLATEX, args, opts); }
+    catch (e) { return resolve({ status: null, out: '', err: String(e && e.message || e), spawnFailed: true }); }
+    let out = '', err = '', size = 0, done = false;
+    const CAP = 4 * 1024 * 1024;         // don't buffer a runaway log into memory
+    const finish = r => { if (done) return; done = true; clearTimeout(timer); resolve(r); };
+    const timer = setTimeout(() => { try { child.kill('SIGKILL'); } catch {} finish({ status: null, out, err, timedOut: true }); },
+      Math.max(5000, Number(opts.timeout) || 120000));
+    child.stdout && child.stdout.on('data', d => { if (size < CAP) { out += d; size += d.length; } });
+    child.stderr && child.stderr.on('data', d => { if (size < CAP) { err += d; size += d.length; } });
+    child.on('error', e => finish({ status: null, out, err: String(e && e.message || e), spawnFailed: true }));
+    child.on('close', code => finish({ status: code, out, err }));
+  });
+}
+// Bound how many LaTeX runs happen at once — each is a real process with real
+// memory, and the queue keeps a burst of readers from forking the machine to death.
+const COMPILE_MAX = Math.max(1, Number(process.env.COMPILE_CONCURRENCY) || 2);
+// The queue in front of those slots is bounded too. Without a cap a burst of
+// readers parks an unbounded number of pending requests (each holding a socket and
+// a promise) waiting for a slot that is minutes away; refusing fast is kinder than
+// timing out slowly.
+const COMPILE_QUEUE_MAX = Math.max(4, Number(process.env.COMPILE_QUEUE_MAX) || 24);
+let _compileActive = 0;
+const _compileWaiters = [];
+function acquireCompileSlot() {
+  if (_compileActive < COMPILE_MAX) { _compileActive++; return Promise.resolve(); }
+  if (_compileWaiters.length >= COMPILE_QUEUE_MAX) return Promise.reject(new Error('compile queue full'));
+  return new Promise(r => _compileWaiters.push(r));
+}
+function releaseCompileSlot() {
+  const next = _compileWaiters.shift();
+  if (next) next(); else _compileActive--;
+}
+
+async function compileTex(fullTex, texPath, lang) {
   const texName = path.basename(fullTex);
   const texBase = texName.replace(/\.tex$/i, '');
-  const tmpDir  = fs.mkdtempSync(path.join(os.tmpdir(), 'ki_'));
+  // Acquire before the try: a refusal here must not run the finally, which would
+  // release a slot that was never taken.
+  try { await acquireCompileSlot(); }
+  catch { return { success: false, busy: true, log: 'The server is compiling too many notes right now. Please try again in a moment.' }; }
+  let tmpDir = null;
   try {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ki_'));
     copyDirSync(path.dirname(fullTex), tmpDir);
     const args = ['-no-shell-escape', '-interaction=nonstopmode', '-file-line-error', texName];
     const opts = {
@@ -654,22 +870,18 @@ function compileTexSync(fullTex, texPath, lang) {
         PATH: process.env.PATH || '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
         openin_any: process.env.openin_any || 'p', openout_any: process.env.openout_any || 'p',  // no reads of absolute/parent/dotfile paths
       },
-      timeout: 120_000, maxBuffer: 32 * 1024 * 1024,
+      timeout: 120_000,
     };
-    const r1 = spawnSync(PDFLATEX, args, opts);
-    const r2 = spawnSync(PDFLATEX, args, opts);
+    const r1 = await runPdflatexOnce(args, opts);
+    const r2 = await runPdflatexOnce(args, opts);   // second pass resolves refs/ToC
     const pdfPath = path.join(tmpDir, texBase + '.pdf');
     if (fs.existsSync(pdfPath)) {
       const data = fs.readFileSync(pdfPath);
       savePdfCache(texPath, lang, data);
-      rmDirSync(tmpDir);
       return { success: true, data, warnings: r2.status !== 0 };
     }
     const parts = [];
-    for (const r of [r1, r2]) {
-      if (r && r.stdout) parts.push(r.stdout.toString());
-      if (r && r.stderr) parts.push(r.stderr.toString());
-    }
+    for (const r of [r1, r2]) { if (r && r.out) parts.push(r.out); if (r && r.err) parts.push(r.err); }
     try {
       const logFile = path.join(tmpDir, texBase + '.log');
       if (fs.existsSync(logFile)) {
@@ -682,9 +894,16 @@ function compileTexSync(fullTex, texPath, lang) {
         parts.push('\n──── log ────\n' + (errLines.length ? errLines : lines.slice(-40)).join('\n'));
       }
     } catch {}
-    rmDirSync(tmpDir);
-    return { success: false, log: (r2.status === null ? 'pdflatex killed\n\n' : `exit ${r2.status}\n\n`) + redactPaths(parts.join('\n').trim()) };
-  } catch (err) { rmDirSync(tmpDir); return { success: false, log: redactPaths('Error: ' + err.message) }; }
+    const head = r2.timedOut ? 'pdflatex timed out\n\n'
+               : r2.spawnFailed ? 'pdflatex could not be started\n\n'
+               : (r2.status === null ? 'pdflatex killed\n\n' : `exit ${r2.status}\n\n`);
+    return { success: false, log: head + redactPaths(parts.join('\n').trim()) };
+  } catch (err) {
+    return { success: false, log: redactPaths('Error: ' + err.message) };
+  } finally {
+    if (tmpDir) rmDirSync(tmpDir);
+    releaseCompileSlot();
+  }
 }
 
 // ── Background precompile queue (non-blocking via async child processes) ───────
@@ -693,6 +912,9 @@ const preStatus  = {};
 let   preRunning = false;
 
 const MAX_PRE_QUEUE = 500;   // bound the backlog so it can't be used for resource exhaustion
+// A single background run gets this long before it is killed. Without it a wedged
+// pdflatex would stop the queue permanently (see runNextPrecompile).
+const PRE_TIMEOUT_MS = Math.max(10000, Number(process.env.PRECOMPILE_TIMEOUT_MS) || 180000);
 function enqueuePrecompile(texPath, lang) {
   const key = `${lang}:${texPath}`;
   if (preStatus[key] && ['queued', 'compiling'].includes(preStatus[key].state)) return false;
@@ -740,25 +962,38 @@ function runNextPrecompile() {
   };
   const args = ['-no-shell-escape', '-interaction=nonstopmode', '-file-line-error', texName];
 
-  function onDone(exitOk) {
+  let settled = false;
+  function onDone(msg) {
+    if (settled) return; settled = true;
     const pdfPath = path.join(tmpDir, texBase + '.pdf');
-    if (fs.existsSync(pdfPath)) {
+    if (!msg && fs.existsSync(pdfPath)) {
       try { savePdfCache(texPath, lang, fs.readFileSync(pdfPath)); } catch {}
       preStatus[key] = { state: 'done', ts: Date.now() };
     } else {
-      preStatus[key] = { state: 'error', msg: 'no pdf', ts: Date.now() };
+      preStatus[key] = { state: 'error', msg: msg || 'no pdf', ts: Date.now() };
     }
     rmDirSync(tmpDir);
     preRunning = false;
     schedulePreQueue();
   }
 
-  const c1 = spawn(PDFLATEX, args, { cwd: tmpDir, env });
-  c1.on('error', () => { preStatus[key] = { state: 'error', msg: 'spawn failed', ts: Date.now() }; rmDirSync(tmpDir); preRunning = false; schedulePreQueue(); });
+  // stdio:'ignore' is not a detail — it is what keeps this queue alive. With the
+  // default 'pipe' Node creates pipes nobody ever reads, so as soon as pdflatex
+  // writes more than the OS pipe buffer (64 KB on Linux, far less on Windows —
+  // routine for a multi-page document) the child blocks on write forever, and
+  // `preRunning` stays true, wedging *all* background precompilation for the
+  // lifetime of the process. We only ever look at whether the .pdf appeared, so
+  // there is nothing to read. The watchdog covers a genuinely stuck LaTeX run.
+  let alive = null;
+  const watchdog = setTimeout(() => { try { alive && alive.kill('SIGKILL'); } catch {} onDone('timed out'); }, PRE_TIMEOUT_MS);
+  const finish = m => { clearTimeout(watchdog); onDone(m); };
+  const c1 = alive = spawn(PDFLATEX, args, { cwd: tmpDir, env, stdio: 'ignore' });
+  c1.on('error', () => finish('spawn failed'));
   c1.on('close', () => {
-    const c2 = spawn(PDFLATEX, args, { cwd: tmpDir, env });
-    c2.on('error', () => { onDone(false); });
-    c2.on('close', () => { onDone(true); });
+    if (settled) return;
+    const c2 = alive = spawn(PDFLATEX, args, { cwd: tmpDir, env, stdio: 'ignore' });   // second pass resolves refs/ToC
+    c2.on('error', () => finish('spawn failed'));
+    c2.on('close', () => finish(null));
   });
 }
 
@@ -777,9 +1012,14 @@ function autoPrecompile(dataDir, lang) {
 
 // ── Compile request handler ───────────────────────────────────────────────────
 function handleCompile(req, res) {
+  // A cache miss forks two real pdflatex processes, so an unauthenticated burst is
+  // the cheapest way to load the machine. Cache hits are answered before the queue
+  // is touched, so a normal reader browsing an already-compiled archive never
+  // approaches this ceiling.
+  if (!rateOk(req, 'compile', 90, 5 * 60 * 1000)) return sendJSON(res, { success: false, log: 'Too many compile requests — try again in a few minutes.' }, 429);
   let body = '';
   req.on('data', c => { body += c; if (body.length > 65536) req.destroy(); });
-  req.on('end', () => {
+  req.on('end', async () => {
     let filePath, lang;
     try { const p = JSON.parse(body); filePath = p.path; lang = p.lang; }
     catch { res.writeHead(400); return res.end('Bad JSON'); }
@@ -808,11 +1048,15 @@ function handleCompile(req, res) {
       }
     }
 
-    const chk = spawnSync(PDFLATEX, ['--version'], { timeout: 8000 });
-    if (chk.status !== 0 && !chk.stdout)
+    // Availability was probed once at start-up; re-running `pdflatex --version`
+    // synchronously on every single compile request was another event-loop stall.
+    if (!PDFLATEX_OK)
       return sendJSON(res, { success: false, log: 'The PDF compiler is not available on the server.' });
 
-    const result = compileTexSync(fullTex, filePath, lang);
+    let result;
+    try { result = await compileTex(fullTex, filePath, lang); }
+    catch (e) { return sendJSON(res, { success: false, log: redactPaths('Compile failed: ' + (e && e.message || e)) }, 500); }
+    if (result.busy) return sendJSON(res, { success: false, log: result.log }, 503);
     if (result.success) {
       res.writeHead(200, {
         'Content-Type': 'application/pdf', 'Content-Length': String(result.data.length),
@@ -950,8 +1194,19 @@ function cleanSettings(j) {
   return out;
 }
 // ── Access grants (who may read which request-to-read note) ───────────────────
-function loadGrants() { try { const o = JSON.parse(fs.readFileSync(__GRANTS, 'utf8')); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch { return {}; } }
-function saveGrants(o) { writeFileAtomic(__GRANTS, JSON.stringify(o, null, 2) + '\n'); }
+// grants.json is consulted once per note while annotating /api/tree, so it is
+// memoised on (mtime, size) like data.txt rather than re-read N times per request.
+let _grantsCache = null;
+function loadGrants() {
+  let key = 'none';
+  try { const st = fs.statSync(__GRANTS); key = st.mtimeMs + ':' + st.size; } catch {}
+  if (_grantsCache && _grantsCache.key === key) return _grantsCache.data;
+  let data = {};
+  try { const o = JSON.parse(fs.readFileSync(__GRANTS, 'utf8')); if (o && typeof o === 'object' && !Array.isArray(o)) data = o; } catch {}
+  _grantsCache = { key, data };
+  return data;
+}
+function saveGrants(o) { writeFileAtomic(__GRANTS, JSON.stringify(o, null, 2) + '\n'); _grantsCache = null; }
 function grantKey(lang, relPath) { return (lang === 'hu' ? 'hu' : 'en') + ':' + relPath; }
 function hasGrant(username, lang, relPath) { const g = loadGrants()[String(username).toLowerCase()]; return Array.isArray(g) && g.includes(grantKey(lang, relPath)); }
 function addGrant(username, lang, relPath) { const all = loadGrants(); const u = String(username).toLowerCase(); const k = grantKey(lang, relPath); if (!Array.isArray(all[u])) all[u] = []; if (!all[u].includes(k)) { all[u].push(k); saveGrants(all); } }
@@ -1027,6 +1282,357 @@ function presenceFor(names, now) { const out = {}; for (const p of names || []) 
 // Evict long-stale entries so the Map can't grow without bound over a long uptime
 // (a missing entry already reads as "offline", so old rows carry no information).
 setInterval(() => { const cutoff = Date.now() - 24 * 3600 * 1000; for (const [k, t] of _presence) if (t < cutoff) _presence.delete(k); }, 3600 * 1000).unref?.();
+// ══ Timetable & day log ═══════════════════════════════════════════════════════
+// Two stores, both git-ignored runtime state:
+//   timetable.json — the recurring weekly schedule (periods, subjects, slots) that
+//                    admins edit in DevTools. One document; small.
+//   days.json      — the day log: for a given calendar date, which of that day's
+//                    lessons happened and what happened in them. Each lesson may
+//                    carry free text, topics, homework, links to digital notes and
+//                    uploaded files (typically photographed/scanned paper notes).
+// Each logged lesson keeps a *snapshot* of its subject name / colour / time, so an
+// archived day still reads correctly years later even if the timetable is rewritten.
+
+const __TIMETABLE = path.join(__dirname, 'timetable.json');
+const __DAYS      = path.join(__dirname, 'days.json');
+const __UPLOADS   = path.join(__dirname, 'Uploads');
+const __DAY_FILES = path.join(__UPLOADS, 'days');
+
+const DAY_MAX          = 5000;                                        // ~27 school years
+const DAY_LESSON_MAX   = 30;
+const ATTACH_MAX_BYTES = Number(process.env.DAY_UPLOAD_MAX || 25 * 1024 * 1024);
+const ATTACH_PER_LESSON = 40;
+// Deliberately no .svg / .html / .htm: those execute script when served from our
+// own origin, and these files are rendered inline in the day feed.
+const ATTACH_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.avif', '.bmp', '.tif', '.tiff', '.heic', '.heif',
+  '.pdf', '.txt', '.md', '.csv', '.json', '.zip', '.mp3', '.m4a', '.ogg', '.wav', '.mp4', '.webm', '.mov']);
+const INLINE_EXTS  = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.avif', '.bmp', '.pdf', '.txt', '.md', '.csv',
+  '.mp3', '.m4a', '.ogg', '.wav', '.mp4', '.webm']);
+const IMAGE_EXTS   = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.avif', '.bmp']);
+
+// ── small validators ─────────────────────────────────────────────────────────
+function _str(v, max) { return String(v == null ? '' : v).replace(/\r\n/g, '\n').slice(0, max || 200).trim(); }
+function _multi(v, max) { return String(v == null ? '' : v).replace(/\r\n/g, '\n').slice(0, max || 2000); }
+function _id(v) { const s = String(v == null ? '' : v); return /^[A-Za-z0-9_-]{1,64}$/.test(s) ? s : ''; }
+function _newId() { return crypto.randomBytes(9).toString('base64url'); }
+function _idOrNew(v) { return _id(v) || _newId(); }
+function _hex(v, fallback) { const s = String(v == null ? '' : v).trim(); return /^#[0-9a-fA-F]{6}$/.test(s) ? s.toLowerCase() : fallback; }
+function isDate(v) {
+  const s = String(v == null ? '' : v);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(s + 'T00:00:00Z');
+  return !isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+}
+function _date(v) { return isDate(v) ? String(v) : ''; }
+function _time(v) { const s = String(v == null ? '' : v).trim(); return /^([01]\d|2[0-3]):[0-5]\d$/.test(s) ? s : ''; }
+function _int(v, lo, hi, fallback) { const n = Number(v); return Number.isInteger(n) && n >= lo && n <= hi ? n : fallback; }
+function _list(v) { return Array.isArray(v) ? v : []; }
+function _lang(v) { return v === 'hu' ? 'hu' : 'en'; }
+
+// ISO weekday 1..7 (Mon..Sun) for a YYYY-MM-DD string, computed in UTC so it can
+// never drift with the server's local timezone.
+function isoDow(dateStr) { const d = new Date(dateStr + 'T00:00:00Z'); const g = d.getUTCDay(); return g === 0 ? 7 : g; }
+function mondayOf(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() - (isoDow(dateStr) - 1));
+  return d.toISOString().slice(0, 10);
+}
+// 0 = week A, 1 = week B. Meaningless (always 0) when weekCycle is 1.
+function weekParity(dateStr, settings) {
+  const cycle = _int(settings && settings.weekCycle, 1, 4, 1);
+  if (cycle < 2 || !isDate(dateStr)) return 0;
+  const anchor = _date(settings && settings.cycleAnchor) || '2024-09-02';
+  const a = Date.parse(mondayOf(anchor) + 'T00:00:00Z');
+  const b = Date.parse(mondayOf(dateStr) + 'T00:00:00Z');
+  const weeks = Math.round((b - a) / (7 * 86400000));
+  return ((weeks % cycle) + cycle) % cycle;
+}
+
+// ── timetable ────────────────────────────────────────────────────────────────
+function normTimetable(raw) {
+  const t = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+  const s = (t.settings && typeof t.settings === 'object') ? t.settings : {};
+  const days = [...new Set(_list(s.days).map(d => _int(d, 1, 7, 0)).filter(Boolean))].sort((a, b) => a - b);
+  const periods = _list(s.periods).slice(0, 24).map((p, i) => ({
+    id: _idOrNew(p && p.id),
+    label: _str(p && p.label, 24) || String(i + 1),
+    start: _time(p && p.start),
+    end: _time(p && p.end),
+  }));
+  const seenP = new Set();
+  const periodsU = periods.filter(p => !seenP.has(p.id) && seenP.add(p.id));
+  const subjects = _list(t.subjects).slice(0, 120).map(x => ({
+    id: _idOrNew(x && x.id),
+    name:   _str(x && x.name, 80) || 'Subject',
+    nameHu: _str(x && x.nameHu, 80),
+    short:  _str(x && x.short, 12),
+    color:  _hex(x && x.color, '#8b8fa3'),
+    teacher: _str(x && x.teacher, 80),
+    room:    _str(x && x.room, 40),
+    // Optional link to a folder of digital notes for this subject.
+    folder:  _str(x && x.folder, 512),
+    folderLang: _lang(x && x.folderLang),
+  }));
+  const subjIds = new Set(subjects.map(x => x.id));
+  const periodIds = new Set(periodsU.map(p => p.id));
+  // A slot whose weekday, period or subject does not resolve is dropped, not
+  // coerced: silently remapping it to Monday/period 1 would invent a lesson that
+  // nobody put there, and that ghost then seeds every day logged for that weekday.
+  const slots = _list(t.slots).slice(0, 600).map(x => ({
+    id: _idOrNew(x && x.id),
+    day: _int(x && x.day, 1, 7, 0),
+    periodId: periodIds.has(_id(x && x.periodId)) ? _id(x.periodId) : '',
+    subjectId: subjIds.has(_id(x && x.subjectId)) ? _id(x.subjectId) : '',
+    room: _str(x && x.room, 40),
+    teacher: _str(x && x.teacher, 80),
+    week: _int(x && x.week, 0, 4, 0),          // 0 = every week, 1 = A, 2 = B …
+    note: _str(x && x.note, 160),
+  })).filter(x => x.day && x.subjectId && x.periodId);
+  const events = _list(t.events).slice(0, 400).map(x => ({
+    id: _idOrNew(x && x.id),
+    from: _date(x && (x.from || x.date)),
+    to:   _date(x && x.to) || _date(x && (x.from || x.date)),
+    kind: ['holiday', 'break', 'exam', 'event', 'noSchool'].includes(x && x.kind) ? x.kind : 'event',
+    label:   _str(x && x.label, 120),
+    labelHu: _str(x && x.labelHu, 120),
+  })).filter(x => x.from).map(x => (x.to < x.from ? { ...x, to: x.from } : x));
+  return {
+    version: 1,
+    updated: (t.updated && typeof t.updated === 'string') ? t.updated : null,
+    settings: {
+      visibility: t.settings && t.settings.visibility === 'members' ? 'members' : 'all',
+      title:   _str(s.title, 80),
+      titleHu: _str(s.titleHu, 80),
+      days: days.length ? days : [1, 2, 3, 4, 5],
+      weekCycle: _int(s.weekCycle, 1, 4, 1),
+      cycleAnchor: _date(s.cycleAnchor),
+      startDate: _date(s.startDate),
+      endDate: _date(s.endDate),
+      periods: periodsU.length ? periodsU : [],
+    },
+    subjects, slots, events,
+  };
+}
+let _ttCache = null;
+function loadTimetable() {
+  let key = 'none';
+  try { const st = fs.statSync(__TIMETABLE); key = st.mtimeMs + ':' + st.size; } catch {}
+  if (_ttCache && _ttCache.key === key) return _ttCache.data;
+  let raw = null; try { raw = JSON.parse(fs.readFileSync(__TIMETABLE, 'utf8')); } catch {}
+  const data = normTimetable(raw);
+  _ttCache = { key, data };
+  return data;
+}
+function saveTimetable(t) {
+  const norm = normTimetable(t);
+  norm.updated = new Date().toISOString();
+  writeFileAtomic(__TIMETABLE, JSON.stringify(norm, null, 2) + '\n');
+  _ttCache = null;
+  return norm;
+}
+
+// Lessons scheduled for one date, in period order, with holidays applied.
+function planForDate(dateStr, tt) {
+  const t = tt || loadTimetable();
+  if (!isDate(dateStr)) return { date: '', dow: 0, week: 0, events: [], lessons: [] };
+  const dow = isoDow(dateStr);
+  const parity = weekParity(dateStr, t.settings);
+  const events = t.events.filter(e => e.from <= dateStr && dateStr <= e.to);
+  const byId = new Map(t.subjects.map(s => [s.id, s]));
+  const periodIdx = new Map(t.settings.periods.map((p, i) => [p.id, i]));
+  // With no A/B cycle configured, a slot's week tag is meaningless — show every
+  // slot, or turning the cycle off would silently hide all the week-B lessons.
+  const cycled = _int(t.settings.weekCycle, 1, 4, 1) > 1;
+  const lessons = t.slots
+    .filter(sl => sl.day === dow && (!cycled || sl.week === 0 || sl.week === parity + 1))
+    .map(sl => {
+      const subj = byId.get(sl.subjectId) || null;
+      const per = t.settings.periods.find(p => p.id === sl.periodId) || null;
+      return {
+        slotId: sl.id,
+        subjectId: sl.subjectId,
+        subject:   subj ? subj.name : '',
+        subjectHu: subj ? subj.nameHu : '',
+        color:     subj ? subj.color : '#8b8fa3',
+        folder:     subj ? subj.folder : '',
+        folderLang: subj ? subj.folderLang : 'en',
+        periodId: sl.periodId,
+        periodLabel: per ? per.label : '',
+        start: per ? per.start : '',
+        end:   per ? per.end : '',
+        room:    sl.room    || (subj ? subj.room : ''),
+        teacher: sl.teacher || (subj ? subj.teacher : ''),
+        note: sl.note,
+      };
+    })
+    .sort((a, b) => (periodIdx.get(a.periodId) ?? 99) - (periodIdx.get(b.periodId) ?? 99));
+  return { date: dateStr, dow, week: parity, events, lessons };
+}
+
+// ── day log ──────────────────────────────────────────────────────────────────
+const LESSON_KINDS = ['lesson', 'test', 'exam', 'lab', 'presentation', 'trip', 'substitution', 'selfstudy', 'cancelled'];
+
+function normAttachment(a) {
+  if (!a || typeof a !== 'object') return null;
+  const id = _id(a.id); if (!id) return null;
+  const name = _str(a.name, 200) || 'file';
+  const ext = path.extname(name).toLowerCase();
+  return {
+    id, name,
+    ext: ATTACH_EXTS.has(ext) ? ext : '',
+    mime: _str(a.mime, 120),
+    size: _int(a.size, 0, 5 * 1024 * 1024 * 1024, 0),
+    kind: a.kind === 'scan' ? 'scan' : 'file',
+    caption: _str(a.caption, 240),
+    added: _str(a.added, 40),
+  };
+}
+function normNoteRef(n) {
+  if (!n || typeof n !== 'object') return null;
+  const p = _str(n.path, 512); if (!p) return null;
+  return { path: p, lang: _lang(n.lang), label: _str(n.label, 200) };
+}
+function normLesson(l) {
+  const o = (l && typeof l === 'object') ? l : {};
+  return {
+    id: _idOrNew(o.id),
+    slotId: _id(o.slotId),
+    subjectId: _id(o.subjectId),
+    subject:   _str(o.subject, 80),
+    subjectHu: _str(o.subjectHu, 80),
+    color: _hex(o.color, '#8b8fa3'),
+    periodId: _id(o.periodId),
+    periodLabel: _str(o.periodLabel, 24),
+    start: _time(o.start),
+    end: _time(o.end),
+    room: _str(o.room, 40),
+    teacher: _str(o.teacher, 80),
+    kind: LESSON_KINDS.includes(o.kind) ? o.kind : 'lesson',
+    what: _multi(o.what, 8000),
+    homework: _multi(o.homework, 2000),
+    topics: _list(o.topics).slice(0, 24).map(x => _str(x, 120)).filter(Boolean),
+    important: !!o.important,
+    notes: _list(o.notes).slice(0, 30).map(normNoteRef).filter(Boolean),
+    attachments: _list(o.attachments).slice(0, ATTACH_PER_LESSON).map(normAttachment).filter(Boolean),
+  };
+}
+function normDay(d, prev) {
+  const o = (d && typeof d === 'object') ? d : {};
+  const now = new Date().toISOString();
+  return {
+    id: _idOrNew(o.id),
+    date: _date(o.date),
+    title:   _str(o.title, 160),
+    titleHu: _str(o.titleHu, 160),
+    summary:   _multi(o.summary, 4000),
+    summaryHu: _multi(o.summaryHu, 4000),
+    visibility: o.visibility === 'members' ? 'members' : 'all',
+    week: _int(o.week, 0, 3, 0),
+    lessons: _list(o.lessons).slice(0, DAY_LESSON_MAX).map(normLesson),
+    createdBy: _str((prev && prev.createdBy) || o.createdBy, 64),
+    created:   _str((prev && prev.created) || o.created, 40) || now,
+    updatedBy: _str(o.updatedBy, 64),
+    updated:   now,
+  };
+}
+let _daysCache = null;
+function loadDays() {
+  let key = 'none';
+  try { const st = fs.statSync(__DAYS); key = st.mtimeMs + ':' + st.size; } catch {}
+  if (_daysCache && _daysCache.key === key) return _daysCache.data;
+  let data = [];
+  try {
+    const o = JSON.parse(fs.readFileSync(__DAYS, 'utf8'));
+    const arr = Array.isArray(o) ? o : (o && Array.isArray(o.days) ? o.days : []);
+    data = arr.map(d => normDay(d, d)).filter(d => d.date);
+  } catch {}
+  data.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  _daysCache = { key, data };
+  return data;
+}
+function saveDays(list) {
+  const arr = (Array.isArray(list) ? list : []).filter(d => d && d.date)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, DAY_MAX);
+  writeFileAtomic(__DAYS, JSON.stringify({ version: 1, days: arr }, null, 2) + '\n');
+  _daysCache = null;
+  return arr;
+}
+function findDayByDate(list, date) { return (list || []).find(d => d.date === date) || null; }
+
+// A day is visible to everyone unless it is marked members-only.
+function canSeeDay(day, session) {
+  if (!day) return false;
+  if (day.visibility !== 'members') return true;
+  return !!session;
+}
+// Note links inside a day are pruned per viewer: a lesson must never advertise the
+// existence of a note the viewer isn't allowed to see.
+function publicDay(day, req) {
+  const out = { ...day, lessons: (day.lessons || []).map(l => ({
+    ...l,
+    notes: (l.notes || []).filter(n => { try { return canViewNote(req, n.path, n.lang); } catch { return false; } }),
+  })) };
+  return out;
+}
+function daySearchText(d) {
+  const parts = [d.title, d.titleHu, d.summary, d.summaryHu];
+  for (const l of d.lessons || []) parts.push(l.subject, l.subjectHu, l.what, l.homework, l.teacher, l.room, (l.topics || []).join(' '),
+    (l.attachments || []).map(a => a.name + ' ' + a.caption).join(' '), (l.notes || []).map(n => n.label).join(' '));
+  return parts.join(' \n ').toLowerCase();
+}
+function dayCounts(d) {
+  let files = 0, scans = 0, notes = 0;
+  for (const l of d.lessons || []) {
+    for (const a of l.attachments || []) { files++; if (a.kind === 'scan') scans++; }
+    notes += (l.notes || []).length;
+  }
+  return { lessons: (d.lessons || []).length, files, scans, notes };
+}
+
+// ── day attachments on disk ──────────────────────────────────────────────────
+function dayFileDir(dayId) { return path.join(__DAY_FILES, dayId); }
+function attachmentPath(dayId, attId, ext) { return path.join(dayFileDir(dayId), attId + (ext || '')); }
+function findAttachment(day, attId) {
+  for (const l of day.lessons || []) for (const a of l.attachments || []) if (a.id === attId) return a;
+  return null;
+}
+function deleteAttachmentFile(dayId, att) {
+  if (!_id(dayId) || !att || !_id(att.id)) return;
+  try { fs.rmSync(attachmentPath(dayId, att.id, att.ext), { force: true }); } catch {}
+}
+// Files uploaded for a day that was never saved (the admin closed the dialog) would
+// otherwise sit on disk forever. Sweep folders with no matching day once an hour,
+// but only when they are older than a day so an in-progress edit is never touched.
+function sweepOrphanDayFiles() {
+  let dirs; try { dirs = fs.readdirSync(__DAY_FILES, { withFileTypes: true }); } catch { return 0; }
+  const known = new Set(loadDays().map(d => d.id));
+  const cutoff = Date.now() - 24 * 3600 * 1000;
+  let removed = 0;
+  for (const e of dirs) {
+    if (!e.isDirectory() || known.has(e.name)) continue;
+    let st; try { st = fs.statSync(path.join(__DAY_FILES, e.name)); } catch { continue; }
+    if (st.mtimeMs > cutoff) continue;
+    rmDirSync(path.join(__DAY_FILES, e.name)); removed++;
+  }
+  return removed;
+}
+
+// Account-name and password rules, shared by public sign-up and admin user
+// creation so an account can never exist that one of them would have refused.
+// Mirrors make-admin.js / make-user.js.
+const USERNAME_RE  = /^[A-Za-z0-9_.-]{3,32}$/;
+const MIN_PASSWORD = 8;
+
+// Password-reset state. Both maps are memory-only on purpose: a token that dies
+// with the process is a token that cannot be stolen off disk, and the durable half
+// of the flow (the request card) lives in chats.json anyway.
+const PW_RESET_TOKENS   = new Map();               // token -> { userLc, username, expires }
+const PW_RESET_ASKED    = new Map();               // usernameLc -> last request time
+const PW_RESET_TTL      = Math.max(60000, Number(process.env.PW_RESET_TTL_MS) || 30 * 60 * 1000);
+const PW_RESET_COOLDOWN = Math.max(60000, Number(process.env.PW_RESET_COOLDOWN_MS) || 60 * 60 * 1000);
+const PW_RESET_MAX_PENDING = 20;                   // stops mass enumeration filling admin inboxes
+
 // A fixed dummy salt so a login attempt for a non-existent user still spends
 // ~the same time hashing — closes the username-enumeration timing side channel.
 const DUMMY_SALT = crypto.randomBytes(16).toString('hex');
@@ -1076,6 +1682,22 @@ function getSession(token) {
   if (s.expires < Date.now()) { SESSIONS.delete(token); return null; }
   return s;
 }
+// Drop every live session for an account (optionally sparing one token).
+// Sessions are the only thing standing between a removed account and the site:
+// deleting the row in users.json does nothing to a browser that already holds a
+// token, so without this a deleted member stays signed in for up to eight hours,
+// still reading members-only notes and posting in chats. Same for a password
+// change — the point of changing it is to lock out whoever else had the old one.
+function revokeSessions(username, exceptToken) {
+  const n = String(username || '').toLowerCase();
+  if (!n) return 0;
+  let gone = 0;
+  for (const [tok, s] of SESSIONS) {
+    if (tok === exceptToken) continue;
+    if (s && String(s.username).toLowerCase() === n) { SESSIONS.delete(tok); gone++; }
+  }
+  return gone;
+}
 function parseCookies(req) {
   const out = {};
   const raw = (req.headers && req.headers.cookie) || '';
@@ -1093,6 +1715,24 @@ function sessionUser(req) {
 }
 function requireAdmin(req, res) {
   const u = sessionUser(req);
+  if (!u) { sendJSON(res, { ok: false, error: 'unauthorized' }, 401); return null; }
+  return u;
+}
+// Admin identity from *either* credential: the DevTools header token, or a site
+// session whose role is admin. Used by the handful of admin actions that are
+// reached from the site rather than from DevTools — logging a lesson off the
+// timetable grid, issuing a password-reset link from a chat card — where forcing
+// the operator to go and open DevTools would simply mean the job never gets done.
+// It is the same account either way; only the transport differs, and the site
+// cookie is HttpOnly + SameSite=Lax so these POSTs are not reachable cross-site.
+function adminActor(req) {
+  const viaHeader = sessionUser(req);
+  if (viaHeader) return viaHeader;
+  const s = siteSession(req);
+  return (s && s.role === 'admin') ? s.username : null;
+}
+function requireAdminEither(req, res) {
+  const u = adminActor(req);
   if (!u) { sendJSON(res, { ok: false, error: 'unauthorized' }, 401); return null; }
   return u;
 }
@@ -1138,6 +1778,16 @@ function rateOk(req, bucket, limit, windowMs) {
   r.count++;
   return r.count <= limit;
 }
+// Neither map ever shrank on its own: expired sessions were only dropped when the
+// same token was presented again, and every distinct client IP left a permanent
+// rate-limit entry. On a long-running server both grew without bound.
+setInterval(() => {
+  const now = Date.now();
+  for (const [tok, s] of SESSIONS) if (!s || s.expires < now) SESSIONS.delete(tok);
+  for (const [k, r] of RL) if (!r || r.reset < now) RL.delete(k);
+  for (const [tok, v] of PW_RESET_TOKENS) if (!v || v.expires < now) PW_RESET_TOKENS.delete(tok);
+  for (const [u, t] of _presence) if (now - t > 24 * 60 * 60 * 1000) _presence.delete(u);
+}, 10 * 60 * 1000).unref();
 
 // ── data.txt serialization (DevTools authoring) ───────────────────────────────
 const DATA_TXT_HEADER =
@@ -1150,7 +1800,13 @@ function serializeDataTxt(sections) {
   let out = DATA_TXT_HEADER + '\n';
   for (const [name, meta] of Object.entries(sections || {})) {
     if (!name || !meta) continue;
-    out += `[${name}]\n`;
+    // Values already have their newlines flattened below; do the same for the
+    // section header (and drop the bracket that closes it) so no field a caller
+    // controls can ever open a second [Section] and rewrite a neighbouring note's
+    // access rules. Nothing legitimate puts a newline or a ']' in a display name.
+    const secName = String(name).replace(/[\r\n\]]/g, ' ').trim();
+    if (!secName) continue;
+    out += `[${secName}]\n`;
     const order   = ['tags', 'authors', 'date', 'material_start', 'material_end', 'updated', 'important', 'visibility', 'allow', 'can_see', 'can_read', 'read_requests', 'see_allow', 'read_allow', 'owners', 'description', 'alt_hu', 'alt_en'];
     const keyName = { material_start: 'material-start', material_end: 'material-end', alt_hu: 'alt-hu', alt_en: 'alt-en', can_see: 'can-see', can_read: 'can-read', read_requests: 'read-requests', see_allow: 'see-allow', read_allow: 'read-allow' };
     for (const k of order) {
@@ -1230,6 +1886,11 @@ const server = http.createServer((req, res) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  // HSTS only once the connection actually is HTTPS (direct TLS, or a trusted
+  // proxy saying so). Sending it over plain HTTP would pin a local/dev host to a
+  // scheme it cannot serve. Set HSTS_MAX_AGE=0 to opt out entirely.
+  if (reqIsHttps(req) && HSTS_MAX_AGE > 0)
+    res.setHeader('Strict-Transport-Security', `max-age=${HSTS_MAX_AGE}; includeSubDomains`);
   // Per-request nonce: the app shell (index.html / devtools.html) uses a strict
   // nonce-based script-src with NO 'unsafe-inline'; article pages keep 'unsafe-inline'
   // because they are admin-authored documents that may carry inline scripts/handlers.
@@ -1237,6 +1898,9 @@ const server = http.createServer((req, res) => {
   res._cspNonce = _cspNonce;
   let _cspPath = '/';
   try { _cspPath = decodeURIComponent((req.url || '/').split('?')[0]); } catch { _cspPath = (req.url || '/').split('?')[0]; }
+  // The 404 page cannot be listed here — it is served *as* whatever address missed,
+  // so its path is never known in advance. It carries one tiny inline script, which
+  // `notFoundPage` stamps with this same nonce, so it runs under either policy.
   const _cspShell = (_cspPath === '/' || _cspPath === '/index.html' || _cspPath === '/devtools' || _cspPath === '/devtools/' || _cspPath === '/devtools.html');
   const _scriptSrc = _cspShell
     ? `script-src 'self' 'nonce-${_cspNonce}' https://cdnjs.cloudflare.com`
@@ -1260,6 +1924,19 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/devtools' || pathname === '/devtools/')
     return serveHtmlShell(res, req, path.join(__WEBSITE, 'devtools.html'));
+
+  // Crawlers: index the public archive, but never the API, the admin console, the
+  // raw note files or the day-log uploads — those are access-checked per request
+  // and have no business in a search index even when they happen to be public.
+  if (pathname === '/robots.txt') {
+    const lines = ['User-agent: *'];
+    for (const d of ['/api/', '/devtools', '/uploads/', '/data/', '/music/']) lines.push('Disallow: ' + d);
+    lines.push('Allow: /');
+    if (process.env.SITE_ORIGIN) lines.push('', 'Sitemap: ' + String(process.env.SITE_ORIGIN).replace(/\/+$/, '') + '/sitemap.xml');
+    const buf = Buffer.from(lines.join('\n') + '\n', 'utf8');
+    res.writeHead(200, cors({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Length': String(buf.length) }));
+    return res.end(req.method === 'HEAD' ? undefined : buf);
+  }
 
   if (pathname === '/api/compile' && req.method === 'POST') return handleCompile(req, res);
 
@@ -1325,12 +2002,67 @@ const server = http.createServer((req, res) => {
   // File source
   if (pathname === '/api/file') {
     if (!query.path) { res.writeHead(400); return res.end('Missing path'); }
+    // data.txt is folder *metadata* (whitelists, owner usernames, per-note access) and
+    // must never be readable as a note — /data/ already blocks it, this route did not.
+    if (/(^|\/)data\.txt$/i.test(String(query.path))) { res.writeHead(404); return res.end('Not Found'); }
     const fileDir = (query.lang === 'hu' && HAS_DUAL_LANG) ? __DATA_HU : __DATA;
     let full; try { full = safePath(fileDir, query.path); } catch { res.writeHead(403); return res.end('Forbidden'); }
     if (!canViewNote(req, query.path, query.lang)) { res.writeHead(403); return res.end('Sign-in required'); }
     let content; try { content = fs.readFileSync(full, 'utf8'); } catch { res.writeHead(404); return res.end('Not Found'); }
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
     return res.end(content);
+  }
+
+  // ── Search inside the notes themselves ──────────────────────────────────────
+  // The grid's own search covers filename, tags, authors, path and description —
+  // everything *about* a note but nothing *in* it, which is backwards for an
+  // archive you search by remembering a theorem rather than a filename.
+  // Results are filtered by canViewNote, so a match never reveals a note you
+  // cannot open, and the snippet is drawn from a file you are allowed to read.
+  if (pathname === '/api/search' && req.method === 'GET') {
+    const q = String(query.q || '').trim();
+    if (q.length < 2) return sendJSON(res, { ok: true, q, results: [], truncated: false });
+    if (!rateOk(req, 'search', 120, 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many searches.' }, 429);
+    const needle = q.toLowerCase().slice(0, 120);
+    const wantLang = query.lang === 'hu' ? 'hu' : (query.lang === 'both' ? 'both' : 'en');
+    const langs = [];
+    if (wantLang === 'both') { langs.push(['en', __DATA]); if (HAS_DUAL_LANG) langs.push(['hu', __DATA_HU]); }
+    else if (wantLang === 'hu' && HAS_DUAL_LANG) langs.push(['hu', __DATA_HU]);
+    else langs.push(['en', __DATA]);
+
+    const results = [];
+    let scanned = 0, truncated = false;
+    outer:
+    for (const [lang, baseDir] of langs) {
+      const stack = [[baseDir, '']];
+      while (stack.length) {
+        const [dir, rel] = stack.pop();
+        let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
+        for (const e of ents) {
+          const childRel = rel ? `${rel}/${e.name}` : e.name;
+          if (e.isDirectory()) { stack.push([path.join(dir, e.name), childRel]); continue; }
+          if (e.name === 'data.txt') continue;
+          if (!SEARCHABLE_EXTS.has(path.extname(e.name).toLowerCase())) continue;
+          if (results.length >= SEARCH_MAX_HITS || scanned >= SEARCH_MAX_FILES) { truncated = true; break outer; }
+          scanned++;
+          const text = readNoteText(path.join(dir, e.name));
+          if (!text) continue;
+          const at = text.toLowerCase().indexOf(needle);
+          if (at < 0) continue;
+          if (!canViewNote(req, childRel, lang)) continue;      // never hint at a note you cannot open
+          // Count matches and cut a readable snippet around the first one.
+          let hits = 0, from = 0;
+          for (;;) { const k = text.toLowerCase().indexOf(needle, from); if (k < 0 || hits >= 999) break; hits++; from = k + needle.length; }
+          const s = Math.max(0, at - 60), en = Math.min(text.length, at + needle.length + 90);
+          const snippet = (s > 0 ? '…' : '') + text.slice(s, en).replace(/\s+/g, ' ').trim() + (en < text.length ? '…' : '');
+          const line = text.slice(0, at).split('\n').length;
+          results.push({ path: childRel, name: e.name, display: stripDisplayName(e.name), lang,
+            folder: rel || '', snippet, line, hits, ext: path.extname(e.name).toLowerCase() });
+        }
+      }
+    }
+    results.sort((a, b) => (b.hits - a.hits) || a.display.localeCompare(b.display, undefined, { numeric: true }));
+    return sendJSON(res, { ok: true, q, results, truncated });
   }
 
   // Precompile start
@@ -1345,13 +2077,17 @@ const server = http.createServer((req, res) => {
     }); return;
   }
 
-  // Precompile folder
+  // Precompile folder — public (the Settings panel's "Compile all now" warms the
+  // cache for the visitor), but it may only ever queue notes that visitor is
+  // actually allowed to open. Queuing every note in the archive would both fork a
+  // pdflatex run per private note and turn an anonymous POST into an expensive,
+  // repeatable job; the rate limit is tight because one call can enqueue hundreds.
   if (pathname === '/api/precompile/folder' && req.method === 'POST') {
-    if (!rateOk(req, 'precompile', 60, 5 * 60 * 1000)) return sendJSON(res, { error: 'Too many requests.' }, 429);
+    if (!rateOk(req, 'precompile', 10, 5 * 60 * 1000)) return sendJSON(res, { error: 'Too many requests.' }, 429);
     let body = ''; req.on('data', c => { body += c; if (body.length > 65536) req.destroy(); });
     req.on('end', () => {
       try {
-        const { folderPath, lang } = JSON.parse(body); const l = lang || 'en';
+        const { folderPath, lang } = JSON.parse(body); const l = lang === 'hu' ? 'hu' : 'en';
         const dataDir = l === 'hu' ? __DATA_HU : __DATA;
         if (!fs.existsSync(dataDir)) return sendJSON(res, { queued: 0 });
         let fullFolder; try { fullFolder = safePath(dataDir, folderPath || ''); } catch { res.writeHead(403); return res.end('Forbidden'); }
@@ -1360,7 +2096,10 @@ const server = http.createServer((req, res) => {
           let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
           for (const e of ents) {
             if (e.isDirectory()) { walk(path.join(dir, e.name), rel ? `${rel}/${e.name}` : e.name); continue; }
-            if (path.extname(e.name).toLowerCase() === '.tex') { if (enqueuePrecompile(rel ? `${rel}/${e.name}` : e.name, l)) count++; }
+            if (path.extname(e.name).toLowerCase() !== '.tex') continue;
+            const relPath = rel ? `${rel}/${e.name}` : e.name;
+            if (!canViewNote(req, relPath, l)) continue;
+            if (enqueuePrecompile(relPath, l)) count++;
           }
         }
         walk(fullFolder, folderPath || '');
@@ -1369,15 +2108,21 @@ const server = http.createServer((req, res) => {
     }); return;
   }
 
-  // Precompile status
-  if (pathname === '/api/precompile/status')
-    return sendJSON(res, { queue: preQueue.length, running: preRunning, status: preStatus });
+  // Precompile status. The per-note map is admin-only: its keys are the full paths
+  // of every note the background pass has touched, which for an anonymous caller
+  // would list members-only and whitelist-restricted notes that /api/tree is at
+  // pains to hide. The Settings panel only ever reads `queue` and `running`.
+  if (pathname === '/api/precompile/status') {
+    const out = { queue: preQueue.length, running: preRunning };
+    if (sessionUser(req)) out.status = preStatus;
+    return sendJSON(res, out);
+  }
 
   // Changelog
   if (pathname === '/api/changelog' && req.method === 'GET') return sendJSON(res, readChangelog());
   if (pathname === '/api/changelog/add' && req.method === 'POST') {
     if (!requireAdmin(req, res)) return;
-    let body = ''; req.on('data', c => { body += c; });
+    let body = ''; req.on('data', c => { body += c; if (body.length > 262144) req.destroy(); });
     req.on('end', () => {
       try {
         const entry = JSON.parse(body); if (!entry.title) { res.writeHead(400); return res.end('title required'); }
@@ -1389,7 +2134,7 @@ const server = http.createServer((req, res) => {
   }
   if (pathname === '/api/changelog/delete' && req.method === 'POST') {
     if (!requireAdmin(req, res)) return;
-    let body = ''; req.on('data', c => { body += c; });
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
     req.on('end', () => {
       try { const { id } = JSON.parse(body); writeChangelog(readChangelog().filter(e => e.id !== id)); sendJSON(res, { ok: true }); }
       catch { res.writeHead(400); res.end('Bad JSON'); }
@@ -1472,6 +2217,13 @@ const server = http.createServer((req, res) => {
 
   // ── Admin: auth ─────────────────────────────────────────────────────────────
   if (pathname === '/api/admin/login' && req.method === 'POST') {
+    // This is the highest-value credential on the server and it had no brute-force
+    // limit at all, while /api/login (which also accepts admin credentials) did —
+    // so an attacker could simply guess here instead. Its own bucket, not the
+    // 'login' one: sharing would let a member fumbling their password lock the
+    // owner out of DevTools, and 20 admin guesses per 10 minutes already ends
+    // brute force as an attack.
+    if (!rateOk(req, 'adminlogin', 20, 10 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many attempts. Try again in a few minutes.' }, 429);
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
     req.on('end', async () => {
       let u, p;
@@ -1524,7 +2276,7 @@ const server = http.createServer((req, res) => {
       catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
       try {
         fs.mkdirSync(full, { recursive: true });
-        fs.writeFileSync(path.join(full, 'data.txt'), serializeDataTxt(j.sections || {}), 'utf8');
+        writeDataTxt(full, j.sections || {});
       } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true });
     });
@@ -1554,7 +2306,7 @@ const server = http.createServer((req, res) => {
         else if (!fs.existsSync(fileFull)) fs.writeFileSync(fileFull, '', 'utf8');
       } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       if (j.meta) {
-        const secs    = parseDataTxt(folderFull);
+        const secs    = parseDataTxtMutable(folderFull);
         const display = stripDisplayName(filename);
         // drop any prior section that maps to the same display name
         for (const k of Object.keys(secs))
@@ -1578,7 +2330,7 @@ const server = http.createServer((req, res) => {
           sec.allow = _m.allow;
         }
         secs[display] = sec;
-        try { fs.writeFileSync(path.join(folderFull, 'data.txt'), serializeDataTxt(secs), 'utf8'); } catch {}
+        try { writeDataTxt(folderFull, secs); } catch {}
       }
       return sendJSON(res, { ok: true, path: (j.dir ? j.dir + '/' : '') + filename });
     });
@@ -1595,11 +2347,11 @@ const server = http.createServer((req, res) => {
       let folderFull;
       try { folderFull = safePath(adminDataDir(lang), j.dir || ''); } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
       if (!fs.existsSync(folderFull)) return sendJSON(res, { ok: false, error: 'folder not found' }, 404);
-      const secs = parseDataTxt(folderFull);
+      const secs = parseDataTxtMutable(folderFull);
       const altHu = String(j.altHu || '').trim(), altEn = String(j.altEn || '').trim();
       if (altHu || altEn) secs['__folder__'] = { alt_hu: altHu, alt_en: altEn };
       else delete secs['__folder__'];
-      try { fs.writeFileSync(path.join(folderFull, 'data.txt'), serializeDataTxt(secs), 'utf8'); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      try { writeDataTxt(folderFull, secs); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true });
     });
     return;
@@ -1616,11 +2368,11 @@ const server = http.createServer((req, res) => {
       try { fileFull = safePath(folderFull, j.filename || ''); } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
       try { if (fs.existsSync(fileFull) && fs.statSync(fileFull).isFile()) fs.rmSync(fileFull); }
       catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
-      const secs    = parseDataTxt(folderFull);
+      const secs    = parseDataTxtMutable(folderFull);
       const display = stripDisplayName(j.filename || '');
       for (const k of Object.keys(secs))
         if (stripDisplayName(k + '.x').replace(/\.x$/, '').toLowerCase() === display.toLowerCase()) delete secs[k];
-      try { fs.writeFileSync(path.join(folderFull, 'data.txt'), serializeDataTxt(secs), 'utf8'); } catch {}
+      try { writeDataTxt(folderFull, secs); } catch {}
       return sendJSON(res, { ok: true });
     });
     return;
@@ -1767,7 +2519,7 @@ const server = http.createServer((req, res) => {
         folderFull = path.dirname(full); fileName = path.basename(full);
         if (!fs.existsSync(full)) return sendJSON(res, { ok: false, error: 'note not found' }, 404);
       } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
-      const secs = parseDataTxt(folderFull);
+      const secs = parseDataTxtMutable(folderFull);
       const display = stripDisplayName(fileName);
       let key = Object.keys(secs).find(k => stripDisplayName(k + '.x').replace(/\.x$/, '').toLowerCase() === display.toLowerCase());
       if (!key) key = display;
@@ -1801,7 +2553,7 @@ const server = http.createServer((req, res) => {
       }
       sec.owners = newOwners.join(', ');
       secs[key] = sec;
-      try { fs.writeFileSync(path.join(folderFull, 'data.txt'), serializeDataTxt(secs), 'utf8'); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      try { writeDataTxt(folderFull, secs); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true });
     });
     return;
@@ -2152,7 +2904,12 @@ const server = http.createServer((req, res) => {
     const applicable = !granted && _acc.canRead === 'whitelist' && _acc.readRequests && passSeeGate(_acc, s);
     const meLc = String(s.username).toLowerCase();
     const pending = loadChats().conversations.some(c => chatParticipant(c, s.username) && (c.messages || []).some(m => m.kind === 'access-request' && String(m.from).toLowerCase() === meLc && m.status === 'pending' && m.note && m.note.path === p && m.note.lang === lang));
-    return sendJSON(res, { ok: true, applicable, granted, pending, recipients: requestRecipients(p, lang) });
+    // Only name the owners to someone who may actually send them a request. This
+    // used to answer for *any* path, so a signed-in visitor could read back the
+    // owner list of a note they are not even allowed to know exists — the same
+    // disclosure the data.txt guard on /api/file was added to close.
+    const recipients = (applicable || pending) ? requestRecipients(p, lang) : [];
+    return sendJSON(res, { ok: true, applicable, granted, pending, recipients });
   }
   if (pathname === '/api/access/request' && req.method === 'POST') {
     const s = siteSession(req);
@@ -2163,6 +2920,10 @@ const server = http.createServer((req, res) => {
       const lang = j.lang === 'hu' ? 'hu' : 'en', p = String(j.path || '');
       const _acc = noteAccess(p, lang);
       if (!(_acc.canRead === 'whitelist' && _acc.readRequests)) return sendJSON(res, { ok: false, error: 'This note does not require a request.' }, 400);
+      // You may only ask for a note you are allowed to *see*. Without this a member
+      // outside the see-whitelist could post a request card naming a hidden note,
+      // which both leaks its path to its owners and hands the sender its label.
+      if (!passSeeGate(_acc, s)) return sendJSON(res, { ok: false, error: 'This note does not require a request.' }, 400);
       if (canViewNote(req, p, lang)) return sendJSON(res, { ok: true, status: 'granted' });
       const recipients = requestRecipients(p, lang);
       if (!recipients.length) return sendJSON(res, { ok: false, error: 'No one can grant access to this note.' }, 400);
@@ -2199,12 +2960,125 @@ const server = http.createServer((req, res) => {
       }
       if (!target) return sendJSON(res, { ok: false, error: 'Request not found.' }, 404);
       if (String(target.from).toLowerCase() === meLc) return sendJSON(res, { ok: false, error: 'You cannot respond to your own request.' }, 400);
+      // Re-check the right to grant at response time, not just at request time: the
+      // note's owners may have changed since the request card was delivered, and
+      // being in the conversation is not by itself authority over the note.
+      const _canGrant = s.role === 'admin' ||
+        requestRecipients(target.note.path, target.note.lang).some(u => String(u).toLowerCase() === meLc);
+      if (!_canGrant) return sendJSON(res, { ok: false, error: 'You no longer manage this note.' }, 403);
       const accept = j.decision === 'accept', reason = String(j.reason || '').slice(0, 2000);
       target.status = accept ? 'accepted' : 'declined';
       if (accept) addGrant(target.from, target.note.lang, target.note.path);
       convo.messages.push({ id: crypto.randomUUID(), from: me, kind: 'access-result', decision: accept ? 'accepted' : 'declined', reason, note: target.note, body: reason, date: new Date().toISOString() });
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+
+  // ── Password reset: ask an admin, admin hands back a one-time link ──────────
+  // There is no mail server, so the flow is deliberately human: a locked-out member
+  // asks, every admin gets a card in their chat, and an admin issues a single-use
+  // link they pass on however they normally reach that person.
+  //
+  // The abuse surface is the *request* step, which anyone can reach signed out, so
+  // it is fenced four ways: a hard IP rate limit, one pending request per account,
+  // an hour's cooldown per account even after one is resolved, and a global cap on
+  // pending requests. The requester supplies no free text at all — only a username
+  // that must already exist — so there is nothing to write into an admin's inbox.
+  if (pathname === '/api/password-reset/request' && req.method === 'POST') {
+    if (!rateOk(req, 'pwreset', 3, 60 * 60 * 1000)) return sendJSON(res, { ok: true, sent: true }, 200);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 2048) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      // The reply never varies: telling the caller whether an account exists would
+      // turn this into a username oracle.
+      const done = () => sendJSON(res, { ok: true, sent: true });
+      const nameLc = String(j.username || '').trim().toLowerCase();
+      if (!USERNAME_RE.test(nameLc)) return done();
+      const real = loadUsers().find(u => String(u.username).toLowerCase() === nameLc);
+      if (!real) return done();                                  // admins reset their own with make-admin.js
+      const now = Date.now();
+      const last = PW_RESET_ASKED.get(nameLc) || 0;
+      if (now - last < PW_RESET_COOLDOWN) return done();
+      if (PW_RESET_ASKED.size > 200) for (const [k, t] of PW_RESET_ASKED) if (now - t > PW_RESET_COOLDOWN) PW_RESET_ASKED.delete(k);
+
+      const chats = loadChats();
+      const pendingTotal = chats.conversations.reduce((n, c) =>
+        n + (c.messages || []).filter(m => m.kind === 'password-reset' && m.status === 'pending').length, 0);
+      if (pendingTotal >= PW_RESET_MAX_PENDING) return done();
+
+      const admins = loadAdmins().map(a => a.username);
+      if (!admins.length) return done();
+      const when = new Date().toISOString();
+      let posted = 0;
+      for (const to of admins) {
+        const c = ensureDM(chats, real.username, to);
+        if ((c.messages || []).some(m => m.kind === 'password-reset' && m.status === 'pending')) continue;
+        c.messages.push({ id: crypto.randomUUID(), from: real.username, kind: 'password-reset', status: 'pending', date: when });
+        posted++;
+      }
+      PW_RESET_ASKED.set(nameLc, now);
+      if (posted) { try { saveChats(chats); } catch {} }
+      return done();
+    });
+    return;
+  }
+  // Admin issues the one-time link. Nothing is emailed — the admin copies it and
+  // gives it to the person by whatever channel they already trust.
+  if (pathname === '/api/admin/password-reset/issue' && req.method === 'POST') {
+    // Either credential: the request card lands in the admin's *chat*, on the site,
+    // and making them open DevTools to answer it would guarantee it sits unread.
+    const _actor = requireAdminEither(req, res); if (!_actor) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 2048) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const nameLc = String(j.username || '').trim().toLowerCase();
+      const real = loadUsers().find(u => String(u.username).toLowerCase() === nameLc);
+      if (!real) return sendJSON(res, { ok: false, error: 'No such member account.' }, 404);
+      // One live token per account: issuing a new link retires the old one.
+      for (const [tok, v] of PW_RESET_TOKENS) if (v.userLc === nameLc) PW_RESET_TOKENS.delete(tok);
+      const tokenValue = crypto.randomBytes(32).toString('hex');
+      PW_RESET_TOKENS.set(tokenValue, { userLc: nameLc, username: real.username, expires: Date.now() + PW_RESET_TTL });
+      // Mark the request answered wherever it is showing.
+      const chats = loadChats(); let touched = false;
+      for (const c of chats.conversations)
+        for (const m of (c.messages || []))
+          if (m.kind === 'password-reset' && m.status === 'pending' && String(m.from).toLowerCase() === nameLc) { m.status = 'issued'; m.issuedBy = _actor; touched = true; }
+      if (touched) { try { saveChats(chats); } catch {} }
+      return sendJSON(res, { ok: true, username: real.username, path: '/#reset=' + tokenValue,
+        expiresInMinutes: Math.round(PW_RESET_TTL / 60000) });
+    });
+    return;
+  }
+  // The link itself. Single use, short-lived, and it signs every other session out.
+  if (pathname === '/api/password-reset/complete' && req.method === 'POST') {
+    if (!rateOk(req, 'pwresetdo', 20, 10 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many attempts. Try again in a few minutes.' }, 429);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', async () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const tok = String(j.token || '');
+      const rec = PW_RESET_TOKENS.get(tok);
+      if (!rec || rec.expires < Date.now()) { PW_RESET_TOKENS.delete(tok); return sendJSON(res, { ok: false, error: 'This link has expired. Ask for a new one.' }, 400); }
+      const newp = String(j.newPassword || '');
+      if (newp.length < MIN_PASSWORD) return sendJSON(res, { ok: false, error: 'Password must be at least ' + MIN_PASSWORD + ' characters.' }, 400);
+      const list = loadUsers();
+      const i = list.findIndex(u => String(u.username).toLowerCase() === rec.userLc);
+      if (i < 0) { PW_RESET_TOKENS.delete(tok); return sendJSON(res, { ok: false, error: 'That account no longer exists.' }, 404); }
+      list[i] = { username: list[i].username, ...(await hashPassword(newp)) };
+      try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      PW_RESET_TOKENS.delete(tok);                       // single use
+      PW_RESET_ASKED.delete(rec.userLc);                 // they are back in; clear the cooldown
+      revokeSessions(rec.username);                      // whoever else had the old password is out
+      // Close the card so the admin can see it was used.
+      const chats = loadChats(); let touched = false;
+      for (const c of chats.conversations)
+        for (const m of (c.messages || []))
+          if (m.kind === 'password-reset' && m.status === 'issued' && String(m.from).toLowerCase() === rec.userLc) { m.status = 'done'; touched = true; }
+      if (touched) { try { saveChats(chats); } catch {} }
+      const fresh = createSession(list[i].username, 'user');
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': setCookie(req, fresh) });
+      return res.end(JSON.stringify({ ok: true, username: list[i].username, role: 'user' }));
     });
     return;
   }
@@ -2217,10 +3091,10 @@ const server = http.createServer((req, res) => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
       const username = String(j.username || '').trim();
       const password = String(j.password || '');
-      if (username.length < 3 || username.length > 32 || !/^[A-Za-z0-9_.-]+$/.test(username))
+      if (!USERNAME_RE.test(username))
         return sendJSON(res, { ok: false, error: 'Username must be 3-32 chars: letters, numbers, dot, underscore, hyphen.' }, 400);
-      if (password.length < 8)
-        return sendJSON(res, { ok: false, error: 'Password must be at least 8 characters.' }, 400);
+      if (password.length < MIN_PASSWORD)
+        return sendJSON(res, { ok: false, error: 'Password must be at least ' + MIN_PASSWORD + ' characters.' }, 400);
       const list = loadUsers();
       if (list.some(u => u.username.toLowerCase() === username.toLowerCase())
         || loadAdmins().some(a => a.username.toLowerCase() === username.toLowerCase()))
@@ -2238,6 +3112,9 @@ const server = http.createServer((req, res) => {
     const s = siteSession(req);
     if (!s) return sendJSON(res, { ok: false, error: 'Not signed in.' }, 401);
     if (s.role !== 'user') return sendJSON(res, { ok: false, error: 'Admin passwords are managed with make-admin.js.' }, 400);
+    // Each call runs scrypt twice; rate-limited so a signed-in account cannot use
+    // it as a CPU tap, and so a borrowed session cannot grind at the old password.
+    if (!rateOk(req, 'pwchange', 10, 10 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many attempts. Try again in a few minutes.' }, 429);
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
     req.on('end', async () => {
       let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
@@ -2249,9 +3126,85 @@ const server = http.createServer((req, res) => {
       if (i < 0) return sendJSON(res, { ok: false, error: 'Account not found.' }, 404);
       list[i] = { username: list[i].username, ...(await hashPassword(newp)) };
       try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
-      return sendJSON(res, { ok: true });
+      // Sign out everywhere else. If the reason for changing the password is that
+      // someone else had it, leaving their session alive changes nothing. The
+      // caller's own token is spared so they are not logged out of this tab.
+      const _tok = (req.headers && req.headers['x-auth-token']) || parseCookies(req)[SITE_COOKIE] || '';
+      const revoked = revokeSessions(s.username, _tok);
+      return sendJSON(res, { ok: true, revoked });
     });
     return;
+  }
+
+  // ── Admin: back up everything the repository does not hold ──────────────────
+  // days.json, chats.json, users.json, grants.json and the Uploads/ tree are all
+  // git-ignored runtime state: lose the disk and you lose every logged day, every
+  // scan of a paper note and every conversation, with nothing to restore from.
+  // This streams the lot as a .zip so a backup is one click.
+  //   ?what=state (default) — the JSON stores + Uploads/
+  //   ?what=all             — also Data/, DataHU/, Articles/ (normally in git)
+  if (pathname === '/api/admin/export' && (req.method === 'GET' || req.method === 'HEAD')) {
+    if (!requireAdmin(req, res)) return;
+    const withNotes = query.what === 'all';
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    const fname = `digitalization-backup-${stamp}.zip`;
+    res.writeHead(200, cors({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${fname}"`,
+      'Cache-Control': 'no-store',
+    }));
+    if (req.method === 'HEAD') return res.end();
+
+    const zip = createZipWriter(res);
+    let files = 0, bytes = 0, skipped = [];
+    const EXPORT_MAX = Number(process.env.EXPORT_MAX_BYTES) || 2 * 1024 * 1024 * 1024;
+    const addFile = (abs, rel) => {
+      if (bytes >= EXPORT_MAX) { skipped.push(rel); return; }
+      let st; try { st = fs.statSync(abs); } catch { return; }
+      if (!st.isFile()) return;
+      let data; try { data = fs.readFileSync(abs); } catch { skipped.push(rel); return; }
+      zip.add(rel, data, st.mtime); files++; bytes += st.size;
+    };
+    const addDir = (absDir, relBase) => {
+      let ents; try { ents = fs.readdirSync(absDir, { withFileTypes: true }); } catch { return; }
+      for (const e of ents) {
+        const abs = path.join(absDir, e.name), rel = relBase + '/' + e.name;
+        if (e.isDirectory()) addDir(abs, rel); else addFile(abs, rel);
+      }
+    };
+    try {
+      for (const f of ['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json',
+                       'blocked.json', 'note-discussions.json', 'changelog.json', 'timetable.json', 'days.json'])
+        addFile(path.join(__WEBSITE, f), 'state/' + f);
+      addDir(__DAY_FILES, 'Uploads/days');
+      if (withNotes) {
+        addDir(__DATA, 'Data');
+        if (HAS_DUAL_LANG) addDir(__DATA_HU, 'DataHU');
+        addDir(__ARTICLES, 'Articles');
+        addDir(__ARTICLES_HU, 'ArticlesHU');
+      }
+      // A short manifest so a future you knows what this archive is and how to use it.
+      const manifest = [
+        'Digitalization backup',
+        'taken: ' + new Date().toISOString(),
+        'scope: ' + (withNotes ? 'state + notes + articles' : 'state + uploads'),
+        'files: ' + files,
+        'bytes: ' + bytes,
+        skipped.length ? 'skipped (unreadable or over EXPORT_MAX_BYTES): ' + skipped.length : '',
+        '',
+        'To restore: stop the server, copy state/*.json next to server.js, and copy',
+        'Uploads/ back into the Website folder. The two directories must keep their',
+        'names — day attachments are looked up as Uploads/days/<dayId>/<attId><ext>.',
+        '',
+        'state/admins.json and state/users.json hold salted scrypt password hashes.',
+        'Keep this file somewhere you would keep a password manager export.',
+      ].filter(x => x !== undefined).join('\n') + '\n';
+      zip.add('README-restore.txt', Buffer.from(manifest, 'utf8'), new Date());
+      zip.finish();
+    } catch (e) {
+      console.error('export failed:', (e && e.stack) || e);
+    }
+    return res.end();
   }
 
   // ── Admin: manage viewer accounts ───────────────────────────────────────────
@@ -2267,6 +3220,14 @@ const server = http.createServer((req, res) => {
       const username = String(j.username || '').trim();
       const password = String(j.password || '');
       if (!username || !password) return sendJSON(res, { ok: false, error: 'username and password required' }, 400);
+      // Same rules as public sign-up and make-user.js. This route accepted anything,
+      // so an admin could mint an account whose name is markup — and that name is
+      // then echoed into every other member's chat list, participant picker and
+      // note-owner field. Constrain it at the one place that creates it.
+      if (!USERNAME_RE.test(username))
+        return sendJSON(res, { ok: false, error: 'Username must be 3-32 chars: letters, numbers, dot, underscore, hyphen.' }, 400);
+      if (password.length < MIN_PASSWORD)
+        return sendJSON(res, { ok: false, error: 'Password must be at least ' + MIN_PASSWORD + ' characters.' }, 400);
       if (loadAdmins().some(a => a.username.toLowerCase() === username.toLowerCase()))
         return sendJSON(res, { ok: false, error: 'That name belongs to an admin account.' }, 409);
       const list = loadUsers();
@@ -2275,6 +3236,9 @@ const server = http.createServer((req, res) => {
       if (i >= 0) { list[i] = { username: list[i].username, ...(await hashPassword(password)) }; updated = true; }
       else list.push({ username, ...(await hashPassword(password)) });
       try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      // An admin resetting a password is usually locking someone out; leaving their
+      // old sessions alive would defeat it.
+      if (updated) revokeSessions(username);
       return sendJSON(res, { ok: true, username, updated });
     });
     return;
@@ -2287,15 +3251,337 @@ const server = http.createServer((req, res) => {
       const username = String(j.username || '').trim().toLowerCase();
       const list = loadUsers().filter(u => u.username.toLowerCase() !== username);
       try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
-      return sendJSON(res, { ok: true });
+      const revoked = revokeSessions(username);   // removing the account must end the access
+      return sendJSON(res, { ok: true, revoked });
     });
     return;
   }
   // Music
+  // ── Timetable: public read, admin write ────────────────────────────────────
+  if (pathname === '/api/timetable' && req.method === 'GET') {
+    const t = loadTimetable();
+    const s = siteSession(req);
+    if (t.settings.visibility === 'members' && !s)
+      return sendJSON(res, { ok: true, restricted: true, timetable: null });
+    return sendJSON(res, { ok: true, timetable: t, today: new Date().toISOString().slice(0, 10) });
+  }
+  if (pathname === '/api/admin/timetable' && req.method === 'POST') {
+    if (!requireAdmin(req, res)) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 1048576) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      try { return sendJSON(res, { ok: true, timetable: saveTimetable(j && j.timetable ? j.timetable : j) }); }
+      catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+    });
+    return;
+  }
+
+  // ── Day log: what actually happened, per calendar day ──────────────────────
+  // Compact index for the calendar / heat map: one row per logged day.
+  if (pathname === '/api/days/index' && req.method === 'GET') {
+    const s = siteSession(req);
+    const rows = loadDays().filter(d => canSeeDay(d, s)).map(d => {
+      const seen = new Map();
+      for (const l of d.lessons || []) {
+        const k = l.subjectId || l.subject || l.id;
+        if (!seen.has(k)) seen.set(k, { id: l.subjectId, name: l.subject, nameHu: l.subjectHu, color: l.color });
+      }
+      return { id: d.id, date: d.date, title: d.title, titleHu: d.titleHu, visibility: d.visibility,
+        counts: dayCounts(d), subjects: [...seen.values()].slice(0, 12) };
+    });
+    return sendJSON(res, { ok: true, index: rows, today: new Date().toISOString().slice(0, 10) });
+  }
+  // Feed: full day records, newest first, filterable.
+  if (pathname === '/api/days' && req.method === 'GET') {
+    const s = siteSession(req);
+    const from = _date(query.from), to = _date(query.to);
+    const subject = _id(query.subject);
+    const q = String(query.q || '').trim().toLowerCase().slice(0, 120);
+    const onlyFiles = query.files === '1';
+    const limit  = Math.min(200, Math.max(1, parseInt(query.limit, 10) || 40));
+    const offset = Math.max(0, parseInt(query.offset, 10) || 0);
+    let list = loadDays().filter(d => canSeeDay(d, s));
+    if (from) list = list.filter(d => d.date >= from);
+    if (to)   list = list.filter(d => d.date <= to);
+    if (subject) list = list.filter(d => (d.lessons || []).some(l => l.subjectId === subject));
+    if (onlyFiles) list = list.filter(d => dayCounts(d).files > 0);
+    if (q) list = list.filter(d => daySearchText(d).includes(q));
+    const total = list.length;
+    const page = list.slice(offset, offset + limit).map(d => publicDay(d, req));
+    return sendJSON(res, { ok: true, days: page, total, offset, limit });
+  }
+  // One day: the log (if any) plus what the timetable had scheduled for that date.
+  if (pathname === '/api/day' && req.method === 'GET') {
+    const s = siteSession(req);
+    const tt = loadTimetable();
+    const ttVisible = !(tt.settings.visibility === 'members' && !s);
+    let day = null;
+    if (query.id) { const d = loadDays().find(x => x.id === String(query.id)); if (d && canSeeDay(d, s)) day = publicDay(d, req); }
+    else if (isDate(query.date)) { const d = findDayByDate(loadDays(), query.date); if (d && canSeeDay(d, s)) day = publicDay(d, req); }
+    const date = day ? day.date : _date(query.date);
+    const plan = (date && ttVisible) ? planForDate(date, tt) : null;
+    if (!day && !date) return sendJSON(res, { ok: false, error: 'Unknown day.' }, 404);
+    return sendJSON(res, { ok: true, date, day, plan });
+  }
+  // Days on which a given digital note was covered — powers the note viewer's
+  // "covered in class on …" link, i.e. the association between paper and digital.
+  if (pathname === '/api/note/days' && req.method === 'GET') {
+    const s = siteSession(req);
+    const p = String(query.path || ''), lang = _lang(query.lang);
+    if (!p) return sendJSON(res, { ok: true, days: [] });
+    if (!canViewNote(req, p, lang)) return sendJSON(res, { ok: true, days: [] });
+    const out = [];
+    for (const d of loadDays()) {
+      if (!canSeeDay(d, s)) continue;
+      for (const l of d.lessons || []) {
+        if (!(l.notes || []).some(n => n.path === p && n.lang === lang)) continue;
+        out.push({ dayId: d.id, date: d.date, lessonId: l.id, subject: l.subject, subjectHu: l.subjectHu,
+          color: l.color, kind: l.kind, periodLabel: l.periodLabel, start: l.start,
+          what: String(l.what || '').slice(0, 240), files: (l.attachments || []).length });
+      }
+    }
+    return sendJSON(res, { ok: true, days: out.slice(0, 200) });
+  }
+
+  // ── Day log: admin authoring ───────────────────────────────────────────────
+  if (pathname === '/api/admin/days' && req.method === 'GET') {
+    if (!requireAdmin(req, res)) return;
+    const rows = loadDays().map(d => ({ id: d.id, date: d.date, title: d.title, titleHu: d.titleHu,
+      visibility: d.visibility, counts: dayCounts(d), updated: d.updated, updatedBy: d.updatedBy }));
+    return sendJSON(res, { ok: true, days: rows });
+  }
+  if (pathname === '/api/admin/day' && req.method === 'GET') {
+    if (!requireAdmin(req, res)) return;
+    const list = loadDays();
+    let day = null;
+    if (query.id) day = list.find(x => x.id === String(query.id)) || null;
+    else if (isDate(query.date)) day = findDayByDate(list, query.date);
+    const date = day ? day.date : _date(query.date);
+    return sendJSON(res, { ok: true, date, day, plan: date ? planForDate(date) : null });
+  }
+  if (pathname === '/api/admin/day' && req.method === 'POST') {
+    const who = requireAdmin(req, res); if (!who) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4 * 1048576) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const incoming = (j && j.day) ? j.day : j;
+      if (!isDate(incoming && incoming.date)) return sendJSON(res, { ok: false, error: 'A valid date (YYYY-MM-DD) is required.' }, 400);
+      const list = loadDays().slice();
+      // One record per calendar date: an existing day for that date is updated,
+      // even if the client sent a fresh id (double-submit safety).
+      let idx = list.findIndex(d => d.id === _id(incoming.id) && _id(incoming.id));
+      if (idx < 0) idx = list.findIndex(d => d.date === incoming.date);
+      const prev = idx >= 0 ? list[idx] : null;
+      if (prev && _id(incoming.id) && prev.id !== _id(incoming.id))
+        return sendJSON(res, { ok: false, error: 'Another entry already covers that date.' }, 409);
+      const day = normDay({ ...incoming, id: prev ? prev.id : incoming.id, updatedBy: who }, prev);
+      day.week = weekParity(day.date, loadTimetable().settings);
+      if (!prev) day.createdBy = who;
+      // Attachments that were removed from the record lose their files too.
+      if (prev) {
+        const keep = new Set();
+        for (const l of day.lessons) for (const a of l.attachments) keep.add(a.id);
+        for (const l of prev.lessons || []) for (const a of l.attachments || []) if (!keep.has(a.id)) deleteAttachmentFile(prev.id, a);
+      }
+      if (idx >= 0) list[idx] = day; else list.push(day);
+      try { saveDays(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, day });
+    });
+    return;
+  }
+  // ── Logging a single lesson straight from the timetable ────────────────────
+  // The full day editor is the right tool for writing a day up properly. This pair
+  // is for the other case: you are looking at this week's grid, you have a photo of
+  // the page you just filled, and you want it attached to that lesson now. The
+  // digital note is optional — the point is that the resource for that class exists.
+  //
+  // Uploads need a day id before the day is saved, so this hands one out: the
+  // existing day's id for that date, or a fresh one. A draft id that is never saved
+  // leaves an orphan upload folder, which the 24-hour sweep already collects.
+  if (pathname === '/api/admin/day/draftid' && req.method === 'GET') {
+    if (!requireAdminEither(req, res)) return;
+    const date = _date(query.date);
+    if (!date) return sendJSON(res, { ok: false, error: 'A valid date (YYYY-MM-DD) is required.' }, 400);
+    const existing = findDayByDate(loadDays(), date);
+    return sendJSON(res, { ok: true, date, id: existing ? existing.id : _newId(), exists: !!existing });
+  }
+  if (pathname === '/api/admin/day/lesson' && req.method === 'POST') {
+    const who = requireAdminEither(req, res); if (!who) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 1048576) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const date = _date(j.date);
+      if (!date) return sendJSON(res, { ok: false, error: 'A valid date (YYYY-MM-DD) is required.' }, 400);
+      const list = loadDays().slice();
+      let idx = list.findIndex(d => d.date === date);
+      let day = idx >= 0 ? { ...list[idx], lessons: (list[idx].lessons || []).slice() } : null;
+      if (!day) {
+        const wantId = _id(j.dayId);
+        day = normDay({ id: wantId || _newId(), date, visibility: j.visibility === 'members' ? 'members' : 'all', lessons: [] }, null);
+        day.createdBy = who;
+      }
+      // Fill the lesson's identity from the timetable so an archived day still reads
+      // correctly years later, exactly as the full editor does.
+      const tt = loadTimetable();
+      const slot = (tt.slots || []).find(s => s.id === _id(j.slotId)) || null;
+      const subj = slot ? (tt.subjects || []).find(x => x.id === slot.subjectId) : null;
+      const per  = slot ? (tt.settings.periods || []).find(p => p.id === slot.periodId) : null;
+
+      const incoming = (j.lesson && typeof j.lesson === 'object') ? j.lesson : {};
+      // Match an existing entry by slot, else by subject+period, so a second save
+      // updates the lesson instead of duplicating it.
+      let li = day.lessons.findIndex(l =>
+        (slot && l.slotId && l.slotId === slot.id) ||
+        (slot && !l.slotId && l.subjectId === slot.subjectId && l.periodId === slot.periodId) ||
+        (!slot && _id(incoming.id) && l.id === _id(incoming.id)));
+      const prevLesson = li >= 0 ? day.lessons[li] : null;
+
+      const merged = normLesson({
+        ...(prevLesson || {}),
+        ...incoming,
+        id: prevLesson ? prevLesson.id : _idOrNew(incoming.id),
+        slotId:      slot ? slot.id : (prevLesson ? prevLesson.slotId : ''),
+        subjectId:   slot ? slot.subjectId : (incoming.subjectId || (prevLesson && prevLesson.subjectId)),
+        subject:     subj ? subj.name   : (incoming.subject   || (prevLesson && prevLesson.subject)),
+        subjectHu:   subj ? subj.nameHu : (incoming.subjectHu || (prevLesson && prevLesson.subjectHu)),
+        color:       subj ? subj.color  : (incoming.color     || (prevLesson && prevLesson.color)),
+        periodId:    slot ? slot.periodId : (prevLesson && prevLesson.periodId),
+        periodLabel: per  ? per.label : (incoming.periodLabel || (prevLesson && prevLesson.periodLabel)),
+        start:       per  ? per.start : (incoming.start || (prevLesson && prevLesson.start)),
+        end:         per  ? per.end   : (incoming.end   || (prevLesson && prevLesson.end)),
+        room:        incoming.room    != null ? incoming.room    : (slot ? (slot.room    || (subj && subj.room))    : (prevLesson && prevLesson.room)),
+        teacher:     incoming.teacher != null ? incoming.teacher : (slot ? (slot.teacher || (subj && subj.teacher)) : (prevLesson && prevLesson.teacher)),
+      });
+
+      // Attachments dropped from the lesson lose their files, as in the full editor.
+      if (prevLesson) {
+        const keep = new Set(merged.attachments.map(a => a.id));
+        for (const a of prevLesson.attachments || []) if (!keep.has(a.id)) deleteAttachmentFile(day.id, a);
+      }
+      // Nothing written and nothing attached means "remove this entry".
+      const isEmpty = !merged.what.trim() && !merged.homework.trim() && !merged.topics.length
+                   && !merged.attachments.length && !merged.notes.length && merged.kind === 'lesson' && !merged.important;
+      if (isEmpty && li >= 0) day.lessons.splice(li, 1);
+      else if (li >= 0) day.lessons[li] = merged;
+      else if (!isEmpty) day.lessons.push(merged);
+
+      // Keep the day in timetable order so it reads like the day it was.
+      const order = new Map((tt.settings.periods || []).map((p, i) => [p.id, i]));
+      day.lessons.sort((a, b) => (order.get(a.periodId) ?? 99) - (order.get(b.periodId) ?? 99));
+
+      if (typeof j.visibility === 'string') day.visibility = j.visibility === 'members' ? 'members' : 'all';
+      day.updatedBy = who;
+      day.week = weekParity(date, tt.settings);
+      const saved = normDay(day, idx >= 0 ? list[idx] : null);
+      saved.id = day.id;
+
+      // A day emptied of every lesson and with nothing else written is deleted
+      // rather than left as a blank card in the feed.
+      const blank = !saved.lessons.length && !saved.title && !saved.titleHu && !saved.summary.trim() && !saved.summaryHu.trim();
+      let out = list;
+      if (blank && idx >= 0) { try { rmDirSync(dayFileDir(saved.id)); } catch {} out = list.filter((_, k) => k !== idx); }
+      else if (blank) out = list;
+      else if (idx >= 0) { out = list.slice(); out[idx] = saved; }
+      else { out = list.concat([saved]); }
+      try { saveDays(out); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, day: blank ? null : saved, removed: blank });
+    });
+    return;
+  }
+  if (pathname === '/api/admin/day/delete' && req.method === 'POST') {
+    if (!requireAdmin(req, res)) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const list = loadDays();
+      const day = list.find(d => d.id === String(j.id || '')) || (isDate(j.date) ? findDayByDate(list, j.date) : null);
+      if (!day) return sendJSON(res, { ok: false, error: 'not found' }, 404);
+      try { rmDirSync(dayFileDir(day.id)); } catch {}
+      try { saveDays(list.filter(d => d !== day)); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+  // Raw-body upload: the whole request body is the file. Avoids a multipart parser
+  // (this server has no dependencies) and streams straight from the file input.
+  //   POST /api/admin/day/upload?day=<dayId>&name=<filename>&kind=scan|file
+  if (pathname === '/api/admin/day/upload' && req.method === 'POST') {
+    if (!requireAdminEither(req, res)) return;
+    if (!rateOk(req, 'dayupload', 300, 10 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many uploads. Try again shortly.' }, 429);
+    const dayId = _id(query.day);
+    if (!dayId) return sendJSON(res, { ok: false, error: 'Missing day id.' }, 400);
+    const rawName = String(query.name || 'file');
+    const name = _str(path.basename(rawName.replace(/[\\/]/g, '_')), 200) || 'file';
+    const ext = path.extname(name).toLowerCase();
+    if (!ATTACH_EXTS.has(ext))
+      return sendJSON(res, { ok: false, error: 'That file type is not allowed (' + (ext || 'no extension') + ').' }, 400);
+    const declared = parseInt(req.headers['content-length'] || '0', 10);
+    if (Number.isFinite(declared) && declared > ATTACH_MAX_BYTES)
+      return sendJSON(res, { ok: false, error: 'File is too large (max ' + Math.round(ATTACH_MAX_BYTES / 1048576) + ' MB).' }, 413);
+    const chunks = []; let total = 0, aborted = false;
+    req.on('data', c => {
+      if (aborted) return;
+      total += c.length;
+      if (total > ATTACH_MAX_BYTES) {
+        // Answer before hanging up. Cutting the socket without a status left the
+        // uploader looking at a network error instead of "file is too large".
+        aborted = true; chunks.length = 0;
+        try { sendJSON(res, { ok: false, error: 'File is too large (max ' + Math.round(ATTACH_MAX_BYTES / 1048576) + ' MB).' }, 413); } catch {}
+        try { req.destroy(); } catch {}
+        return;
+      }
+      chunks.push(c);
+    });
+    req.on('aborted', () => { aborted = true; });
+    req.on('end', () => {
+      if (aborted) return;
+      if (!total) return sendJSON(res, { ok: false, error: 'Empty file.' }, 400);
+      const attId = crypto.randomBytes(12).toString('hex');
+      try {
+        fs.mkdirSync(dayFileDir(dayId), { recursive: true });
+        fs.writeFileSync(attachmentPath(dayId, attId, ext), Buffer.concat(chunks));
+      } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      const att = {
+        id: attId, name, ext, size: total,
+        mime: MIME[ext] || 'application/octet-stream',
+        kind: query.kind === 'scan' ? 'scan' : 'file',
+        caption: '', added: new Date().toISOString(),
+      };
+      return sendJSON(res, { ok: true, attachment: att, url: '/uploads/days/' + dayId + '/' + attId + ext });
+    });
+    return;
+  }
+  // Serve a day attachment. Visibility follows the day it belongs to; files that do
+  // not yet belong to a saved day are admin-only (they are still being uploaded).
+  if (pathname.toLowerCase().startsWith('/uploads/days/')) {
+    const parts = decPath(pathname.slice('/uploads/days/'.length)).split('/').filter(Boolean);
+    if (parts.length !== 2) { res.writeHead(404); return res.end('Not Found'); }
+    const dayId = _id(parts[0]);
+    const ext = path.extname(parts[1]).toLowerCase();
+    const attId = path.basename(parts[1], ext);
+    if (!dayId || !/^[0-9a-f]{24}$/.test(attId) || !ATTACH_EXTS.has(ext)) { res.writeHead(404); return res.end('Not Found'); }
+    const day = loadDays().find(d => d.id === dayId) || null;
+    // A file uploaded against a day that is not saved yet is only visible to an
+    // admin — that is the draft state the quick-log panel is in while you are still
+    // filling it in, so it must accept a site session too or the thumbnail of the
+    // scan you just dropped is broken until you press Save.
+    if (!day) { if (!adminActor(req)) { res.writeHead(404); return res.end('Not Found'); } }
+    // 404, not 403: a members-only day must answer exactly like a date that was
+    // never logged, or the status code alone confirms the day exists — the same
+    // rule /api/day and /api/days/index already follow.
+    else if (!canSeeDay(day, siteSession(req))) { res.writeHead(404); return res.end('Not Found'); }
+    const att = day ? findAttachment(day, attId) : null;
+    if (day && !att) { res.writeHead(404); return res.end('Not Found'); }
+    const full = attachmentPath(dayId, attId, ext);
+    const forceDl = query.download === '1' || !INLINE_EXTS.has(ext);
+    if (att && !forceDl) res.setHeader('X-Attachment-Name', encodeURIComponent(att.name));
+    return serveFile(res, req, full, forceDl ? (att ? att.name : true) : false);
+  }
+
   if (pathname === '/api/music/list') return sendJSON(res, listMusic());
   if (pathname.startsWith('/music/')) {
     if (!fs.existsSync(__MUSIC)) { res.writeHead(404); return res.end('Not Found'); }
-    let full; try { full = safePath(__MUSIC, pathname.slice(7)); } catch { res.writeHead(403); return res.end('Forbidden'); }
+    let full; try { full = safePath(__MUSIC, decPath(pathname.slice(7))); } catch { res.writeHead(403); return res.end('Forbidden'); }
     return serveFile(res, req, full);
   }
 
@@ -2303,8 +3589,10 @@ const server = http.createServer((req, res) => {
   if (pathname.startsWith('/data/')) {
     const useHu = query.lang === 'hu' && HAS_DUAL_LANG;
     const dataDir = useHu ? __DATA_HU : __DATA;
-    const _dataRel = pathname.slice(6);
-    if (/(^|\/)data\.txt$/i.test(decodeURIComponent(_dataRel))) { res.writeHead(404); return res.end('Not Found'); }
+    // Decode once, here: safePath, canViewNote and the grant key must all agree on
+    // the same (decoded) relative path, or a granted note stays 403 for its grantee.
+    const _dataRel = decPath(pathname.slice(6));
+    if (/(^|\/)data\.txt$/i.test(_dataRel)) { res.writeHead(404); return res.end('Not Found'); }
     let full; try { full = safePath(dataDir, _dataRel); } catch { res.writeHead(403); return res.end('Forbidden'); }
     if (!canViewNote(req, _dataRel, query.lang)) { res.writeHead(403); return res.end('Sign-in required'); }
     return serveFile(res, req, full, !!query.download);
@@ -2312,7 +3600,7 @@ const server = http.createServer((req, res) => {
 
   // Article pages
   if (pathname.startsWith('/articles/')) {
-    const articleFile = pathname.slice(10); let full = null;
+    const articleFile = decPath(pathname.slice(10)); let full = null;
     if (query.lang === 'hu' && fs.existsSync(__ARTICLES_HU)) {
       try { const p = safePath(__ARTICLES_HU, articleFile); if (fs.existsSync(p)) full = p; } catch {}
     }
@@ -2321,17 +3609,18 @@ const server = http.createServer((req, res) => {
   }
 
   // Static files
-  const rel = pathname === '/' ? 'index.html' : pathname.slice(1);
-  if (isProtectedStatic(decodeURIComponent(rel))) { res.writeHead(404); return res.end('Not Found'); }
+  const rel = decPath(pathname === '/' ? 'index.html' : pathname.slice(1));
+  if (isProtectedStatic(rel)) return notFoundPage(res, req, pathname);
   let full; try { full = safePath(__WEBSITE, rel); } catch { res.writeHead(403); return res.end('Forbidden'); }
   try { if (fs.statSync(full).isDirectory()) full = path.join(full, 'index.html'); } catch {}
   if (full === path.join(__WEBSITE, 'index.html')) return serveHtmlShell(res, req, full);
+  try { if (!fs.statSync(full).isFile()) throw 0; } catch { return notFoundPage(res, req, pathname); }
   return serveFile(res, req, full);
 });
 
 // ── Startup ───────────────────────────────────────────────────────────────────
 server.listen(PORT, () => {
-  const pdflatexOk = (() => { try { return spawnSync(PDFLATEX, ['--version'], { timeout: 5000 }).status === 0; } catch { return false; } })();
+  const pdflatexOk = PDFLATEX_OK;
   console.log(`\n  ╔════════════════════════════════════════╗`);
   console.log(`  ║  ✦  Knowledge Index Server              ║`);
   console.log(`  ║  ➜  http://localhost:${PORT}             ║`);
@@ -2346,6 +3635,10 @@ server.listen(PORT, () => {
   console.log(`  pdflatex   : ${PDFLATEX} ${pdflatexOk ? '✓' : '✗ NOT FOUND'}\n`);
   if (!pdflatexOk) console.warn(`  ⚠  pdflatex missing — install TeX Live: sudo apt-get install texlive-full\n`);
   if (!fs.existsSync(__DATA)) console.warn(`  ⚠  Data dir missing: ${__DATA} — create it and add .tex files.\n`);
+  // Day-attachment store + a periodic sweep of files whose day was never saved.
+  try { fs.mkdirSync(__DAY_FILES, { recursive: true }); } catch {}
+  setTimeout(() => { try { sweepOrphanDayFiles(); } catch {} }, 20000).unref?.();
+  setInterval(() => { try { sweepOrphanDayFiles(); } catch {} }, 6 * 3600 * 1000).unref?.();
   // Non-blocking background precompilation
   setTimeout(() => {
     if (pdflatexOk && fs.existsSync(__DATA)) {

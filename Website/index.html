@@ -3,7 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Knowledge Index</title>
+  <title>Knowledge Index — Digitalization</title>
+  <meta name="description" content="Knowledge Index: the Digitalization project's bilingual archive of mathematics, science and humanities notes — every note typeset from source, alongside a day-by-day log of what was actually covered in class.">
+  <meta name="keywords" content="Knowledge Index, Digitalization, Digitalizations, SzigNotes, Szig Notes, digitalization project, knowledge archive, study notes, LaTeX notes, jegyzetek, tudástár, digitalizáció, mathematics notes, physics notes, chemistry notes, history notes, matematika, fizika, kémia, történelem, nyelvtan, irodalom, timetable, órarend, day log, tanórai jegyzetek, bilingual notes, English Hungarian notes">
+  <meta name="author" content="Digitalization">
+  <meta name="theme-color" content="#07070a">
+  <meta name="color-scheme" content="dark light">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="/">
+  <!-- Link previews (chat apps, social, search cards) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Knowledge Index">
+  <meta property="og:title" content="Knowledge Index — Digitalization">
+  <meta property="og:description" content="A bilingual archive of mathematics, science and humanities notes, typeset from source — with a day-by-day log of what was actually covered in class.">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:locale:alternate" content="hu_HU">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Knowledge Index — Digitalization">
+  <meta name="twitter:description" content="A bilingual archive of mathematics, science and humanities notes, typeset from source — with a day-by-day log of what was actually covered in class.">
   <link rel="icon" href="/Assets/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1629,6 +1646,105 @@
     .sort-dd-item.active{color:var(--accent)}
     .sort-dd-item.active::before{content:"✓ ";opacity:.85}
     .sort-dd-sep{height:1px;background:var(--border);margin:3px 2px}
+    /* ── Quick log: attach scans to a lesson from the week grid (admins) ──── */
+    .qlog-bd{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);z-index:9200;animation:fadeIn .2s var(--tr)}
+    .qlog{position:fixed;z-index:9201;top:0;right:0;bottom:0;width:min(460px,100vw);
+      background:var(--bg2);border-left:1px solid var(--border-md);
+      display:flex;flex-direction:column;box-shadow:-24px 0 60px rgba(0,0,0,.45);
+      animation:qlogIn .28s var(--tr-spring) both}
+    /* An author `display` beats the UA rule for [hidden], so say it again here or
+       the panel sits open on every page load. */
+    .qlog[hidden],.qlog-bd[hidden]{display:none!important}
+    @keyframes qlogIn{from{transform:translateX(26px);opacity:0}to{transform:none;opacity:1}}
+    .qlog-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex:none}
+    .qlog-swatch{width:4px;align-self:stretch;border-radius:3px;background:var(--accent);flex:none;min-height:34px}
+    .qlog-htxt{flex:1;min-width:0}
+    .qlog-htxt h3{font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:-.01em;color:var(--text);margin:0;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .qlog-htxt span{display:block;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:3px}
+    .qlog-x{background:none;border:none;color:var(--text2);font-size:26px;line-height:1;padding:0 2px;flex:none}
+    .qlog-x:hover{color:var(--text)}
+    .qlog-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+    .qlog-fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .qlog-fld > span{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text2)}
+    .qlog-fld textarea,.qlog-fld input,.qlog-fld select,#qlogNoteSearch{
+      background:var(--bg);border:1px solid var(--border-md);border-radius:var(--radius);
+      color:var(--text);font:inherit;font-size:13px;padding:9px 11px;width:100%;resize:vertical}
+    .qlog-fld textarea:focus,.qlog-fld input:focus,.qlog-fld select:focus,#qlogNoteSearch:focus{outline:none;border-color:var(--accent)}
+    .qlog-row2{display:grid;grid-template-columns:1fr 130px;gap:10px}
+    .qlog-sec-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text2);margin-top:4px}
+    .qlog-hint{font-family:var(--font-mono);font-size:10.5px;color:var(--text3);margin:-6px 0 2px}
+    .qlog-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+      border:1px dashed var(--border-md);border-radius:var(--radius-lg);padding:20px 16px;text-align:center;
+      color:var(--text2);font-size:12.5px;transition:border-color .18s,background .18s,color .18s}
+    .qlog-drop svg{width:22px;height:22px;opacity:.6}
+    .qlog-drop:hover,.qlog-drop:focus-visible,.qlog-drop.over{border-color:var(--accent);color:var(--text);background:var(--accent-dim);outline:none}
+    .qlog-files{display:flex;flex-direction:column;gap:7px}
+    .qlog-file{display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:7px 9px}
+    .qlog-file .th{width:34px;height:34px;border-radius:5px;background:var(--bg4);flex:none;overflow:hidden;
+      display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+    .qlog-file .th img{width:100%;height:100%;object-fit:cover}
+    .qlog-file .fmeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+    .qlog-file .fname{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .qlog-file input.cap{background:transparent;border:none;border-bottom:1px dashed var(--border-md);color:var(--text2);
+      font:inherit;font-size:11px;padding:1px 0;width:100%}
+    .qlog-file input.cap:focus{outline:none;border-bottom-color:var(--accent)}
+    .qlog-file .kindtog{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;border:1px solid var(--border-md);
+      background:var(--bg2);color:var(--text2);border-radius:4px;padding:3px 6px;flex:none}
+    .qlog-file .kindtog.scan{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+    .qlog-file .rm{background:none;border:none;color:var(--text3);font-size:17px;line-height:1;padding:0 3px;flex:none}
+    .qlog-file .rm:hover{color:var(--red)}
+    .qlog-file.pending{opacity:.6}
+    .qlog-picks{display:flex;flex-direction:column;gap:5px;max-height:190px;overflow-y:auto}
+    .qlog-pick{display:flex;flex-direction:column;gap:1px;text-align:left;width:100%;
+      background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font:inherit;color:var(--text)}
+    .qlog-pick:hover{border-color:var(--accent);background:var(--bg3)}
+    .qlog-pick b{font-size:12.5px;font-weight:600}
+    .qlog-pick span{font-family:var(--font-mono);font-size:9.5px;color:var(--text3);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .qlog-chosen{display:flex;flex-wrap:wrap;gap:6px}
+    .qlog-chip{display:inline-flex;align-items:center;gap:6px;background:var(--accent-dim);border:1px solid var(--accent);
+      color:var(--accent2);border-radius:20px;padding:4px 6px 4px 11px;font-size:11.5px;max-width:100%}
+    body.light .qlog-chip{color:var(--accent)}
+    .qlog-chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .qlog-chip button{background:none;border:none;color:inherit;font-size:15px;line-height:1;padding:0 2px;opacity:.75}
+    .qlog-chip button:hover{opacity:1}
+    .qlog-foot{display:flex;align-items:center;gap:10px;padding:14px 18px;border-top:1px solid var(--border);flex:none}
+    .qlog-msg{flex:1;font-size:11.5px;color:var(--text3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .qlog-msg.err{color:var(--red)}
+    /* The affordance on each grid cell — only rendered for admins. */
+    .dy-ttslot{position:relative}
+    .dy-qadd{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:5px;
+      background:rgba(0,0,0,.34);color:#fff;border:none;font-size:13px;line-height:20px;padding:0;
+      opacity:0;transition:opacity .16s,background .16s;z-index:2}
+    .dy-ttslot:hover .dy-qadd,.dy-qadd:focus-visible{opacity:1}
+    .dy-qadd:hover{background:rgba(0,0,0,.6)}
+    @media(max-width:640px){.dy-qadd{opacity:.85}}
+    @media(max-width:520px){.qlog{width:100vw;border-left:none}.qlog-row2{grid-template-columns:1fr}}
+
+    /* ── Search hits from inside note bodies ─────────────────────────────── */
+    .cs-panel{margin-top:26px;padding-top:20px;border-top:1px solid var(--border);animation:fadeUp .3s var(--tr) both}
+    .cs-head-row{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+    .cs-title{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text2)}
+    .cs-count{font-family:var(--font-mono);font-size:10.5px;color:var(--text3)}
+    .cs-list{display:flex;flex-direction:column;gap:7px}
+    .cs-row{display:flex;flex-direction:column;gap:5px;width:100%;text-align:left;
+      background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+      padding:11px 14px;font:inherit;color:var(--text);
+      transition:border-color .18s var(--tr),background .18s var(--tr),transform .18s var(--tr-spring)}
+    .cs-row:hover{border-color:var(--accent);background:var(--bg3);transform:translateX(3px)}
+    .cs-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+    .cs-name{font-family:var(--font-ui);font-size:13.5px;font-weight:600;letter-spacing:.005em}
+    .cs-lang,.cs-n{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;
+      color:var(--accent);background:var(--accent-dim);border-radius:4px;padding:1.5px 5px}
+    .cs-where{font-family:var(--font-mono);font-size:10px;color:var(--text3);
+      margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+    .cs-snip{font-family:var(--font-mono);font-size:11.5px;line-height:1.65;color:var(--text2);
+      overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical}
+    .cs-snip mark{background:var(--accent-glow);color:var(--accent2);border-radius:3px;padding:0 2px}
+    body.light .cs-snip mark{color:var(--accent)}
+    @media(max-width:560px){.cs-where{margin-left:0;max-width:100%}}
+
     .no-results-box{
       grid-column:1/-1;display:flex;flex-direction:column;align-items:center;
       justify-content:center;min-height:200px;gap:12px;
@@ -2196,6 +2312,9 @@
     .pdf-qs-lang-btn.qs-disabled,.pdf-tbtn.qs-disabled{opacity:.35;cursor:not-allowed}
     .auth-fld input:focus{border-color:var(--accent)}
     .auth-err{color:var(--red);font-size:12.5px;min-height:16px;margin-bottom:10px}
+    .auth-ok{color:var(--green);font-size:12.5px;line-height:1.6;margin-bottom:10px;
+      background:rgba(108,191,128,.08);border:1px solid rgba(108,191,128,.22);
+      border-radius:var(--radius);padding:9px 11px}
     .auth-submit{width:100%;padding:11px;background:linear-gradient(180deg,var(--accent2),var(--accent));color:#1a1408;border:none;border-radius:8px;font-family:var(--font-ui);font-weight:600;font-size:14px;cursor:none;transition:opacity .2s,transform .1s}
     .auth-submit:hover{opacity:.92}
     .auth-submit:active{transform:scale(.99)}
@@ -2225,10 +2344,222 @@
       .auth-divider{margin:11px 0}
       .auth-submit{padding:9px}
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       DAYS — timetable, calendar and the "what happened" feed
+    ═════════════════════════════════════════════════════════════════ */
+    /* Page rhythm mirrors the Log page: a full-width toolbar strip under the hero,
+       then a centred column — narrow for the feed, wide for calendar/timetable. */
+    .dy-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:16px 40px;max-width:1600px;margin:0 auto;border-bottom:1px solid var(--border)}
+    .dy-pad{padding:26px 40px 90px;max-width:1040px;margin:0 auto}
+    .dy-pad.wide{max-width:1600px}
+    @media(max-width:768px){.dy-toolbar{padding:12px 20px}.dy-pad{padding:18px 20px 80px}}
+    .dy-seg{display:inline-flex;border:1px solid var(--border-md);border-radius:99px;overflow:hidden;background:var(--bg2)}
+    .dy-seg button{padding:8px 16px;border:0;background:transparent;color:var(--text2);font-family:var(--font-ui);font-size:12px;font-weight:600;letter-spacing:.05em;cursor:pointer;transition:.2s}
+    .dy-seg button.active{background:var(--accent-dim);color:var(--accent)}
+    .dy-seg button:not(.active):hover{color:var(--text)}
+    .dy-search{flex:1;min-width:180px;max-width:340px;display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border-md);border-radius:99px;padding:8px 14px}
+    .dy-search svg{width:15px;height:15px;color:var(--text3);flex:none}
+    .dy-search input{flex:1;background:none;border:0;outline:none;color:var(--text);font-family:var(--font-ui);font-size:13px;min-width:0}
+    .dy-chip{padding:6px 13px;border:1px solid var(--border-md);border-radius:99px;background:var(--bg2);color:var(--text2);font-family:var(--font-ui);font-size:12px;font-weight:600;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:7px}
+    .dy-chip i{width:9px;height:9px;border-radius:3px;display:inline-block;flex:none}
+    .dy-chip.on{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+    .dy-chip:hover{color:var(--text)}
+    .dy-subjects{display:flex;flex-wrap:wrap;gap:7px;padding:14px 40px 0;max-width:1600px;margin:0 auto}
+    .dy-legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+    @media(max-width:768px){.dy-subjects{padding:12px 20px 0}}
+    .dy-count{font-family:var(--font-mono);font-size:11px;color:var(--text3);letter-spacing:.08em}
+
+    /* Feed */
+    .dy-feed{display:flex;flex-direction:column;gap:18px}
+    .dy-day{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color .25s,transform .25s}
+    .dy-day:hover{border-color:var(--border-md)}
+    .dy-dhead{display:flex;align-items:flex-start;gap:16px;padding:18px 20px 14px;cursor:pointer}
+    .dy-cal-date{flex:none;width:62px;text-align:center;border:1px solid var(--border-md);border-radius:11px;padding:7px 4px;background:var(--bg3)}
+    .dy-cal-date b{display:block;font-family:var(--font-display);font-size:23px;font-weight:600;line-height:1}
+    .dy-cal-date span{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-top:3px}
+    .dy-dtitle{font-family:var(--font-display);font-size:22px;font-weight:600;line-height:1.2}
+    .dy-dsub{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:5px}
+    .dy-dsummary{color:var(--text2);font-size:14px;line-height:1.65;margin-top:9px;white-space:pre-wrap}
+    .dy-dbody{padding:0 20px 18px}
+    .dy-lessons{display:flex;flex-direction:column;gap:11px}
+    .dy-lesson{border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;background:var(--bg);padding:13px 15px}
+    .dy-lesson.imp{box-shadow:0 0 0 1px var(--accent-dim) inset}
+    .dy-ltop{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+    .dy-lname{font-weight:700;font-size:15px}
+    .dy-lmeta{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:.08em}
+    .dy-kind{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border-radius:5px;border:1px solid var(--border-md);color:var(--text2)}
+    .dy-kind.test,.dy-kind.exam{color:var(--red);border-color:rgba(196,92,92,.4);background:rgba(196,92,92,.09)}
+    .dy-kind.cancelled{color:var(--text3);text-decoration:line-through}
+    .dy-kind.trip,.dy-kind.lab,.dy-kind.presentation{color:var(--green);border-color:rgba(108,191,128,.35);background:rgba(108,191,128,.08)}
+    .dy-kind.substitution,.dy-kind.selfstudy{color:var(--blue);border-color:rgba(92,143,196,.35);background:rgba(92,143,196,.08)}
+    .dy-what{color:var(--text);font-size:14px;line-height:1.66;white-space:pre-wrap;margin-top:6px}
+    .dy-hw{margin-top:9px;font-size:13px;color:var(--text2);display:flex;gap:8px;align-items:flex-start}
+    .dy-hw b{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);flex:none;padding-top:3px}
+    .dy-topics{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+    .dy-topic{font-family:var(--font-mono);font-size:10.5px;padding:2px 8px;border-radius:99px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-dim)}
+    .dy-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+    .dy-link{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--border-md);border-radius:8px;background:var(--bg2);color:var(--text2);font-size:12.5px;cursor:pointer;transition:.18s;max-width:100%}
+    .dy-link:hover{border-color:var(--accent);color:var(--accent)}
+    .dy-link svg{width:14px;height:14px;flex:none}
+    .dy-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .dy-files{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    .dy-file{width:148px;border:1px solid var(--border-md);border-radius:10px;background:var(--bg2);overflow:hidden;cursor:pointer;transition:.2s;position:relative}
+    .dy-file:hover{border-color:var(--accent);transform:translateY(-2px)}
+    .dy-file .th{height:96px;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--text3);font-family:var(--font-mono);font-size:12px;letter-spacing:.1em}
+    .dy-file .th img{width:100%;height:100%;object-fit:cover;display:block}
+    .dy-file .cap{padding:7px 9px;font-size:11px;color:var(--text2);line-height:1.4;word-break:break-word}
+    .dy-file .tag{position:absolute;top:6px;left:6px;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.12em;padding:2px 6px;border-radius:5px;background:rgba(0,0,0,.62);color:#fff}
+    .dy-file .tag.scan{background:var(--accent);color:#0b0b0e}
+    .dy-more{align-self:center;margin-top:6px}
+
+    /* Calendar */
+    .dy-cal-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .dy-cal-title{font-family:var(--font-display);font-size:26px;font-weight:600;min-width:230px}
+    .dy-navbtn{width:36px;height:36px;border:1px solid var(--border-md);border-radius:9px;background:var(--bg2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+    .dy-navbtn:hover{color:var(--accent);border-color:var(--accent)}
+    .dy-navbtn svg{width:16px;height:16px}
+    .dy-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+    .dy-dow{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);text-align:center;padding-bottom:4px}
+    .dy-cell{min-height:96px;border:1px solid var(--border);border-radius:11px;background:var(--bg2);padding:8px;display:flex;flex-direction:column;gap:5px;transition:.18s;position:relative}
+    .dy-cell.out{opacity:.34}
+    .dy-cell.off{background:transparent;border-style:dashed}
+    .dy-cell.off .n{color:var(--text3)}
+    .dy-cell.has{cursor:pointer}
+    .dy-cell.has:hover{border-color:var(--accent);transform:translateY(-2px)}
+    .dy-cell.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-dim)}
+    .dy-cell.hol{background:linear-gradient(140deg,var(--bg2),var(--accent-dim))}
+    .dy-cell .n{font-family:var(--font-mono);font-size:12px;color:var(--text2)}
+    .dy-cell.today .n{color:var(--accent);font-weight:700}
+    .dy-cell .ev{font-size:9.5px;font-family:var(--font-mono);color:var(--accent);letter-spacing:.06em;line-height:1.3;overflow:hidden}
+    .dy-cell .ttl{font-size:11px;color:var(--text);line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+    .dy-cdots{display:flex;flex-wrap:wrap;gap:3px;margin-top:auto}
+    .dy-cdot{width:100%;max-width:26px;height:4px;border-radius:2px}
+    .dy-cbadge{position:absolute;top:6px;right:7px;font-family:var(--font-mono);font-size:8.5px;color:var(--accent);letter-spacing:.06em}
+
+    /* Weekly timetable view */
+    .dy-week-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .dy-tt-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg2)}
+    table.dy-tt{border-collapse:separate;border-spacing:0;width:100%;min-width:680px}
+    table.dy-tt th,table.dy-tt td{border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:0;vertical-align:top}
+    table.dy-tt th{background:var(--bg3);font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text2);padding:10px 8px;font-weight:500;text-align:center}
+    table.dy-tt th.on{color:var(--accent)}
+    table.dy-tt td.per{background:var(--bg3);width:92px;min-width:92px;padding:9px}
+    table.dy-tt td.per b{display:block;font-size:14px}
+    table.dy-tt td.per span{display:block;font-family:var(--font-mono);font-size:9.5px;color:var(--text3);line-height:1.5}
+    .dy-ttcell{min-height:62px;padding:6px;display:flex;flex-direction:column;gap:5px}
+    .dy-ttslot{border-radius:8px;padding:7px 9px;color:#fff;font-size:12px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.4);position:relative}
+    .dy-ttslot.logged{cursor:pointer}
+    .dy-ttslot.logged:hover{filter:brightness(1.12)}
+    .dy-ttslot small{display:block;font-family:var(--font-mono);font-size:9px;font-weight:500;opacity:.9;margin-top:2px}
+    .dy-ttslot .note{display:block;font-weight:500;font-size:11px;margin-top:4px;line-height:1.35;opacity:.96;
+      overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+    .dy-ttslot .pins{position:absolute;top:6px;right:7px;display:flex;gap:3px;font-size:9px;font-family:var(--font-mono)}
+    .dy-ttslot.dim{opacity:.42}
+
+    /* "Covered in class on…" popover — sits above both note viewers */
+    #nclPop{position:fixed;z-index:7400;width:min(320px,calc(100vw - 24px));max-height:min(60vh,420px);overflow-y:auto;
+      background:var(--bg2);border:1px solid var(--border-md);border-radius:12px;box-shadow:0 22px 60px rgba(0,0,0,.5);padding:10px}
+    .ncl-head{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);padding:4px 8px 8px}
+    .ncl-list{display:flex;flex-direction:column;gap:5px}
+    .ncl-item{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:9px;border:1px solid var(--border);background:var(--bg);cursor:pointer;text-align:left;width:100%;transition:.15s}
+    .ncl-item:hover{border-color:var(--accent);background:var(--accent-dim)}
+    .ncl-bar{width:3px;align-self:stretch;border-radius:2px;flex:none;min-height:26px}
+    .ncl-when{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:.08em}
+    .ncl-what{font-size:12.5px;color:var(--text);line-height:1.45;margin-top:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+    /* Day detail overlay */
+    #dayView{position:fixed;inset:0;z-index:7200;background:var(--bg);opacity:0;pointer-events:none;transition:opacity .25s;overflow-y:auto}
+    #dayView.open{opacity:1;pointer-events:all}
+    .dv-top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:16px 26px;background:var(--hdr-bg,var(--bg2));border-bottom:1px solid var(--border);backdrop-filter:blur(14px)}
+    .dv-title{font-family:var(--font-display);font-size:24px;font-weight:600;flex:1;min-width:0}
+    .dv-x{width:38px;height:38px;border:1px solid var(--border-md);border-radius:10px;background:var(--bg2);color:var(--text2);cursor:pointer;font-size:19px;line-height:1;flex:none}
+    .dv-x:hover{color:var(--accent);border-color:var(--accent)}
+    .dv-body{max-width:900px;margin:0 auto;padding:30px 26px 90px}
+    .dv-nav{display:flex;gap:8px}
+
+    @media (max-width:860px){
+      .dy-cell{min-height:74px;padding:6px}
+      .dy-cell .ttl{display:none}
+      .dy-cal-title{font-size:21px;min-width:150px}
+    }
+    @media (max-width:560px){
+      .dy-grid{gap:4px}
+      .dy-cell{min-height:56px;border-radius:8px}
+      .dy-file{width:calc(50% - 5px)}
+      .dy-dhead{padding:14px 14px 10px;gap:11px}
+      .dy-dbody{padding:0 14px 14px}
+      .dy-dtitle{font-size:19px}
+      .dv-body{padding:22px 14px 80px}
+      .dv-top{padding:12px 14px}
+      .dv-title{font-size:19px}
+    }
     .card-members{font-size:10px;opacity:.75;margin-left:2px}
   </style>
 </head>
 <body>
+  <!-- ══ No JavaScript ═══════════════════════════════════════════════════════
+       The archive is a client-rendered app: the tree, the viewer, the day log and
+       chat all need script. Rather than show an empty shell, say so properly — and
+       give the reader the two things that do work without it (the source files and
+       the article pages), plus a real reason to turn it back on.
+       The style block is scoped to `.nojs-*` so it cannot leak into the app. -->
+  <noscript>
+    <style>
+      body > *:not(noscript){display:none!important}
+      body{background:var(--bg);overflow:auto!important}
+      html,body,a,button,*{cursor:auto!important}
+      .nojs-wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 22px;font-family:var(--font-ui)}
+      .nojs-inner{width:100%;max-width:660px}
+      .nojs-crumb{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--text3);margin-bottom:26px}
+      .nojs-mark{font-family:var(--font-display);font-style:italic;font-size:clamp(64px,14vw,120px);line-height:.85;color:var(--accent);opacity:.22;user-select:none;margin-bottom:-4px}
+      .nojs-wrap h1{font-family:var(--font-display);font-weight:500;font-size:clamp(32px,6.5vw,56px);line-height:1.05;letter-spacing:-.015em;color:var(--text);margin:0 0 20px}
+      .nojs-wrap h1 em{font-style:italic;color:var(--accent2)}
+      .nojs-wrap p{color:var(--text2);font-size:15px;line-height:1.72;max-width:54ch;margin:0 0 14px}
+      .nojs-rule{height:1px;background:var(--border);margin:30px 0 24px}
+      .nojs-h2{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+      .nojs-steps{list-style:none;margin:0 0 22px;padding:0;color:var(--text2);font-size:14px;line-height:1.7}
+      .nojs-steps li{padding-left:20px;position:relative;margin-bottom:6px}
+      .nojs-steps li::before{content:'→';position:absolute;left:0;color:var(--accent);opacity:.7}
+      .nojs-links{display:flex;flex-wrap:wrap;gap:10px}
+      .nojs-links a{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;text-decoration:none;color:var(--text);background:var(--bg2);border:1px solid var(--border-md);border-radius:9px;padding:10px 16px}
+      .nojs-links a:hover{border-color:var(--accent);background:var(--bg3)}
+      .nojs-foot{margin-top:32px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3)}
+      @media(max-width:520px){.nojs-wrap{align-items:flex-start;padding-top:14vh}.nojs-links{flex-direction:column;align-items:stretch}.nojs-links a{justify-content:center}}
+    </style>
+    <div class="nojs-wrap">
+      <div class="nojs-inner">
+        <div class="nojs-crumb">/ javascript required</div>
+        <div class="nojs-mark" aria-hidden="true">{ }</div>
+        <h1>The archive needs <em>JavaScript</em>.</h1>
+        <p>
+          Every note here is stored as LaTeX source and typeset to a PDF on demand, in your
+          browser. The subject tree, the reader, the day log and the messages are all drawn
+          the same way — so with scripting off there is genuinely nothing to show you.
+        </p>
+        <p>
+          Nothing is tracked and no third-party analytics run. The only outside requests are
+          for the typeface and the PDF renderer.
+        </p>
+        <div class="nojs-rule"></div>
+        <div class="nojs-h2">To turn it on</div>
+        <ul class="nojs-steps">
+          <li><b>Firefox</b> — about:config → <code>javascript.enabled</code> → true</li>
+          <li><b>Chrome / Edge</b> — Settings → Privacy and security → Site settings → JavaScript</li>
+          <li><b>Safari</b> — Settings → Security → Enable JavaScript</li>
+          <li>Using NoScript, uBlock in hard mode, or a private window with scripts blocked? Allow this site.</li>
+        </ul>
+        <div class="nojs-h2">In the meantime</div>
+        <p>Article pages are plain HTML and read fine without scripting.</p>
+        <div class="nojs-links">
+          <a href="/articles/">Article pages</a>
+          <a href="/robots.txt">robots.txt</a>
+        </div>
+        <div class="nojs-foot">Knowledge Index · Digitalization</div>
+      </div>
+    </div>
+  </noscript>
+
   <div id="cursorDot"></div>
   <div id="cursorRing"></div>
   <div id="noiseOverlay"></div>
@@ -2247,6 +2578,7 @@
         <a class="nav-link" href="#" data-page="story" data-i18n="navStory">Story</a>
         <a class="nav-link" href="#" data-page="notes" data-i18n="navNotes">Articles</a>
         <a class="nav-link" href="#" data-page="changelog" data-i18n="navChangelog">Log</a>
+        <a class="nav-link" href="#" data-page="days" data-i18n="navDays">Days</a>
         <a class="nav-link" href="#" id="navTimeline" data-i18n="navTimeline">Timeline</a>
         <a class="nav-link" href="#" data-page="chat"><span data-i18n="navChat">Chat</span><span class="nav-badge" id="chatNavBadge" hidden></span></a>
       </nav>
@@ -2279,6 +2611,7 @@
       <a class="mob-nav-link" href="#" data-mob-page="story" data-i18n="navStory">Story</a>
       <a class="mob-nav-link" href="#" data-mob-page="notes" data-i18n="navNotes">Articles</a>
       <a class="mob-nav-link" href="#" data-mob-page="changelog" data-i18n="navChangelog">Log</a>
+      <a class="mob-nav-link" href="#" data-mob-page="days" data-i18n="navDays">Days</a>
       <a class="mob-nav-link" href="#" id="mobNavTimeline" data-i18n="navTimeline">Timeline</a>
       <a class="mob-nav-link" href="#" data-mob-page="chat"><span data-i18n="navChat">Chat</span><span class="nav-badge" id="chatNavBadgeMob" hidden></span></a>
       <div class="mob-drawer-sep"></div>
@@ -2314,6 +2647,31 @@
         <div class="auth-err" id="authErr"></div>
         <button class="auth-submit" id="authSubmit" data-i18n="authSignIn">Sign in</button>
         <button type="button" class="auth-link" id="authToReg" data-i18n="authCreateLink">Create an account</button>
+        <button type="button" class="auth-link" id="authToForgot" data-i18n="authForgotLink">Forgotten your password?</button>
+      </div>
+      <!-- Locked out. There is no mail server, so this asks an admin and they hand
+           back a one-time link. The reply never says whether the account exists. -->
+      <div id="authViewForgot" style="display:none">
+        <h3 class="auth-h" data-i18n="authForgotHeading">Forgotten password</h3>
+        <p class="auth-sub" data-i18n="authForgotSub">Tell us your username and every admin gets a note in their messages. One of them will send you a one-time link to set a new password.</p>
+        <label class="auth-fld"><span data-i18n="authUser">Username</span><input type="text" id="fpUserInput" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        <div class="auth-err" id="fpErr"></div>
+        <div class="auth-ok" id="fpOk" hidden></div>
+        <button class="auth-submit" id="fpSubmit" data-i18n="authForgotBtn">Ask an admin</button>
+        <button type="button" class="auth-link" id="fpBack" data-i18n="authBackToSignin">Back to sign in</button>
+      </div>
+      <!-- Opened by the one-time link (#reset=…). -->
+      <div id="authViewReset" style="display:none">
+        <h3 class="auth-h" data-i18n="authResetHeading">Set a new password</h3>
+        <p class="auth-sub" data-i18n="authResetSub">This link works once. Choosing a new password also signs out every other device.</p>
+        <label class="auth-fld"><span data-i18n="authNewPass">New password</span>
+          <span class="auth-pass-wrap"><input type="password" id="rsPassInput" autocomplete="new-password"><button type="button" class="auth-eye" data-eye="rsPassInput" aria-label="Show password"></button></span>
+        </label>
+        <label class="auth-fld"><span data-i18n="authConfirm">Confirm password</span>
+          <span class="auth-pass-wrap"><input type="password" id="rsPass2Input" autocomplete="new-password"><button type="button" class="auth-eye" data-eye="rsPass2Input" aria-label="Show password"></button></span>
+        </label>
+        <div class="auth-err" id="rsErr"></div>
+        <button class="auth-submit" id="rsSubmit" data-i18n="authResetBtn">Set password and sign in</button>
       </div>
       <div id="authViewReg" style="display:none">
         <h3 class="auth-h" data-i18n="authRegHeading">Create account</h3>
@@ -2521,6 +2879,8 @@
         <div class="file-grid" id="fileGrid">
           <div class="state-box"><div class="spinner"></div><span data-i18n="loadingIndex">Loading index…</span></div>
         </div>
+        <!-- Matches found inside note bodies, appended under the metadata matches. -->
+        <div class="cs-panel" id="contentHits" hidden></div>
       </div>
     </section>
 
@@ -2583,6 +2943,98 @@
         <div class="state-box"><div class="spinner"></div></div>
       </div>
     </section>
+
+    <!-- DAYS -->
+    <section class="page" id="page-days">
+      <div class="page-hero">
+        <span class="page-label" data-i18n="dyLabel">/ days</span>
+        <h1 class="page-title" data-i18n="dyTitleHtml">What <em>happened</em></h1>
+        <p class="page-subtitle" data-i18n="dySubtitle">The timetable, and a record of every lesson — what was covered, the paper notes, and the digital notes that go with them.</p>
+      </div>
+      <div class="dy-toolbar">
+        <div class="dy-seg" id="dyViewSeg">
+          <button data-dyview="feed" class="active" data-i18n="dyViewFeed">Feed</button>
+          <button data-dyview="calendar" data-i18n="dyViewCalendar">Calendar</button>
+          <button data-dyview="timetable" data-i18n="dyViewTimetable">Timetable</button>
+        </div>
+        <label class="dy-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="dySearch" placeholder="Search what happened…" data-i18n-ph="dySearchPh" autocomplete="off" spellcheck="false">
+        </label>
+        <button class="dy-chip" id="dyFilesOnly" type="button" data-i18n="dyFilesOnly">With files</button>
+        <span class="dy-count" id="dyCount"></span>
+      </div>
+      <div class="dy-subjects" id="dySubjects"></div>
+      <div id="dyFeedWrap" class="dy-pad"><div class="dy-feed" id="dyFeed"></div></div>
+      <div id="dyCalWrap" class="dy-pad wide" hidden>
+        <div class="dy-cal-top">
+          <button class="dy-navbtn" id="dyCalPrev" type="button" aria-label="Previous month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="dy-cal-title" id="dyCalTitle"></span>
+          <button class="dy-navbtn" id="dyCalNext" type="button" aria-label="Next month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          <button class="dy-chip" id="dyCalToday" type="button" data-i18n="dyToday">Today</button>
+        </div>
+        <div class="dy-grid" id="dyCalGrid"></div>
+      </div>
+      <div id="dyTtWrap" class="dy-pad wide" hidden>
+        <div class="dy-week-top">
+          <button class="dy-navbtn" id="dyWkPrev" type="button" aria-label="Previous week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="dy-cal-title" id="dyWkTitle"></span>
+          <button class="dy-navbtn" id="dyWkNext" type="button" aria-label="Next week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          <button class="dy-chip" id="dyWkToday" type="button" data-i18n="dyThisWeek">This week</button>
+          <span class="dy-count" id="dyWkNote"></span>
+        </div>
+        <div class="dy-tt-wrap"><table class="dy-tt" id="dyTtGrid"></table></div>
+        <div class="dy-legend" id="dyTtLegend"></div>
+      </div>
+      <div class="state-box" id="dyState" style="display:none"><span></span></div>
+    </section>
+
+    <!-- ══ Quick log (admins) ══════════════════════════════════════════════════
+         Attach today's scans to a lesson straight from the week grid. The full day
+         editor in DevTools is for writing a day up properly; this is for the case
+         where the page you just filled is in your hand and the lesson is on screen.
+         The digital note is optional — the point is that the resource exists. -->
+    <div class="qlog-bd" id="qlogBd" hidden></div>
+    <aside class="qlog" id="qlog" hidden role="dialog" aria-modal="true" aria-labelledby="qlogTitle">
+      <header class="qlog-head">
+        <span class="qlog-swatch" id="qlogSwatch"></span>
+        <div class="qlog-htxt">
+          <h3 id="qlogTitle">Lesson</h3>
+          <span id="qlogWhen"></span>
+        </div>
+        <button class="qlog-x" id="qlogClose" type="button" aria-label="Close">×</button>
+      </header>
+      <div class="qlog-body">
+        <label class="qlog-fld"><span id="qlogWhatLbl">What happened</span>
+          <textarea id="qlogWhat" rows="3" placeholder="Covered §4.2, worked through the examples…"></textarea>
+        </label>
+        <div class="qlog-row2">
+          <label class="qlog-fld"><span id="qlogHwLbl">Homework</span><input type="text" id="qlogHw" placeholder="—"></label>
+          <label class="qlog-fld"><span id="qlogKindLbl">Kind</span>
+            <select id="qlogKind"></select>
+          </label>
+        </div>
+
+        <div class="qlog-sec-lbl" id="qlogFilesLbl">Scans &amp; files</div>
+        <div class="qlog-drop" id="qlogDrop" tabindex="0" role="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span id="qlogDropTxt">Drop a photo of the page, or click to choose</span>
+          <input type="file" id="qlogFile" multiple hidden>
+        </div>
+        <div class="qlog-files" id="qlogFiles"></div>
+
+        <div class="qlog-sec-lbl" id="qlogNotesLbl">Digital notes covering this</div>
+        <div class="qlog-hint" id="qlogFolderHint" hidden></div>
+        <input type="text" id="qlogNoteSearch" placeholder="Search the archive…" autocomplete="off" spellcheck="false">
+        <div class="qlog-picks" id="qlogNoteHits"></div>
+        <div class="qlog-chosen" id="qlogNotes"></div>
+      </div>
+      <footer class="qlog-foot">
+        <span class="qlog-msg" id="qlogMsg"></span>
+        <button class="msg-ghost" id="qlogCancel" type="button">Cancel</button>
+        <button class="msg-primary" id="qlogSave" type="button">Save</button>
+      </footer>
+    </aside>
 
     <section class="page" id="page-chat">
       <div class="chat-topbar">
@@ -2722,6 +3174,10 @@
         <button class="pdf-tbtn accent" id="pdfDiscussion">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
           <span data-i18n="discussion">Discussion</span>
+        </button>
+        <button class="pdf-tbtn accent" id="pdfInClass" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span id="pdfInClassLbl">In class</span>
         </button>
         <button class="pdf-tbtn accent" id="pdfShare">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -2977,6 +3433,7 @@
           <button class="modal-btn" id="codeModalDownload">↓ <span data-i18n="download">Download</span></button>
           <button class="modal-btn" id="codeDiscuss">↪ <span data-i18n="referenceNote">Reference this note</span></button>
           <button class="modal-btn" id="codeDiscussion">💬 <span data-i18n="discussion">Discussion</span></button>
+          <button class="modal-btn" id="codeInClass" hidden>▦ <span id="codeInClassLbl">In class</span></button>
           <button class="modal-btn danger" id="codeModalClose">✕ <span data-i18n="close">Close</span></button>
         </div>
       </div>
@@ -3398,6 +3855,25 @@
     </div>
     <div id="refpContent"></div>
   </div>
+  <!-- "Covered in class on…" popover, shared by both note viewers -->
+  <div id="nclPop" hidden>
+    <div class="ncl-head" id="nclHead"></div>
+    <div class="ncl-list" id="nclList"></div>
+  </div>
+
+  <!-- Day detail — one school day, in full -->
+  <div id="dayView" aria-label="Day">
+    <div class="dv-top">
+      <button class="dv-x" id="dvClose" type="button" aria-label="Close">&times;</button>
+      <span class="dv-title" id="dvTitle"></span>
+      <div class="dv-nav">
+        <button class="dy-navbtn" id="dvPrev" type="button" aria-label="Previous day"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="dy-navbtn" id="dvNext" type="button" aria-label="Next day"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+    <div class="dv-body" id="dvBody"></div>
+  </div>
+
   <!-- Learning timeline -->
   <div id="timelineModal" aria-label="Learning timeline">
     <div class="tl-top">
@@ -3531,6 +4007,7 @@
         refKindNote:    'Note',
         refKindArticle: 'Article',
         refKindLog:     'Log',
+        refKindDay:     'Day',
         refKindLink:    'Link',
         refSearch:      'Search…',
         refNone:        'Nothing found.',
@@ -3652,6 +4129,41 @@
         gridCountFolders: (n) => `${n} folder${n!==1?'s':''}`,
         gridCountFiles:   (n) => `${n} file${n!==1?'s':''}`,
         gridCountResults: (n) => `${n} result${n!==1?'s':''}`,
+        noResultsFor:     'No results for',
+        authForgotLink:    'Forgotten your password?',
+        authForgotHeading: 'Forgotten password',
+        authForgotSub:     'Tell us your username and every admin gets a note in their messages. One of them will send you a one-time link to set a new password.',
+        authForgotBtn:     'Ask an admin',
+        authBackToSignin:  'Back to sign in',
+        authForgotSent:    'If that account exists, the admins have been told. They will get in touch with a link.',
+        authForgotFailed:  'Could not reach the server. Try again in a moment.',
+        authResetHeading:  'Set a new password',
+        authResetSub:      'This link works once. Choosing a new password also signs out every other device.',
+        authNewPass:       'New password',
+        authResetBtn:      'Set password and sign in',
+        authResetExpired:  'This link has expired or has already been used. Ask for a new one.',
+        authResetIssued:   'Reset link copied — send it to them yourself. It expires in 30 minutes.',
+        arPwHeading:       'Password reset',
+        arPwAsked:         'asked for a password reset.',
+        arPwYouAsked:      'You asked for a password reset.',
+        arPwGenerate:      'Generate a one-time link',
+        arPwIssued:        'A link was issued. It expires in 30 minutes.',
+        arPwDone:          'The password was changed.',
+        arPwCopy:          'Copy link',
+        qlLogLesson:       'Log this lesson',
+        qlEditLesson:      'Edit what was logged',
+        qlCaption:         'Caption (optional)',
+        qlUploading:       'Uploading…',
+        qlUploadFailed:    'That file could not be uploaded.',
+        qlWaitUpload:      'Wait for the uploads to finish.',
+        qlSaving:          'Saving…',
+        qlSaved:           'Lesson saved',
+        qlCleared:         'Entry removed',
+        qlSaveFailed:      'Could not save. Try again.',
+        qlNoDay:           'Could not prepare the day. Reload and try again.',
+        csInNotes:        'Found inside notes',
+        csNFound:         (n) => `${n} note${n!==1?'s':''}`,
+        csRoot:           'root',
         // Unsaved-changes confirm popup
         stgCfTitle:   'Unsaved changes',
         stgCfMsg:     'You have unsaved changes. Apply them to keep your settings, or discard them to revert.',
@@ -3737,6 +4249,43 @@
         stgPrecompileStatus: (n, r) => `Queue: ${n} • ${r ? 'Running' : 'Idle'}`,
         // Music
         toastMusicNone: 'No music files found in Music/ folder',
+        // Days — timetable, calendar, "what happened" feed
+        navDays:        'Days',
+        dyLabel:        '/ days',
+        dyTitleHtml:    'What <em>happened</em>',
+        dySubtitle:     'The timetable, and a record of every lesson — what was covered, the paper notes, and the digital notes that go with them.',
+        dyViewFeed:     'Feed',
+        dyViewCalendar: 'Calendar',
+        dyViewTimetable:'Timetable',
+        dySearchPh:     'Search what happened…',
+        dyFilesOnly:    'With files',
+        dyToday:        'Today',
+        dyThisWeek:     'This week',
+        dyLoadMore:     'Show more',
+        dyEmpty:        'No days recorded yet.',
+        dyNoMatch:      'No day matches that.',
+        dyNothingLogged:'Nothing was written up for this day.',
+        dyAlsoScheduled:'Also on the timetable that day',
+        dyTtEmpty:      'The timetable has not been set up yet.',
+        dyTtMembers:    'The timetable is visible to signed-in members only.',
+        dyMembersOnly:  'members only',
+        dyPeriod:       'period',
+        dyWeek:         'week',
+        dyHomework:     'Homework',
+        dyScan:         'SCAN',
+        dyFile:         'FILE',
+        dyNDays:        (n) => n + (n === 1 ? ' day' : ' days'),
+        dyNLessons:     (n) => n + (n === 1 ? ' lesson' : ' lessons'),
+        dyNFiles:       (n) => n + (n === 1 ? ' file' : ' files'),
+        dyNNotes:       (n) => n + (n === 1 ? ' linked note' : ' linked notes'),
+        dyKindLesson:   'Lesson', dyKindTest: 'Test', dyKindExam: 'Exam', dyKindLab: 'Lab',
+        dyKindPresentation: 'Presentation', dyKindTrip: 'Trip', dyKindSubstitution: 'Substitution',
+        dyKindSelfstudy: 'Self-study', dyKindCancelled: 'Cancelled', dyKindHoliday: 'Holiday',
+        dyMon: 'Monday', dyTue: 'Tuesday', dyWed: 'Wednesday', dyThu: 'Thursday', dyFri: 'Friday', dySat: 'Saturday', dySun: 'Sunday',
+        dyM1: 'January', dyM2: 'February', dyM3: 'March', dyM4: 'April', dyM5: 'May', dyM6: 'June',
+        dyM7: 'July', dyM8: 'August', dyM9: 'September', dyM10: 'October', dyM11: 'November', dyM12: 'December',
+        dyInClass:      'Covered in class',
+        dyInClassOne:   (n) => n === 1 ? 'Covered in 1 lesson' : ('Covered in ' + n + ' lessons'),
       },
       hu: {
         logoText:     'Tudás\u00a0Archívum',
@@ -3826,6 +4375,7 @@
         refKindNote:    'Jegyzet',
         refKindArticle: 'Cikk',
         refKindLog:     'Napló',
+        refKindDay:     'Nap',
         refKindLink:    'Hivatkozás',
         refSearch:      'Keresés…',
         refNone:        'Nincs találat.',
@@ -3947,6 +4497,41 @@
         gridCountFolders: (n) => `${n} mappa`,
         gridCountFiles:   (n) => `${n} fájl`,
         gridCountResults: (n) => `${n} találat`,
+        noResultsFor:     'Nincs találat erre:',
+        authForgotLink:    'Elfelejtetted a jelszavad?',
+        authForgotHeading: 'Elfelejtett jelszó',
+        authForgotSub:     'Add meg a felhasználóneved, és minden adminhoz megérkezik egy üzenet. Valamelyikük küld egy egyszer használható linket, amivel új jelszót adhatsz meg.',
+        authForgotBtn:     'Szólok egy adminnak',
+        authBackToSignin:  'Vissza a bejelentkezéshez',
+        authForgotSent:    'Ha létezik ilyen fiók, az adminok értesültek róla. Keresni fognak egy linkkel.',
+        authForgotFailed:  'Nem sikerült elérni a szervert. Próbáld újra kicsit később.',
+        authResetHeading:  'Új jelszó megadása',
+        authResetSub:      'Ez a link egyszer használható. Az új jelszó minden más eszközről kiléptet.',
+        authNewPass:       'Új jelszó',
+        authResetBtn:      'Jelszó mentése és belépés',
+        authResetExpired:  'Ez a link lejárt vagy már felhasználták. Kérj egy újat.',
+        authResetIssued:   'A link a vágólapon — küldd el neki te. 30 percig érvényes.',
+        arPwHeading:       'Jelszó-visszaállítás',
+        arPwAsked:         'jelszó-visszaállítást kért.',
+        arPwYouAsked:      'Jelszó-visszaállítást kértél.',
+        arPwGenerate:      'Egyszeri link készítése',
+        arPwIssued:        'A link elkészült. 30 percig érvényes.',
+        arPwDone:          'A jelszó megváltozott.',
+        arPwCopy:          'Link másolása',
+        qlLogLesson:       'Óra rögzítése',
+        qlEditLesson:      'A rögzített óra szerkesztése',
+        qlCaption:         'Felirat (nem kötelező)',
+        qlUploading:       'Feltöltés…',
+        qlUploadFailed:    'Ezt a fájlt nem sikerült feltölteni.',
+        qlWaitUpload:      'Várd meg, míg a feltöltések befejeződnek.',
+        qlSaving:          'Mentés…',
+        qlSaved:           'Óra elmentve',
+        qlCleared:         'Bejegyzés törölve',
+        qlSaveFailed:      'Nem sikerült menteni. Próbáld újra.',
+        qlNoDay:           'Nem sikerült előkészíteni a napot. Töltsd újra az oldalt.',
+        csInNotes:        'Találat a jegyzetek szövegében',
+        csNFound:         (n) => `${n} jegyzet`,
+        csRoot:           'gyökér',
         // Nem mentett változtatások megerősítő ablak
         stgCfTitle:   'Nem mentett változtatások',
         stgCfMsg:     'Nem mentett változtatásaid vannak. Alkalmazd a beállítások megőrzéséhez, vagy vesd el a visszaállításhoz.',
@@ -4032,6 +4617,43 @@
         stgPrecompileStatus: (n, r) => `Sor: ${n} • ${r ? 'Fut' : 'Várakozik'}`,
         // Zene
         toastMusicNone: 'Nincs zenefájl a Music/ mappában',
+        // Napok — órarend, naptár, „mi történt” folyam
+        navDays:        'Napok',
+        dyLabel:        '/ napok',
+        dyTitleHtml:    'Mi <em>történt</em>',
+        dySubtitle:     'Az órarend, és minden óra feljegyzése — mi került elő, a papíralapú jegyzetek, és a hozzájuk tartozó digitális jegyzetek.',
+        dyViewFeed:     'Folyam',
+        dyViewCalendar: 'Naptár',
+        dyViewTimetable:'Órarend',
+        dySearchPh:     'Keresés a történtek között…',
+        dyFilesOnly:    'Csak fájlokkal',
+        dyToday:        'Ma',
+        dyThisWeek:     'Ez a hét',
+        dyLoadMore:     'Több mutatása',
+        dyEmpty:        'Még nincs rögzített nap.',
+        dyNoMatch:      'Nincs találat.',
+        dyNothingLogged:'Ehhez a naphoz nem készült feljegyzés.',
+        dyAlsoScheduled:'Aznap még az órarendben',
+        dyTtEmpty:      'Az órarend még nincs beállítva.',
+        dyTtMembers:    'Az órarendet csak bejelentkezett tagok láthatják.',
+        dyMembersOnly:  'csak tagoknak',
+        dyPeriod:       'óra',
+        dyWeek:         'hét',
+        dyHomework:     'Házi feladat',
+        dyScan:         'SZKEN',
+        dyFile:         'FÁJL',
+        dyNDays:        (n) => n + ' nap',
+        dyNLessons:     (n) => n + ' óra',
+        dyNFiles:       (n) => n + ' fájl',
+        dyNNotes:       (n) => n + ' kapcsolt jegyzet',
+        dyKindLesson:   'Óra', dyKindTest: 'Dolgozat', dyKindExam: 'Vizsga', dyKindLab: 'Labor',
+        dyKindPresentation: 'Kiselőadás', dyKindTrip: 'Kirándulás', dyKindSubstitution: 'Helyettesítés',
+        dyKindSelfstudy: 'Önálló munka', dyKindCancelled: 'Elmaradt', dyKindHoliday: 'Szünet',
+        dyMon: 'Hétfő', dyTue: 'Kedd', dyWed: 'Szerda', dyThu: 'Csütörtök', dyFri: 'Péntek', dySat: 'Szombat', dySun: 'Vasárnap',
+        dyM1: 'január', dyM2: 'február', dyM3: 'március', dyM4: 'április', dyM5: 'május', dyM6: 'június',
+        dyM7: 'július', dyM8: 'augusztus', dyM9: 'szeptember', dyM10: 'október', dyM11: 'november', dyM12: 'december',
+        dyInClass:      'Órán vettük',
+        dyInClassOne:   (n) => n + ' órán vettük',
       },
     };
 
@@ -4104,7 +4726,7 @@
         const key = el.dataset.i18n;
         const val = t(key);
         if (val) {
-          if (key === 'homeTitle' || key === 'notesTitle' || key === 'storyTitleHtml' || key === 'clTitle2') {
+          if (key === 'homeTitle' || key === 'notesTitle' || key === 'storyTitleHtml' || key === 'clTitle2' || key === 'dyTitleHtml') {
             el.innerHTML = val;
           } else {
             el.textContent = val;
@@ -4122,6 +4744,14 @@
       const sortLbl = document.getElementById('sortDdLabel');
       if (sortLbl && activeSortItem) sortLbl.textContent = t(activeSortItem.dataset.i18n || 'sortDefault');
       else if (sortLbl) sortLbl.textContent = t('sortDefault');
+      // The Days page renders its own strings, so re-draw it when the language flips.
+      try {
+        const dp = document.getElementById('page-days');
+        if (dp && dp.classList.contains('active') && typeof dyRenderView === 'function' && DY.loaded) {
+          dyRenderSubjectFilter(); dyRenderView();
+          if (DY.detail) dyOpenDetail(DY.detail);
+        }
+      } catch (e) {}
       // Story content
       const sc = document.getElementById('story-content');
       if (sc) sc.innerHTML = STORY[LANG] || STORY.en;
@@ -4809,6 +5439,7 @@
       if (page === 'notes')     loadArticles();
       if (page === 'changelog') { clLoaded = false; clEntries = []; loadChangelog(); }
       if (page === 'chat')      openChatPage();
+      if (page === 'days')      openDaysPage();
 
       // Selection panel only lives on the Home page
       const panel = document.getElementById('selPanel');
@@ -4975,7 +5606,7 @@
         results = sortItems(results);
         const cntEl = document.getElementById('searchCount'); if (cntEl) cntEl.textContent = T[LANG].gridCountResults(results.length) + (activeTagFilters.size?' · '+activeTagFilters.size+' '+t('stgSections').toLowerCase():'') + (sortMode!=='default'?' · '+t('sortDefault').toLowerCase():'');
         if (!results.length) {
-          grid.innerHTML = `<div class="no-results-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>No results for "${esc(searchQuery)}"</span></div>`;
+          grid.innerHTML = `<div class="no-results-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>${esc(t('noResultsFor'))} "${esc(searchQuery)}"</span></div>`;
         } else {
           results.forEach((item, idx) => {
             const card = buildCard(item);
@@ -4983,7 +5614,12 @@
             grid.appendChild(card);
           });
         }
-        count.textContent = T[LANG].gridCountResults(results.length);        return;
+        count.textContent = T[LANG].gridCountResults(results.length);
+        // The cards above match on a note's *metadata*. Ask the server what matches
+        // inside the notes themselves and append that as its own section — you
+        // usually remember the theorem, not the filename.
+        runContentSearch(searchQuery, new Set(results.map(r => r.path)));
+        return;
       }
       const cntBadge = document.getElementById('searchCount'); if (cntBadge) cntBadge.textContent = '';
 
@@ -5313,7 +5949,64 @@
       return card;
     }
 
+    /* ── Search inside the notes ─────────────────────────────────────────
+       The grid matches a note's metadata; this asks the server what matches in the
+       note bodies and appends the hits underneath, with the matched phrase marked
+       in a line of surrounding context. Debounced, and every request carries a
+       sequence number so a slow answer can never overwrite a newer one. */
+    let _csSeq = 0, _csTimer = null;
+    function runContentSearch(q, alreadyShown) {
+      const host = document.getElementById('contentHits');
+      if (!host) return;
+      clearTimeout(_csTimer);
+      const query = String(q || '').trim();
+      if (query.length < 2) { host.hidden = true; host.innerHTML = ''; return; }
+      const seq = ++_csSeq;
+      _csTimer = setTimeout(async () => {
+        let data = null;
+        try {
+          const r = await fetch('/api/search?lang=' + encodeURIComponent(MAT_LANG) + '&q=' + encodeURIComponent(query));
+          data = await r.json();
+        } catch { return; }
+        if (seq !== _csSeq) return;                        // a newer search already won
+        const hits = (data && data.results) || [];
+        // Drop notes the grid is already showing — the point is what metadata missed.
+        const fresh = hits.filter(h => !(alreadyShown && alreadyShown.has(h.path)));
+        if (!fresh.length) { host.hidden = true; host.innerHTML = ''; return; }
+        const rows = fresh.map(h => {
+          const where = h.folder ? h.folder.split('/').join(' › ') : t('csRoot');
+          const tag = (h.hits > 1) ? '<span class="cs-n">' + h.hits + '×</span>' : '';
+          const langTag = (MAT_LANG === 'both') ? '<span class="cs-lang">' + esc(h.lang.toUpperCase()) + '</span>' : '';
+          return '<button type="button" class="cs-row" data-p="' + esc(h.path) + '" data-l="' + esc(h.lang) + '">'
+            + '<span class="cs-head"><span class="cs-name">' + esc(h.display) + '</span>' + langTag + tag
+            + '<span class="cs-where">' + esc(where) + '</span></span>'
+            + '<span class="cs-snip">' + csMark(h.snippet, query) + '</span></button>';
+        }).join('');
+        host.innerHTML = '<div class="cs-head-row"><span class="cs-title">' + esc(t('csInNotes')) + '</span>'
+          + '<span class="cs-count">' + esc(t('csNFound')(fresh.length)) + (data.truncated ? '+' : '') + '</span></div>'
+          + '<div class="cs-list">' + rows + '</div>';
+        host.hidden = false;
+        host.querySelectorAll('.cs-row').forEach(b =>
+          b.addEventListener('click', () => openNoteByPath(b.dataset.p, b.dataset.l)));
+      }, 220);
+    }
+    // Mark every occurrence of the query inside an already-escaped snippet.
+    function csMark(snippet, q) {
+      const s = String(snippet || ''), needle = String(q || '').toLowerCase();
+      if (!needle) return esc(s);
+      let out = '', i = 0;
+      for (;;) {
+        const k = s.toLowerCase().indexOf(needle, i);
+        if (k < 0) { out += esc(s.slice(i)); break; }
+        out += esc(s.slice(i, k)) + '<mark>' + esc(s.slice(k, k + needle.length)) + '</mark>';
+        i = k + needle.length;
+      }
+      return out;
+    }
+
     function clearSearch() {
+      const ch = document.getElementById('contentHits'); if (ch) { ch.hidden = true; ch.innerHTML = ''; }
+      _csSeq++;                                            // cancel any answer still in flight
       searchQuery = ''; sortMode = 'default'; activeTagFilters = new Set();
       const inp = document.getElementById('searchInput');
       if (inp) inp.value = '';
@@ -5481,12 +6174,12 @@
       if (AUTH.user) { pullSettings(); pollUnread(); } else updateMsgBell(0);
     }
     function showAuthView(which) {
-      const out = document.getElementById('authViewOut');
-      const reg = document.getElementById('authViewReg');
-      const inv = document.getElementById('authViewIn');
-      if (out) out.style.display = which === 'signin'   ? '' : 'none';
-      if (reg) reg.style.display = which === 'register' ? '' : 'none';
-      if (inv) inv.style.display = which === 'in'       ? '' : 'none';
+      const views = { signin: 'authViewOut', register: 'authViewReg', in: 'authViewIn',
+                      forgot: 'authViewForgot', reset: 'authViewReset' };
+      for (const [key, id] of Object.entries(views)) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = (which === key) ? '' : 'none';
+      }
     }
     async function populateProfileStats() {
       const av = document.getElementById('authAvatar'); if (av) av.textContent = (AUTH.user || '?').slice(0, 1).toUpperCase();
@@ -5729,6 +6422,18 @@
           const extra = m.body ? '<div>' + renderRefText(m.body) + '</div>' : '';
           return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-h">\uD83D\uDD12 ' + MSGT('Access request', 'Hozz\u00e1f\u00e9r\u00e9si k\u00e9relem') + '</div><div>' + intro + '</div><div class="ar-note">' + noteLink + '</div>' + extra + foot + '</div>';
         }
+        if (m.kind === 'password-reset') {
+          // Only an admin can act on it; the requester just sees that it was sent.
+          const canAct = (AUTH.role === 'admin') && !mine && m.status === 'pending';
+          let foot = '';
+          if (canAct) foot = '<div class="ar-row"><button class="msg-primary pw-issue" data-u="' + esc(m.from) + '">' + esc(t('arPwGenerate')) + '</button></div>';
+          else if (m.status === 'pending') foot = '<div class="ar-status">' + esc(t('arPwYouAsked')) + '</div>';
+          else if (m.status === 'issued')  foot = '<div class="ar-status ok">' + esc(t('arPwIssued')) + '</div>'
+            + ((AUTH.role === 'admin' && !mine) ? '<div class="ar-row"><button class="msg-ghost pw-issue" data-u="' + esc(m.from) + '">' + esc(t('arPwGenerate')) + '</button></div>' : '');
+          else if (m.status === 'done')    foot = '<div class="ar-status ok">' + esc(t('arPwDone')) + '</div>';
+          const intro = mine ? esc(t('arPwYouAsked')) : (esc(m.from) + ' ' + esc(t('arPwAsked')));
+          return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-h">🔑 ' + esc(t('arPwHeading')) + '</div><div>' + intro + '</div>' + foot + '</div>';
+        }
         if (m.kind === 'access-result') {
           const ok = m.decision === 'accepted';
           const noteLbl = esc((m.note && m.note.label) || '');
@@ -5748,6 +6453,7 @@
       }).join('');
       box.querySelectorAll('.cl-ref').forEach(a => a.addEventListener('click', e => { e.preventDefault(); try { navigateToRef(JSON.parse(a.getAttribute('data-ref'))); } catch {} }));
       box.querySelectorAll('.ar-act').forEach(b => b.addEventListener('click', () => { const id = b.dataset.id, dec = b.dataset.act; const ri = box.querySelector('.ar-reason[data-id="' + id + '"]'); respondAccess(id, dec, ri ? ri.value.trim() : ''); }));
+      box.querySelectorAll('.pw-issue').forEach(b => b.addEventListener('click', () => issueResetLink(b.dataset.u, b)));
       box.querySelectorAll('.chat-reply-btn').forEach(b => b.addEventListener('click', () => setReplyTarget(b.dataset.reply)));
       box.querySelectorAll('.chat-msg-menu').forEach(b => b.addEventListener('click', () => openMsgMenu(b.dataset.menu, b)));
       box.querySelectorAll('.chat-quote').forEach(q => q.addEventListener('click', () => { const t = box.querySelector('[data-mid="' + q.dataset.goto + '"]'); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('chat-flash'); setTimeout(() => t.classList.remove('chat-flash'), 1100); } }));
@@ -5763,6 +6469,31 @@
         if (d && d.ok) { showToast(decision === 'accept' ? MSGT('Access granted', 'Hozz\u00e1f\u00e9r\u00e9s megadva') : MSGT('Request declined', 'K\u00e9relem elutas\u00edtva')); if (CHAT.curId) openConversation(CHAT.curId); loadTree(); }
         else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
       } catch { showToast(MSGT('Error', 'Hiba'), true); }
+    }
+
+    // Admin side of a reset request: mint the one-time link and put it on the
+    // clipboard. Nothing is emailed — you hand it over however you normally reach
+    // that person, which is also what keeps the link out of a mailbox.
+    async function issueResetLink(username, btn) {
+      if (btn) btn.disabled = true;
+      try {
+        const r = await fetch('/api/admin/password-reset/issue', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.ok) { showToast((d && d.error) || MSGT('Error', 'Hiba'), true); return; }
+        const link = location.origin + d.path;
+        let copied = false;
+        try { await navigator.clipboard.writeText(link); copied = true; } catch {}
+        if (!copied) {
+          // Clipboard is unavailable over plain HTTP and in some browsers — fall back
+          // to showing the link so it is never simply lost.
+          window.prompt(t('authResetIssued'), link);
+        } else showToast(t('authResetIssued'));
+        if (CHAT.curId) openConversation(CHAT.curId);
+      } catch { showToast(MSGT('Error', 'Hiba'), true); }
+      finally { if (btn) btn.disabled = false; }
     }
 
     function setReplyTarget(id) {
@@ -6381,6 +7112,70 @@
       } catch { err.textContent = t('authBadCreds'); }
       finally { btn.disabled = false; }
     }
+    // Ask an admin for a reset. The server answers identically whether or not the
+    // account exists, so this must not claim it "sent" anything specific.
+    async function submitForgot() {
+      const u   = document.getElementById('fpUserInput').value.trim();
+      const err = document.getElementById('fpErr');
+      const ok  = document.getElementById('fpOk');
+      err.textContent = ''; ok.hidden = true;
+      if (!u) { err.textContent = t('authBadInput'); return; }
+      const btn = document.getElementById('fpSubmit'); btn.disabled = true;
+      try {
+        await fetch('/api/password-reset/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u }) });
+        ok.textContent = t('authForgotSent'); ok.hidden = false;
+        document.getElementById('fpUserInput').value = '';
+      } catch { err.textContent = t('authForgotFailed'); }
+      finally { btn.disabled = false; }
+    }
+    // Arrived on a one-time link. Consumes it and signs the member straight in.
+    async function submitReset() {
+      const p  = document.getElementById('rsPassInput').value;
+      const p2 = document.getElementById('rsPass2Input').value;
+      const err = document.getElementById('rsErr'); err.textContent = '';
+      if (!p) { err.textContent = t('authBadInput'); return; }
+      if (p !== p2) { err.textContent = t('authRegMismatch'); return; }
+      if (p.length < 8) { err.textContent = t('authPwShort'); return; }
+      if (!_resetToken) { err.textContent = t('authResetExpired'); return; }
+      const btn = document.getElementById('rsSubmit'); btn.disabled = true;
+      try {
+        const res = await fetch('/api/password-reset/complete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: _resetToken, newPassword: p }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) { err.textContent = data.error || t('authResetExpired'); btn.disabled = false; return; }
+        _resetToken = '';
+        // Drop the token out of the address bar — it is spent, and it has no business
+        // sitting in history or in a screenshot.
+        try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+        AUTH.user = data.username; AUTH.role = data.role;
+        document.getElementById('rsPassInput').value = ''; document.getElementById('rsPass2Input').value = '';
+        updateAuthUI(); closeAuthModal();
+        showToast(t('authToastIn')(AUTH.user));
+        loadTree(); pushSettings();
+      } catch { err.textContent = t('authResetExpired'); }
+      finally { btn.disabled = false; }
+    }
+    // #reset=<token> opens the set-a-new-password panel. Handled on a cold load and
+    // on hashchange: someone who is already on the site and clicks the link only
+    // changes the fragment, which would otherwise do nothing at all.
+    let _resetToken = '';
+    function handleResetHash() {
+      const m = /[#&]reset=([A-Za-z0-9]{16,128})\b/.exec(location.hash || '');
+      if (!m) return false;
+      _resetToken = m[1];
+      // Take the token out of the address bar immediately — it is a credential and
+      // has no business in history, a bookmark or a screenshot.
+      try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+      const open = () => {
+        openAuthModal(); showAuthView('reset');
+        const e = document.getElementById('rsErr'); if (e) e.textContent = '';
+        setTimeout(() => { const el = document.getElementById('rsPassInput'); if (el) el.focus(); }, 80);
+      };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', open); else setTimeout(open, 120);
+      return true;
+    }
+    handleResetHash();
+    window.addEventListener('hashchange', handleResetHash);
+
     async function submitChangePw() {
       const oldp = document.getElementById('acpOld').value;
       const newp = document.getElementById('acpNew').value;
@@ -6423,6 +7218,18 @@
       const pi = document.getElementById('authPassInput'); if (pi) pi.addEventListener('keydown', e => { if (e.key === 'Enter') submitLogin(); });
       const toReg = document.getElementById('authToReg');     if (toReg) toReg.addEventListener('click', () => { showAuthView('register'); const re = document.getElementById('regErr'); if (re) re.textContent = ''; });
       const toSi  = document.getElementById('authToSignin');  if (toSi) toSi.addEventListener('click', () => showAuthView('signin'));
+      const toFp  = document.getElementById('authToForgot');  if (toFp) toFp.addEventListener('click', () => {
+        showAuthView('forgot');
+        const e = document.getElementById('fpErr'); if (e) e.textContent = '';
+        const o = document.getElementById('fpOk');  if (o) { o.hidden = true; o.textContent = ''; }
+        const u = document.getElementById('fpUserInput');
+        if (u) { u.value = document.getElementById('authUserInput').value.trim(); setTimeout(() => u.focus(), 40); }
+      });
+      const fpBack = document.getElementById('fpBack');       if (fpBack) fpBack.addEventListener('click', () => showAuthView('signin'));
+      const fpBtn  = document.getElementById('fpSubmit');     if (fpBtn) fpBtn.addEventListener('click', submitForgot);
+      const fpIn   = document.getElementById('fpUserInput');  if (fpIn) fpIn.addEventListener('keydown', e => { if (e.key === 'Enter') submitForgot(); });
+      const rsBtn  = document.getElementById('rsSubmit');     if (rsBtn) rsBtn.addEventListener('click', submitReset);
+      const rs2    = document.getElementById('rsPass2Input'); if (rs2) rs2.addEventListener('keydown', e => { if (e.key === 'Enter') submitReset(); });
       const rsub  = document.getElementById('regSubmit');     if (rsub) rsub.addEventListener('click', submitRegister);
       const rp2   = document.getElementById('regPass2Input'); if (rp2) rp2.addEventListener('keydown', e => { if (e.key === 'Enter') submitRegister(); });
       const acps  = document.getElementById('acpSubmit');     if (acps) acps.addEventListener('click', submitChangePw);
@@ -6513,6 +7320,7 @@
       pdfViewerCtx.curLang = targetLang;
       pdfCurrentPath = tgtPath; pdfCurrentName = tgtName; pdfCurrentLang = targetLang;
       lastFailPath = tgtPath; lastFailName = tgtName;
+      nclRefresh('pdf', tgtPath, targetLang);
       document.getElementById('pdfFilename').textContent = displayFileName(tgtName);
       document.getElementById('pmbFilename').textContent = displayFileName(tgtName);
       compLabel.textContent = t('compilingLabel');
@@ -6527,6 +7335,7 @@
       pdfCurrentPath = texPath;
       pdfCurrentName = texName;
       pdfCurrentLang = fileLang || (item && item.lang) || LANG;
+      nclRefresh('pdf', texPath, pdfCurrentLang);
       setPdfViewerCtx(item, texPath, texName, pdfCurrentLang);
       lastFailPath   = texPath;
       lastFailName   = texName;
@@ -6601,11 +7410,17 @@
           body: JSON.stringify({ path: texPath, lang: compileLang || LANG }),
         });
 
-        if (!res.ok) {
-          throw new Error('Server error: HTTP ' + res.status);
-        }
-
         const ct = res.headers.get('content-type') || '';
+
+        // A refusal still carries an explanation the reader needs — "available to
+        // signed-in members only", "too many compile requests", "the server is busy".
+        // Throwing on !res.ok discarded all of it and showed a bare HTTP code; the
+        // split-pane viewer already read the body, so this matches it.
+        if (!res.ok) {
+          let msg = '';
+          if (ct.includes('application/json')) { try { msg = (await res.json()).log || ''; } catch {} }
+          return showCompileFail(msg || ('Server error: HTTP ' + res.status), texPath);
+        }
 
         if (ct.includes('application/pdf')) {
           const buf = await res.arrayBuffer();
@@ -7987,6 +8802,12 @@
         document.getElementById('mediaClose').click();
         return;
       }
+      const _dv = document.getElementById('dayView');
+      if (_dv && _dv.classList.contains('open')) {
+        if (e.key === 'Escape') { dyCloseDetail(); return; }
+        if (e.key === 'ArrowLeft')  { const b = document.getElementById('dvPrev'); if (b && !b.disabled) b.click(); return; }
+        if (e.key === 'ArrowRight') { const b = document.getElementById('dvNext'); if (b && !b.disabled) b.click(); return; }
+      }
       if (pdfModal.classList.contains('open')) {
         if (e.key==='ArrowRight'||e.key==='ArrowDown') {
           if (pdfDoc && pdfPage<pdfDoc.numPages) { pdfPage++; renderPage(pdfPage); }
@@ -8028,6 +8849,7 @@
 
     async function openCodeViewer(filePath, fileName, fileLang) {
       codeCurPath = filePath; codeCurName = fileName; codeCurLang = fileLang || 'en';
+      nclRefresh('code', filePath, codeCurLang);
       document.getElementById('codeModalTitle').textContent = displayFileName(fileName);
       codeModalFile = filePath;
       const codeEl = document.getElementById('codeContent');
@@ -8766,6 +9588,9 @@
     async function handleHashOnLoad() {
       const hash = decodeURIComponent(window.location.hash.slice(1));
       if (!hash) return;
+
+      // #day= needs no note tree, so it is handled before the tree guard below.
+      if (hash.startsWith('day=')) { dyCheckHash(); return; }
 
       // Wait for tree to load
       if (!treeData) return;
@@ -9541,15 +10366,810 @@
     /* ════════════════════════════════════════════════════════════════
        MEDIA MODAL (image / video / audio)
     ═════════════════════════════════════════════════════════════════ */
+    /* ════════════════════════════════════════════════════════════════
+       DAYS — the timetable, the calendar, and the "what happened" feed.
+       Three views over the same two sources: /api/timetable (the recurring
+       weekly schedule) and /api/days (what was actually logged).
+    ═════════════════════════════════════════════════════════════════ */
+    const DY = {
+      tt: null, ttRestricted: false, index: null, days: [], total: 0,
+      loaded: false, loading: false, view: 'feed', q: '', subject: '', filesOnly: false,
+      calMonth: null, weekStart: null, limit: 20, today: null, detail: null,
+    };
+    const DY_DOW_KEYS = ['', 'dyMon', 'dyTue', 'dyWed', 'dyThu', 'dyFri', 'dySat', 'dySun'];
+    const DY_MONTH_KEYS = ['dyM1','dyM2','dyM3','dyM4','dyM5','dyM6','dyM7','dyM8','dyM9','dyM10','dyM11','dyM12'];
+
+    function dyIsDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(String(s || '')); }
+    function dyToday() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function dyDow(s) { const g = new Date(s + 'T00:00:00Z').getUTCDay(); return g === 0 ? 7 : g; }
+    function dyAddDays(s, n) { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+    function dyMonday(s) { return dyAddDays(s, -(dyDow(s) - 1)); }
+    function dyParity(s) {
+      const st = (DY.tt && DY.tt.settings) || {};
+      const cycle = Number(st.weekCycle) || 1;
+      if (cycle < 2 || !dyIsDate(s)) return 0;
+      const anchor = dyIsDate(st.cycleAnchor) ? st.cycleAnchor : '2024-09-02';
+      const w = Math.round((Date.parse(dyMonday(s) + 'T00:00:00Z') - Date.parse(dyMonday(anchor) + 'T00:00:00Z')) / 604800000);
+      return ((w % cycle) + cycle) % cycle;
+    }
+    function dyLongDate(s) {
+      if (!dyIsDate(s)) return s || '';
+      const d = new Date(s + 'T00:00:00Z');
+      return t(DY_DOW_KEYS[dyDow(s)]) + ', ' + d.getUTCDate() + ' ' + t(DY_MONTH_KEYS[d.getUTCMonth()]) + ' ' + d.getUTCFullYear();
+    }
+    // Subject name in the reading language, falling back to whichever exists.
+    function dySubjName(o) { return (LANG === 'hu' && o && o.subjectHu) ? o.subjectHu : ((o && o.subject) || (o && o.subjectHu) || ''); }
+    function dyDayTitle(d) { return (LANG === 'hu' && d.titleHu) ? d.titleHu : (d.title || d.titleHu || ''); }
+    function dyDaySummary(d) { return (LANG === 'hu' && d.summaryHu) ? d.summaryHu : (d.summary || d.summaryHu || ''); }
+    function dyEventLabel(e) { return (LANG === 'hu' && e.labelHu) ? e.labelHu : (e.label || e.labelHu || t('dyKindHoliday')); }
+    function dyEventsOn(date) { return ((DY.tt && DY.tt.events) || []).filter(e => e.from <= date && date <= e.to); }
+
+    async function dyLoad(force) {
+      if (DY.loading) return;
+      if (DY.loaded && !force) return;
+      DY.loading = true;
+      try {
+        const [ttr, idx] = await Promise.all([
+          fetch('/api/timetable').then(r => r.json()).catch(() => null),
+          fetch('/api/days/index').then(r => r.json()).catch(() => null),
+        ]);
+        DY.tt = (ttr && ttr.timetable) || null;
+        DY.ttRestricted = !!(ttr && ttr.restricted);
+        DY.today = (ttr && ttr.today) || (idx && idx.today) || dyToday();
+        DY.index = (idx && idx.index) || [];
+        DY.loaded = true;
+      } catch { DY.index = DY.index || []; }
+      DY.loading = false;
+      if (!DY.calMonth) DY.calMonth = (DY.today || dyToday()).slice(0, 7);
+      if (!DY.weekStart) DY.weekStart = dyMonday(DY.today || dyToday());
+    }
+
+    async function dyLoadFeed(append) {
+      const p = new URLSearchParams();
+      if (DY.q) p.set('q', DY.q);
+      if (DY.subject) p.set('subject', DY.subject);
+      if (DY.filesOnly) p.set('files', '1');
+      p.set('limit', String(DY.limit));
+      p.set('offset', String(append ? DY.days.length : 0));
+      try {
+        const r = await fetch('/api/days?' + p.toString()).then(x => x.json());
+        DY.days = append ? DY.days.concat(r.days || []) : (r.days || []);
+        DY.total = r.total || 0;
+      } catch { if (!append) { DY.days = []; DY.total = 0; } }
+    }
+
+    async function openDaysPage() {
+      const feed = document.getElementById('dyFeed');
+      if (!DY.loaded) feed.innerHTML = '<div class="state-box"><div class="spinner"></div></div>';
+      await dyLoad();
+      dyRenderSubjectFilter();
+      await dyRenderView();
+    }
+
+    function dyRenderSubjectFilter() {
+      const box = document.getElementById('dySubjects');
+      const subs = (DY.tt && DY.tt.subjects) || [];
+      box.innerHTML = '';
+      box.hidden = !subs.length || DY.view === 'timetable';
+      if (box.hidden) return;
+      subs.forEach(s => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'dy-chip' + (DY.subject === s.id ? ' on' : '');
+        b.innerHTML = '<i style="background:' + esc(s.color) + '"></i>' + esc((LANG === 'hu' && s.nameHu) ? s.nameHu : s.name);
+        b.onclick = () => { DY.subject = (DY.subject === s.id) ? '' : s.id; dyRenderSubjectFilter(); dyRenderView(); };
+        box.appendChild(b);
+      });
+    }
+
+    async function dyRenderView() {
+      document.getElementById('dyFeedWrap').hidden = DY.view !== 'feed';
+      document.getElementById('dyCalWrap').hidden = DY.view !== 'calendar';
+      document.getElementById('dyTtWrap').hidden = DY.view !== 'timetable';
+      document.getElementById('dySubjects').hidden = DY.view === 'timetable' || !((DY.tt && DY.tt.subjects) || []).length;
+      document.querySelectorAll('#dyViewSeg button').forEach(b => b.classList.toggle('active', b.dataset.dyview === DY.view));
+      if (DY.view === 'feed') { await dyLoadFeed(false); dyRenderFeed(); }
+      else if (DY.view === 'calendar') dyRenderCalendar();
+      else { await dyEnsureWeekLoaded(); dyRenderTimetable(); }
+    }
+
+    /* ── Feed ─────────────────────────────────────────────────────── */
+    function dyRenderFeed() {
+      const feed = document.getElementById('dyFeed');
+      const cnt = document.getElementById('dyCount');
+      feed.innerHTML = '';
+      cnt.textContent = DY.total ? t('dyNDays')(DY.total) : '';
+      if (!DY.days.length) {
+        feed.innerHTML = '<div class="state-box"><span>' + esc(DY.q || DY.subject || DY.filesOnly ? t('dyNoMatch') : t('dyEmpty')) + '</span></div>';
+        return;
+      }
+      DY.days.forEach(d => feed.appendChild(dyDayCard(d)));
+      if (DY.days.length < DY.total) {
+        const more = document.createElement('button');
+        more.className = 'dy-chip dy-more'; more.type = 'button';
+        more.textContent = t('dyLoadMore');
+        more.onclick = async () => { more.disabled = true; await dyLoadFeed(true); dyRenderFeed(); };
+        feed.appendChild(more);
+      }
+    }
+
+    function dyDayCard(d) {
+      const el = document.createElement('article');
+      el.className = 'dy-day';
+      const dt = new Date(d.date + 'T00:00:00Z');
+      const counts = dyCounts(d);
+      const sub = [t(DY_DOW_KEYS[dyDow(d.date)])];
+      if (DY.tt && Number(DY.tt.settings.weekCycle) > 1) sub.push(t('dyWeek') + ' ' + (dyParity(d.date) === 0 ? 'A' : 'B'));
+      sub.push(t('dyNLessons')(counts.lessons));
+      if (counts.files) sub.push(t('dyNFiles')(counts.files));
+      const head = document.createElement('div');
+      head.className = 'dy-dhead';
+      head.innerHTML =
+        '<div class="dy-cal-date"><b>' + dt.getUTCDate() + '</b><span>' + esc(t(DY_MONTH_KEYS[dt.getUTCMonth()])) + '</span></div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="dy-dtitle">' + esc(dyDayTitle(d) || dyLongDate(d.date)) + '</div>' +
+          '<div class="dy-dsub">' + esc(sub.join(' · ')) + (d.visibility === 'members' ? ' · ' + esc(t('dyMembersOnly')) : '') + '</div>' +
+          (dyDaySummary(d) ? '<div class="dy-dsummary">' + esc(dyDaySummary(d)) + '</div>' : '') +
+        '</div>';
+      head.onclick = () => dyOpenDetail(d.date);
+      el.appendChild(head);
+      const body = document.createElement('div'); body.className = 'dy-dbody';
+      const list = document.createElement('div'); list.className = 'dy-lessons';
+      (d.lessons || []).forEach(l => list.appendChild(dyLessonCard(d, l)));
+      body.appendChild(list);
+      el.appendChild(body);
+      return el;
+    }
+
+    function dyCounts(d) {
+      let files = 0, notes = 0;
+      (d.lessons || []).forEach(l => { files += (l.attachments || []).length; notes += (l.notes || []).length; });
+      return { lessons: (d.lessons || []).length, files, notes };
+    }
+
+    const DY_KIND_KEY = { lesson: 'dyKindLesson', test: 'dyKindTest', exam: 'dyKindExam', lab: 'dyKindLab',
+      presentation: 'dyKindPresentation', trip: 'dyKindTrip', substitution: 'dyKindSubstitution',
+      selfstudy: 'dyKindSelfstudy', cancelled: 'dyKindCancelled' };
+
+    function dyLessonCard(day, l) {
+      const el = document.createElement('div');
+      el.className = 'dy-lesson' + (l.important ? ' imp' : '');
+      el.style.borderLeftColor = l.color || 'var(--accent)';
+      const meta = [];
+      if (l.periodLabel) meta.push(t('dyPeriod') + ' ' + l.periodLabel);
+      if (l.start) meta.push(l.start + (l.end ? '–' + l.end : ''));
+      if (l.room) meta.push(l.room);
+      if (l.teacher) meta.push(l.teacher);
+      let h = '<div class="dy-ltop"><span class="dy-lname">' + esc(dySubjName(l) || t('dyKindLesson')) + '</span>';
+      if (l.kind && l.kind !== 'lesson') h += '<span class="dy-kind ' + esc(l.kind) + '">' + esc(t(DY_KIND_KEY[l.kind] || 'dyKindLesson')) + '</span>';
+      if (meta.length) h += '<span class="dy-lmeta">' + esc(meta.join(' · ')) + '</span>';
+      h += '</div>';
+      if (l.what) h += '<div class="dy-what">' + esc(l.what) + '</div>';
+      if ((l.topics || []).length) h += '<div class="dy-topics">' + l.topics.map(x => '<span class="dy-topic">' + esc(x) + '</span>').join('') + '</div>';
+      if (l.homework) h += '<div class="dy-hw"><b>' + esc(t('dyHomework')) + '</b><span>' + esc(l.homework) + '</span></div>';
+      el.innerHTML = h;
+      if ((l.notes || []).length) {
+        const links = document.createElement('div'); links.className = 'dy-links';
+        l.notes.forEach(n => {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'dy-link';
+          b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>' + esc(n.label || String(n.path).split('/').pop()) + '</span>';
+          b.title = n.path;
+          b.onclick = e => { e.stopPropagation(); dyCloseDetail(); openNoteByPath(n.path, n.lang); };
+          links.appendChild(b);
+        });
+        el.appendChild(links);
+      }
+      if ((l.attachments || []).length) {
+        const g = document.createElement('div'); g.className = 'dy-files';
+        l.attachments.forEach(a => g.appendChild(dyFileTile(day, a)));
+        el.appendChild(g);
+      }
+      return el;
+    }
+
+    const DY_IMG = /\.(png|jpe?g|webp|gif|avif|bmp)$/i;
+    const DY_VID = /\.(mp4|webm|mov)$/i;
+    const DY_AUD = /\.(mp3|m4a|ogg|wav)$/i;
+    function dyFileTile(day, a) {
+      const url = '/uploads/days/' + day.id + '/' + a.id + a.ext;
+      const el = document.createElement('button');
+      el.type = 'button'; el.className = 'dy-file';
+      const isImg = DY_IMG.test(a.name);
+      el.innerHTML =
+        '<span class="th">' + (isImg ? '<img alt="" loading="lazy" src="' + esc(url) + '">' : esc((a.ext || '').replace('.', '').toUpperCase() || 'FILE')) + '</span>' +
+        '<span class="tag' + (a.kind === 'scan' ? ' scan' : '') + '">' + esc(a.kind === 'scan' ? t('dyScan') : t('dyFile')) + '</span>' +
+        '<span class="cap">' + esc(a.caption || a.name) + '</span>';
+      el.title = a.name;
+      el.onclick = e => {
+        e.stopPropagation();
+        if (isImg) openMediaUrl(url, a.name, a.ext, 'image');
+        else if (DY_VID.test(a.name)) openMediaUrl(url, a.name, a.ext, 'video');
+        else if (DY_AUD.test(a.name)) openMediaUrl(url, a.name, a.ext, 'audio');
+        else if (/\.pdf$/i.test(a.name)) openPdfDirect(url, a.name);
+        else window.open(url + '?download=1', '_blank', 'noopener');
+      };
+      return el;
+    }
+
+    /* ── Quick log: attach scans to one lesson from the week grid ──────────
+       Admins only. Everything here goes through /api/admin/day/lesson, which
+       upserts a single lesson into that date's record (creating the day if it does
+       not exist yet) — so a scan can be filed in three clicks without opening the
+       full day editor. Uploads need a day id before the day is saved, so we ask the
+       server for one; a draft that is never saved leaves an orphan upload folder,
+       which the server's 24-hour sweep collects. */
+    const QL = { open: false, date: '', slot: null, subj: null, dayId: '', lesson: null,
+                 files: [], notes: [], uploading: 0, hitsTimer: null, hitsSeq: 0 };
+    const QL_KINDS = ['lesson', 'test', 'exam', 'lab', 'presentation', 'trip', 'substitution', 'selfstudy', 'cancelled'];
+
+    function qlIsAdmin() { return AUTH && AUTH.role === 'admin'; }
+
+    async function qlOpen(date, slot) {
+      if (!qlIsAdmin()) return;
+      const tt = DY.tt; if (!tt) return;
+      QL.open = true; QL.date = date; QL.slot = slot;
+      QL.subj = (tt.subjects || []).find(x => x.id === slot.subjectId) || null;
+      const per = (tt.settings.periods || []).find(p => p.id === slot.periodId) || null;
+
+      // Seed from whatever is already logged for that lesson.
+      let day = DY.days.find(d => d.date === date) || null;
+      if (!day) { try { const r = await fetch('/api/day?date=' + encodeURIComponent(date)).then(x => x.json()); day = (r && r.day) || null; if (day) DY.days.push(day); } catch {} }
+      const rec = day ? (day.lessons || []).find(l => (l.slotId && l.slotId === slot.id) || (l.subjectId === slot.subjectId && l.periodId === slot.periodId)) : null;
+      QL.lesson = rec || null;
+      QL.files = rec ? (rec.attachments || []).map(a => ({ ...a })) : [];
+      QL.notes = rec ? (rec.notes || []).map(n => ({ ...n })) : [];
+
+      try {
+        const r = await fetch('/api/admin/day/draftid?date=' + encodeURIComponent(date)).then(x => x.json());
+        QL.dayId = (r && r.id) || (day && day.id) || '';
+      } catch { QL.dayId = (day && day.id) || ''; }
+
+      // dySubjName() reads a *lesson* ({subject, subjectHu}); QL.subj is a timetable
+      // subject ({name, nameHu}), so read those fields directly.
+      const sName = QL.subj ? ((LANG === 'hu' && QL.subj.nameHu) ? QL.subj.nameHu : (QL.subj.name || QL.subj.nameHu || '')) : '';
+      document.getElementById('qlogTitle').textContent = sName || t('dyKindLesson');
+      document.getElementById('qlogSwatch').style.background = (QL.subj && QL.subj.color) || 'var(--accent)';
+      document.getElementById('qlogWhen').textContent =
+        dyLongDate(date) + (per && per.label ? ' · ' + t('dyPeriod') + ' ' + per.label : '') + (per && per.start ? ' · ' + per.start : '');
+      document.getElementById('qlogWhat').value = rec ? (rec.what || '') : '';
+      document.getElementById('qlogHw').value   = rec ? (rec.homework || '') : '';
+      const kindSel = document.getElementById('qlogKind');
+      kindSel.innerHTML = QL_KINDS.map(k => '<option value="' + k + '">' + esc(t(DY_KIND_KEY[k])) + '</option>').join('');
+      kindSel.value = (rec && rec.kind) || 'lesson';
+
+      // If the subject names a notes folder, say so — it is usually where to look.
+      const hint = document.getElementById('qlogFolderHint');
+      if (QL.subj && QL.subj.folder) { hint.textContent = '→ ' + QL.subj.folder; hint.hidden = false; }
+      else { hint.hidden = true; hint.textContent = ''; }
+      document.getElementById('qlogNoteSearch').value = '';
+      document.getElementById('qlogNoteHits').innerHTML = '';
+      qlMsg('');
+      qlRenderFiles(); qlRenderNotes();
+      document.getElementById('qlogBd').hidden = false;
+      document.getElementById('qlog').hidden = false;
+      setTimeout(() => { const w = document.getElementById('qlogWhat'); if (w) w.focus(); }, 60);
+    }
+    function qlClose() {
+      QL.open = false;
+      document.getElementById('qlog').hidden = true;
+      document.getElementById('qlogBd').hidden = true;
+    }
+    function qlMsg(text, isErr) {
+      const el = document.getElementById('qlogMsg');
+      el.textContent = text || ''; el.classList.toggle('err', !!isErr);
+    }
+    function qlRenderFiles() {
+      const host = document.getElementById('qlogFiles');
+      host.innerHTML = '';
+      QL.files.forEach((a, i) => {
+        const row = document.createElement('div');
+        row.className = 'qlog-file' + (a._pending ? ' pending' : '');
+        const isImg = DY_IMG.test(a.name || '');
+        const url = '/uploads/days/' + QL.dayId + '/' + a.id + a.ext;
+        row.innerHTML =
+          '<span class="th">' + (isImg && !a._pending ? '<img alt="" src="' + esc(url) + '">' : esc((a.ext || '').replace('.', '').toUpperCase() || '…')) + '</span>' +
+          '<span class="fmeta"><span class="fname">' + esc(a.name || '') + '</span>' +
+          '<input class="cap" type="text" placeholder="' + esc(t('qlCaption')) + '" value="' + esc(a.caption || '') + '"></span>' +
+          '<button class="kindtog' + (a.kind === 'scan' ? ' scan' : '') + '" type="button">' + (a.kind === 'scan' ? esc(t('dyScan')) : esc(t('dyFile'))) + '</button>' +
+          '<button class="rm" type="button" aria-label="Remove">×</button>';
+        row.querySelector('.cap').addEventListener('input', e => { QL.files[i].caption = e.target.value.slice(0, 240); });
+        row.querySelector('.kindtog').addEventListener('click', () => { QL.files[i].kind = QL.files[i].kind === 'scan' ? 'file' : 'scan'; qlRenderFiles(); });
+        row.querySelector('.rm').addEventListener('click', () => { QL.files.splice(i, 1); qlRenderFiles(); });
+        host.appendChild(row);
+      });
+    }
+    function qlRenderNotes() {
+      const host = document.getElementById('qlogNotes');
+      host.innerHTML = '';
+      QL.notes.forEach((n, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'qlog-chip';
+        chip.innerHTML = '<span>' + esc(n.label || String(n.path).split('/').pop()) + '</span><button type="button" aria-label="Remove">×</button>';
+        chip.title = n.path;
+        chip.querySelector('button').addEventListener('click', () => { QL.notes.splice(i, 1); qlRenderNotes(); });
+        host.appendChild(chip);
+      });
+    }
+    async function qlUpload(fileList) {
+      const files = [...(fileList || [])];
+      if (!files.length) return;
+      if (!QL.dayId) { qlMsg(t('qlNoDay'), true); return; }
+      for (const f of files) {
+        const stub = { id: 'pending-' + Math.random().toString(36).slice(2), name: f.name, ext: (f.name.match(/\.[^.]+$/) || [''])[0].toLowerCase(),
+                       kind: DY_IMG.test(f.name) ? 'scan' : 'file', caption: '', _pending: true };
+        QL.files.push(stub); qlRenderFiles();
+        QL.uploading++;
+        qlMsg(t('qlUploading'));
+        try {
+          const res = await fetch('/api/admin/day/upload?day=' + encodeURIComponent(QL.dayId) +
+            '&name=' + encodeURIComponent(f.name) + '&kind=' + (stub.kind), { method: 'POST', body: f });
+          const d = await res.json().catch(() => ({}));
+          const at = QL.files.indexOf(stub);
+          if (!res.ok || !d.ok) { if (at >= 0) QL.files.splice(at, 1); qlMsg((d && d.error) || t('qlUploadFailed'), true); }
+          else if (at >= 0) QL.files[at] = { ...d.attachment, kind: stub.kind };
+        } catch {
+          const at = QL.files.indexOf(stub); if (at >= 0) QL.files.splice(at, 1);
+          qlMsg(t('qlUploadFailed'), true);
+        } finally { QL.uploading--; qlRenderFiles(); }
+      }
+      if (!QL.uploading) qlMsg('');
+    }
+    // Note picker: reuses the tree already in memory, so it needs no extra request.
+    function qlSearchNotes(q) {
+      const host = document.getElementById('qlogNoteHits');
+      const term = String(q || '').trim().toLowerCase();
+      if (term.length < 2) { host.innerHTML = ''; return; }
+      const all = treeData ? collectAllItems(treeData) : [];
+      const chosen = new Set(QL.notes.map(n => n.path));
+      const folder = (QL.subj && QL.subj.folder) ? QL.subj.folder.toLowerCase() : '';
+      const hits = all
+        .filter(it => it.type !== 'folder' && !chosen.has(it.path) && itemMatchesSearch(it, term))
+        // A note in the subject's own folder is nearly always the one you mean.
+        .sort((a, b) => ((folder && b.path.toLowerCase().startsWith(folder)) - (folder && a.path.toLowerCase().startsWith(folder))))
+        .slice(0, 8);
+      host.innerHTML = '';
+      hits.forEach(it => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'qlog-pick';
+        b.innerHTML = '<b>' + esc(getDisplayName(it)) + '</b><span>' + esc(it.path) + '</span>';
+        b.addEventListener('click', () => {
+          QL.notes.push({ path: it.path, lang: it.lang || (MAT_LANG === 'hu' ? 'hu' : 'en'), label: getDisplayName(it) });
+          document.getElementById('qlogNoteSearch').value = '';
+          host.innerHTML = ''; qlRenderNotes();
+        });
+        host.appendChild(b);
+      });
+    }
+    async function qlSave() {
+      if (QL.uploading) { qlMsg(t('qlWaitUpload'), true); return; }
+      const btn = document.getElementById('qlogSave'); btn.disabled = true;
+      qlMsg(t('qlSaving'));
+      try {
+        const payload = {
+          date: QL.date, dayId: QL.dayId, slotId: QL.slot ? QL.slot.id : '',
+          lesson: {
+            id: QL.lesson ? QL.lesson.id : undefined,
+            what: document.getElementById('qlogWhat').value,
+            homework: document.getElementById('qlogHw').value,
+            kind: document.getElementById('qlogKind').value,
+            topics: QL.lesson ? QL.lesson.topics : [],
+            important: QL.lesson ? !!QL.lesson.important : false,
+            notes: QL.notes,
+            attachments: QL.files.filter(a => !a._pending),
+          },
+        };
+        const r = await fetch('/api/admin/day/lesson', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.ok) { qlMsg((d && d.error) || t('qlSaveFailed'), true); btn.disabled = false; return; }
+        // Refresh what the page holds for that date so the grid redraws truthfully.
+        DY.days = DY.days.filter(x => x.date !== QL.date);
+        if (d.day) DY.days.push(d.day);
+        DY.loaded = false; await dyLoad(true);
+        qlClose();
+        showToast(d.removed ? t('qlCleared') : t('qlSaved'));
+        dyRenderView();
+      } catch { qlMsg(t('qlSaveFailed'), true); document.getElementById('qlogSave').disabled = false; }
+      finally { document.getElementById('qlogSave').disabled = false; }
+    }
+    (function wireQuickLog() {
+      const $q = id => document.getElementById(id);
+      $q('qlogClose').addEventListener('click', qlClose);
+      $q('qlogCancel').addEventListener('click', qlClose);
+      $q('qlogBd').addEventListener('click', qlClose);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && QL.open) qlClose(); });
+      $q('qlogSave').addEventListener('click', qlSave);
+      const drop = $q('qlogDrop'), input = $q('qlogFile');
+      drop.addEventListener('click', () => input.click());
+      drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+      input.addEventListener('change', () => { qlUpload(input.files); input.value = ''; });
+      ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+      ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+      drop.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) qlUpload(e.dataTransfer.files); });
+      $q('qlogNoteSearch').addEventListener('input', e => {
+        clearTimeout(QL.hitsTimer);
+        const v = e.target.value;
+        QL.hitsTimer = setTimeout(() => qlSearchNotes(v), 160);
+      });
+    })();
+
+    /* ── Calendar ─────────────────────────────────────────────────── */
+    function dyIndexFor(date) { return (DY.index || []).find(x => x.date === date) || null; }
+    function dyRenderCalendar() {
+      const grid = document.getElementById('dyCalGrid');
+      const m = DY.calMonth || dyToday().slice(0, 7);
+      const [Y, M] = m.split('-').map(Number);
+      document.getElementById('dyCalTitle').textContent = t(DY_MONTH_KEYS[M - 1]) + ' ' + Y;
+      grid.innerHTML = '';
+      for (let d = 1; d <= 7; d++) {
+        const h = document.createElement('div'); h.className = 'dy-dow'; h.textContent = t(DY_DOW_KEYS[d]).slice(0, 3);
+        grid.appendChild(h);
+      }
+      const first = Y + '-' + String(M).padStart(2, '0') + '-01';
+      const start = dyMonday(first);
+      const daysInMonth = new Date(Date.UTC(Y, M, 0)).getUTCDate();
+      const last = Y + '-' + String(M).padStart(2, '0') + '-' + String(daysInMonth).padStart(2, '0');
+      const end = dyAddDays(dyMonday(last), 6);
+      const teaching = new Set(((DY.tt && DY.tt.settings.days) || [1,2,3,4,5]));
+      for (let cur = start; cur <= end; cur = dyAddDays(cur, 1)) {
+        const inMonth = cur.slice(0, 7) === m;
+        const row = dyIndexFor(cur);
+        const evs = dyEventsOn(cur);
+        const cell = document.createElement('div');
+        cell.className = 'dy-cell' + (inMonth ? '' : ' out') + (row ? ' has' : '') + (cur === DY.today ? ' today' : '')
+          + (evs.length ? ' hol' : '') + (teaching.has(dyDow(cur)) ? '' : ' off');
+        let h = '<span class="n">' + Number(cur.slice(8)) + '</span>';
+        if (evs.length) h += '<span class="ev">' + esc(evs.map(dyEventLabel).join(' · ')) + '</span>';
+        if (row) {
+          const c = row.counts || {};
+          if (c.files) h += '<span class="dy-cbadge">' + c.files + '◈</span>';
+          if (row.title || row.titleHu) h += '<span class="ttl">' + esc((LANG === 'hu' && row.titleHu) ? row.titleHu : (row.title || row.titleHu)) + '</span>';
+          h += '<span class="dy-cdots">' + (row.subjects || []).map(s => '<i class="dy-cdot" style="background:' + esc(s.color || '#8b8fa3') + '" title="' + esc((LANG === 'hu' && s.nameHu) ? s.nameHu : s.name) + '"></i>').join('') + '</span>';
+        } else if (inMonth && teaching.has(dyDow(cur)) && !evs.length) {
+          h += '<span class="dy-cdots"></span>';
+        }
+        cell.innerHTML = h;
+        if (row) cell.onclick = () => dyOpenDetail(cur);
+        grid.appendChild(cell);
+      }
+      const shown = (DY.index || []).filter(x => x.date.slice(0, 7) === m).length;
+      document.getElementById('dyCount').textContent = shown ? t('dyNDays')(shown) : '';
+    }
+
+    /* ── Weekly timetable ─────────────────────────────────────────── */
+    function dyRenderTimetable() {
+      const tbl = document.getElementById('dyTtGrid');
+      const note = document.getElementById('dyWkNote');
+      const legend = document.getElementById('dyTtLegend');
+      document.getElementById('dyCount').textContent = '';
+      tbl.innerHTML = ''; legend.innerHTML = ''; note.textContent = '';
+      if (DY.ttRestricted) { tbl.innerHTML = '<tr><td style="padding:34px;text-align:center;color:var(--text2)">' + esc(t('dyTtMembers')) + '</td></tr>'; return; }
+      const tt = DY.tt;
+      if (!tt || !tt.settings.periods.length || !tt.slots.length) {
+        tbl.innerHTML = '<tr><td style="padding:34px;text-align:center;color:var(--text2)">' + esc(t('dyTtEmpty')) + '</td></tr>';
+        document.getElementById('dyWkTitle').textContent = '';
+        return;
+      }
+      const ws = DY.weekStart || dyMonday(DY.today || dyToday());
+      const we = dyAddDays(ws, 6);
+      const a = new Date(ws + 'T00:00:00Z'), b = new Date(we + 'T00:00:00Z');
+      document.getElementById('dyWkTitle').textContent =
+        a.getUTCDate() + ' ' + t(DY_MONTH_KEYS[a.getUTCMonth()]) + ' – ' + b.getUTCDate() + ' ' + t(DY_MONTH_KEYS[b.getUTCMonth()]) + ' ' + b.getUTCFullYear();
+      const parity = dyParity(ws);
+      if (Number(tt.settings.weekCycle) > 1) note.textContent = t('dyWeek') + ' ' + (parity === 0 ? 'A' : 'B');
+
+      const days = tt.settings.days;
+      const head = document.createElement('tr');
+      head.innerHTML = '<th></th>' + days.map(d => {
+        const date = dyAddDays(ws, d - 1);
+        const dd = new Date(date + 'T00:00:00Z');
+        return '<th class="' + (date === DY.today ? 'on' : '') + '">' + esc(t(DY_DOW_KEYS[d])) + '<br>' + dd.getUTCDate() + ' ' + esc(t(DY_MONTH_KEYS[dd.getUTCMonth()])) + '</th>';
+      }).join('');
+      tbl.appendChild(head);
+
+      // What was actually logged that week, so each cell can show its own record.
+      const logged = {};
+      days.forEach(d => {
+        const date = dyAddDays(ws, d - 1);
+        const day = DY.days.find(x => x.date === date) || null;
+        logged[d] = day;
+      });
+
+      tt.settings.periods.forEach(p => {
+        const tr = document.createElement('tr');
+        const td0 = document.createElement('td'); td0.className = 'per';
+        td0.innerHTML = '<b>' + esc(p.label || '·') + '</b>' + (p.start ? '<span>' + esc(p.start) + (p.end ? '<br>' + esc(p.end) : '') + '</span>' : '');
+        tr.appendChild(td0);
+        days.forEach(d => {
+          const date = dyAddDays(ws, d - 1);
+          const td = document.createElement('td');
+          const cell = document.createElement('div'); cell.className = 'dy-ttcell';
+          const evs = dyEventsOn(date);
+          const cycled = Number(tt.settings.weekCycle) > 1;
+          tt.slots.filter(s => s.day === d && s.periodId === p.id && (!cycled || s.week === 0 || s.week === parity + 1)).forEach(s => {
+            const subj = (tt.subjects || []).find(x => x.id === s.subjectId);
+            const day = logged[d];
+            const rec = day ? (day.lessons || []).find(l => (l.slotId && l.slotId === s.id) || (l.subjectId === s.subjectId && l.periodId === s.periodId)) : null;
+            const box = document.createElement('div');
+            box.className = 'dy-ttslot' + (rec ? ' logged' : '') + (evs.length && !rec ? ' dim' : '');
+            box.style.background = (subj && subj.color) || '#8b8fa3';
+            let h = '<span>' + esc(subj ? ((LANG === 'hu' && subj.nameHu) ? subj.nameHu : subj.name) : '?') + '</span>';
+            const sub = [s.room || (subj && subj.room) || '', s.teacher || (subj && subj.teacher) || ''].filter(Boolean).join(' · ');
+            if (sub) h += '<small>' + esc(sub) + '</small>';
+            if (rec && rec.what) h += '<span class="note">' + esc(rec.what) + '</span>';
+            const pins = [];
+            if (rec && (rec.attachments || []).length) pins.push('◈' + rec.attachments.length);
+            if (rec && (rec.notes || []).length) pins.push('≡' + rec.notes.length);
+            if (rec && rec.kind && rec.kind !== 'lesson') pins.push(t(DY_KIND_KEY[rec.kind] || 'dyKindLesson'));
+            if (pins.length) h += '<span class="pins">' + esc(pins.join(' ')) + '</span>';
+            box.innerHTML = h;
+            if (rec) box.onclick = () => dyOpenDetail(date);
+            // Admins get a per-cell shortcut into the quick log, so a scan can be
+            // filed against the lesson you are looking at without leaving the grid.
+            if (qlIsAdmin()) {
+              const add = document.createElement('button');
+              add.type = 'button'; add.className = 'dy-qadd';
+              add.title = rec ? t('qlEditLesson') : t('qlLogLesson');
+              add.setAttribute('aria-label', add.title);
+              add.textContent = rec ? '✎' : '+';
+              add.addEventListener('click', e => { e.stopPropagation(); qlOpen(date, s); });
+              box.appendChild(add);
+            }
+            cell.appendChild(box);
+          });
+          if (evs.length && !cell.childElementCount) {
+            const e = document.createElement('div'); e.className = 'dy-ttslot dim'; e.style.background = 'var(--bg4)';
+            e.innerHTML = '<span style="color:var(--text2);text-shadow:none">' + esc(evs.map(dyEventLabel).join(' · ')) + '</span>';
+            cell.appendChild(e);
+          }
+          td.appendChild(cell); tr.appendChild(td);
+        });
+        tbl.appendChild(tr);
+      });
+      (tt.subjects || []).forEach(s => {
+        const c = document.createElement('span'); c.className = 'dy-chip';
+        c.innerHTML = '<i style="background:' + esc(s.color) + '"></i>' + esc((LANG === 'hu' && s.nameHu) ? s.nameHu : s.name) +
+          (s.teacher ? ' <span style="color:var(--text3);font-weight:500">· ' + esc(s.teacher) + '</span>' : '');
+        legend.appendChild(c);
+      });
+      legend.hidden = false;
+    }
+    // The weekly view needs the logged days for that week; the feed only holds a page.
+    async function dyEnsureWeekLoaded() {
+      const ws = DY.weekStart || dyMonday(DY.today || dyToday());
+      const we = dyAddDays(ws, 6);
+      const missing = (DY.index || []).some(x => x.date >= ws && x.date <= we && !DY.days.some(d => d.date === x.date));
+      if (!missing) return;
+      try {
+        const r = await fetch('/api/days?from=' + ws + '&to=' + we + '&limit=20').then(x => x.json());
+        (r.days || []).forEach(d => { if (!DY.days.some(x => x.date === d.date)) DY.days.push(d); });
+      } catch {}
+    }
+
+    /* ── One day, in full ─────────────────────────────────────────── */
+    async function dyOpenDetail(date) {
+      const view = document.getElementById('dayView');
+      const body = document.getElementById('dvBody');
+      view.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      body.innerHTML = '<div class="state-box"><div class="spinner"></div></div>';
+      document.getElementById('dvTitle').textContent = dyLongDate(date);
+      DY.detail = date;
+      // A day can be opened from a ki://day reference before the page has ever been
+      // visited, so make sure the index/timetable are in hand for the week label and
+      // the prev/next arrows.
+      await dyLoad();
+      let data = null;
+      try { data = await fetch('/api/day?date=' + encodeURIComponent(date)).then(r => r.json()); } catch {}
+      if (DY.detail !== date) return;   // a fast prev/next click won
+      body.innerHTML = '';
+      const d = data && data.day;
+      const plan = data && data.plan;
+      if (!d) {
+        const box = document.createElement('div'); box.className = 'state-box';
+        box.innerHTML = '<span>' + esc(t('dyNothingLogged')) + '</span>';
+        body.appendChild(box);
+      }
+      const evs = dyEventsOn(date);
+      if (evs.length) {
+        const e = document.createElement('div'); e.className = 'dy-dsub';
+        e.style.marginBottom = '14px';
+        e.textContent = evs.map(dyEventLabel).join(' · ');
+        body.appendChild(e);
+      }
+      if (d) {
+        const meta = [t(DY_DOW_KEYS[dyDow(date)])];
+        if (DY.tt && Number(DY.tt.settings.weekCycle) > 1) meta.push(t('dyWeek') + ' ' + (dyParity(date) === 0 ? 'A' : 'B'));
+        const c = dyCounts(d);
+        meta.push(t('dyNLessons')(c.lessons));
+        if (c.files) meta.push(t('dyNFiles')(c.files));
+        if (c.notes) meta.push(t('dyNNotes')(c.notes));
+        const hd = document.createElement('div');
+        hd.innerHTML = (dyDayTitle(d) ? '<div class="dy-dtitle" style="font-size:28px;margin-bottom:6px">' + esc(dyDayTitle(d)) + '</div>' : '') +
+          '<div class="dy-dsub">' + esc(meta.join(' · ')) + '</div>' +
+          (dyDaySummary(d) ? '<div class="dy-dsummary">' + esc(dyDaySummary(d)) + '</div>' : '');
+        hd.style.marginBottom = '22px';
+        body.appendChild(hd);
+        const list = document.createElement('div'); list.className = 'dy-lessons';
+        (d.lessons || []).forEach(l => list.appendChild(dyLessonCard(d, l)));
+        body.appendChild(list);
+      }
+      // Scheduled but not logged — shown quietly so the day still reads as a whole.
+      if (plan && plan.lessons && plan.lessons.length) {
+        const loggedKeys = new Set(((d && d.lessons) || []).map(l => l.slotId || (l.subjectId + ':' + l.periodId)));
+        const rest = plan.lessons.filter(pl => !loggedKeys.has(pl.slotId) && !loggedKeys.has(pl.subjectId + ':' + pl.periodId));
+        if (rest.length) {
+          const h = document.createElement('div'); h.className = 'dy-dsub';
+          h.style.margin = '26px 0 10px';
+          h.textContent = t('dyAlsoScheduled');
+          body.appendChild(h);
+          const list = document.createElement('div'); list.className = 'dy-lessons';
+          rest.forEach(pl => {
+            const el = document.createElement('div'); el.className = 'dy-lesson';
+            el.style.borderLeftColor = pl.color || 'var(--accent)';
+            el.style.opacity = '.6';
+            const meta = [];
+            if (pl.periodLabel) meta.push(t('dyPeriod') + ' ' + pl.periodLabel);
+            if (pl.start) meta.push(pl.start + (pl.end ? '–' + pl.end : ''));
+            if (pl.room) meta.push(pl.room);
+            el.innerHTML = '<div class="dy-ltop"><span class="dy-lname">' + esc(dySubjName(pl)) + '</span>' +
+              (meta.length ? '<span class="dy-lmeta">' + esc(meta.join(' · ')) + '</span>' : '') + '</div>';
+            list.appendChild(el);
+          });
+          body.appendChild(list);
+        }
+      }
+      dyUpdateDetailNav(date);
+      try { history.replaceState(null, '', '#day=' + date); } catch {}
+    }
+    function dyUpdateDetailNav(date) {
+      const dates = (DY.index || []).map(x => x.date).sort();
+      const i = dates.indexOf(date);
+      const prev = document.getElementById('dvPrev'), next = document.getElementById('dvNext');
+      const older = i > 0 ? dates[i - 1] : (dates.filter(x => x < date).pop() || null);
+      const newer = i >= 0 ? dates[i + 1] : (dates.filter(x => x > date)[0] || null);
+      prev.disabled = !older; next.disabled = !newer;
+      prev.style.opacity = older ? '1' : '.35';
+      next.style.opacity = newer ? '1' : '.35';
+      prev.onclick = () => older && dyOpenDetail(older);
+      next.onclick = () => newer && dyOpenDetail(newer);
+    }
+    function dyCloseDetail() {
+      const view = document.getElementById('dayView');
+      if (!view.classList.contains('open')) return;
+      view.classList.remove('open');
+      document.body.style.overflow = '';
+      DY.detail = null;
+      if (location.hash.startsWith('#day=')) { try { history.replaceState(null, '', location.pathname + location.search); } catch {} }
+    }
+
+    /* ── Wiring ───────────────────────────────────────────────────── */
+    document.getElementById('dyViewSeg').addEventListener('click', async e => {
+      const b = e.target.closest('button[data-dyview]'); if (!b) return;
+      DY.view = b.dataset.dyview;
+      await dyLoad();
+      dyRenderSubjectFilter();
+      dyRenderView();
+    });
+    let dySearchT;
+    document.getElementById('dySearch').addEventListener('input', e => {
+      DY.q = e.target.value.trim();
+      clearTimeout(dySearchT);
+      dySearchT = setTimeout(() => { if (DY.view !== 'feed') { DY.view = 'feed'; dyRenderSubjectFilter(); } dyRenderView(); }, 280);
+    });
+    document.getElementById('dyFilesOnly').addEventListener('click', e => {
+      DY.filesOnly = !DY.filesOnly;
+      e.currentTarget.classList.toggle('on', DY.filesOnly);
+      if (DY.view !== 'feed') DY.view = 'feed';
+      dyRenderView();
+    });
+    document.getElementById('dyCalPrev').addEventListener('click', () => { DY.calMonth = dyShiftMonth(DY.calMonth, -1); dyRenderCalendar(); });
+    document.getElementById('dyCalNext').addEventListener('click', () => { DY.calMonth = dyShiftMonth(DY.calMonth, 1); dyRenderCalendar(); });
+    document.getElementById('dyCalToday').addEventListener('click', () => { DY.calMonth = (DY.today || dyToday()).slice(0, 7); dyRenderCalendar(); });
+    function dyShiftMonth(m, n) {
+      const [Y, M] = (m || dyToday().slice(0, 7)).split('-').map(Number);
+      const d = new Date(Date.UTC(Y, M - 1 + n, 1));
+      return d.toISOString().slice(0, 7);
+    }
+    document.getElementById('dyWkPrev').addEventListener('click', async () => { DY.weekStart = dyAddDays(DY.weekStart || dyMonday(dyToday()), -7); await dyEnsureWeekLoaded(); dyRenderTimetable(); });
+    document.getElementById('dyWkNext').addEventListener('click', async () => { DY.weekStart = dyAddDays(DY.weekStart || dyMonday(dyToday()), 7); await dyEnsureWeekLoaded(); dyRenderTimetable(); });
+    document.getElementById('dyWkToday').addEventListener('click', async () => { DY.weekStart = dyMonday(DY.today || dyToday()); await dyEnsureWeekLoaded(); dyRenderTimetable(); });
+    document.getElementById('dvClose').addEventListener('click', dyCloseDetail);
+
+    /* ── "Covered in class" — the note → day direction of the link ──── */
+    // Asked once per note when a viewer opens; the button stays hidden unless the
+    // note actually appears in a logged lesson, so nothing changes for paper-free notes.
+    const _nclCache = new Map();
+    async function nclLookup(notePath, lang) {
+      const key = (lang === 'hu' ? 'hu:' : 'en:') + notePath;
+      if (_nclCache.has(key)) return _nclCache.get(key);
+      let out = [];
+      try {
+        const r = await fetch('/api/note/days?path=' + encodeURIComponent(notePath) + '&lang=' + (lang === 'hu' ? 'hu' : 'en')).then(x => x.json());
+        out = (r && r.days) || [];
+      } catch {}
+      _nclCache.set(key, out);
+      return out;
+    }
+    async function nclRefresh(which, notePath, lang) {
+      const btn = document.getElementById(which === 'code' ? 'codeInClass' : 'pdfInClass');
+      const lbl = document.getElementById(which === 'code' ? 'codeInClassLbl' : 'pdfInClassLbl');
+      if (!btn) return;
+      btn.hidden = true;
+      if (!notePath) return;
+      const rows = await nclLookup(notePath, lang);
+      if (!rows.length) return;
+      // The note may have been swapped while the request was in flight.
+      const stillHere = which === 'code' ? (codeCurPath === notePath) : (pdfCurrentPath === notePath);
+      if (!stillHere) return;
+      if (lbl) lbl.textContent = t('dyInClassOne')(rows.length);
+      btn.hidden = false;
+      btn.onclick = e => { e.stopPropagation(); nclOpenPop(btn, rows); };
+    }
+    function nclClosePop() { const p = document.getElementById('nclPop'); if (p) p.hidden = true; }
+    function nclOpenPop(anchor, rows) {
+      const pop = document.getElementById('nclPop');
+      const list = document.getElementById('nclList');
+      document.getElementById('nclHead').textContent = t('dyInClass');
+      list.innerHTML = '';
+      rows.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).forEach(r => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ncl-item';
+        const when = [dyLongDate(r.date)];
+        if (r.periodLabel) when.push(t('dyPeriod') + ' ' + r.periodLabel);
+        if (r.files) when.push(t('dyNFiles')(r.files));
+        b.innerHTML = '<span class="ncl-bar" style="background:' + esc(r.color || 'var(--accent)') + '"></span>' +
+          '<span style="flex:1;min-width:0"><span class="ncl-when">' + esc(when.join(' · ')) + '</span>' +
+          (r.what ? '<span class="ncl-what">' + esc(r.what) + '</span>' : '') + '</span>';
+        b.onclick = () => { nclClosePop(); closeViewersForDay(); dyOpenDetail(r.date); };
+        list.appendChild(b);
+      });
+      pop.hidden = false;
+      const rect = anchor.getBoundingClientRect();
+      const w = pop.offsetWidth, h = pop.offsetHeight;
+      let left = Math.min(Math.max(8, rect.left), window.innerWidth - w - 8);
+      let top = rect.bottom + 8;
+      if (top + h > window.innerHeight - 8) top = Math.max(8, rect.top - h - 8);
+      pop.style.left = left + 'px'; pop.style.top = top + 'px';
+    }
+    document.addEventListener('click', e => {
+      const pop = document.getElementById('nclPop');
+      if (pop && !pop.hidden && !pop.contains(e.target)) nclClosePop();
+    });
+    // Leaving a note viewer for the Days page: close whichever viewer is open.
+    function closeViewersForDay() {
+      nclClosePop();
+      const code = document.getElementById('codeModal');
+      if (code && code.classList.contains('open')) { const b = document.getElementById('codeModalClose'); if (b) b.click(); }
+      const pdf = document.getElementById('pdfModal');
+      if (pdf && pdf.classList.contains('open')) { const b = document.getElementById('pdfClose'); if (b) b.click(); }
+      navigateTo('days');
+    }
+
+    // Deep link: #day=YYYY-MM-DD opens that day directly.
+    async function dyCheckHash() {
+      const m = /^#day=(\d{4}-\d{2}-\d{2})$/.exec(location.hash || '');
+      if (!m) return false;
+      navigateTo('days');
+      await dyLoad();
+      dyOpenDetail(m[1]);
+      return true;
+    }
+    window.addEventListener('hashchange', dyCheckHash);
+
     const mediaModal = document.getElementById('mediaModal');
     function openMediaModal(item, kind) {
+      const src = '/data/' + encPath(item.path) + '?lang=' + (item._lang || LANG);
+      openMediaUrl(src, item.name, item.ext, kind, '/data/' + encPath(item.path) + '?download=1');
+    }
+    // Same viewer, any URL — used by /data notes and by day-log attachments alike.
+    function openMediaUrl(src, name, ext, kind, downloadUrl) {
       const body = document.getElementById('mediaBody');
       const fname = document.getElementById('mediaFilename');
       const badge = document.getElementById('mediaBadge');
       body.innerHTML = '';
-      fname.textContent = displayFileName(item.name);
-      badge.textContent = (item.ext||'').replace('.','').toUpperCase();
-      const src = '/data/' + encPath(item.path) + '?lang=' + (item._lang || LANG);
+      fname.textContent = displayFileName(name);
+      badge.textContent = (ext||'').replace('.','').toUpperCase();
+      const item = { name: name };
       if (kind === 'image') {
         const img = document.createElement('img');
         img.src = src; img.alt = item.name;
@@ -9564,7 +11184,8 @@
         aud.src = src; aud.controls = true;
         body.appendChild(aud);
       }
-      document.getElementById('mediaDownload').onclick = () => window.open('/data/'+encPath(item.path)+'?download=1','_blank');
+      const dl = downloadUrl || (src + (src.indexOf('?') >= 0 ? '&' : '?') + 'download=1');
+      document.getElementById('mediaDownload').onclick = () => window.open(dl, '_blank', 'noopener');
       mediaModal.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
@@ -9865,6 +11486,7 @@
       note:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
       article:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
       log:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>',
+      day:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
       url:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
     };
     function openRefPicker(textarea, anchorEl){
@@ -9901,7 +11523,7 @@
     }
     function refShowKinds(){
       refSetHead(t('refInsertTitle'), false);
-      var kinds = [['note', t('refKindNote')], ['article', t('refKindArticle')], ['log', t('refKindLog')], ['url', t('refKindLink')]];
+      var kinds = [['note', t('refKindNote')], ['article', t('refKindArticle')], ['day', t('refKindDay')], ['log', t('refKindLog')], ['url', t('refKindLink')]];
       var html = '<div class="refp-kinds">';
       kinds.forEach(function(o){ html += '<button class="refp-kind" data-k="' + o[0] + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + _REF_ICONS[o[0]] + '</svg>' + esc(o[1]) + '</button>'; });
       html += '</div>';
@@ -9926,7 +11548,7 @@
         setTimeout(function(){ var l = document.getElementById('refpLabel'); if (l) l.focus(); }, 0);
         return;
       }
-      refSetHead(kind === 'note' ? t('refKindNote') : kind === 'article' ? t('refKindArticle') : t('refKindLog'), true);
+      refSetHead(kind === 'note' ? t('refKindNote') : kind === 'article' ? t('refKindArticle') : kind === 'day' ? t('refKindDay') : t('refKindLog'), true);
       body.innerHTML = '<div class="refp-body"><input class="refp-search" id="refpSearch" type="text" placeholder="' + esc(t('refSearch')) + '"><div class="refp-list" id="refpList"></div></div>';
       var items = await refGatherItems(kind);
       function draw(q){
@@ -9957,6 +11579,14 @@
         if (kind === 'article') {
           if (!_refArticles) { var r = await fetch('/api/articles?lang=' + LANG); _refArticles = await r.json(); }
           return (_refArticles || []).map(function(a){ return { label: a.title || a.file, sub: a.date || a.file, target: a.file, lang: LANG }; });
+        }
+        if (kind === 'day') {
+          await dyLoad();
+          return (DY.index || []).map(function(d){
+            var ttl = (LANG === 'hu' && d.titleHu) ? d.titleHu : (d.title || d.titleHu || '');
+            var c = d.counts || {};
+            return { label: ttl || dyLongDate(d.date), sub: (ttl ? d.date + ' · ' : '') + t('dyNLessons')(c.lessons || 0), target: d.date, lang: '' };
+          });
         }
         if (kind === 'log') {
           if (!clLoaded) { try { var r2 = await fetch('/api/changelog'); clEntries = await r2.json(); clLoaded = true; } catch {} }
@@ -10139,6 +11769,7 @@
       if (ref.kind === 'article') { window.location.href = '/articles/' + ref.target + (ref.lang === 'hu' ? '?lang=hu' : ''); return; }
       if (ref.kind === 'note')    { openNoteByPath(ref.target, ref.lang || 'en'); return; }
       if (ref.kind === 'log')     { clScrollToId = ref.target; navigateTo('changelog'); return; }
+      if (ref.kind === 'day')     { closeViewersForDay(); dyOpenDetail(ref.target); return; }
     }
 
     // Render changelog body text, turning [label](ki://kind/target?lang=xx) tokens into links.
