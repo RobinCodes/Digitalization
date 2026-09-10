@@ -22,10 +22,30 @@ szignotes.hu, www.szignotes.hu {
 		max_size 32MB
 	}
 
+	# This access log is the only place in the whole stack where a visitor's IP
+	# would otherwise be written to disk — server.js keeps IPs in memory only,
+	# as rate-limit bucket keys, and never persists one. Mask them here so the
+	# log holds no personal data either.
+	#
+	# Both fields matter: since Caddy 2.7 client_ip is logged alongside
+	# remote_ip, so masking only one leaves the real address in the other.
 	log {
 		output file /var/log/caddy/szignotes.log {
 			roll_size 20MB
 			roll_keep 10
+		}
+		format filter {
+			wrap console
+			fields {
+				request>remote_ip ip_mask {
+					ipv4 16
+					ipv6 32
+				}
+				request>client_ip ip_mask {
+					ipv4 16
+					ipv6 32
+				}
+			}
 		}
 	}
 }
