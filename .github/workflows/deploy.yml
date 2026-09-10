@@ -3,6 +3,10 @@ name: Test & deploy
 on:
   push:
     branches: [main]
+  # Run the suite on PRs too, so a red test blocks the merge instead of only
+  # reporting after main has already moved.
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 # Never let two deploys overlap — the second would restart the server
@@ -31,6 +35,8 @@ jobs:
   deploy:
     name: Deploy to netcup
     needs: test
+    # Only real pushes to main deploy — never a pull request.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       # Until the server exists and the secrets are set, skip rather than fail —
