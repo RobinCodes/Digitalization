@@ -26,7 +26,7 @@ function ok(name, cond, detail) {
 const T = fs.mkdtempSync(path.join(os.tmpdir(), 'dtest_'));
 const SITE = path.join(T, 'site');
 fs.mkdirSync(SITE, { recursive: true });
-for (const f of ['server.js', 'devtools.html', 'template.html']) fs.copyFileSync(path.join(ROOT, f), path.join(SITE, f));
+for (const f of ['server.js', 'devtools.html', 'template.html', '404.html']) fs.copyFileSync(path.join(ROOT, f), path.join(SITE, f));
 fs.writeFileSync(path.join(SITE, 'changelog.json'), '[]');
 
 // seeded admin: admin / testpass
@@ -82,11 +82,27 @@ function req(method, p, { token, body, authToken, cookie } = {}) {
     r.end();
   });
 }
+// Like req(), but keeps the response as a Buffer — the backup export is a zip and
+// decoding it as a string would corrupt every byte over 0x7F.
+function reqBuf(method, p, { token, cookie } = {}) {
+  return new Promise((resolve, reject) => {
+    const headers = {};
+    if (token) headers['X-Admin-Token'] = token;
+    if (cookie) headers['Cookie'] = cookie;
+    const r = http.request({ host: '127.0.0.1', port: PORT, path: p, method, headers }, res => {
+      const bufs = []; res.on('data', c => bufs.push(c));
+      res.on('end', () => resolve({ status: res.statusCode, buf: Buffer.concat(bufs), headers: res.headers }));
+    });
+    r.on('error', reject);
+    r.end();
+  });
+}
 // Raw-body POST (the day-attachment upload endpoint takes the file as the body).
-function reqRaw(method, p, buf, { token } = {}) {
+function reqRaw(method, p, buf, { token, cookie } = {}) {
   return new Promise((resolve, reject) => {
     const headers = { 'Content-Type': 'application/octet-stream', 'Content-Length': buf.length };
     if (token) headers['X-Admin-Token'] = token;
+    if (cookie) headers['Cookie'] = cookie;
     const r = http.request({ host: '127.0.0.1', port: PORT, path: p, method, headers }, res => {
       let out = ''; res.on('data', c => out += c);
       res.on('end', () => {
@@ -1022,6 +1038,220 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     r = await req('GET', '/api/me', { cookie: selfA });
     ok('the other device is signed out', r.json && r.json.ok === false, JSON.stringify(r.json));
     await req('POST', '/api/admin/users/delete', { token, body: { username: 'resetme1' } });
+
+    // ══ Pre-hosting features ═════════════════════════════════════════════════
+
+    // ── Backup export ────────────────────────────────────────────────────────
+    r = await req('GET', '/api/admin/export');
+    ok('export needs an admin token (401)', r.status === 401, 'got ' + r.status);
+    const zipRes = await reqBuf('GET', '/api/admin/export', { token });
+    ok('export returns a zip', zipRes.status === 200 && /zip/.test(zipRes.headers['content-type'] || ''), zipRes.headers['content-type']);
+    ok('export names the file by date', /filename="digitalization-backup-\d{4}-\d{2}-\d{2}/.test(zipRes.headers['content-disposition'] || ''), zipRes.headers['content-disposition']);
+    const zbuf = zipRes.buf;
+    ok('the zip has a local file header', zbuf.length > 100 && zbuf.readUInt32LE(0) === 0x04034b50, 'magic=' + (zbuf.length > 4 ? zbuf.readUInt32LE(0).toString(16) : 'n/a'));
+    ok('the zip has an end-of-central-directory record', zbuf.indexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06])) > 0);
+    const zipNames = [];
+    { // read the central directory rather than trusting the local headers
+      let p = zbuf.indexOf(Buffer.from([0x50, 0x4b, 0x01, 0x02]));
+      while (p > 0 && zbuf.readUInt32LE(p) === 0x02014b50) {
+        const nlen = zbuf.readUInt16LE(p + 28), elen = zbuf.readUInt16LE(p + 30), clen = zbuf.readUInt16LE(p + 32);
+        zipNames.push(zbuf.slice(p + 46, p + 46 + nlen).toString('utf8'));
+        p += 46 + nlen + elen + clen;
+      }
+    }
+    ok('the zip carries the state files', zipNames.includes('state/admins.json') && zipNames.includes('state/days.json'), JSON.stringify(zipNames.slice(0, 12)));
+    ok('the zip carries a restore note', zipNames.includes('README-restore.txt'), JSON.stringify(zipNames));
+    ok('a state-only export leaves the note tree out', !zipNames.some(n => n.startsWith('Data/')), JSON.stringify(zipNames.filter(n => n.startsWith('Data'))));
+    const zipAll = await reqBuf('GET', '/api/admin/export?what=all', { token });
+    ok('what=all is larger than the state-only export', zipAll.buf.length > zbuf.length, zipAll.buf.length + ' vs ' + zbuf.length);
+
+    // ── Password reset ───────────────────────────────────────────────────────
+    await req('POST', '/api/admin/users', { token, body: { username: 'lockedout', password: 'lockedpw01' } });
+    r = await req('POST', '/api/password-reset/request', { body: { username: 'lockedout' } });
+    ok('a reset request is accepted', r.status === 200 && r.json && r.json.ok === true, JSON.stringify(r.json));
+    r = await req('POST', '/api/password-reset/request', { body: { username: 'definitely-not-a-user' } });
+    ok('an unknown username answers identically (no oracle)', r.status === 200 && r.json && r.json.ok === true && r.json.sent === true, JSON.stringify(r.json));
+
+    // The card reaches the admin's chat, from the member, with no attacker text.
+    r = await req('GET', '/api/chat/list', { cookie: cadmin });
+    const pwConvo = (r.json.conversations || []).find(c => (c.participants || []).some(p => String(p).toLowerCase() === 'lockedout'));
+    ok('the request lands in the admin chat list', !!pwConvo, JSON.stringify((r.json.conversations || []).map(c => c.participants)));
+    r = await req('GET', '/api/chat/messages?id=' + encodeURIComponent(pwConvo ? pwConvo.id : ''), { cookie: cadmin });
+    const pwCard = ((r.json && r.json.messages) || []).find(m => m.kind === 'password-reset');
+    ok('the card is a password-reset card, pending', !!pwCard && pwCard.status === 'pending', JSON.stringify(pwCard));
+    ok('the card carries no free text from the requester', !!pwCard && !pwCard.body, JSON.stringify(pwCard));
+
+    r = await req('POST', '/api/admin/password-reset/issue', { body: { username: 'lockedout' } });
+    ok('issuing a link needs admin (401)', r.status === 401, 'got ' + r.status);
+    r = await req('POST', '/api/admin/password-reset/issue', { token, body: { username: 'nobody-here' } });
+    ok('issuing for an unknown account is refused (404)', r.status === 404);
+    r = await req('POST', '/api/admin/password-reset/issue', { token, body: { username: 'lockedout' } });
+    ok('an admin can issue a one-time link', r.json && r.json.ok === true && /^\/#reset=[0-9a-f]{64}$/.test(r.json.path || ''), JSON.stringify(r.json));
+    const resetTok = (r.json.path || '').split('=')[1];
+    // A site session whose role is admin works too — the card lives in chat, not DevTools.
+    r = await req('POST', '/api/admin/password-reset/issue', { cookie: cadmin, body: { username: 'lockedout' } });
+    ok('an admin site session can issue it as well', r.json && r.json.ok === true && !!r.json.path, JSON.stringify(r.json));
+    const resetTok2 = (r.json.path || '').split('=')[1];
+    ok('issuing again retires the previous link', resetTok2 !== resetTok);
+
+    r = await req('POST', '/api/password-reset/complete', { body: { token: resetTok, newPassword: 'whatever12' } });
+    ok('the retired link no longer works', r.status === 400 && r.json && r.json.ok === false, JSON.stringify(r.json));
+    r = await req('POST', '/api/password-reset/complete', { body: { token: 'f'.repeat(64), newPassword: 'whatever12' } });
+    ok('a made-up token is refused', r.status === 400);
+    r = await req('POST', '/api/password-reset/complete', { body: { token: resetTok2, newPassword: 'sh' } });
+    ok('a short new password is refused', r.status === 400 && /8 characters/.test((r.json && r.json.error) || ''), JSON.stringify(r.json));
+
+    // A live session for that account, to prove the reset ends it.
+    const staleCk = (((await req('POST', '/api/login', { body: { username: 'lockedout', password: 'lockedpw01' } })).headers['set-cookie'] || [''])[0] || '').split(';')[0];
+    r = await req('POST', '/api/password-reset/complete', { body: { token: resetTok2, newPassword: 'freshpass99' } });
+    ok('the link sets the new password and signs in', r.status === 200 && r.json && r.json.ok === true && r.json.username === 'lockedout', JSON.stringify(r.json));
+    const freshCk = ((r.headers['set-cookie'] || [])[0] || '').split(';')[0];
+    ok('completing the reset returns a session cookie', /ki_auth=/.test(freshCk));
+    r = await req('GET', '/api/me', { cookie: freshCk });
+    ok('that session is live', r.json && r.json.ok === true && r.json.username === 'lockedout');
+    r = await req('GET', '/api/me', { cookie: staleCk });
+    ok('the reset signed the old session out', r.json && r.json.ok === false, JSON.stringify(r.json));
+    r = await req('POST', '/api/password-reset/complete', { body: { token: resetTok2, newPassword: 'anotherpw11' } });
+    ok('the link cannot be used twice', r.status === 400, 'got ' + r.status);
+    r = await req('POST', '/api/login', { body: { username: 'lockedout', password: 'freshpass99' } });
+    ok('the new password works at sign-in', r.status === 200 && r.json && r.json.ok === true);
+    r = await req('GET', '/api/chat/messages?id=' + encodeURIComponent(pwConvo ? pwConvo.id : ''), { cookie: cadmin });
+    const pwDone = ((r.json && r.json.messages) || []).find(m => m.kind === 'password-reset');
+    ok('the card closes once the link is used', !!pwDone && pwDone.status === 'done', JSON.stringify(pwDone));
+    await req('POST', '/api/admin/users/delete', { token, body: { username: 'lockedout' } });
+
+    // ── Search inside note bodies ────────────────────────────────────────────
+    r = await req('POST', '/api/admin/note', { token, body: { lang: 'en', dir: 'STEM/Mathematics',
+      filename: 'Findable {F}.tex',
+      content: '\\documentclass{article}\\begin{document}\nThe zorbulon identity is a curiosity.\nzorbulon again.\n\\end{document}',
+      meta: { canSee: 'all', canRead: 'all' } } });
+    ok('searchable note created', r.json && r.json.ok === true);
+    r = await req('POST', '/api/admin/note', { token, body: { lang: 'en', dir: 'STEM/Mathematics',
+      filename: 'Hidden Findable {G}.tex',
+      content: '\\documentclass{article}\\begin{document}zorbulon in a private note\\end{document}',
+      meta: { canSee: 'whitelist', canRead: 'whitelist', seeAllow: 'owner1', readAllow: 'owner1', owners: 'owner1' } } });
+    ok('restricted searchable note created', r.json && r.json.ok === true);
+
+    r = await req('GET', '/api/search?q=zorbulon&lang=en');
+    ok('search finds the phrase inside a note', r.json && r.json.ok === true && r.json.results.some(x => x.display === 'Findable'), JSON.stringify(r.json && r.json.results));
+    const hit = ((r.json && r.json.results) || []).find(x => x.display === 'Findable');
+    ok('the hit carries a snippet with the phrase', hit && /zorbulon/i.test(hit.snippet), hit && hit.snippet);
+    ok('the hit counts every occurrence', hit && hit.hits === 2, hit && String(hit.hits));
+    ok('the hit reports its folder and line', hit && hit.folder === 'STEM/Mathematics' && hit.line >= 1, JSON.stringify(hit));
+    ok('search hides a restricted note from an anonymous caller',
+      !((r.json && r.json.results) || []).some(x => x.display === 'Hidden Findable'), JSON.stringify((r.json.results || []).map(x => x.display)));
+    r = await req('GET', '/api/search?q=zorbulon&lang=en', { cookie: ownerCk });
+    ok('search shows the restricted note to its owner',
+      ((r.json && r.json.results) || []).some(x => x.display === 'Hidden Findable'), JSON.stringify((r.json.results || []).map(x => x.display)));
+    r = await req('GET', '/api/search?q=z');
+    ok('a one-character query is ignored', r.json && r.json.ok === true && r.json.results.length === 0);
+    r = await req('GET', '/api/search?q=' + encodeURIComponent('definitely-not-in-any-note-xyzzy'));
+    ok('a miss returns cleanly', r.json && r.json.ok === true && r.json.results.length === 0);
+    r = await req('GET', '/api/search?q=' + encodeURIComponent('see-allow'));
+    ok('search never reads data.txt', r.json && r.json.results.every(x => x.name !== 'data.txt'), JSON.stringify(r.json.results));
+    await req('POST', '/api/admin/note/delete', { token, body: { lang: 'en', dir: 'STEM/Mathematics', filename: 'Findable {F}.tex' } });
+    await req('POST', '/api/admin/note/delete', { token, body: { lang: 'en', dir: 'STEM/Mathematics', filename: 'Hidden Findable {G}.tex' } });
+
+    // ── Logging one lesson straight from the timetable ───────────────────────
+    r = await req('GET', '/api/admin/day/draftid?date=2026-09-21');
+    ok('draftid needs admin (401)', r.status === 401);
+    r = await req('GET', '/api/admin/day/draftid?date=not-a-date', { token });
+    ok('draftid rejects a bad date (400)', r.status === 400);
+    r = await req('GET', '/api/admin/day/draftid?date=2026-09-21', { token });
+    ok('draftid hands out an id for an unlogged date', r.json && r.json.ok === true && !!r.json.id && r.json.exists === false, JSON.stringify(r.json));
+    const draftId = r.json.id;
+
+    r = await req('POST', '/api/admin/day/lesson', { body: { date: '2026-09-21', slotId: 's1' } });
+    ok('quick log needs admin (401)', r.status === 401);
+    r = await req('POST', '/api/admin/day/lesson', { token, body: { date: 'nope', slotId: 's1' } });
+    ok('quick log rejects a bad date (400)', r.status === 400);
+
+    // 2026-09-21 is a Monday, and slotA is Monday period 1 in the fixture timetable.
+    r = await req('POST', '/api/admin/day/lesson', { token, body: { date: '2026-09-21', dayId: draftId, slotId: 's1',
+      lesson: { what: 'Filled two pages by hand.', homework: 'finish the sheet', kind: 'lesson' } } });
+    ok('quick log creates the day and the lesson', r.json && r.json.ok === true && r.json.day && r.json.day.lessons.length === 1, JSON.stringify(r.json));
+    const qlDay = r.json.day;
+    ok('quick log snapshots the subject from the timetable', qlDay.lessons[0].subject === 'Mathematics' && qlDay.lessons[0].color, JSON.stringify(qlDay.lessons[0]));
+    ok('quick log snapshots the period label and time', qlDay.lessons[0].periodLabel === '1' && qlDay.lessons[0].start === '08:00', JSON.stringify(qlDay.lessons[0]));
+    ok('quick log stamps the week parity', qlDay.week === 0 || qlDay.week === 1, String(qlDay.week));
+    ok('quick log records the author', qlDay.updatedBy === 'admin' && qlDay.createdBy === 'admin', JSON.stringify({ c: qlDay.createdBy, u: qlDay.updatedBy }));
+
+    r = await req('GET', '/api/admin/day/draftid?date=2026-09-21', { token });
+    ok('draftid now returns the saved day', r.json && r.json.exists === true && r.json.id === qlDay.id, JSON.stringify(r.json));
+
+    // A second save updates the same lesson instead of duplicating it.
+    r = await req('POST', '/api/admin/day/lesson', { token, body: { date: '2026-09-21', dayId: qlDay.id, slotId: 's1',
+      lesson: { what: 'Corrected: filled three pages.', kind: 'test' } } });
+    ok('a second save updates rather than duplicates', r.json && r.json.day.lessons.length === 1, JSON.stringify(r.json.day && r.json.day.lessons));
+    ok('the update took the new text and kind', r.json.day.lessons[0].what === 'Corrected: filled three pages.' && r.json.day.lessons[0].kind === 'test', JSON.stringify(r.json.day.lessons[0]));
+
+    // A second lesson on the same day sits alongside the first, in period order.
+    r = await req('POST', '/api/admin/day/lesson', { token, body: { date: '2026-09-21', dayId: qlDay.id, slotId: 's2',
+      lesson: { what: 'Second period.' } } });
+    ok('another lesson is added to the same day', r.json && r.json.day.lessons.length === 2, JSON.stringify(r.json.day.lessons.map(l => l.periodLabel)));
+    ok('lessons stay in period order', r.json.day.lessons[0].periodLabel === '1' && r.json.day.lessons[1].periodLabel === '2',
+       JSON.stringify(r.json.day.lessons.map(l => l.periodLabel)));
+
+    // It is public straight away, like any other logged day.
+    r = await req('GET', '/api/day?date=2026-09-21');
+    ok('the quick-logged day is publicly readable', r.json && r.json.day && r.json.day.lessons.length === 2);
+
+    // Emptying a lesson removes it; emptying the day removes the day.
+    r = await req('POST', '/api/admin/day/lesson', { token, body: { date: '2026-09-21', dayId: qlDay.id, slotId: 's2',
+      lesson: { what: '', homework: '', kind: 'lesson', topics: [], notes: [], attachments: [] } } });
+    ok('an emptied lesson is dropped', r.json && r.json.day && r.json.day.lessons.length === 1, JSON.stringify(r.json.day && r.json.day.lessons));
+    r = await req('POST', '/api/admin/day/lesson', { token, body: { date: '2026-09-21', dayId: qlDay.id, slotId: 's1',
+      lesson: { what: '', homework: '', kind: 'lesson', topics: [], notes: [], attachments: [] } } });
+    ok('a day emptied of every lesson is removed', r.json && r.json.ok === true && r.json.removed === true, JSON.stringify(r.json));
+    r = await req('GET', '/api/day?date=2026-09-21');
+    ok('and it is gone from the public day endpoint', r.json && r.json.day === null, JSON.stringify(r.json && r.json.day));
+
+    // The whole point of quick logging is that it happens from the site's own
+    // timetable grid, where there is no DevTools header token — only the admin's
+    // site cookie. A plain member's cookie must still be refused.
+    r = await req('GET', '/api/admin/day/draftid?date=2026-09-28', { cookie: cadmin });
+    ok('draftid accepts an admin site session', r.status === 200 && r.json && r.json.ok === true, 'got ' + r.status);
+    r = await req('GET', '/api/admin/day/draftid?date=2026-09-28', { cookie: ownerCk });
+    ok('draftid refuses a plain member session', r.status === 401, 'got ' + r.status);
+    r = await req('POST', '/api/admin/day/lesson', { cookie: ownerCk, body: { date: '2026-09-28', slotId: 's1', lesson: { what: 'nope' } } });
+    ok('quick log refuses a plain member session', r.status === 401, 'got ' + r.status);
+    r = await req('POST', '/api/admin/day/lesson', { cookie: cadmin, body: { date: '2026-09-28', slotId: 's1', lesson: { what: 'Logged from the grid.' } } });
+    ok('quick log accepts an admin site session', r.json && r.json.ok === true && r.json.day.lessons.length === 1, JSON.stringify(r.json));
+    ok('it records the site admin as the author', r.json.day.updatedBy === 'admin', r.json.day.updatedBy);
+    r = await reqRaw('POST', '/api/admin/day/upload?day=' + encodeURIComponent(r.json.day.id) + '&name=grid.png&kind=scan',
+      Buffer.from('89504e470d0a1a0a', 'hex'), { cookie: cadmin });
+    ok('an attachment uploads on an admin site session', r.json && r.json.ok === true, JSON.stringify(r.json));
+    r = await reqRaw('POST', '/api/admin/day/upload?day=someday&name=grid.png&kind=scan', Buffer.from('89504e470d0a1a0a', 'hex'), { cookie: ownerCk });
+    ok('a plain member cannot upload', r.status === 401, 'got ' + r.status);
+
+    // A file uploaded against a day that has not been saved yet is the draft state
+    // the quick-log panel sits in. The admin must be able to see it (or the preview
+    // of the scan they just dropped is broken); nobody else may.
+    const draft2 = (await req('GET', '/api/admin/day/draftid?date=2026-09-29', { cookie: cadmin })).json.id;
+    r = await reqRaw('POST', '/api/admin/day/upload?day=' + encodeURIComponent(draft2) + '&name=draft.png&kind=scan',
+      Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex'), { cookie: cadmin });
+    ok('an upload against an unsaved day is accepted', r.json && r.json.ok === true, JSON.stringify(r.json));
+    const draftUrl = r.json && r.json.url;
+    r = await req('GET', draftUrl, { cookie: cadmin });
+    ok('the admin can preview it before saving', r.status === 200, 'got ' + r.status);
+    r = await req('GET', draftUrl);
+    ok('nobody else can (404)', r.status === 404, 'got ' + r.status);
+    await req('POST', '/api/admin/day/delete', { token, body: { date: '2026-09-28' } });
+
+    // ── robots.txt and the 404 page ──────────────────────────────────────────
+    r = await req('GET', '/robots.txt');
+    ok('robots.txt is served', r.status === 200 && /^User-agent: \*/m.test(r.body), r.body.slice(0, 80));
+    ok('robots.txt keeps crawlers out of the API and uploads',
+      /Disallow: \/api\//.test(r.body) && /Disallow: \/uploads\//.test(r.body) && /Disallow: \/devtools/.test(r.body), r.body);
+
+    r = await req('GET', '/this-page-does-not-exist');
+    ok('an unknown page returns 404', r.status === 404, 'got ' + r.status);
+    ok('and it is the styled page, not bare text', /text\/html/.test(r.headers['content-type'] || '') && /404/.test(r.body), r.headers['content-type']);
+    ok('the 404 page asks not to be indexed', /name="robots" content="noindex"/.test(r.body));
+    r = await req('GET', '/api/definitely-not-a-route');
+    ok('an unknown API path still answers JSON', /json/.test(r.headers['content-type'] || '') && r.status === 404, r.headers['content-type']);
+    r = await req('GET', '/admins.json');
+    ok('a protected file gets the 404 page too, not a hint', r.status === 404);
 
     // ── HSTS is emitted on HTTPS only ────────────────────────────────────────
     r = await req('GET', '/api/me');

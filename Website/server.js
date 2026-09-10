@@ -7,6 +7,7 @@ const path   = require('path');
 const url    = require('url');
 const os     = require('os');
 const crypto = require('crypto');
+const zlib   = require('zlib');
 const { spawnSync, spawn } = require('child_process');
 
 const PORT          = process.env.PORT || 3000;
@@ -105,6 +106,22 @@ function sendJSON(res, data, status = 200) {
   res.end(body);
 }
 
+// A missing page should look like part of the site, not like a crashed process.
+// Falls back to plain text if 404.html is absent, and never wastes a rendered page
+// on an API path (those callers want JSON) or a HEAD request.
+function notFoundPage(res, req, pathname) {
+  if (String(pathname || '').startsWith('/api/')) {
+    return sendJSON(res, { ok: false, error: 'Not Found' }, 404);
+  }
+  let html = null;
+  try { html = fs.readFileSync(path.join(__WEBSITE, '404.html'), 'utf8'); } catch {}
+  if (!html) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Not Found'); }
+  html = html.split('__CSP_NONCE__').join(res._cspNonce || '');
+  const buf = Buffer.from(html, 'utf8');
+  res.writeHead(404, cors({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Length': String(buf.length) }));
+  return res.end(req && req.method === 'HEAD' ? undefined : buf);
+}
+
 // Serve an app-shell HTML page with a per-request CSP nonce substituted in.
 function serveHtmlShell(res, req, fullPath) {
   let html;
@@ -179,6 +196,82 @@ function serveFile(res, req, fullPath, forceDownload = false) {
   }
   headers['Content-Length'] = String(size);
   pipeRange(200, 0, size - 1);
+}
+
+// ── Minimal ZIP writer (no dependencies) ──────────────────────────────────────
+// Enough of the format to produce a normal .zip: one local header + deflated data
+// per entry, then a central directory, then the end-of-central-directory record.
+// Entries are streamed to the response one file at a time, so a large Uploads/
+// tree never sits in memory whole — only the file currently being deflated does.
+const _CRC_TABLE = (() => {
+  const t = new Int32Array(256);
+  for (let i = 0; i < 256; i++) { let c = i; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[i] = c; }
+  return t;
+})();
+function crc32(buf) {
+  let c = -1;
+  for (let i = 0; i < buf.length; i++) c = _CRC_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ -1) >>> 0;
+}
+// DOS date/time, as the format wants them.
+function _dosTime(d) {
+  const y = Math.max(1980, d.getFullYear());
+  return { date: ((y - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate(),
+           time: (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1) };
+}
+function createZipWriter(out) {
+  const entries = [];
+  let offset = 0;
+  const push = buf => { out.write(buf); offset += buf.length; };
+  return {
+    // `name` uses forward slashes; `data` is a Buffer.
+    add(name, data, mtime) {
+      const nameBuf = Buffer.from(String(name).replace(/\\/g, '/'), 'utf8');
+      const crc = crc32(data);
+      let method = 8, body;
+      try { body = zlib.deflateRawSync(data, { level: 6 }); } catch { method = 0; body = data; }
+      if (body.length >= data.length) { method = 0; body = data; }   // storing is smaller for already-compressed files
+      const { date, time } = _dosTime(mtime instanceof Date && !isNaN(mtime) ? mtime : new Date());
+      const local = Buffer.alloc(30);
+      local.writeUInt32LE(0x04034b50, 0);
+      local.writeUInt16LE(20, 4);            // version needed
+      local.writeUInt16LE(0x0800, 6);        // UTF-8 names
+      local.writeUInt16LE(method, 8);
+      local.writeUInt16LE(time, 10); local.writeUInt16LE(date, 12);
+      local.writeUInt32LE(crc, 14);
+      local.writeUInt32LE(body.length, 18);
+      local.writeUInt32LE(data.length, 22);
+      local.writeUInt16LE(nameBuf.length, 26);
+      local.writeUInt16LE(0, 28);
+      entries.push({ nameBuf, crc, csize: body.length, size: data.length, method, time, date, offset });
+      push(local); push(nameBuf); push(body);
+    },
+    finish() {
+      const start = offset;
+      for (const e of entries) {
+        const c = Buffer.alloc(46);
+        c.writeUInt32LE(0x02014b50, 0);
+        c.writeUInt16LE(20, 4); c.writeUInt16LE(20, 6);
+        c.writeUInt16LE(0x0800, 8);
+        c.writeUInt16LE(e.method, 10);
+        c.writeUInt16LE(e.time, 12); c.writeUInt16LE(e.date, 14);
+        c.writeUInt32LE(e.crc, 16);
+        c.writeUInt32LE(e.csize, 20); c.writeUInt32LE(e.size, 24);
+        c.writeUInt16LE(e.nameBuf.length, 28);
+        // 30..41 (extra len, comment len, disk, attrs) stay zero — Buffer.alloc did that.
+        c.writeUInt32LE(e.offset, 42);          // relative offset of the local header
+        push(c); push(e.nameBuf);
+      }
+      const eocd = Buffer.alloc(22);
+      eocd.writeUInt32LE(0x06054b50, 0);
+      eocd.writeUInt16LE(entries.length, 8);
+      eocd.writeUInt16LE(entries.length, 10);
+      eocd.writeUInt32LE(offset - start, 12);
+      eocd.writeUInt32LE(start, 16);
+      push(eocd);
+      return entries.length;
+    },
+  };
 }
 
 function copyDirSync(src, dest) {
@@ -322,6 +415,29 @@ function fileMeta(dir, name, sections) {
     altEn:       meta.alt_en      || null,
     ...deriveAccess(meta),
   };
+}
+
+// ── Note text, memoised for full-text search ──────────────────────────────────
+// /api/search reads every note body, so without a cache a search costs one full
+// read of the archive. Keyed on (mtime, size) like data.txt, and capped by total
+// bytes rather than entry count so one enormous note cannot own the whole cache.
+const SEARCHABLE_EXTS = new Set(['.tex', '.md', '.txt', '.bib']);
+const SEARCH_MAX_FILES = Number(process.env.SEARCH_MAX_FILES) || 4000;
+const SEARCH_MAX_HITS  = Number(process.env.SEARCH_MAX_HITS) || 200;
+const NOTE_TEXT_MAX    = 512 * 1024;                 // don't search or cache a huge file
+const _noteTextCache = new Map();                    // abs path -> { key, text }
+let _noteTextBytes = 0;
+function readNoteText(abs) {
+  let st; try { st = fs.statSync(abs); } catch { return ''; }
+  if (!st.isFile() || st.size > NOTE_TEXT_MAX) return '';
+  const key = st.mtimeMs + ':' + st.size;
+  const hit = _noteTextCache.get(abs);
+  if (hit && hit.key === key) return hit.text;
+  let text = ''; try { text = fs.readFileSync(abs, 'utf8'); } catch { return ''; }
+  if (_noteTextBytes > 48 * 1024 * 1024) { _noteTextCache.clear(); _noteTextBytes = 0; }
+  if (hit) _noteTextBytes -= hit.text.length;
+  _noteTextCache.set(abs, { key, text }); _noteTextBytes += text.length;
+  return text;
 }
 
 // ── Single-dir tree ────────────────────────────────────────────────────────────
@@ -1508,6 +1624,15 @@ function sweepOrphanDayFiles() {
 const USERNAME_RE  = /^[A-Za-z0-9_.-]{3,32}$/;
 const MIN_PASSWORD = 8;
 
+// Password-reset state. Both maps are memory-only on purpose: a token that dies
+// with the process is a token that cannot be stolen off disk, and the durable half
+// of the flow (the request card) lives in chats.json anyway.
+const PW_RESET_TOKENS   = new Map();               // token -> { userLc, username, expires }
+const PW_RESET_ASKED    = new Map();               // usernameLc -> last request time
+const PW_RESET_TTL      = Math.max(60000, Number(process.env.PW_RESET_TTL_MS) || 30 * 60 * 1000);
+const PW_RESET_COOLDOWN = Math.max(60000, Number(process.env.PW_RESET_COOLDOWN_MS) || 60 * 60 * 1000);
+const PW_RESET_MAX_PENDING = 20;                   // stops mass enumeration filling admin inboxes
+
 // A fixed dummy salt so a login attempt for a non-existent user still spends
 // ~the same time hashing — closes the username-enumeration timing side channel.
 const DUMMY_SALT = crypto.randomBytes(16).toString('hex');
@@ -1593,6 +1718,24 @@ function requireAdmin(req, res) {
   if (!u) { sendJSON(res, { ok: false, error: 'unauthorized' }, 401); return null; }
   return u;
 }
+// Admin identity from *either* credential: the DevTools header token, or a site
+// session whose role is admin. Used by the handful of admin actions that are
+// reached from the site rather than from DevTools — logging a lesson off the
+// timetable grid, issuing a password-reset link from a chat card — where forcing
+// the operator to go and open DevTools would simply mean the job never gets done.
+// It is the same account either way; only the transport differs, and the site
+// cookie is HttpOnly + SameSite=Lax so these POSTs are not reachable cross-site.
+function adminActor(req) {
+  const viaHeader = sessionUser(req);
+  if (viaHeader) return viaHeader;
+  const s = siteSession(req);
+  return (s && s.role === 'admin') ? s.username : null;
+}
+function requireAdminEither(req, res) {
+  const u = adminActor(req);
+  if (!u) { sendJSON(res, { ok: false, error: 'unauthorized' }, 401); return null; }
+  return u;
+}
 // Site session — cookie first (so <img>/<video>/downloads carry it), then header
 function siteSession(req) {
   return getSession((req.headers && req.headers['x-auth-token']) || '')
@@ -1642,6 +1785,7 @@ setInterval(() => {
   const now = Date.now();
   for (const [tok, s] of SESSIONS) if (!s || s.expires < now) SESSIONS.delete(tok);
   for (const [k, r] of RL) if (!r || r.reset < now) RL.delete(k);
+  for (const [tok, v] of PW_RESET_TOKENS) if (!v || v.expires < now) PW_RESET_TOKENS.delete(tok);
   for (const [u, t] of _presence) if (now - t > 24 * 60 * 60 * 1000) _presence.delete(u);
 }, 10 * 60 * 1000).unref();
 
@@ -1754,6 +1898,9 @@ const server = http.createServer((req, res) => {
   res._cspNonce = _cspNonce;
   let _cspPath = '/';
   try { _cspPath = decodeURIComponent((req.url || '/').split('?')[0]); } catch { _cspPath = (req.url || '/').split('?')[0]; }
+  // The 404 page cannot be listed here — it is served *as* whatever address missed,
+  // so its path is never known in advance. It carries one tiny inline script, which
+  // `notFoundPage` stamps with this same nonce, so it runs under either policy.
   const _cspShell = (_cspPath === '/' || _cspPath === '/index.html' || _cspPath === '/devtools' || _cspPath === '/devtools/' || _cspPath === '/devtools.html');
   const _scriptSrc = _cspShell
     ? `script-src 'self' 'nonce-${_cspNonce}' https://cdnjs.cloudflare.com`
@@ -1777,6 +1924,19 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/devtools' || pathname === '/devtools/')
     return serveHtmlShell(res, req, path.join(__WEBSITE, 'devtools.html'));
+
+  // Crawlers: index the public archive, but never the API, the admin console, the
+  // raw note files or the day-log uploads — those are access-checked per request
+  // and have no business in a search index even when they happen to be public.
+  if (pathname === '/robots.txt') {
+    const lines = ['User-agent: *'];
+    for (const d of ['/api/', '/devtools', '/uploads/', '/data/', '/music/']) lines.push('Disallow: ' + d);
+    lines.push('Allow: /');
+    if (process.env.SITE_ORIGIN) lines.push('', 'Sitemap: ' + String(process.env.SITE_ORIGIN).replace(/\/+$/, '') + '/sitemap.xml');
+    const buf = Buffer.from(lines.join('\n') + '\n', 'utf8');
+    res.writeHead(200, cors({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Length': String(buf.length) }));
+    return res.end(req.method === 'HEAD' ? undefined : buf);
+  }
 
   if (pathname === '/api/compile' && req.method === 'POST') return handleCompile(req, res);
 
@@ -1851,6 +2011,58 @@ const server = http.createServer((req, res) => {
     let content; try { content = fs.readFileSync(full, 'utf8'); } catch { res.writeHead(404); return res.end('Not Found'); }
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
     return res.end(content);
+  }
+
+  // ── Search inside the notes themselves ──────────────────────────────────────
+  // The grid's own search covers filename, tags, authors, path and description —
+  // everything *about* a note but nothing *in* it, which is backwards for an
+  // archive you search by remembering a theorem rather than a filename.
+  // Results are filtered by canViewNote, so a match never reveals a note you
+  // cannot open, and the snippet is drawn from a file you are allowed to read.
+  if (pathname === '/api/search' && req.method === 'GET') {
+    const q = String(query.q || '').trim();
+    if (q.length < 2) return sendJSON(res, { ok: true, q, results: [], truncated: false });
+    if (!rateOk(req, 'search', 120, 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many searches.' }, 429);
+    const needle = q.toLowerCase().slice(0, 120);
+    const wantLang = query.lang === 'hu' ? 'hu' : (query.lang === 'both' ? 'both' : 'en');
+    const langs = [];
+    if (wantLang === 'both') { langs.push(['en', __DATA]); if (HAS_DUAL_LANG) langs.push(['hu', __DATA_HU]); }
+    else if (wantLang === 'hu' && HAS_DUAL_LANG) langs.push(['hu', __DATA_HU]);
+    else langs.push(['en', __DATA]);
+
+    const results = [];
+    let scanned = 0, truncated = false;
+    outer:
+    for (const [lang, baseDir] of langs) {
+      const stack = [[baseDir, '']];
+      while (stack.length) {
+        const [dir, rel] = stack.pop();
+        let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
+        for (const e of ents) {
+          const childRel = rel ? `${rel}/${e.name}` : e.name;
+          if (e.isDirectory()) { stack.push([path.join(dir, e.name), childRel]); continue; }
+          if (e.name === 'data.txt') continue;
+          if (!SEARCHABLE_EXTS.has(path.extname(e.name).toLowerCase())) continue;
+          if (results.length >= SEARCH_MAX_HITS || scanned >= SEARCH_MAX_FILES) { truncated = true; break outer; }
+          scanned++;
+          const text = readNoteText(path.join(dir, e.name));
+          if (!text) continue;
+          const at = text.toLowerCase().indexOf(needle);
+          if (at < 0) continue;
+          if (!canViewNote(req, childRel, lang)) continue;      // never hint at a note you cannot open
+          // Count matches and cut a readable snippet around the first one.
+          let hits = 0, from = 0;
+          for (;;) { const k = text.toLowerCase().indexOf(needle, from); if (k < 0 || hits >= 999) break; hits++; from = k + needle.length; }
+          const s = Math.max(0, at - 60), en = Math.min(text.length, at + needle.length + 90);
+          const snippet = (s > 0 ? '…' : '') + text.slice(s, en).replace(/\s+/g, ' ').trim() + (en < text.length ? '…' : '');
+          const line = text.slice(0, at).split('\n').length;
+          results.push({ path: childRel, name: e.name, display: stripDisplayName(e.name), lang,
+            folder: rel || '', snippet, line, hits, ext: path.extname(e.name).toLowerCase() });
+        }
+      }
+    }
+    results.sort((a, b) => (b.hits - a.hits) || a.display.localeCompare(b.display, undefined, { numeric: true }));
+    return sendJSON(res, { ok: true, q, results, truncated });
   }
 
   // Precompile start
@@ -2764,6 +2976,113 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ── Password reset: ask an admin, admin hands back a one-time link ──────────
+  // There is no mail server, so the flow is deliberately human: a locked-out member
+  // asks, every admin gets a card in their chat, and an admin issues a single-use
+  // link they pass on however they normally reach that person.
+  //
+  // The abuse surface is the *request* step, which anyone can reach signed out, so
+  // it is fenced four ways: a hard IP rate limit, one pending request per account,
+  // an hour's cooldown per account even after one is resolved, and a global cap on
+  // pending requests. The requester supplies no free text at all — only a username
+  // that must already exist — so there is nothing to write into an admin's inbox.
+  if (pathname === '/api/password-reset/request' && req.method === 'POST') {
+    if (!rateOk(req, 'pwreset', 3, 60 * 60 * 1000)) return sendJSON(res, { ok: true, sent: true }, 200);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 2048) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      // The reply never varies: telling the caller whether an account exists would
+      // turn this into a username oracle.
+      const done = () => sendJSON(res, { ok: true, sent: true });
+      const nameLc = String(j.username || '').trim().toLowerCase();
+      if (!USERNAME_RE.test(nameLc)) return done();
+      const real = loadUsers().find(u => String(u.username).toLowerCase() === nameLc);
+      if (!real) return done();                                  // admins reset their own with make-admin.js
+      const now = Date.now();
+      const last = PW_RESET_ASKED.get(nameLc) || 0;
+      if (now - last < PW_RESET_COOLDOWN) return done();
+      if (PW_RESET_ASKED.size > 200) for (const [k, t] of PW_RESET_ASKED) if (now - t > PW_RESET_COOLDOWN) PW_RESET_ASKED.delete(k);
+
+      const chats = loadChats();
+      const pendingTotal = chats.conversations.reduce((n, c) =>
+        n + (c.messages || []).filter(m => m.kind === 'password-reset' && m.status === 'pending').length, 0);
+      if (pendingTotal >= PW_RESET_MAX_PENDING) return done();
+
+      const admins = loadAdmins().map(a => a.username);
+      if (!admins.length) return done();
+      const when = new Date().toISOString();
+      let posted = 0;
+      for (const to of admins) {
+        const c = ensureDM(chats, real.username, to);
+        if ((c.messages || []).some(m => m.kind === 'password-reset' && m.status === 'pending')) continue;
+        c.messages.push({ id: crypto.randomUUID(), from: real.username, kind: 'password-reset', status: 'pending', date: when });
+        posted++;
+      }
+      PW_RESET_ASKED.set(nameLc, now);
+      if (posted) { try { saveChats(chats); } catch {} }
+      return done();
+    });
+    return;
+  }
+  // Admin issues the one-time link. Nothing is emailed — the admin copies it and
+  // gives it to the person by whatever channel they already trust.
+  if (pathname === '/api/admin/password-reset/issue' && req.method === 'POST') {
+    // Either credential: the request card lands in the admin's *chat*, on the site,
+    // and making them open DevTools to answer it would guarantee it sits unread.
+    const _actor = requireAdminEither(req, res); if (!_actor) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 2048) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const nameLc = String(j.username || '').trim().toLowerCase();
+      const real = loadUsers().find(u => String(u.username).toLowerCase() === nameLc);
+      if (!real) return sendJSON(res, { ok: false, error: 'No such member account.' }, 404);
+      // One live token per account: issuing a new link retires the old one.
+      for (const [tok, v] of PW_RESET_TOKENS) if (v.userLc === nameLc) PW_RESET_TOKENS.delete(tok);
+      const tokenValue = crypto.randomBytes(32).toString('hex');
+      PW_RESET_TOKENS.set(tokenValue, { userLc: nameLc, username: real.username, expires: Date.now() + PW_RESET_TTL });
+      // Mark the request answered wherever it is showing.
+      const chats = loadChats(); let touched = false;
+      for (const c of chats.conversations)
+        for (const m of (c.messages || []))
+          if (m.kind === 'password-reset' && m.status === 'pending' && String(m.from).toLowerCase() === nameLc) { m.status = 'issued'; m.issuedBy = _actor; touched = true; }
+      if (touched) { try { saveChats(chats); } catch {} }
+      return sendJSON(res, { ok: true, username: real.username, path: '/#reset=' + tokenValue,
+        expiresInMinutes: Math.round(PW_RESET_TTL / 60000) });
+    });
+    return;
+  }
+  // The link itself. Single use, short-lived, and it signs every other session out.
+  if (pathname === '/api/password-reset/complete' && req.method === 'POST') {
+    if (!rateOk(req, 'pwresetdo', 20, 10 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many attempts. Try again in a few minutes.' }, 429);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', async () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const tok = String(j.token || '');
+      const rec = PW_RESET_TOKENS.get(tok);
+      if (!rec || rec.expires < Date.now()) { PW_RESET_TOKENS.delete(tok); return sendJSON(res, { ok: false, error: 'This link has expired. Ask for a new one.' }, 400); }
+      const newp = String(j.newPassword || '');
+      if (newp.length < MIN_PASSWORD) return sendJSON(res, { ok: false, error: 'Password must be at least ' + MIN_PASSWORD + ' characters.' }, 400);
+      const list = loadUsers();
+      const i = list.findIndex(u => String(u.username).toLowerCase() === rec.userLc);
+      if (i < 0) { PW_RESET_TOKENS.delete(tok); return sendJSON(res, { ok: false, error: 'That account no longer exists.' }, 404); }
+      list[i] = { username: list[i].username, ...(await hashPassword(newp)) };
+      try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      PW_RESET_TOKENS.delete(tok);                       // single use
+      PW_RESET_ASKED.delete(rec.userLc);                 // they are back in; clear the cooldown
+      revokeSessions(rec.username);                      // whoever else had the old password is out
+      // Close the card so the admin can see it was used.
+      const chats = loadChats(); let touched = false;
+      for (const c of chats.conversations)
+        for (const m of (c.messages || []))
+          if (m.kind === 'password-reset' && m.status === 'issued' && String(m.from).toLowerCase() === rec.userLc) { m.status = 'done'; touched = true; }
+      if (touched) { try { saveChats(chats); } catch {} }
+      const fresh = createSession(list[i].username, 'user');
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': setCookie(req, fresh) });
+      return res.end(JSON.stringify({ ok: true, username: list[i].username, role: 'user' }));
+    });
+    return;
+  }
+
   // ── Public: register a viewer account ───────────────────────────────────────
   if (pathname === '/api/register' && req.method === 'POST') {
     if (!rateOk(req, 'register', 5, 60 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many sign-up attempts. Try again later.' }, 429);
@@ -2815,6 +3134,77 @@ const server = http.createServer((req, res) => {
       return sendJSON(res, { ok: true, revoked });
     });
     return;
+  }
+
+  // ── Admin: back up everything the repository does not hold ──────────────────
+  // days.json, chats.json, users.json, grants.json and the Uploads/ tree are all
+  // git-ignored runtime state: lose the disk and you lose every logged day, every
+  // scan of a paper note and every conversation, with nothing to restore from.
+  // This streams the lot as a .zip so a backup is one click.
+  //   ?what=state (default) — the JSON stores + Uploads/
+  //   ?what=all             — also Data/, DataHU/, Articles/ (normally in git)
+  if (pathname === '/api/admin/export' && (req.method === 'GET' || req.method === 'HEAD')) {
+    if (!requireAdmin(req, res)) return;
+    const withNotes = query.what === 'all';
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    const fname = `digitalization-backup-${stamp}.zip`;
+    res.writeHead(200, cors({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${fname}"`,
+      'Cache-Control': 'no-store',
+    }));
+    if (req.method === 'HEAD') return res.end();
+
+    const zip = createZipWriter(res);
+    let files = 0, bytes = 0, skipped = [];
+    const EXPORT_MAX = Number(process.env.EXPORT_MAX_BYTES) || 2 * 1024 * 1024 * 1024;
+    const addFile = (abs, rel) => {
+      if (bytes >= EXPORT_MAX) { skipped.push(rel); return; }
+      let st; try { st = fs.statSync(abs); } catch { return; }
+      if (!st.isFile()) return;
+      let data; try { data = fs.readFileSync(abs); } catch { skipped.push(rel); return; }
+      zip.add(rel, data, st.mtime); files++; bytes += st.size;
+    };
+    const addDir = (absDir, relBase) => {
+      let ents; try { ents = fs.readdirSync(absDir, { withFileTypes: true }); } catch { return; }
+      for (const e of ents) {
+        const abs = path.join(absDir, e.name), rel = relBase + '/' + e.name;
+        if (e.isDirectory()) addDir(abs, rel); else addFile(abs, rel);
+      }
+    };
+    try {
+      for (const f of ['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json',
+                       'blocked.json', 'note-discussions.json', 'changelog.json', 'timetable.json', 'days.json'])
+        addFile(path.join(__WEBSITE, f), 'state/' + f);
+      addDir(__DAY_FILES, 'Uploads/days');
+      if (withNotes) {
+        addDir(__DATA, 'Data');
+        if (HAS_DUAL_LANG) addDir(__DATA_HU, 'DataHU');
+        addDir(__ARTICLES, 'Articles');
+        addDir(__ARTICLES_HU, 'ArticlesHU');
+      }
+      // A short manifest so a future you knows what this archive is and how to use it.
+      const manifest = [
+        'Digitalization backup',
+        'taken: ' + new Date().toISOString(),
+        'scope: ' + (withNotes ? 'state + notes + articles' : 'state + uploads'),
+        'files: ' + files,
+        'bytes: ' + bytes,
+        skipped.length ? 'skipped (unreadable or over EXPORT_MAX_BYTES): ' + skipped.length : '',
+        '',
+        'To restore: stop the server, copy state/*.json next to server.js, and copy',
+        'Uploads/ back into the Website folder. The two directories must keep their',
+        'names — day attachments are looked up as Uploads/days/<dayId>/<attId><ext>.',
+        '',
+        'state/admins.json and state/users.json hold salted scrypt password hashes.',
+        'Keep this file somewhere you would keep a password manager export.',
+      ].filter(x => x !== undefined).join('\n') + '\n';
+      zip.add('README-restore.txt', Buffer.from(manifest, 'utf8'), new Date());
+      zip.finish();
+    } catch (e) {
+      console.error('export failed:', (e && e.stack) || e);
+    }
+    return res.end();
   }
 
   // ── Admin: manage viewer accounts ───────────────────────────────────────────
@@ -2999,6 +3389,105 @@ const server = http.createServer((req, res) => {
     });
     return;
   }
+  // ── Logging a single lesson straight from the timetable ────────────────────
+  // The full day editor is the right tool for writing a day up properly. This pair
+  // is for the other case: you are looking at this week's grid, you have a photo of
+  // the page you just filled, and you want it attached to that lesson now. The
+  // digital note is optional — the point is that the resource for that class exists.
+  //
+  // Uploads need a day id before the day is saved, so this hands one out: the
+  // existing day's id for that date, or a fresh one. A draft id that is never saved
+  // leaves an orphan upload folder, which the 24-hour sweep already collects.
+  if (pathname === '/api/admin/day/draftid' && req.method === 'GET') {
+    if (!requireAdminEither(req, res)) return;
+    const date = _date(query.date);
+    if (!date) return sendJSON(res, { ok: false, error: 'A valid date (YYYY-MM-DD) is required.' }, 400);
+    const existing = findDayByDate(loadDays(), date);
+    return sendJSON(res, { ok: true, date, id: existing ? existing.id : _newId(), exists: !!existing });
+  }
+  if (pathname === '/api/admin/day/lesson' && req.method === 'POST') {
+    const who = requireAdminEither(req, res); if (!who) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 1048576) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const date = _date(j.date);
+      if (!date) return sendJSON(res, { ok: false, error: 'A valid date (YYYY-MM-DD) is required.' }, 400);
+      const list = loadDays().slice();
+      let idx = list.findIndex(d => d.date === date);
+      let day = idx >= 0 ? { ...list[idx], lessons: (list[idx].lessons || []).slice() } : null;
+      if (!day) {
+        const wantId = _id(j.dayId);
+        day = normDay({ id: wantId || _newId(), date, visibility: j.visibility === 'members' ? 'members' : 'all', lessons: [] }, null);
+        day.createdBy = who;
+      }
+      // Fill the lesson's identity from the timetable so an archived day still reads
+      // correctly years later, exactly as the full editor does.
+      const tt = loadTimetable();
+      const slot = (tt.slots || []).find(s => s.id === _id(j.slotId)) || null;
+      const subj = slot ? (tt.subjects || []).find(x => x.id === slot.subjectId) : null;
+      const per  = slot ? (tt.settings.periods || []).find(p => p.id === slot.periodId) : null;
+
+      const incoming = (j.lesson && typeof j.lesson === 'object') ? j.lesson : {};
+      // Match an existing entry by slot, else by subject+period, so a second save
+      // updates the lesson instead of duplicating it.
+      let li = day.lessons.findIndex(l =>
+        (slot && l.slotId && l.slotId === slot.id) ||
+        (slot && !l.slotId && l.subjectId === slot.subjectId && l.periodId === slot.periodId) ||
+        (!slot && _id(incoming.id) && l.id === _id(incoming.id)));
+      const prevLesson = li >= 0 ? day.lessons[li] : null;
+
+      const merged = normLesson({
+        ...(prevLesson || {}),
+        ...incoming,
+        id: prevLesson ? prevLesson.id : _idOrNew(incoming.id),
+        slotId:      slot ? slot.id : (prevLesson ? prevLesson.slotId : ''),
+        subjectId:   slot ? slot.subjectId : (incoming.subjectId || (prevLesson && prevLesson.subjectId)),
+        subject:     subj ? subj.name   : (incoming.subject   || (prevLesson && prevLesson.subject)),
+        subjectHu:   subj ? subj.nameHu : (incoming.subjectHu || (prevLesson && prevLesson.subjectHu)),
+        color:       subj ? subj.color  : (incoming.color     || (prevLesson && prevLesson.color)),
+        periodId:    slot ? slot.periodId : (prevLesson && prevLesson.periodId),
+        periodLabel: per  ? per.label : (incoming.periodLabel || (prevLesson && prevLesson.periodLabel)),
+        start:       per  ? per.start : (incoming.start || (prevLesson && prevLesson.start)),
+        end:         per  ? per.end   : (incoming.end   || (prevLesson && prevLesson.end)),
+        room:        incoming.room    != null ? incoming.room    : (slot ? (slot.room    || (subj && subj.room))    : (prevLesson && prevLesson.room)),
+        teacher:     incoming.teacher != null ? incoming.teacher : (slot ? (slot.teacher || (subj && subj.teacher)) : (prevLesson && prevLesson.teacher)),
+      });
+
+      // Attachments dropped from the lesson lose their files, as in the full editor.
+      if (prevLesson) {
+        const keep = new Set(merged.attachments.map(a => a.id));
+        for (const a of prevLesson.attachments || []) if (!keep.has(a.id)) deleteAttachmentFile(day.id, a);
+      }
+      // Nothing written and nothing attached means "remove this entry".
+      const isEmpty = !merged.what.trim() && !merged.homework.trim() && !merged.topics.length
+                   && !merged.attachments.length && !merged.notes.length && merged.kind === 'lesson' && !merged.important;
+      if (isEmpty && li >= 0) day.lessons.splice(li, 1);
+      else if (li >= 0) day.lessons[li] = merged;
+      else if (!isEmpty) day.lessons.push(merged);
+
+      // Keep the day in timetable order so it reads like the day it was.
+      const order = new Map((tt.settings.periods || []).map((p, i) => [p.id, i]));
+      day.lessons.sort((a, b) => (order.get(a.periodId) ?? 99) - (order.get(b.periodId) ?? 99));
+
+      if (typeof j.visibility === 'string') day.visibility = j.visibility === 'members' ? 'members' : 'all';
+      day.updatedBy = who;
+      day.week = weekParity(date, tt.settings);
+      const saved = normDay(day, idx >= 0 ? list[idx] : null);
+      saved.id = day.id;
+
+      // A day emptied of every lesson and with nothing else written is deleted
+      // rather than left as a blank card in the feed.
+      const blank = !saved.lessons.length && !saved.title && !saved.titleHu && !saved.summary.trim() && !saved.summaryHu.trim();
+      let out = list;
+      if (blank && idx >= 0) { try { rmDirSync(dayFileDir(saved.id)); } catch {} out = list.filter((_, k) => k !== idx); }
+      else if (blank) out = list;
+      else if (idx >= 0) { out = list.slice(); out[idx] = saved; }
+      else { out = list.concat([saved]); }
+      try { saveDays(out); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, day: blank ? null : saved, removed: blank });
+    });
+    return;
+  }
   if (pathname === '/api/admin/day/delete' && req.method === 'POST') {
     if (!requireAdmin(req, res)) return;
     let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
@@ -3017,7 +3506,7 @@ const server = http.createServer((req, res) => {
   // (this server has no dependencies) and streams straight from the file input.
   //   POST /api/admin/day/upload?day=<dayId>&name=<filename>&kind=scan|file
   if (pathname === '/api/admin/day/upload' && req.method === 'POST') {
-    if (!requireAdmin(req, res)) return;
+    if (!requireAdminEither(req, res)) return;
     if (!rateOk(req, 'dayupload', 300, 10 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many uploads. Try again shortly.' }, 429);
     const dayId = _id(query.day);
     if (!dayId) return sendJSON(res, { ok: false, error: 'Missing day id.' }, 400);
@@ -3072,7 +3561,11 @@ const server = http.createServer((req, res) => {
     const attId = path.basename(parts[1], ext);
     if (!dayId || !/^[0-9a-f]{24}$/.test(attId) || !ATTACH_EXTS.has(ext)) { res.writeHead(404); return res.end('Not Found'); }
     const day = loadDays().find(d => d.id === dayId) || null;
-    if (!day) { if (!sessionUser(req)) { res.writeHead(404); return res.end('Not Found'); } }
+    // A file uploaded against a day that is not saved yet is only visible to an
+    // admin — that is the draft state the quick-log panel is in while you are still
+    // filling it in, so it must accept a site session too or the thumbnail of the
+    // scan you just dropped is broken until you press Save.
+    if (!day) { if (!adminActor(req)) { res.writeHead(404); return res.end('Not Found'); } }
     // 404, not 403: a members-only day must answer exactly like a date that was
     // never logged, or the status code alone confirms the day exists — the same
     // rule /api/day and /api/days/index already follow.
@@ -3117,10 +3610,11 @@ const server = http.createServer((req, res) => {
 
   // Static files
   const rel = decPath(pathname === '/' ? 'index.html' : pathname.slice(1));
-  if (isProtectedStatic(rel)) { res.writeHead(404); return res.end('Not Found'); }
+  if (isProtectedStatic(rel)) return notFoundPage(res, req, pathname);
   let full; try { full = safePath(__WEBSITE, rel); } catch { res.writeHead(403); return res.end('Forbidden'); }
   try { if (fs.statSync(full).isDirectory()) full = path.join(full, 'index.html'); } catch {}
   if (full === path.join(__WEBSITE, 'index.html')) return serveHtmlShell(res, req, full);
+  try { if (!fs.statSync(full).isFile()) throw 0; } catch { return notFoundPage(res, req, pathname); }
   return serveFile(res, req, full);
 });
 

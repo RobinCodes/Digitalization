@@ -66,6 +66,41 @@ one is refused rather than silently creating a duplicate.
 
 ---
 
+## 2b · Logging one lesson from the timetable (admins)
+
+The editor above is for writing a day up properly. There is a second, much shorter
+path for the common case: you are looking at this week's grid, the page you just
+filled by hand is in front of you, and you want it filed against that lesson now.
+
+Signed in as an admin, **site → Days → Timetable** puts a small **+** on every
+lesson cell — **✎** where something is already logged. It opens a panel beside the
+grid with:
+
+- **What happened**, homework and the lesson kind;
+- **Scans & files** — drag and drop, or click to choose. Each file takes a caption
+  and a SCAN / FILE toggle, and images default to *scan*;
+- **Digital notes covering this** — a search over the real note tree, ordered so the
+  subject's own notes folder comes first when it has one.
+
+Saving upserts that one lesson into the date's record, creating the day if it does
+not exist yet. Everything else about the day is left alone, so this never overwrites
+work done in the full editor.
+
+**The digital note is optional.** A lesson whose whole record is a photo of the page
+is a perfectly good record — the point is that the resource for that class exists,
+not that it has been typed up.
+
+Emptying a lesson (no text, no files, no notes) removes it; emptying the last lesson
+of a day removes the day and its files.
+
+> Uploads need a day id before the day is saved, so the panel asks the server for
+> one — the existing day's, or a fresh one. A draft that is never saved leaves an
+> upload folder behind, which the 24-hour sweep in §4 collects. While the day is
+> still a draft its files are visible to admins only, so the thumbnail of the scan
+> you just dropped renders straight away without exposing it to anyone else.
+
+---
+
 ## 3 · What visitors see (site → **Days**)
 
 Three views over the same data, plus a full-day view:
@@ -140,6 +175,8 @@ timetable is rewritten — while the ids keep the live link for anything that wa
 - `GET  /api/admin/day?date=|id=` — a day plus its plan, including members-only days
 - `POST /api/admin/day` — create or update a day
 - `POST /api/admin/day/delete` — delete a day *and its files*
+- `GET  /api/admin/day/draftid?date=` — that date's day id, or a fresh one to upload against
+- `POST /api/admin/day/lesson` — upsert a single lesson into a day (the quick-log path)
 - `POST /api/admin/day/upload?day=&name=&kind=` — the request body **is** the file (no
   multipart parser needed; the server has no dependencies)
 
@@ -151,6 +188,11 @@ timetable is rewritten — while the ids keep the live link for anything that wa
   was never logged, so the existence of the day is not leaked.
 - Note links inside a day are pruned per viewer with the same `canViewNote` check the rest of
   the site uses, so a lesson never advertises a note you are not allowed to see.
+- The three routes the quick-log panel uses (`day/draftid`, `day/lesson`, `day/upload`)
+  accept **either** admin credential: the DevTools header token, or a site session whose
+  role is admin. They are reached from the site's own timetable grid, where no DevTools
+  token exists. It is the same account either way, and the site cookie is HttpOnly +
+  SameSite=Lax, so these POSTs are not reachable cross-site.
 - Uploads are admin-only, extension-allowlisted, and size-capped (`DAY_UPLOAD_MAX`, default
   25 MB). `.svg` and `.html` are **not** allowed: they execute script when served from our own
   origin, and these files are rendered inline.
@@ -180,7 +222,7 @@ be members-only, so they stay out of a public repository by default. **Back up `
 
 ## 6 · Validation
 
-`node Tests/run.js` — **294 assertions, all passing** (was 197, then 252). New coverage: timetable save
+`node Tests/run.js` — **370 assertions, all passing** (was 197, then 252, then 294). New coverage: timetable save
 and normalisation (invalid slots dropped, colours normalised, admin-only), A/B week parity in
 both directions, period ordering, holidays, the upload endpoint (accept, reject `.svg`, reject
 anonymous, reject a traversal day id), day save/update/duplicate-date/delete, feed filtering

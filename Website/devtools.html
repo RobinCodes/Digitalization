@@ -629,6 +629,22 @@
       <button class="btn-primary" id="acAdd">Add account</button>
     </div>
     <div id="acList" style="margin-top:20px"></div>
+
+    <!-- Everything below is git-ignored runtime state. Losing the disk loses it. -->
+    <h1 style="margin-top:44px">Back <em>up</em></h1>
+    <p class="sub">The day log, the messages, the accounts, the access grants and every scan you have uploaded live only on this server &mdash; the repository does not hold them. Download a copy somewhere safe, and do it before any move or upgrade.</p>
+    <div class="cl-form">
+      <div class="field-note" style="margin-bottom:14px">
+        <b>State &amp; uploads</b> is the one you want regularly: the JSON stores plus <code>Uploads/</code>.
+        <b>Everything</b> adds <code>Data/</code>, <code>DataHU/</code> and the article pages, which are normally in git already.
+        The archive includes a <code>README-restore.txt</code> explaining where each file goes back.
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <button class="btn-primary" id="bkState">Download state &amp; uploads</button>
+        <button class="btn-secondary" id="bkAll">Download everything</button>
+      </div>
+      <div class="field-note" id="bkNote" style="margin-top:12px;color:var(--text3)">The zip carries salted password hashes. Keep it where you would keep a password-manager export.</div>
+    </div>
   </main>
 
   <!-- TIMETABLE TAB -->
@@ -1818,6 +1834,37 @@
     finally { $('acAdd').disabled = false; $('acAdd').textContent = 'Add account'; }
   };
   $('acPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('acAdd').click(); });
+
+  // ── Backup download ────────────────────────────────────────────────────────
+  // The export needs the admin header token, which a plain <a download> cannot
+  // carry, so fetch it as a blob and hand the browser a temporary object URL.
+  async function downloadBackup(scope, btn) {
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Preparing…';
+    try {
+      const res = await fetch('/api/admin/export' + (scope === 'all' ? '?what=all' : ''),
+        { headers: token ? { 'X-Admin-Token': token } : {} });
+      if (res.status === 401) { handleExpired(); return; }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const blob = await res.blob();
+      // Prefer the filename the server chose, so backups sort by date on disk.
+      let name = 'digitalization-backup.zip';
+      const cd = res.headers.get('content-disposition') || '';
+      const m = /filename="([^"]+)"/.exec(cd); if (m) name = m[1];
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      const mb = (blob.size / 1048576);
+      $('bkNote').textContent = 'Saved ' + name + ' — ' + (mb < 0.1 ? (blob.size / 1024).toFixed(0) + ' KB' : mb.toFixed(1) + ' MB')
+        + '. The zip carries salted password hashes; keep it where you would keep a password-manager export.';
+      toast('Backup downloaded');
+    } catch (e) { toast('Backup failed: ' + e.message, true); }
+    finally { btn.disabled = false; btn.textContent = label; }
+  }
+  $('bkState').onclick = () => downloadBackup('state', $('bkState'));
+  $('bkAll').onclick   = () => downloadBackup('all',   $('bkAll'));
+
   function askDeleteUser(username) {
     $('cfTitle').textContent = 'Remove account?';
     $('cfMsg').innerHTML = 'Remove the account <b>' + esc(username) + '</b>? They will no longer be able to sign in.';

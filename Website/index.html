@@ -3,7 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Knowledge Index</title>
+  <title>Knowledge Index — Digitalization</title>
+  <meta name="description" content="Knowledge Index: the Digitalization project's bilingual archive of mathematics, science and humanities notes — every note typeset from source, alongside a day-by-day log of what was actually covered in class.">
+  <meta name="keywords" content="Knowledge Index, Digitalization, Digitalizations, SzigNotes, Szig Notes, digitalization project, knowledge archive, study notes, LaTeX notes, jegyzetek, tudástár, digitalizáció, mathematics notes, physics notes, chemistry notes, history notes, matematika, fizika, kémia, történelem, nyelvtan, irodalom, timetable, órarend, day log, tanórai jegyzetek, bilingual notes, English Hungarian notes">
+  <meta name="author" content="Digitalization">
+  <meta name="theme-color" content="#07070a">
+  <meta name="color-scheme" content="dark light">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="/">
+  <!-- Link previews (chat apps, social, search cards) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Knowledge Index">
+  <meta property="og:title" content="Knowledge Index — Digitalization">
+  <meta property="og:description" content="A bilingual archive of mathematics, science and humanities notes, typeset from source — with a day-by-day log of what was actually covered in class.">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:locale:alternate" content="hu_HU">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Knowledge Index — Digitalization">
+  <meta name="twitter:description" content="A bilingual archive of mathematics, science and humanities notes, typeset from source — with a day-by-day log of what was actually covered in class.">
   <link rel="icon" href="/Assets/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1629,6 +1646,105 @@
     .sort-dd-item.active{color:var(--accent)}
     .sort-dd-item.active::before{content:"✓ ";opacity:.85}
     .sort-dd-sep{height:1px;background:var(--border);margin:3px 2px}
+    /* ── Quick log: attach scans to a lesson from the week grid (admins) ──── */
+    .qlog-bd{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);z-index:9200;animation:fadeIn .2s var(--tr)}
+    .qlog{position:fixed;z-index:9201;top:0;right:0;bottom:0;width:min(460px,100vw);
+      background:var(--bg2);border-left:1px solid var(--border-md);
+      display:flex;flex-direction:column;box-shadow:-24px 0 60px rgba(0,0,0,.45);
+      animation:qlogIn .28s var(--tr-spring) both}
+    /* An author `display` beats the UA rule for [hidden], so say it again here or
+       the panel sits open on every page load. */
+    .qlog[hidden],.qlog-bd[hidden]{display:none!important}
+    @keyframes qlogIn{from{transform:translateX(26px);opacity:0}to{transform:none;opacity:1}}
+    .qlog-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex:none}
+    .qlog-swatch{width:4px;align-self:stretch;border-radius:3px;background:var(--accent);flex:none;min-height:34px}
+    .qlog-htxt{flex:1;min-width:0}
+    .qlog-htxt h3{font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:-.01em;color:var(--text);margin:0;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .qlog-htxt span{display:block;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:3px}
+    .qlog-x{background:none;border:none;color:var(--text2);font-size:26px;line-height:1;padding:0 2px;flex:none}
+    .qlog-x:hover{color:var(--text)}
+    .qlog-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+    .qlog-fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .qlog-fld > span{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text2)}
+    .qlog-fld textarea,.qlog-fld input,.qlog-fld select,#qlogNoteSearch{
+      background:var(--bg);border:1px solid var(--border-md);border-radius:var(--radius);
+      color:var(--text);font:inherit;font-size:13px;padding:9px 11px;width:100%;resize:vertical}
+    .qlog-fld textarea:focus,.qlog-fld input:focus,.qlog-fld select:focus,#qlogNoteSearch:focus{outline:none;border-color:var(--accent)}
+    .qlog-row2{display:grid;grid-template-columns:1fr 130px;gap:10px}
+    .qlog-sec-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text2);margin-top:4px}
+    .qlog-hint{font-family:var(--font-mono);font-size:10.5px;color:var(--text3);margin:-6px 0 2px}
+    .qlog-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+      border:1px dashed var(--border-md);border-radius:var(--radius-lg);padding:20px 16px;text-align:center;
+      color:var(--text2);font-size:12.5px;transition:border-color .18s,background .18s,color .18s}
+    .qlog-drop svg{width:22px;height:22px;opacity:.6}
+    .qlog-drop:hover,.qlog-drop:focus-visible,.qlog-drop.over{border-color:var(--accent);color:var(--text);background:var(--accent-dim);outline:none}
+    .qlog-files{display:flex;flex-direction:column;gap:7px}
+    .qlog-file{display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:7px 9px}
+    .qlog-file .th{width:34px;height:34px;border-radius:5px;background:var(--bg4);flex:none;overflow:hidden;
+      display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+    .qlog-file .th img{width:100%;height:100%;object-fit:cover}
+    .qlog-file .fmeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+    .qlog-file .fname{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .qlog-file input.cap{background:transparent;border:none;border-bottom:1px dashed var(--border-md);color:var(--text2);
+      font:inherit;font-size:11px;padding:1px 0;width:100%}
+    .qlog-file input.cap:focus{outline:none;border-bottom-color:var(--accent)}
+    .qlog-file .kindtog{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;border:1px solid var(--border-md);
+      background:var(--bg2);color:var(--text2);border-radius:4px;padding:3px 6px;flex:none}
+    .qlog-file .kindtog.scan{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+    .qlog-file .rm{background:none;border:none;color:var(--text3);font-size:17px;line-height:1;padding:0 3px;flex:none}
+    .qlog-file .rm:hover{color:var(--red)}
+    .qlog-file.pending{opacity:.6}
+    .qlog-picks{display:flex;flex-direction:column;gap:5px;max-height:190px;overflow-y:auto}
+    .qlog-pick{display:flex;flex-direction:column;gap:1px;text-align:left;width:100%;
+      background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font:inherit;color:var(--text)}
+    .qlog-pick:hover{border-color:var(--accent);background:var(--bg3)}
+    .qlog-pick b{font-size:12.5px;font-weight:600}
+    .qlog-pick span{font-family:var(--font-mono);font-size:9.5px;color:var(--text3);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .qlog-chosen{display:flex;flex-wrap:wrap;gap:6px}
+    .qlog-chip{display:inline-flex;align-items:center;gap:6px;background:var(--accent-dim);border:1px solid var(--accent);
+      color:var(--accent2);border-radius:20px;padding:4px 6px 4px 11px;font-size:11.5px;max-width:100%}
+    body.light .qlog-chip{color:var(--accent)}
+    .qlog-chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .qlog-chip button{background:none;border:none;color:inherit;font-size:15px;line-height:1;padding:0 2px;opacity:.75}
+    .qlog-chip button:hover{opacity:1}
+    .qlog-foot{display:flex;align-items:center;gap:10px;padding:14px 18px;border-top:1px solid var(--border);flex:none}
+    .qlog-msg{flex:1;font-size:11.5px;color:var(--text3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .qlog-msg.err{color:var(--red)}
+    /* The affordance on each grid cell — only rendered for admins. */
+    .dy-ttslot{position:relative}
+    .dy-qadd{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:5px;
+      background:rgba(0,0,0,.34);color:#fff;border:none;font-size:13px;line-height:20px;padding:0;
+      opacity:0;transition:opacity .16s,background .16s;z-index:2}
+    .dy-ttslot:hover .dy-qadd,.dy-qadd:focus-visible{opacity:1}
+    .dy-qadd:hover{background:rgba(0,0,0,.6)}
+    @media(max-width:640px){.dy-qadd{opacity:.85}}
+    @media(max-width:520px){.qlog{width:100vw;border-left:none}.qlog-row2{grid-template-columns:1fr}}
+
+    /* ── Search hits from inside note bodies ─────────────────────────────── */
+    .cs-panel{margin-top:26px;padding-top:20px;border-top:1px solid var(--border);animation:fadeUp .3s var(--tr) both}
+    .cs-head-row{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+    .cs-title{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text2)}
+    .cs-count{font-family:var(--font-mono);font-size:10.5px;color:var(--text3)}
+    .cs-list{display:flex;flex-direction:column;gap:7px}
+    .cs-row{display:flex;flex-direction:column;gap:5px;width:100%;text-align:left;
+      background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+      padding:11px 14px;font:inherit;color:var(--text);
+      transition:border-color .18s var(--tr),background .18s var(--tr),transform .18s var(--tr-spring)}
+    .cs-row:hover{border-color:var(--accent);background:var(--bg3);transform:translateX(3px)}
+    .cs-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+    .cs-name{font-family:var(--font-ui);font-size:13.5px;font-weight:600;letter-spacing:.005em}
+    .cs-lang,.cs-n{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;
+      color:var(--accent);background:var(--accent-dim);border-radius:4px;padding:1.5px 5px}
+    .cs-where{font-family:var(--font-mono);font-size:10px;color:var(--text3);
+      margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+    .cs-snip{font-family:var(--font-mono);font-size:11.5px;line-height:1.65;color:var(--text2);
+      overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical}
+    .cs-snip mark{background:var(--accent-glow);color:var(--accent2);border-radius:3px;padding:0 2px}
+    body.light .cs-snip mark{color:var(--accent)}
+    @media(max-width:560px){.cs-where{margin-left:0;max-width:100%}}
+
     .no-results-box{
       grid-column:1/-1;display:flex;flex-direction:column;align-items:center;
       justify-content:center;min-height:200px;gap:12px;
@@ -2196,6 +2312,9 @@
     .pdf-qs-lang-btn.qs-disabled,.pdf-tbtn.qs-disabled{opacity:.35;cursor:not-allowed}
     .auth-fld input:focus{border-color:var(--accent)}
     .auth-err{color:var(--red);font-size:12.5px;min-height:16px;margin-bottom:10px}
+    .auth-ok{color:var(--green);font-size:12.5px;line-height:1.6;margin-bottom:10px;
+      background:rgba(108,191,128,.08);border:1px solid rgba(108,191,128,.22);
+      border-radius:var(--radius);padding:9px 11px}
     .auth-submit{width:100%;padding:11px;background:linear-gradient(180deg,var(--accent2),var(--accent));color:#1a1408;border:none;border-radius:8px;font-family:var(--font-ui);font-weight:600;font-size:14px;cursor:none;transition:opacity .2s,transform .1s}
     .auth-submit:hover{opacity:.92}
     .auth-submit:active{transform:scale(.99)}
@@ -2379,6 +2498,68 @@
   </style>
 </head>
 <body>
+  <!-- ══ No JavaScript ═══════════════════════════════════════════════════════
+       The archive is a client-rendered app: the tree, the viewer, the day log and
+       chat all need script. Rather than show an empty shell, say so properly — and
+       give the reader the two things that do work without it (the source files and
+       the article pages), plus a real reason to turn it back on.
+       The style block is scoped to `.nojs-*` so it cannot leak into the app. -->
+  <noscript>
+    <style>
+      body > *:not(noscript){display:none!important}
+      body{background:var(--bg);overflow:auto!important}
+      html,body,a,button,*{cursor:auto!important}
+      .nojs-wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 22px;font-family:var(--font-ui)}
+      .nojs-inner{width:100%;max-width:660px}
+      .nojs-crumb{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--text3);margin-bottom:26px}
+      .nojs-mark{font-family:var(--font-display);font-style:italic;font-size:clamp(64px,14vw,120px);line-height:.85;color:var(--accent);opacity:.22;user-select:none;margin-bottom:-4px}
+      .nojs-wrap h1{font-family:var(--font-display);font-weight:500;font-size:clamp(32px,6.5vw,56px);line-height:1.05;letter-spacing:-.015em;color:var(--text);margin:0 0 20px}
+      .nojs-wrap h1 em{font-style:italic;color:var(--accent2)}
+      .nojs-wrap p{color:var(--text2);font-size:15px;line-height:1.72;max-width:54ch;margin:0 0 14px}
+      .nojs-rule{height:1px;background:var(--border);margin:30px 0 24px}
+      .nojs-h2{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+      .nojs-steps{list-style:none;margin:0 0 22px;padding:0;color:var(--text2);font-size:14px;line-height:1.7}
+      .nojs-steps li{padding-left:20px;position:relative;margin-bottom:6px}
+      .nojs-steps li::before{content:'→';position:absolute;left:0;color:var(--accent);opacity:.7}
+      .nojs-links{display:flex;flex-wrap:wrap;gap:10px}
+      .nojs-links a{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;text-decoration:none;color:var(--text);background:var(--bg2);border:1px solid var(--border-md);border-radius:9px;padding:10px 16px}
+      .nojs-links a:hover{border-color:var(--accent);background:var(--bg3)}
+      .nojs-foot{margin-top:32px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3)}
+      @media(max-width:520px){.nojs-wrap{align-items:flex-start;padding-top:14vh}.nojs-links{flex-direction:column;align-items:stretch}.nojs-links a{justify-content:center}}
+    </style>
+    <div class="nojs-wrap">
+      <div class="nojs-inner">
+        <div class="nojs-crumb">/ javascript required</div>
+        <div class="nojs-mark" aria-hidden="true">{ }</div>
+        <h1>The archive needs <em>JavaScript</em>.</h1>
+        <p>
+          Every note here is stored as LaTeX source and typeset to a PDF on demand, in your
+          browser. The subject tree, the reader, the day log and the messages are all drawn
+          the same way — so with scripting off there is genuinely nothing to show you.
+        </p>
+        <p>
+          Nothing is tracked and no third-party analytics run. The only outside requests are
+          for the typeface and the PDF renderer.
+        </p>
+        <div class="nojs-rule"></div>
+        <div class="nojs-h2">To turn it on</div>
+        <ul class="nojs-steps">
+          <li><b>Firefox</b> — about:config → <code>javascript.enabled</code> → true</li>
+          <li><b>Chrome / Edge</b> — Settings → Privacy and security → Site settings → JavaScript</li>
+          <li><b>Safari</b> — Settings → Security → Enable JavaScript</li>
+          <li>Using NoScript, uBlock in hard mode, or a private window with scripts blocked? Allow this site.</li>
+        </ul>
+        <div class="nojs-h2">In the meantime</div>
+        <p>Article pages are plain HTML and read fine without scripting.</p>
+        <div class="nojs-links">
+          <a href="/articles/">Article pages</a>
+          <a href="/robots.txt">robots.txt</a>
+        </div>
+        <div class="nojs-foot">Knowledge Index · Digitalization</div>
+      </div>
+    </div>
+  </noscript>
+
   <div id="cursorDot"></div>
   <div id="cursorRing"></div>
   <div id="noiseOverlay"></div>
@@ -2466,6 +2647,31 @@
         <div class="auth-err" id="authErr"></div>
         <button class="auth-submit" id="authSubmit" data-i18n="authSignIn">Sign in</button>
         <button type="button" class="auth-link" id="authToReg" data-i18n="authCreateLink">Create an account</button>
+        <button type="button" class="auth-link" id="authToForgot" data-i18n="authForgotLink">Forgotten your password?</button>
+      </div>
+      <!-- Locked out. There is no mail server, so this asks an admin and they hand
+           back a one-time link. The reply never says whether the account exists. -->
+      <div id="authViewForgot" style="display:none">
+        <h3 class="auth-h" data-i18n="authForgotHeading">Forgotten password</h3>
+        <p class="auth-sub" data-i18n="authForgotSub">Tell us your username and every admin gets a note in their messages. One of them will send you a one-time link to set a new password.</p>
+        <label class="auth-fld"><span data-i18n="authUser">Username</span><input type="text" id="fpUserInput" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        <div class="auth-err" id="fpErr"></div>
+        <div class="auth-ok" id="fpOk" hidden></div>
+        <button class="auth-submit" id="fpSubmit" data-i18n="authForgotBtn">Ask an admin</button>
+        <button type="button" class="auth-link" id="fpBack" data-i18n="authBackToSignin">Back to sign in</button>
+      </div>
+      <!-- Opened by the one-time link (#reset=…). -->
+      <div id="authViewReset" style="display:none">
+        <h3 class="auth-h" data-i18n="authResetHeading">Set a new password</h3>
+        <p class="auth-sub" data-i18n="authResetSub">This link works once. Choosing a new password also signs out every other device.</p>
+        <label class="auth-fld"><span data-i18n="authNewPass">New password</span>
+          <span class="auth-pass-wrap"><input type="password" id="rsPassInput" autocomplete="new-password"><button type="button" class="auth-eye" data-eye="rsPassInput" aria-label="Show password"></button></span>
+        </label>
+        <label class="auth-fld"><span data-i18n="authConfirm">Confirm password</span>
+          <span class="auth-pass-wrap"><input type="password" id="rsPass2Input" autocomplete="new-password"><button type="button" class="auth-eye" data-eye="rsPass2Input" aria-label="Show password"></button></span>
+        </label>
+        <div class="auth-err" id="rsErr"></div>
+        <button class="auth-submit" id="rsSubmit" data-i18n="authResetBtn">Set password and sign in</button>
       </div>
       <div id="authViewReg" style="display:none">
         <h3 class="auth-h" data-i18n="authRegHeading">Create account</h3>
@@ -2673,6 +2879,8 @@
         <div class="file-grid" id="fileGrid">
           <div class="state-box"><div class="spinner"></div><span data-i18n="loadingIndex">Loading index…</span></div>
         </div>
+        <!-- Matches found inside note bodies, appended under the metadata matches. -->
+        <div class="cs-panel" id="contentHits" hidden></div>
       </div>
     </section>
 
@@ -2780,6 +2988,53 @@
       </div>
       <div class="state-box" id="dyState" style="display:none"><span></span></div>
     </section>
+
+    <!-- ══ Quick log (admins) ══════════════════════════════════════════════════
+         Attach today's scans to a lesson straight from the week grid. The full day
+         editor in DevTools is for writing a day up properly; this is for the case
+         where the page you just filled is in your hand and the lesson is on screen.
+         The digital note is optional — the point is that the resource exists. -->
+    <div class="qlog-bd" id="qlogBd" hidden></div>
+    <aside class="qlog" id="qlog" hidden role="dialog" aria-modal="true" aria-labelledby="qlogTitle">
+      <header class="qlog-head">
+        <span class="qlog-swatch" id="qlogSwatch"></span>
+        <div class="qlog-htxt">
+          <h3 id="qlogTitle">Lesson</h3>
+          <span id="qlogWhen"></span>
+        </div>
+        <button class="qlog-x" id="qlogClose" type="button" aria-label="Close">×</button>
+      </header>
+      <div class="qlog-body">
+        <label class="qlog-fld"><span id="qlogWhatLbl">What happened</span>
+          <textarea id="qlogWhat" rows="3" placeholder="Covered §4.2, worked through the examples…"></textarea>
+        </label>
+        <div class="qlog-row2">
+          <label class="qlog-fld"><span id="qlogHwLbl">Homework</span><input type="text" id="qlogHw" placeholder="—"></label>
+          <label class="qlog-fld"><span id="qlogKindLbl">Kind</span>
+            <select id="qlogKind"></select>
+          </label>
+        </div>
+
+        <div class="qlog-sec-lbl" id="qlogFilesLbl">Scans &amp; files</div>
+        <div class="qlog-drop" id="qlogDrop" tabindex="0" role="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span id="qlogDropTxt">Drop a photo of the page, or click to choose</span>
+          <input type="file" id="qlogFile" multiple hidden>
+        </div>
+        <div class="qlog-files" id="qlogFiles"></div>
+
+        <div class="qlog-sec-lbl" id="qlogNotesLbl">Digital notes covering this</div>
+        <div class="qlog-hint" id="qlogFolderHint" hidden></div>
+        <input type="text" id="qlogNoteSearch" placeholder="Search the archive…" autocomplete="off" spellcheck="false">
+        <div class="qlog-picks" id="qlogNoteHits"></div>
+        <div class="qlog-chosen" id="qlogNotes"></div>
+      </div>
+      <footer class="qlog-foot">
+        <span class="qlog-msg" id="qlogMsg"></span>
+        <button class="msg-ghost" id="qlogCancel" type="button">Cancel</button>
+        <button class="msg-primary" id="qlogSave" type="button">Save</button>
+      </footer>
+    </aside>
 
     <section class="page" id="page-chat">
       <div class="chat-topbar">
@@ -3874,6 +4129,41 @@
         gridCountFolders: (n) => `${n} folder${n!==1?'s':''}`,
         gridCountFiles:   (n) => `${n} file${n!==1?'s':''}`,
         gridCountResults: (n) => `${n} result${n!==1?'s':''}`,
+        noResultsFor:     'No results for',
+        authForgotLink:    'Forgotten your password?',
+        authForgotHeading: 'Forgotten password',
+        authForgotSub:     'Tell us your username and every admin gets a note in their messages. One of them will send you a one-time link to set a new password.',
+        authForgotBtn:     'Ask an admin',
+        authBackToSignin:  'Back to sign in',
+        authForgotSent:    'If that account exists, the admins have been told. They will get in touch with a link.',
+        authForgotFailed:  'Could not reach the server. Try again in a moment.',
+        authResetHeading:  'Set a new password',
+        authResetSub:      'This link works once. Choosing a new password also signs out every other device.',
+        authNewPass:       'New password',
+        authResetBtn:      'Set password and sign in',
+        authResetExpired:  'This link has expired or has already been used. Ask for a new one.',
+        authResetIssued:   'Reset link copied — send it to them yourself. It expires in 30 minutes.',
+        arPwHeading:       'Password reset',
+        arPwAsked:         'asked for a password reset.',
+        arPwYouAsked:      'You asked for a password reset.',
+        arPwGenerate:      'Generate a one-time link',
+        arPwIssued:        'A link was issued. It expires in 30 minutes.',
+        arPwDone:          'The password was changed.',
+        arPwCopy:          'Copy link',
+        qlLogLesson:       'Log this lesson',
+        qlEditLesson:      'Edit what was logged',
+        qlCaption:         'Caption (optional)',
+        qlUploading:       'Uploading…',
+        qlUploadFailed:    'That file could not be uploaded.',
+        qlWaitUpload:      'Wait for the uploads to finish.',
+        qlSaving:          'Saving…',
+        qlSaved:           'Lesson saved',
+        qlCleared:         'Entry removed',
+        qlSaveFailed:      'Could not save. Try again.',
+        qlNoDay:           'Could not prepare the day. Reload and try again.',
+        csInNotes:        'Found inside notes',
+        csNFound:         (n) => `${n} note${n!==1?'s':''}`,
+        csRoot:           'root',
         // Unsaved-changes confirm popup
         stgCfTitle:   'Unsaved changes',
         stgCfMsg:     'You have unsaved changes. Apply them to keep your settings, or discard them to revert.',
@@ -4207,6 +4497,41 @@
         gridCountFolders: (n) => `${n} mappa`,
         gridCountFiles:   (n) => `${n} fájl`,
         gridCountResults: (n) => `${n} találat`,
+        noResultsFor:     'Nincs találat erre:',
+        authForgotLink:    'Elfelejtetted a jelszavad?',
+        authForgotHeading: 'Elfelejtett jelszó',
+        authForgotSub:     'Add meg a felhasználóneved, és minden adminhoz megérkezik egy üzenet. Valamelyikük küld egy egyszer használható linket, amivel új jelszót adhatsz meg.',
+        authForgotBtn:     'Szólok egy adminnak',
+        authBackToSignin:  'Vissza a bejelentkezéshez',
+        authForgotSent:    'Ha létezik ilyen fiók, az adminok értesültek róla. Keresni fognak egy linkkel.',
+        authForgotFailed:  'Nem sikerült elérni a szervert. Próbáld újra kicsit később.',
+        authResetHeading:  'Új jelszó megadása',
+        authResetSub:      'Ez a link egyszer használható. Az új jelszó minden más eszközről kiléptet.',
+        authNewPass:       'Új jelszó',
+        authResetBtn:      'Jelszó mentése és belépés',
+        authResetExpired:  'Ez a link lejárt vagy már felhasználták. Kérj egy újat.',
+        authResetIssued:   'A link a vágólapon — küldd el neki te. 30 percig érvényes.',
+        arPwHeading:       'Jelszó-visszaállítás',
+        arPwAsked:         'jelszó-visszaállítást kért.',
+        arPwYouAsked:      'Jelszó-visszaállítást kértél.',
+        arPwGenerate:      'Egyszeri link készítése',
+        arPwIssued:        'A link elkészült. 30 percig érvényes.',
+        arPwDone:          'A jelszó megváltozott.',
+        arPwCopy:          'Link másolása',
+        qlLogLesson:       'Óra rögzítése',
+        qlEditLesson:      'A rögzített óra szerkesztése',
+        qlCaption:         'Felirat (nem kötelező)',
+        qlUploading:       'Feltöltés…',
+        qlUploadFailed:    'Ezt a fájlt nem sikerült feltölteni.',
+        qlWaitUpload:      'Várd meg, míg a feltöltések befejeződnek.',
+        qlSaving:          'Mentés…',
+        qlSaved:           'Óra elmentve',
+        qlCleared:         'Bejegyzés törölve',
+        qlSaveFailed:      'Nem sikerült menteni. Próbáld újra.',
+        qlNoDay:           'Nem sikerült előkészíteni a napot. Töltsd újra az oldalt.',
+        csInNotes:        'Találat a jegyzetek szövegében',
+        csNFound:         (n) => `${n} jegyzet`,
+        csRoot:           'gyökér',
         // Nem mentett változtatások megerősítő ablak
         stgCfTitle:   'Nem mentett változtatások',
         stgCfMsg:     'Nem mentett változtatásaid vannak. Alkalmazd a beállítások megőrzéséhez, vagy vesd el a visszaállításhoz.',
@@ -5281,7 +5606,7 @@
         results = sortItems(results);
         const cntEl = document.getElementById('searchCount'); if (cntEl) cntEl.textContent = T[LANG].gridCountResults(results.length) + (activeTagFilters.size?' · '+activeTagFilters.size+' '+t('stgSections').toLowerCase():'') + (sortMode!=='default'?' · '+t('sortDefault').toLowerCase():'');
         if (!results.length) {
-          grid.innerHTML = `<div class="no-results-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>No results for "${esc(searchQuery)}"</span></div>`;
+          grid.innerHTML = `<div class="no-results-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>${esc(t('noResultsFor'))} "${esc(searchQuery)}"</span></div>`;
         } else {
           results.forEach((item, idx) => {
             const card = buildCard(item);
@@ -5289,7 +5614,12 @@
             grid.appendChild(card);
           });
         }
-        count.textContent = T[LANG].gridCountResults(results.length);        return;
+        count.textContent = T[LANG].gridCountResults(results.length);
+        // The cards above match on a note's *metadata*. Ask the server what matches
+        // inside the notes themselves and append that as its own section — you
+        // usually remember the theorem, not the filename.
+        runContentSearch(searchQuery, new Set(results.map(r => r.path)));
+        return;
       }
       const cntBadge = document.getElementById('searchCount'); if (cntBadge) cntBadge.textContent = '';
 
@@ -5619,7 +5949,64 @@
       return card;
     }
 
+    /* ── Search inside the notes ─────────────────────────────────────────
+       The grid matches a note's metadata; this asks the server what matches in the
+       note bodies and appends the hits underneath, with the matched phrase marked
+       in a line of surrounding context. Debounced, and every request carries a
+       sequence number so a slow answer can never overwrite a newer one. */
+    let _csSeq = 0, _csTimer = null;
+    function runContentSearch(q, alreadyShown) {
+      const host = document.getElementById('contentHits');
+      if (!host) return;
+      clearTimeout(_csTimer);
+      const query = String(q || '').trim();
+      if (query.length < 2) { host.hidden = true; host.innerHTML = ''; return; }
+      const seq = ++_csSeq;
+      _csTimer = setTimeout(async () => {
+        let data = null;
+        try {
+          const r = await fetch('/api/search?lang=' + encodeURIComponent(MAT_LANG) + '&q=' + encodeURIComponent(query));
+          data = await r.json();
+        } catch { return; }
+        if (seq !== _csSeq) return;                        // a newer search already won
+        const hits = (data && data.results) || [];
+        // Drop notes the grid is already showing — the point is what metadata missed.
+        const fresh = hits.filter(h => !(alreadyShown && alreadyShown.has(h.path)));
+        if (!fresh.length) { host.hidden = true; host.innerHTML = ''; return; }
+        const rows = fresh.map(h => {
+          const where = h.folder ? h.folder.split('/').join(' › ') : t('csRoot');
+          const tag = (h.hits > 1) ? '<span class="cs-n">' + h.hits + '×</span>' : '';
+          const langTag = (MAT_LANG === 'both') ? '<span class="cs-lang">' + esc(h.lang.toUpperCase()) + '</span>' : '';
+          return '<button type="button" class="cs-row" data-p="' + esc(h.path) + '" data-l="' + esc(h.lang) + '">'
+            + '<span class="cs-head"><span class="cs-name">' + esc(h.display) + '</span>' + langTag + tag
+            + '<span class="cs-where">' + esc(where) + '</span></span>'
+            + '<span class="cs-snip">' + csMark(h.snippet, query) + '</span></button>';
+        }).join('');
+        host.innerHTML = '<div class="cs-head-row"><span class="cs-title">' + esc(t('csInNotes')) + '</span>'
+          + '<span class="cs-count">' + esc(t('csNFound')(fresh.length)) + (data.truncated ? '+' : '') + '</span></div>'
+          + '<div class="cs-list">' + rows + '</div>';
+        host.hidden = false;
+        host.querySelectorAll('.cs-row').forEach(b =>
+          b.addEventListener('click', () => openNoteByPath(b.dataset.p, b.dataset.l)));
+      }, 220);
+    }
+    // Mark every occurrence of the query inside an already-escaped snippet.
+    function csMark(snippet, q) {
+      const s = String(snippet || ''), needle = String(q || '').toLowerCase();
+      if (!needle) return esc(s);
+      let out = '', i = 0;
+      for (;;) {
+        const k = s.toLowerCase().indexOf(needle, i);
+        if (k < 0) { out += esc(s.slice(i)); break; }
+        out += esc(s.slice(i, k)) + '<mark>' + esc(s.slice(k, k + needle.length)) + '</mark>';
+        i = k + needle.length;
+      }
+      return out;
+    }
+
     function clearSearch() {
+      const ch = document.getElementById('contentHits'); if (ch) { ch.hidden = true; ch.innerHTML = ''; }
+      _csSeq++;                                            // cancel any answer still in flight
       searchQuery = ''; sortMode = 'default'; activeTagFilters = new Set();
       const inp = document.getElementById('searchInput');
       if (inp) inp.value = '';
@@ -5787,12 +6174,12 @@
       if (AUTH.user) { pullSettings(); pollUnread(); } else updateMsgBell(0);
     }
     function showAuthView(which) {
-      const out = document.getElementById('authViewOut');
-      const reg = document.getElementById('authViewReg');
-      const inv = document.getElementById('authViewIn');
-      if (out) out.style.display = which === 'signin'   ? '' : 'none';
-      if (reg) reg.style.display = which === 'register' ? '' : 'none';
-      if (inv) inv.style.display = which === 'in'       ? '' : 'none';
+      const views = { signin: 'authViewOut', register: 'authViewReg', in: 'authViewIn',
+                      forgot: 'authViewForgot', reset: 'authViewReset' };
+      for (const [key, id] of Object.entries(views)) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = (which === key) ? '' : 'none';
+      }
     }
     async function populateProfileStats() {
       const av = document.getElementById('authAvatar'); if (av) av.textContent = (AUTH.user || '?').slice(0, 1).toUpperCase();
@@ -6035,6 +6422,18 @@
           const extra = m.body ? '<div>' + renderRefText(m.body) + '</div>' : '';
           return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-h">\uD83D\uDD12 ' + MSGT('Access request', 'Hozz\u00e1f\u00e9r\u00e9si k\u00e9relem') + '</div><div>' + intro + '</div><div class="ar-note">' + noteLink + '</div>' + extra + foot + '</div>';
         }
+        if (m.kind === 'password-reset') {
+          // Only an admin can act on it; the requester just sees that it was sent.
+          const canAct = (AUTH.role === 'admin') && !mine && m.status === 'pending';
+          let foot = '';
+          if (canAct) foot = '<div class="ar-row"><button class="msg-primary pw-issue" data-u="' + esc(m.from) + '">' + esc(t('arPwGenerate')) + '</button></div>';
+          else if (m.status === 'pending') foot = '<div class="ar-status">' + esc(t('arPwYouAsked')) + '</div>';
+          else if (m.status === 'issued')  foot = '<div class="ar-status ok">' + esc(t('arPwIssued')) + '</div>'
+            + ((AUTH.role === 'admin' && !mine) ? '<div class="ar-row"><button class="msg-ghost pw-issue" data-u="' + esc(m.from) + '">' + esc(t('arPwGenerate')) + '</button></div>' : '');
+          else if (m.status === 'done')    foot = '<div class="ar-status ok">' + esc(t('arPwDone')) + '</div>';
+          const intro = mine ? esc(t('arPwYouAsked')) : (esc(m.from) + ' ' + esc(t('arPwAsked')));
+          return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-h">🔑 ' + esc(t('arPwHeading')) + '</div><div>' + intro + '</div>' + foot + '</div>';
+        }
         if (m.kind === 'access-result') {
           const ok = m.decision === 'accepted';
           const noteLbl = esc((m.note && m.note.label) || '');
@@ -6054,6 +6453,7 @@
       }).join('');
       box.querySelectorAll('.cl-ref').forEach(a => a.addEventListener('click', e => { e.preventDefault(); try { navigateToRef(JSON.parse(a.getAttribute('data-ref'))); } catch {} }));
       box.querySelectorAll('.ar-act').forEach(b => b.addEventListener('click', () => { const id = b.dataset.id, dec = b.dataset.act; const ri = box.querySelector('.ar-reason[data-id="' + id + '"]'); respondAccess(id, dec, ri ? ri.value.trim() : ''); }));
+      box.querySelectorAll('.pw-issue').forEach(b => b.addEventListener('click', () => issueResetLink(b.dataset.u, b)));
       box.querySelectorAll('.chat-reply-btn').forEach(b => b.addEventListener('click', () => setReplyTarget(b.dataset.reply)));
       box.querySelectorAll('.chat-msg-menu').forEach(b => b.addEventListener('click', () => openMsgMenu(b.dataset.menu, b)));
       box.querySelectorAll('.chat-quote').forEach(q => q.addEventListener('click', () => { const t = box.querySelector('[data-mid="' + q.dataset.goto + '"]'); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('chat-flash'); setTimeout(() => t.classList.remove('chat-flash'), 1100); } }));
@@ -6069,6 +6469,31 @@
         if (d && d.ok) { showToast(decision === 'accept' ? MSGT('Access granted', 'Hozz\u00e1f\u00e9r\u00e9s megadva') : MSGT('Request declined', 'K\u00e9relem elutas\u00edtva')); if (CHAT.curId) openConversation(CHAT.curId); loadTree(); }
         else showToast((d && d.error) || MSGT('Error', 'Hiba'), true);
       } catch { showToast(MSGT('Error', 'Hiba'), true); }
+    }
+
+    // Admin side of a reset request: mint the one-time link and put it on the
+    // clipboard. Nothing is emailed — you hand it over however you normally reach
+    // that person, which is also what keeps the link out of a mailbox.
+    async function issueResetLink(username, btn) {
+      if (btn) btn.disabled = true;
+      try {
+        const r = await fetch('/api/admin/password-reset/issue', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.ok) { showToast((d && d.error) || MSGT('Error', 'Hiba'), true); return; }
+        const link = location.origin + d.path;
+        let copied = false;
+        try { await navigator.clipboard.writeText(link); copied = true; } catch {}
+        if (!copied) {
+          // Clipboard is unavailable over plain HTTP and in some browsers — fall back
+          // to showing the link so it is never simply lost.
+          window.prompt(t('authResetIssued'), link);
+        } else showToast(t('authResetIssued'));
+        if (CHAT.curId) openConversation(CHAT.curId);
+      } catch { showToast(MSGT('Error', 'Hiba'), true); }
+      finally { if (btn) btn.disabled = false; }
     }
 
     function setReplyTarget(id) {
@@ -6687,6 +7112,70 @@
       } catch { err.textContent = t('authBadCreds'); }
       finally { btn.disabled = false; }
     }
+    // Ask an admin for a reset. The server answers identically whether or not the
+    // account exists, so this must not claim it "sent" anything specific.
+    async function submitForgot() {
+      const u   = document.getElementById('fpUserInput').value.trim();
+      const err = document.getElementById('fpErr');
+      const ok  = document.getElementById('fpOk');
+      err.textContent = ''; ok.hidden = true;
+      if (!u) { err.textContent = t('authBadInput'); return; }
+      const btn = document.getElementById('fpSubmit'); btn.disabled = true;
+      try {
+        await fetch('/api/password-reset/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u }) });
+        ok.textContent = t('authForgotSent'); ok.hidden = false;
+        document.getElementById('fpUserInput').value = '';
+      } catch { err.textContent = t('authForgotFailed'); }
+      finally { btn.disabled = false; }
+    }
+    // Arrived on a one-time link. Consumes it and signs the member straight in.
+    async function submitReset() {
+      const p  = document.getElementById('rsPassInput').value;
+      const p2 = document.getElementById('rsPass2Input').value;
+      const err = document.getElementById('rsErr'); err.textContent = '';
+      if (!p) { err.textContent = t('authBadInput'); return; }
+      if (p !== p2) { err.textContent = t('authRegMismatch'); return; }
+      if (p.length < 8) { err.textContent = t('authPwShort'); return; }
+      if (!_resetToken) { err.textContent = t('authResetExpired'); return; }
+      const btn = document.getElementById('rsSubmit'); btn.disabled = true;
+      try {
+        const res = await fetch('/api/password-reset/complete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: _resetToken, newPassword: p }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) { err.textContent = data.error || t('authResetExpired'); btn.disabled = false; return; }
+        _resetToken = '';
+        // Drop the token out of the address bar — it is spent, and it has no business
+        // sitting in history or in a screenshot.
+        try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+        AUTH.user = data.username; AUTH.role = data.role;
+        document.getElementById('rsPassInput').value = ''; document.getElementById('rsPass2Input').value = '';
+        updateAuthUI(); closeAuthModal();
+        showToast(t('authToastIn')(AUTH.user));
+        loadTree(); pushSettings();
+      } catch { err.textContent = t('authResetExpired'); }
+      finally { btn.disabled = false; }
+    }
+    // #reset=<token> opens the set-a-new-password panel. Handled on a cold load and
+    // on hashchange: someone who is already on the site and clicks the link only
+    // changes the fragment, which would otherwise do nothing at all.
+    let _resetToken = '';
+    function handleResetHash() {
+      const m = /[#&]reset=([A-Za-z0-9]{16,128})\b/.exec(location.hash || '');
+      if (!m) return false;
+      _resetToken = m[1];
+      // Take the token out of the address bar immediately — it is a credential and
+      // has no business in history, a bookmark or a screenshot.
+      try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+      const open = () => {
+        openAuthModal(); showAuthView('reset');
+        const e = document.getElementById('rsErr'); if (e) e.textContent = '';
+        setTimeout(() => { const el = document.getElementById('rsPassInput'); if (el) el.focus(); }, 80);
+      };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', open); else setTimeout(open, 120);
+      return true;
+    }
+    handleResetHash();
+    window.addEventListener('hashchange', handleResetHash);
+
     async function submitChangePw() {
       const oldp = document.getElementById('acpOld').value;
       const newp = document.getElementById('acpNew').value;
@@ -6729,6 +7218,18 @@
       const pi = document.getElementById('authPassInput'); if (pi) pi.addEventListener('keydown', e => { if (e.key === 'Enter') submitLogin(); });
       const toReg = document.getElementById('authToReg');     if (toReg) toReg.addEventListener('click', () => { showAuthView('register'); const re = document.getElementById('regErr'); if (re) re.textContent = ''; });
       const toSi  = document.getElementById('authToSignin');  if (toSi) toSi.addEventListener('click', () => showAuthView('signin'));
+      const toFp  = document.getElementById('authToForgot');  if (toFp) toFp.addEventListener('click', () => {
+        showAuthView('forgot');
+        const e = document.getElementById('fpErr'); if (e) e.textContent = '';
+        const o = document.getElementById('fpOk');  if (o) { o.hidden = true; o.textContent = ''; }
+        const u = document.getElementById('fpUserInput');
+        if (u) { u.value = document.getElementById('authUserInput').value.trim(); setTimeout(() => u.focus(), 40); }
+      });
+      const fpBack = document.getElementById('fpBack');       if (fpBack) fpBack.addEventListener('click', () => showAuthView('signin'));
+      const fpBtn  = document.getElementById('fpSubmit');     if (fpBtn) fpBtn.addEventListener('click', submitForgot);
+      const fpIn   = document.getElementById('fpUserInput');  if (fpIn) fpIn.addEventListener('keydown', e => { if (e.key === 'Enter') submitForgot(); });
+      const rsBtn  = document.getElementById('rsSubmit');     if (rsBtn) rsBtn.addEventListener('click', submitReset);
+      const rs2    = document.getElementById('rsPass2Input'); if (rs2) rs2.addEventListener('keydown', e => { if (e.key === 'Enter') submitReset(); });
       const rsub  = document.getElementById('regSubmit');     if (rsub) rsub.addEventListener('click', submitRegister);
       const rp2   = document.getElementById('regPass2Input'); if (rp2) rp2.addEventListener('keydown', e => { if (e.key === 'Enter') submitRegister(); });
       const acps  = document.getElementById('acpSubmit');     if (acps) acps.addEventListener('click', submitChangePw);
@@ -10090,6 +10591,207 @@
       return el;
     }
 
+    /* ── Quick log: attach scans to one lesson from the week grid ──────────
+       Admins only. Everything here goes through /api/admin/day/lesson, which
+       upserts a single lesson into that date's record (creating the day if it does
+       not exist yet) — so a scan can be filed in three clicks without opening the
+       full day editor. Uploads need a day id before the day is saved, so we ask the
+       server for one; a draft that is never saved leaves an orphan upload folder,
+       which the server's 24-hour sweep collects. */
+    const QL = { open: false, date: '', slot: null, subj: null, dayId: '', lesson: null,
+                 files: [], notes: [], uploading: 0, hitsTimer: null, hitsSeq: 0 };
+    const QL_KINDS = ['lesson', 'test', 'exam', 'lab', 'presentation', 'trip', 'substitution', 'selfstudy', 'cancelled'];
+
+    function qlIsAdmin() { return AUTH && AUTH.role === 'admin'; }
+
+    async function qlOpen(date, slot) {
+      if (!qlIsAdmin()) return;
+      const tt = DY.tt; if (!tt) return;
+      QL.open = true; QL.date = date; QL.slot = slot;
+      QL.subj = (tt.subjects || []).find(x => x.id === slot.subjectId) || null;
+      const per = (tt.settings.periods || []).find(p => p.id === slot.periodId) || null;
+
+      // Seed from whatever is already logged for that lesson.
+      let day = DY.days.find(d => d.date === date) || null;
+      if (!day) { try { const r = await fetch('/api/day?date=' + encodeURIComponent(date)).then(x => x.json()); day = (r && r.day) || null; if (day) DY.days.push(day); } catch {} }
+      const rec = day ? (day.lessons || []).find(l => (l.slotId && l.slotId === slot.id) || (l.subjectId === slot.subjectId && l.periodId === slot.periodId)) : null;
+      QL.lesson = rec || null;
+      QL.files = rec ? (rec.attachments || []).map(a => ({ ...a })) : [];
+      QL.notes = rec ? (rec.notes || []).map(n => ({ ...n })) : [];
+
+      try {
+        const r = await fetch('/api/admin/day/draftid?date=' + encodeURIComponent(date)).then(x => x.json());
+        QL.dayId = (r && r.id) || (day && day.id) || '';
+      } catch { QL.dayId = (day && day.id) || ''; }
+
+      // dySubjName() reads a *lesson* ({subject, subjectHu}); QL.subj is a timetable
+      // subject ({name, nameHu}), so read those fields directly.
+      const sName = QL.subj ? ((LANG === 'hu' && QL.subj.nameHu) ? QL.subj.nameHu : (QL.subj.name || QL.subj.nameHu || '')) : '';
+      document.getElementById('qlogTitle').textContent = sName || t('dyKindLesson');
+      document.getElementById('qlogSwatch').style.background = (QL.subj && QL.subj.color) || 'var(--accent)';
+      document.getElementById('qlogWhen').textContent =
+        dyLongDate(date) + (per && per.label ? ' · ' + t('dyPeriod') + ' ' + per.label : '') + (per && per.start ? ' · ' + per.start : '');
+      document.getElementById('qlogWhat').value = rec ? (rec.what || '') : '';
+      document.getElementById('qlogHw').value   = rec ? (rec.homework || '') : '';
+      const kindSel = document.getElementById('qlogKind');
+      kindSel.innerHTML = QL_KINDS.map(k => '<option value="' + k + '">' + esc(t(DY_KIND_KEY[k])) + '</option>').join('');
+      kindSel.value = (rec && rec.kind) || 'lesson';
+
+      // If the subject names a notes folder, say so — it is usually where to look.
+      const hint = document.getElementById('qlogFolderHint');
+      if (QL.subj && QL.subj.folder) { hint.textContent = '→ ' + QL.subj.folder; hint.hidden = false; }
+      else { hint.hidden = true; hint.textContent = ''; }
+      document.getElementById('qlogNoteSearch').value = '';
+      document.getElementById('qlogNoteHits').innerHTML = '';
+      qlMsg('');
+      qlRenderFiles(); qlRenderNotes();
+      document.getElementById('qlogBd').hidden = false;
+      document.getElementById('qlog').hidden = false;
+      setTimeout(() => { const w = document.getElementById('qlogWhat'); if (w) w.focus(); }, 60);
+    }
+    function qlClose() {
+      QL.open = false;
+      document.getElementById('qlog').hidden = true;
+      document.getElementById('qlogBd').hidden = true;
+    }
+    function qlMsg(text, isErr) {
+      const el = document.getElementById('qlogMsg');
+      el.textContent = text || ''; el.classList.toggle('err', !!isErr);
+    }
+    function qlRenderFiles() {
+      const host = document.getElementById('qlogFiles');
+      host.innerHTML = '';
+      QL.files.forEach((a, i) => {
+        const row = document.createElement('div');
+        row.className = 'qlog-file' + (a._pending ? ' pending' : '');
+        const isImg = DY_IMG.test(a.name || '');
+        const url = '/uploads/days/' + QL.dayId + '/' + a.id + a.ext;
+        row.innerHTML =
+          '<span class="th">' + (isImg && !a._pending ? '<img alt="" src="' + esc(url) + '">' : esc((a.ext || '').replace('.', '').toUpperCase() || '…')) + '</span>' +
+          '<span class="fmeta"><span class="fname">' + esc(a.name || '') + '</span>' +
+          '<input class="cap" type="text" placeholder="' + esc(t('qlCaption')) + '" value="' + esc(a.caption || '') + '"></span>' +
+          '<button class="kindtog' + (a.kind === 'scan' ? ' scan' : '') + '" type="button">' + (a.kind === 'scan' ? esc(t('dyScan')) : esc(t('dyFile'))) + '</button>' +
+          '<button class="rm" type="button" aria-label="Remove">×</button>';
+        row.querySelector('.cap').addEventListener('input', e => { QL.files[i].caption = e.target.value.slice(0, 240); });
+        row.querySelector('.kindtog').addEventListener('click', () => { QL.files[i].kind = QL.files[i].kind === 'scan' ? 'file' : 'scan'; qlRenderFiles(); });
+        row.querySelector('.rm').addEventListener('click', () => { QL.files.splice(i, 1); qlRenderFiles(); });
+        host.appendChild(row);
+      });
+    }
+    function qlRenderNotes() {
+      const host = document.getElementById('qlogNotes');
+      host.innerHTML = '';
+      QL.notes.forEach((n, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'qlog-chip';
+        chip.innerHTML = '<span>' + esc(n.label || String(n.path).split('/').pop()) + '</span><button type="button" aria-label="Remove">×</button>';
+        chip.title = n.path;
+        chip.querySelector('button').addEventListener('click', () => { QL.notes.splice(i, 1); qlRenderNotes(); });
+        host.appendChild(chip);
+      });
+    }
+    async function qlUpload(fileList) {
+      const files = [...(fileList || [])];
+      if (!files.length) return;
+      if (!QL.dayId) { qlMsg(t('qlNoDay'), true); return; }
+      for (const f of files) {
+        const stub = { id: 'pending-' + Math.random().toString(36).slice(2), name: f.name, ext: (f.name.match(/\.[^.]+$/) || [''])[0].toLowerCase(),
+                       kind: DY_IMG.test(f.name) ? 'scan' : 'file', caption: '', _pending: true };
+        QL.files.push(stub); qlRenderFiles();
+        QL.uploading++;
+        qlMsg(t('qlUploading'));
+        try {
+          const res = await fetch('/api/admin/day/upload?day=' + encodeURIComponent(QL.dayId) +
+            '&name=' + encodeURIComponent(f.name) + '&kind=' + (stub.kind), { method: 'POST', body: f });
+          const d = await res.json().catch(() => ({}));
+          const at = QL.files.indexOf(stub);
+          if (!res.ok || !d.ok) { if (at >= 0) QL.files.splice(at, 1); qlMsg((d && d.error) || t('qlUploadFailed'), true); }
+          else if (at >= 0) QL.files[at] = { ...d.attachment, kind: stub.kind };
+        } catch {
+          const at = QL.files.indexOf(stub); if (at >= 0) QL.files.splice(at, 1);
+          qlMsg(t('qlUploadFailed'), true);
+        } finally { QL.uploading--; qlRenderFiles(); }
+      }
+      if (!QL.uploading) qlMsg('');
+    }
+    // Note picker: reuses the tree already in memory, so it needs no extra request.
+    function qlSearchNotes(q) {
+      const host = document.getElementById('qlogNoteHits');
+      const term = String(q || '').trim().toLowerCase();
+      if (term.length < 2) { host.innerHTML = ''; return; }
+      const all = treeData ? collectAllItems(treeData) : [];
+      const chosen = new Set(QL.notes.map(n => n.path));
+      const folder = (QL.subj && QL.subj.folder) ? QL.subj.folder.toLowerCase() : '';
+      const hits = all
+        .filter(it => it.type !== 'folder' && !chosen.has(it.path) && itemMatchesSearch(it, term))
+        // A note in the subject's own folder is nearly always the one you mean.
+        .sort((a, b) => ((folder && b.path.toLowerCase().startsWith(folder)) - (folder && a.path.toLowerCase().startsWith(folder))))
+        .slice(0, 8);
+      host.innerHTML = '';
+      hits.forEach(it => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'qlog-pick';
+        b.innerHTML = '<b>' + esc(getDisplayName(it)) + '</b><span>' + esc(it.path) + '</span>';
+        b.addEventListener('click', () => {
+          QL.notes.push({ path: it.path, lang: it.lang || (MAT_LANG === 'hu' ? 'hu' : 'en'), label: getDisplayName(it) });
+          document.getElementById('qlogNoteSearch').value = '';
+          host.innerHTML = ''; qlRenderNotes();
+        });
+        host.appendChild(b);
+      });
+    }
+    async function qlSave() {
+      if (QL.uploading) { qlMsg(t('qlWaitUpload'), true); return; }
+      const btn = document.getElementById('qlogSave'); btn.disabled = true;
+      qlMsg(t('qlSaving'));
+      try {
+        const payload = {
+          date: QL.date, dayId: QL.dayId, slotId: QL.slot ? QL.slot.id : '',
+          lesson: {
+            id: QL.lesson ? QL.lesson.id : undefined,
+            what: document.getElementById('qlogWhat').value,
+            homework: document.getElementById('qlogHw').value,
+            kind: document.getElementById('qlogKind').value,
+            topics: QL.lesson ? QL.lesson.topics : [],
+            important: QL.lesson ? !!QL.lesson.important : false,
+            notes: QL.notes,
+            attachments: QL.files.filter(a => !a._pending),
+          },
+        };
+        const r = await fetch('/api/admin/day/lesson', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.ok) { qlMsg((d && d.error) || t('qlSaveFailed'), true); btn.disabled = false; return; }
+        // Refresh what the page holds for that date so the grid redraws truthfully.
+        DY.days = DY.days.filter(x => x.date !== QL.date);
+        if (d.day) DY.days.push(d.day);
+        DY.loaded = false; await dyLoad(true);
+        qlClose();
+        showToast(d.removed ? t('qlCleared') : t('qlSaved'));
+        dyRenderView();
+      } catch { qlMsg(t('qlSaveFailed'), true); document.getElementById('qlogSave').disabled = false; }
+      finally { document.getElementById('qlogSave').disabled = false; }
+    }
+    (function wireQuickLog() {
+      const $q = id => document.getElementById(id);
+      $q('qlogClose').addEventListener('click', qlClose);
+      $q('qlogCancel').addEventListener('click', qlClose);
+      $q('qlogBd').addEventListener('click', qlClose);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && QL.open) qlClose(); });
+      $q('qlogSave').addEventListener('click', qlSave);
+      const drop = $q('qlogDrop'), input = $q('qlogFile');
+      drop.addEventListener('click', () => input.click());
+      drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+      input.addEventListener('change', () => { qlUpload(input.files); input.value = ''; });
+      ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+      ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+      drop.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) qlUpload(e.dataTransfer.files); });
+      $q('qlogNoteSearch').addEventListener('input', e => {
+        clearTimeout(QL.hitsTimer);
+        const v = e.target.value;
+        QL.hitsTimer = setTimeout(() => qlSearchNotes(v), 160);
+      });
+    })();
+
     /* ── Calendar ─────────────────────────────────────────────────── */
     function dyIndexFor(date) { return (DY.index || []).find(x => x.date === date) || null; }
     function dyRenderCalendar() {
@@ -10201,6 +10903,17 @@
             if (pins.length) h += '<span class="pins">' + esc(pins.join(' ')) + '</span>';
             box.innerHTML = h;
             if (rec) box.onclick = () => dyOpenDetail(date);
+            // Admins get a per-cell shortcut into the quick log, so a scan can be
+            // filed against the lesson you are looking at without leaving the grid.
+            if (qlIsAdmin()) {
+              const add = document.createElement('button');
+              add.type = 'button'; add.className = 'dy-qadd';
+              add.title = rec ? t('qlEditLesson') : t('qlLogLesson');
+              add.setAttribute('aria-label', add.title);
+              add.textContent = rec ? '✎' : '+';
+              add.addEventListener('click', e => { e.stopPropagation(); qlOpen(date, s); });
+              box.appendChild(add);
+            }
             cell.appendChild(box);
           });
           if (evs.length && !cell.childElementCount) {
