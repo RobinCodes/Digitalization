@@ -26,6 +26,7 @@ const __GRANTS      = path.join(__dirname, 'grants.json');
 const __CHATS       = path.join(__dirname, 'chats.json');
 const __NOTE_DISCUSS = path.join(__dirname, 'note-discussions.json');
 const __BLOCKED     = path.join(__dirname, 'blocked.json');
+const __DONATIONS   = path.join(__dirname, 'donations.json');
 
 fs.mkdirSync(__CACHE, { recursive: true });
 
@@ -72,7 +73,7 @@ function safePath(base, relPath) {
 // Never expose server source, credential files, dotfiles (.git, .pdf-cache), or tests
 // over HTTP — important once the repo is public on GitHub.
 const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json', 'blocked.json',
-  'timetable.json', 'days.json', 'note-discussions.json', 'changelog.json', 'server.js',
+  'timetable.json', 'days.json', 'note-discussions.json', 'changelog.json', 'donations.json', 'server.js',
   'make-admin.js', 'make-user.js', 'package.json', 'package-lock.json']);
 // Compared case-insensitively: Windows/macOS filesystems are case-insensitive, so a
 // request for /ADMINS.JSON would otherwise walk straight past this guard and serve
@@ -851,7 +852,10 @@ function releaseCompileSlot() {
   if (next) next(); else _compileActive--;
 }
 
-async function compileTex(fullTex, texPath, lang) {
+// `cache` is off for donation previews: a submission under review is not part of
+// the archive, so its render must never be written into the archive's PDF cache
+// (nor evict anything from it) — and it must not survive a decline.
+async function compileTex(fullTex, texPath, lang, { cache = true } = {}) {
   const texName = path.basename(fullTex);
   const texBase = texName.replace(/\.tex$/i, '');
   // Acquire before the try: a refusal here must not run the finally, which would
@@ -877,7 +881,7 @@ async function compileTex(fullTex, texPath, lang) {
     const pdfPath = path.join(tmpDir, texBase + '.pdf');
     if (fs.existsSync(pdfPath)) {
       const data = fs.readFileSync(pdfPath);
-      savePdfCache(texPath, lang, data);
+      if (cache) savePdfCache(texPath, lang, data);
       return { success: true, data, warnings: r2.status !== 0 };
     }
     const parts = [];
@@ -1233,7 +1237,7 @@ function chatUnread(c, name) { const n = String(name).toLowerCase(); const last 
 function findDM(chats, a, b) { const A = String(a).toLowerCase(), B = String(b).toLowerCase(); return chats.conversations.find(c => c.type === 'dm' && (c.participants || []).length === 2 && c.participants.map(x => String(x).toLowerCase()).includes(A) && c.participants.map(x => String(x).toLowerCase()).includes(B)); }
 function ensureDM(chats, a, b) { let c = findDM(chats, a, b); if (!c) { c = { id: crypto.randomUUID(), type: 'dm', title: '', participants: [a, b], createdBy: a, created: new Date().toISOString(), messages: [], reads: {} }; chats.conversations.push(c); } return c; }
 function chatTitleFor(c, me) { if (c.type === 'group') return c.title || 'Group'; const other = (c.participants || []).find(p => String(p).toLowerCase() !== String(me).toLowerCase()); return other || 'Direct message'; }
-function chatPreview(m) { if (!m) return ''; if (m.deleted) return ''; if (m.kind === 'access-request') return '\uD83D\uDD12 ' + ((m.note && m.note.label) || 'access request'); if (m.kind === 'access-result') return 'access ' + (m.decision || ''); if (m.noteRef && !String(m.body || '').trim()) return '\uD83D\uDCC4 ' + (m.noteRef.label || 'note'); return m.body || ''; }
+function chatPreview(m) { if (!m) return ''; if (m.deleted) return ''; if (m.kind === 'donation') return '\uD83D\uDCE5 ' + ((m.donation && m.donation.title) || 'donated note'); if (m.kind === 'donation-result') return 'donation ' + (m.decision || ''); if (m.kind === 'access-request') return '\uD83D\uDD12 ' + ((m.note && m.note.label) || 'access request'); if (m.kind === 'access-result') return 'access ' + (m.decision || ''); if (m.noteRef && !String(m.body || '').trim()) return '\uD83D\uDCC4 ' + (m.noteRef.label || 'note'); return m.body || ''; }
 
 // Role/permission model for group conversations. Back-compat: a conversation with no
 // `roles` map treats its createdBy as 'owner' and every other participant as 'member'.
@@ -1618,6 +1622,258 @@ function sweepOrphanDayFiles() {
   return removed;
 }
 
+
+// ── Note donations: member submissions awaiting an admin's audit ──────────────
+// Anyone signed in may offer a note — LaTeX source, Markdown/plain text, a PDF, or
+// a photographed page. Nothing a donor sends is part of the archive: it is staged
+// under Uploads/donations/<id>/ and referenced from donations.json until an admin
+// accepts it, at which point exactly one staged file is moved into Data/DataHU and
+// gets a data.txt section. A decline deletes the staging folder outright.
+//
+// Two rules the rest of this section exists to enforce:
+//   · a pending submission is readable by its donor and by admins, and by nobody
+//     else — it is unreviewed content from an account we cannot vouch for, so it
+//     must never be reachable from the public tree, the search index, or a URL a
+//     stranger can guess;
+//   · a donor can never choose where their file lands. They may *suggest* a folder
+//     and a language; the admin picks the real destination at accept time.
+const __DONATION_FILES = path.join(__UPLOADS, 'donations');
+
+const DONATE_MAX_PENDING_USER  = Number(process.env.DONATE_MAX_PENDING_USER)  || 5;
+const DONATE_MAX_PENDING_TOTAL = Number(process.env.DONATE_MAX_PENDING_TOTAL) || 300;
+const DONATE_MAX_RECORDS       = 4000;                 // decided donations are kept for the log, but not forever
+const DONATE_MAX_ITEMS         = 12;
+const DONATE_TEXT_MAX          = 512 * 1024;           // matches NOTE_TEXT_MAX — bigger than any real note
+const DONATE_MAX_BYTES         = Number(process.env.DONATE_UPLOAD_MAX) || 25 * 1024 * 1024;
+// Text kinds a donor may write in the browser. `.sty`/`.cls` are deliberately absent:
+// they are pulled in automatically by any .tex compiled in the same directory, so
+// accepting one is a far bigger decision than accepting a note and should be a
+// deliberate admin action in DevTools, not a side effect of an audit.
+const DONATE_TEXT_EXTS = new Set(['.tex', '.md', '.txt', '.bib']);
+// Uploadable kinds. No .svg/.html/.htm — those execute script from our own origin,
+// the same reason the day-attachment list excludes them.
+const DONATE_FILE_EXTS = new Set(['.tex', '.md', '.txt', '.bib', '.pdf',
+  '.png', '.jpg', '.jpeg', '.webp', '.gif', '.avif', '.bmp', '.tif', '.tiff', '.heic', '.heif']);
+const DONATE_ALL_EXTS  = new Set([...DONATE_TEXT_EXTS, ...DONATE_FILE_EXTS]);
+const DONATE_STATUSES  = ['draft', 'pending', 'accepted', 'declined', 'withdrawn'];
+
+// Turn any donor-supplied label into a filename base that is safe on every
+// filesystem we deploy to. Slashes, control characters, the Windows-reserved
+// punctuation and leading dots all go; `{...}` goes too because the archive reads
+// braces in a filename as the note's tag list, and a donor should not be able to
+// write tags by naming their file.
+function safeNoteBase(name) {
+  const b = String(name == null ? '' : name)
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .replace(/[\\/:*?"<>|]/g, ' ')
+    .replace(/[{}]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[.\s]+/, '')
+    .replace(/[.\s]+$/, '')
+    .slice(0, 120)
+    .trim();
+  return b || 'Donated note';
+}
+// Write a donation's staged files into `destDir` under their *original* names.
+// Staging stores them as <itemId><ext> — safe and guessable-proof for serving, but
+// useless to pdflatex, which resolves \includegraphics by the name written in the
+// source. Returns itemId -> written filename.
+function materializeDonation(d, destDir) {
+  fs.mkdirSync(destDir, { recursive: true });
+  const used = new Set();
+  const map = new Map();
+  for (const it of d.items || []) {
+    const ext = it.ext || '';
+    let base = safeNoteBase(path.basename(it.name, ext));
+    let fname = base + ext, n = 2;
+    while (used.has(fname.toLowerCase())) { fname = base + '-' + (n++) + ext; }
+    used.add(fname.toLowerCase());
+    try {
+      fs.copyFileSync(donationItemPath(d.id, it.id, ext), path.join(destDir, fname));
+      map.set(it.id, fname);
+    } catch {}
+  }
+  return map;
+}
+// rename() fails across filesystems, and Uploads/ may well sit on a different mount
+// from Data/ — copy-then-unlink is the portable move.
+function moveFileSync(src, dest) {
+  try { fs.renameSync(src, dest); return; }
+  catch (e) { if (e && e.code !== 'EXDEV') throw e; }
+  fs.copyFileSync(src, dest);
+  try { fs.rmSync(src, { force: true }); } catch {}
+}
+
+function donationDir(id) { return path.join(__DONATION_FILES, id); }
+function donationItemPath(id, itemId, ext) { return path.join(donationDir(id), itemId + (ext || '')); }
+
+function normDonationItem(a) {
+  if (!a || typeof a !== 'object') return null;
+  const id = _id(a.id); if (!id) return null;
+  const name = _str(a.name, 200) || 'file';
+  const ext = String(a.ext || path.extname(name)).toLowerCase();
+  if (!DONATE_ALL_EXTS.has(ext)) return null;
+  return {
+    id, name, ext,
+    mime: MIME[ext] || 'application/octet-stream',
+    size: _int(a.size, 0, 5 * 1024 * 1024 * 1024, 0),
+    // 'text' was typed into the browser editor, 'scan' is a photographed page,
+    // 'file' is anything else uploaded. Only the label differs — all three are
+    // ordinary files on disk under the donation's staging folder.
+    kind: a.kind === 'text' ? 'text' : (a.kind === 'scan' ? 'scan' : 'file'),
+    added: _str(a.added, 40),
+  };
+}
+
+function normDonation(d) {
+  if (!d || typeof d !== 'object') return null;
+  const id = _id(d.id); if (!id) return null;
+  const from = _str(d.from, 32); if (!from) return null;
+  const items = _list(d.items).slice(0, DONATE_MAX_ITEMS).map(normDonationItem).filter(Boolean);
+  const status = DONATE_STATUSES.includes(d.status) ? d.status : 'draft';
+  return {
+    id, from, status,
+    created: _str(d.created, 40),
+    title:   _str(d.title, 160),
+    message: _multi(d.message, 4000),
+    // The donor's *suggestions*. `lang` may be blank — "I don't know" is a valid
+    // answer and the admin fills it in.
+    lang:       (d.lang === 'en' || d.lang === 'hu') ? d.lang : '',
+    suggestPath: _str(d.suggestPath, 512),
+    // Snapshot of the timetable subject the donation came from, so the queue still
+    // reads correctly after the timetable is rewritten — same reasoning as a
+    // logged lesson keeping its own subject name.
+    subjectId:   _id(d.subjectId),
+    subjectName: _str(d.subjectName, 80),
+    subjectHu:   _str(d.subjectHu, 80),
+    items,
+    decided:   _str(d.decided, 40),
+    decidedBy: _str(d.decidedBy, 32),
+    reason:    _multi(d.reason, 2000),
+    result:    (d.result && typeof d.result === 'object' && _str(d.result.path, 512))
+      ? { path: _str(d.result.path, 512), lang: _lang(d.result.lang) } : null,
+  };
+}
+
+function loadDonations() {
+  let raw = null;
+  try { raw = JSON.parse(fs.readFileSync(__DONATIONS, 'utf8')); } catch {}
+  const list = (raw && Array.isArray(raw.donations)) ? raw.donations : (Array.isArray(raw) ? raw : []);
+  return list.map(normDonation).filter(Boolean);
+}
+function saveDonations(list) {
+  // Newest first, and the decided tail is trimmed so an old archive cannot grow
+  // the file without bound. Pending records are never trimmed — they are work.
+  const sorted = list.slice().sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+  const pending = sorted.filter(d => d.status === 'pending' || d.status === 'draft');
+  const rest    = sorted.filter(d => d.status !== 'pending' && d.status !== 'draft');
+  const keep    = [...pending, ...rest.slice(0, Math.max(0, DONATE_MAX_RECORDS - pending.length))];
+  for (const d of rest.slice(Math.max(0, DONATE_MAX_RECORDS - pending.length))) {
+    try { rmDirSync(donationDir(d.id)); } catch {}
+  }
+  writeFileAtomic(__DONATIONS, JSON.stringify({ donations: keep }, null, 2) + '\n');
+  return keep;
+}
+function findDonation(list, id) { const i = _id(id); return i ? (list.find(d => d.id === i) || null) : null; }
+function donationItem(d, itemId) { const i = _id(itemId); return (d && i) ? ((d.items || []).find(x => x.id === i) || null) : null; }
+function isDonationOwner(d, s) { return !!(d && s && String(d.from).toLowerCase() === String(s.username).toLowerCase()); }
+// A donation is readable by its donor and by any admin — nobody else, at any status.
+function canSeeDonation(d, req) {
+  if (!d) return false;
+  if (adminActor(req)) return true;
+  return isDonationOwner(d, siteSession(req));
+}
+// What a donor is allowed to learn about their own submission. Deliberately does
+// not echo the reviewing admin's name — the decision is the site's, not a person's.
+function publicDonation(d) {
+  return {
+    id: d.id, status: d.status, created: d.created, title: d.title, message: d.message,
+    lang: d.lang, suggestPath: d.suggestPath, subjectId: d.subjectId,
+    subjectName: d.subjectName, subjectHu: d.subjectHu,
+    items: (d.items || []).map(i => ({ id: i.id, name: i.name, ext: i.ext, size: i.size, kind: i.kind })),
+    decided: d.decided, reason: d.reason, result: d.result,
+  };
+}
+function countPending(list, userLc) {
+  return list.filter(d => d.status === 'pending' && (!userLc || String(d.from).toLowerCase() === userLc)).length;
+}
+// A draft that was never submitted leaves a staging folder behind, exactly like an
+// unsaved day does. Same 24-hour rule, so an upload in progress is never collected.
+function sweepOrphanDonationFiles() {
+  let dirs; try { dirs = fs.readdirSync(__DONATION_FILES, { withFileTypes: true }); } catch { return 0; }
+  const list = loadDonations();
+  const live = new Set(list.filter(d => d.status !== 'declined' && d.status !== 'withdrawn').map(d => d.id));
+  const cutoff = Date.now() - 24 * 3600 * 1000;
+  let removed = 0;
+  for (const e of dirs) {
+    if (!e.isDirectory() || live.has(e.name)) continue;
+    let st; try { st = fs.statSync(path.join(__DONATION_FILES, e.name)); } catch { continue; }
+    if (st.mtimeMs > cutoff) continue;
+    rmDirSync(path.join(__DONATION_FILES, e.name)); removed++;
+  }
+  // Drafts are only half-real: they exist so an upload has somewhere to go before
+  // the donor presses Submit. One that is a day old was abandoned.
+  const staleDrafts = list.filter(d => d.status === 'draft' && Date.parse(d.created || '') < cutoff);
+  if (staleDrafts.length) {
+    const ids = new Set(staleDrafts.map(d => d.id));
+    for (const id of ids) { try { rmDirSync(donationDir(id)); } catch {} }
+    saveDonations(list.filter(d => !ids.has(d.id)));
+    removed += ids.size;
+  }
+  return removed;
+}
+
+// Post a card into every admin's inbox, the way an access request reaches a note's
+// owners. The chat store is the site's only notification channel — there is no mail
+// server — so a donation that does not land here is a donation nobody hears about.
+function postDonationCard(donation) {
+  const admins = loadAdmins().map(a => a.username).filter(u => String(u).toLowerCase() !== String(donation.from).toLowerCase());
+  if (!admins.length) return;
+  const chats = loadChats();
+  const now = new Date().toISOString();
+  for (const to of admins) {
+    const c = ensureDM(chats, donation.from, to);
+    c.messages.push({
+      id: crypto.randomUUID(), from: donation.from, kind: 'donation', status: 'pending',
+      donation: { id: donation.id, title: donation.title, items: (donation.items || []).length,
+        subject: donation.subjectName || '' },
+      body: donation.message || '', date: now,
+    });
+    c.reads = c.reads || {};
+    c.reads[String(donation.from).toLowerCase()] = now;
+  }
+  try { saveChats(chats); } catch {}
+}
+// Close out every pending card for a donation and tell the donor what happened.
+// Each admin holds their own copy of the card, so all of them are settled at once —
+// otherwise the other admins keep looking at a decision that was already made.
+function settleDonationCards(donation, decision, reason, actor) {
+  const chats = loadChats();
+  const now = new Date().toISOString();
+  const fromLc = String(donation.from).toLowerCase();
+  let touched = false, told = false;
+  for (const c of chats.conversations) {
+    if (!chatParticipant(c, donation.from)) continue;
+    for (const m of c.messages || []) {
+      if (m.kind !== 'donation' || m.status !== 'pending') continue;
+      if (!m.donation || m.donation.id !== donation.id) continue;
+      m.status = decision; touched = true;
+      // Only the conversation with the deciding admin gets the result card, so the
+      // donor is told once rather than once per admin.
+      if (!told && decision !== 'withdrawn' && chatParticipant(c, actor)) {
+        c.messages.push({
+          id: crypto.randomUUID(), from: actor, kind: 'donation-result', decision,
+          donation: { id: donation.id, title: donation.title },
+          note: donation.result ? { path: donation.result.path, lang: donation.result.lang, label: stripDisplayName(path.basename(donation.result.path)) } : null,
+          reason: reason || '', body: reason || '', date: now,
+        });
+        told = true;
+      }
+    }
+  }
+  if (touched) { try { saveChats(chats); } catch {} }
+}
+
 // Account-name and password rules, shared by public sign-up and admin user
 // creation so an account can never exist that one of them would have refused.
 // Mirrors make-admin.js / make-user.js.
@@ -1911,6 +2167,11 @@ const server = http.createServer((req, res) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
     "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
     "img-src 'self' data: blob:",
+    // frame-src would otherwise fall back to default-src ('self'), which blocks the
+    // blob: URL the donation review builds to show a freshly compiled preview. The
+    // blob is created by our own script from our own response, so this admits
+    // nothing a script could not already reach.
+    "frame-src 'self' blob:",
     "worker-src 'self' blob: https://cdnjs.cloudflare.com",
     "connect-src 'self' https://cdnjs.cloudflare.com",
     "frame-ancestors 'self'", "base-uri 'self'", "object-src 'none'",
@@ -3174,9 +3435,13 @@ const server = http.createServer((req, res) => {
     };
     try {
       for (const f of ['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json',
-                       'blocked.json', 'note-discussions.json', 'changelog.json', 'timetable.json', 'days.json'])
+                       'blocked.json', 'note-discussions.json', 'changelog.json', 'timetable.json', 'days.json',
+                       'donations.json'])
         addFile(path.join(__WEBSITE, f), 'state/' + f);
       addDir(__DAY_FILES, 'Uploads/days');
+      // Submissions still awaiting review are somebody else's unpublished work and
+      // exist nowhere else — losing the disk before an audit would lose them.
+      addDir(__DONATION_FILES, 'Uploads/donations');
       if (withNotes) {
         addDir(__DATA, 'Data');
         if (HAS_DUAL_LANG) addDir(__DATA_HU, 'DataHU');
@@ -3578,6 +3843,450 @@ const server = http.createServer((req, res) => {
     return serveFile(res, req, full, forceDl ? (att ? att.name : true) : false);
   }
 
+  // ── Note donations: a member offers a note, an admin audits it ─────────────
+  // The donor's half. Every route here requires a signed-in session and only ever
+  // touches that caller's own submission: there is no path through this block that
+  // reads, alters or even confirms the existence of somebody else's donation.
+  //
+  // Flow: draft (gives uploads somewhere to live) → upload* → submit → the admin
+  // half below decides. A donor may withdraw while it is still pending.
+
+  // One open draft per account. Handing back the existing one rather than minting a
+  // new id is what caps drafts at one per person — otherwise a loop over this route
+  // is a free way to litter donations.json and the uploads directory.
+  if (pathname === '/api/donate/draft' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    if (!rateOk(req, 'donate', 60, 60 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many donation actions. Try again later.' }, 429);
+    const list = loadDonations();
+    const meLc = String(s.username).toLowerCase();
+    if (countPending(list, meLc) >= DONATE_MAX_PENDING_USER)
+      return sendJSON(res, { ok: false, error: 'You already have ' + DONATE_MAX_PENDING_USER + ' donations waiting for review. Please wait for those first.' }, 429);
+    if (countPending(list, null) >= DONATE_MAX_PENDING_TOTAL)
+      return sendJSON(res, { ok: false, error: 'The review queue is full right now. Please try again later.' }, 503);
+    let d = list.find(x => x.status === 'draft' && String(x.from).toLowerCase() === meLc) || null;
+    if (!d) {
+      d = normDonation({ id: _newId(), from: s.username, status: 'draft', created: new Date().toISOString(), items: [] });
+      list.push(d);
+      try { saveDonations(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+    }
+    return sendJSON(res, { ok: true, donation: publicDonation(d), limits: { maxItems: DONATE_MAX_ITEMS, maxBytes: DONATE_MAX_BYTES, textMax: DONATE_TEXT_MAX, exts: [...DONATE_FILE_EXTS] } });
+  }
+
+  // Raw-body upload into the caller's own draft, mirroring the day-attachment
+  // route: the whole request body is the file, so there is no multipart parser.
+  if (pathname === '/api/donate/upload' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    if (!rateOk(req, 'donateup', 120, 60 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many uploads. Try again shortly.' }, 429);
+    const list = loadDonations();
+    const d = findDonation(list, query.id);
+    // 404 rather than 403 for a donation that is not the caller's: the status code
+    // alone must not confirm that some other member's submission exists.
+    if (!d || !isDonationOwner(d, s)) return sendJSON(res, { ok: false, error: 'Donation not found.' }, 404);
+    if (d.status !== 'draft') return sendJSON(res, { ok: false, error: 'This donation has already been submitted.' }, 400);
+    if ((d.items || []).length >= DONATE_MAX_ITEMS)
+      return sendJSON(res, { ok: false, error: 'A donation can carry at most ' + DONATE_MAX_ITEMS + ' files.' }, 400);
+    const name = _str(path.basename(String(query.name || 'file').replace(/[\\/]/g, '_')), 200) || 'file';
+    const ext = path.extname(name).toLowerCase();
+    if (!DONATE_FILE_EXTS.has(ext))
+      return sendJSON(res, { ok: false, error: 'That file type is not accepted (' + (ext || 'no extension') + ').' }, 400);
+    const declared = parseInt(req.headers['content-length'] || '0', 10);
+    if (Number.isFinite(declared) && declared > DONATE_MAX_BYTES)
+      return sendJSON(res, { ok: false, error: 'File is too large (max ' + Math.round(DONATE_MAX_BYTES / 1048576) + ' MB).' }, 413);
+    const chunks = []; let total = 0, aborted = false;
+    req.on('data', c => {
+      if (aborted) return;
+      total += c.length;
+      if (total > DONATE_MAX_BYTES) {
+        aborted = true; chunks.length = 0;
+        try { sendJSON(res, { ok: false, error: 'File is too large (max ' + Math.round(DONATE_MAX_BYTES / 1048576) + ' MB).' }, 413); } catch {}
+        try { req.destroy(); } catch {}
+        return;
+      }
+      chunks.push(c);
+    });
+    req.on('aborted', () => { aborted = true; });
+    req.on('end', () => {
+      if (aborted) return;
+      if (!total) return sendJSON(res, { ok: false, error: 'Empty file.' }, 400);
+      // Re-read: the record may have changed while the body was in flight.
+      const fresh = loadDonations();
+      const cur = findDonation(fresh, d.id);
+      if (!cur || !isDonationOwner(cur, s) || cur.status !== 'draft') return sendJSON(res, { ok: false, error: 'Donation not found.' }, 404);
+      if ((cur.items || []).length >= DONATE_MAX_ITEMS)
+        return sendJSON(res, { ok: false, error: 'A donation can carry at most ' + DONATE_MAX_ITEMS + ' files.' }, 400);
+      const itemId = crypto.randomBytes(12).toString('hex');
+      try {
+        fs.mkdirSync(donationDir(cur.id), { recursive: true });
+        fs.writeFileSync(donationItemPath(cur.id, itemId, ext), Buffer.concat(chunks));
+      } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      const item = normDonationItem({ id: itemId, name, ext, size: total,
+        kind: query.kind === 'scan' ? 'scan' : 'file', added: new Date().toISOString() });
+      cur.items.push(item);
+      try { saveDonations(fresh); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, item });
+    });
+    return;
+  }
+
+  if (pathname === '/api/donate/item/delete' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const list = loadDonations();
+      const d = findDonation(list, j.id);
+      if (!d || !isDonationOwner(d, s)) return sendJSON(res, { ok: false, error: 'Donation not found.' }, 404);
+      if (d.status !== 'draft') return sendJSON(res, { ok: false, error: 'This donation has already been submitted.' }, 400);
+      const it = donationItem(d, j.item);
+      if (!it) return sendJSON(res, { ok: false, error: 'File not found.' }, 404);
+      try { fs.rmSync(donationItemPath(d.id, it.id, it.ext), { force: true }); } catch {}
+      d.items = d.items.filter(x => x.id !== it.id);
+      try { saveDonations(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, donation: publicDonation(d) });
+    });
+    return;
+  }
+
+  // Submit: freezes the draft, writes the typed body (if any) as one more staged
+  // file, and posts the review card to every admin.
+  if (pathname === '/api/donate/submit' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    if (!rateOk(req, 'donate', 60, 60 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many donation actions. Try again later.' }, 429);
+    // The typed note body dominates the request size, so the ceiling is the text
+    // cap plus room for the metadata around it.
+    let body = ''; req.on('data', c => { body += c; if (body.length > DONATE_TEXT_MAX + 32768) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const list = loadDonations();
+      const d = findDonation(list, j.id);
+      if (!d || !isDonationOwner(d, s)) return sendJSON(res, { ok: false, error: 'Donation not found.' }, 404);
+      if (d.status !== 'draft') return sendJSON(res, { ok: false, error: 'This donation has already been submitted.' }, 400);
+      const meLc = String(s.username).toLowerCase();
+      if (countPending(list, meLc) >= DONATE_MAX_PENDING_USER)
+        return sendJSON(res, { ok: false, error: 'You already have ' + DONATE_MAX_PENDING_USER + ' donations waiting for review.' }, 429);
+      if (countPending(list, null) >= DONATE_MAX_PENDING_TOTAL)
+        return sendJSON(res, { ok: false, error: 'The review queue is full right now. Please try again later.' }, 503);
+
+      const title = _str(j.title, 160);
+      if (!title) return sendJSON(res, { ok: false, error: 'Give the note a title.' }, 400);
+
+      // The typed body, if there is one.
+      const text = typeof j.text === 'string' ? j.text : '';
+      if (text.length > DONATE_TEXT_MAX)
+        return sendJSON(res, { ok: false, error: 'That note is too long (max ' + Math.round(DONATE_TEXT_MAX / 1024) + ' KB).' }, 413);
+      let textExt = String(j.textExt || '.tex').toLowerCase();
+      if (!textExt.startsWith('.')) textExt = '.' + textExt;
+      if (text.trim() && !DONATE_TEXT_EXTS.has(textExt))
+        return sendJSON(res, { ok: false, error: 'Unsupported note type ' + textExt + '.' }, 400);
+      if (text.trim() && (d.items || []).length >= DONATE_MAX_ITEMS)
+        return sendJSON(res, { ok: false, error: 'A donation can carry at most ' + DONATE_MAX_ITEMS + ' files.' }, 400);
+      if (!text.trim() && !(d.items || []).length)
+        return sendJSON(res, { ok: false, error: 'Write a note or attach at least one file.' }, 400);
+
+      if (text.trim()) {
+        const itemId = crypto.randomBytes(12).toString('hex');
+        const fname = safeNoteBase(title) + textExt;
+        try {
+          fs.mkdirSync(donationDir(d.id), { recursive: true });
+          fs.writeFileSync(donationItemPath(d.id, itemId, textExt), text, 'utf8');
+        } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+        d.items.push(normDonationItem({ id: itemId, name: fname, ext: textExt,
+          size: Buffer.byteLength(text, 'utf8'), kind: 'text', added: new Date().toISOString() }));
+      }
+
+      d.title   = title;
+      d.message = _multi(j.message, 4000);
+      d.lang    = (j.lang === 'en' || j.lang === 'hu') ? j.lang : '';
+      // A suggestion only. It is shown to the admin next to the folder picker and
+      // is never used to resolve a path, so it needs no traversal guard — but it is
+      // still normalised so it cannot be read as an absolute or parent path.
+      d.suggestPath = _str(String(j.suggestPath || '').replace(/\\/g, '/').replace(/^\/+/, '').replace(/\.\.+/g, '.'), 512);
+      d.subjectId   = _id(j.subjectId);
+      d.subjectName = _str(j.subjectName, 80);
+      d.subjectHu   = _str(j.subjectHu, 80);
+      d.status  = 'pending';
+      d.created = new Date().toISOString();
+      try { saveDonations(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      try { postDonationCard(d); } catch {}
+      return sendJSON(res, { ok: true, donation: publicDonation(d) });
+    });
+    return;
+  }
+
+  if (pathname === '/api/donate/mine' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    const meLc = String(s.username).toLowerCase();
+    const mine = loadDonations().filter(d => String(d.from).toLowerCase() === meLc).map(publicDonation);
+    return sendJSON(res, { ok: true, donations: mine });
+  }
+
+  if (pathname === '/api/donate/withdraw' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const list = loadDonations();
+      const d = findDonation(list, j.id);
+      if (!d || !isDonationOwner(d, s)) return sendJSON(res, { ok: false, error: 'Donation not found.' }, 404);
+      if (d.status !== 'pending' && d.status !== 'draft')
+        return sendJSON(res, { ok: false, error: 'That donation has already been reviewed.' }, 400);
+      const wasPending = d.status === 'pending';
+      d.status = 'withdrawn';
+      d.decided = new Date().toISOString();
+      d.items = [];
+      try { rmDirSync(donationDir(d.id)); } catch {}
+      try { saveDonations(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      if (wasPending) { try { settleDonationCards(d, 'withdrawn', '', s.username); } catch {} }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+
+  // ── Note donations: the admin's half ───────────────────────────────────────
+  // Reachable with either credential (the DevTools header token or an admin site
+  // session), like the other admin actions that are triggered from the site — an
+  // admin should be able to decline a submission straight from the chat card.
+
+  if (pathname === '/api/admin/donations' && req.method === 'GET') {
+    if (!requireAdminEither(req, res)) return;
+    const want = String(query.status || '').trim();
+    let list = loadDonations().filter(d => d.status !== 'draft');
+    if (DONATE_STATUSES.includes(want)) list = list.filter(d => d.status === want);
+    // Pending first: the queue is a to-do list, not a history.
+    list.sort((a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1)
+      || String(b.created || '').localeCompare(String(a.created || '')));
+    return sendJSON(res, {
+      ok: true,
+      pending: countPending(loadDonations(), null),
+      donations: list.map(d => ({ ...publicDonation(d), from: d.from, decidedBy: d.decidedBy })),
+    });
+  }
+
+  // The source of one text item, so the reviewer can read (and correct) it before
+  // it becomes a note. Binary items are fetched from /uploads/donations/ instead.
+  if (pathname === '/api/admin/donation/text' && req.method === 'GET') {
+    if (!requireAdminEither(req, res)) return;
+    const d = findDonation(loadDonations(), query.id);
+    if (!d) return sendJSON(res, { ok: false, error: 'Donation not found.' }, 404);
+    const it = donationItem(d, query.item);
+    if (!it) return sendJSON(res, { ok: false, error: 'File not found.' }, 404);
+    if (!DONATE_TEXT_EXTS.has(it.ext)) return sendJSON(res, { ok: false, error: 'Not a text file.' }, 400);
+    let text = '';
+    try { text = fs.readFileSync(donationItemPath(d.id, it.id, it.ext), 'utf8'); }
+    catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+    return sendJSON(res, { ok: true, item: it, text: text.slice(0, DONATE_TEXT_MAX) });
+  }
+
+  // Render a donated .tex so the reviewer sees the note rather than its source.
+  //
+  // This is the one place the server runs a stranger's LaTeX, so it is worth being
+  // explicit about what holds it: the same sandbox every archive note compiles in —
+  // -no-shell-escape (no \write18), openin_any/openout_any=p (no reads or writes
+  // outside the job's own directory, no dotfiles, no absolute or parent paths), a
+  // copy into a throwaway temp dir that is deleted afterwards, a hard 120-second
+  // kill, and the global concurrency limiter. The render is never cached, so a
+  // declined submission leaves nothing behind. It is admin-triggered only: a donor
+  // cannot make the server compile their own submission.
+  if (pathname === '/api/admin/donation/compile' && req.method === 'POST') {
+    if (!requireAdminEither(req, res)) return;
+    if (!rateOk(req, 'doncompile', 60, 10 * 60 * 1000)) return sendJSON(res, { success: false, log: 'Too many preview builds — try again in a few minutes.' }, 429);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', async () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const d = findDonation(loadDonations(), j.id);
+      if (!d) return sendJSON(res, { success: false, log: 'Donation not found.' }, 404);
+      const it = donationItem(d, j.item);
+      if (!it || it.ext !== '.tex') return sendJSON(res, { success: false, log: 'Not a LaTeX file.' }, 400);
+      if (!PDFLATEX_OK) return sendJSON(res, { success: false, log: 'The PDF compiler is not available on the server.' });
+      // Stage under the original names first: pdflatex resolves \includegraphics by
+      // the name written in the source, and staging stores files by item id.
+      let work = null, result;
+      try {
+        work = fs.mkdtempSync(path.join(os.tmpdir(), 'kidon_'));
+        const map = materializeDonation(d, work);
+        const fname = map.get(it.id);
+        if (!fname) return sendJSON(res, { success: false, log: 'That file is missing from the server.' }, 404);
+        result = await compileTex(path.join(work, fname), 'donation/' + d.id, 'en', { cache: false });
+      } catch (e) {
+        return sendJSON(res, { success: false, log: redactPaths('Compile failed: ' + (e && e.message || e)) }, 500);
+      } finally { if (work) { try { rmDirSync(work); } catch {} } }
+      if (result.busy) return sendJSON(res, { success: false, log: result.log }, 503);
+      if (!result.success) return sendJSON(res, { success: false, log: result.log });
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf', 'Content-Length': String(result.data.length),
+        'Content-Disposition': 'inline; filename="' + encodeURIComponent(path.basename(it.name, '.tex')) + '.pdf"',
+        'Cache-Control': 'no-store',
+      });
+      return res.end(result.data);
+    });
+    return;
+  }
+
+  // Accept: one staged file becomes a note in the archive, optionally with its
+  // figures alongside. Everything the note ends up being — where it lives, what it
+  // is called, its metadata, who can read it — is decided here by the admin, never
+  // by the donor.
+  if (pathname === '/api/admin/donation/accept' && req.method === 'POST') {
+    const actor = requireAdminEither(req, res); if (!actor) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > DONATE_TEXT_MAX + 32768) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const list = loadDonations();
+      const d = findDonation(list, j.id);
+      if (!d) return sendJSON(res, { ok: false, error: 'Donation not found.' }, 404);
+      if (d.status !== 'pending') return sendJSON(res, { ok: false, error: 'That donation has already been reviewed.' }, 400);
+      const it = donationItem(d, j.item);
+      if (!it) return sendJSON(res, { ok: false, error: 'Choose which file becomes the note.' }, 400);
+
+      const lang = _lang(j.lang);
+      const base = adminDataDir(lang);
+      // The extension is the file's own. A .pdf cannot be filed as a .tex, and
+      // letting the reviewer retype it is just a way to create a note that the
+      // viewer will try to compile and fail on.
+      const nameBase = safeNoteBase(j.filename ? String(j.filename).replace(/\.[^.]*$/, '') : path.basename(it.name, it.ext));
+      const filename = nameBase + it.ext;
+      // Trailing slashes are stripped before resolving: safePath compares against
+      // `normalize(base) + sep`, so a base that already ends in a separator can
+      // never match itself and the second call would 403 on a perfectly ordinary
+      // folder. Callers routinely send "STEM/".
+      const dir = String(j.dir || '').replace(/[\\/]+$/, '');
+      let folderFull, fileFull;
+      try { folderFull = safePath(base, dir); } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
+      try { fileFull = safePath(folderFull, filename); } catch { return sendJSON(res, { ok: false, error: 'forbidden' }, 403); }
+      if (fs.existsSync(fileFull) && !j.overwrite)
+        return sendJSON(res, { ok: false, error: 'A note called "' + filename + '" is already there. Rename it, or confirm the overwrite.', exists: true }, 409);
+
+      const srcPath = donationItemPath(d.id, it.id, it.ext);
+      if (!fs.existsSync(srcPath)) return sendJSON(res, { ok: false, error: 'That file is missing from the server.' }, 404);
+
+      // Extra staged files (a .tex’s figures, say) travel with it under their own
+      // names, into the same folder.
+      const extras = _list(j.extras).map(x => _id(x)).filter(Boolean);
+      const written = [];
+      try {
+        fs.mkdirSync(folderFull, { recursive: true });
+        // A reviewer’s corrections to a text note are written instead of the raw
+        // submission — the audit is allowed to fix things, not only to say yes.
+        if (typeof j.content === 'string' && DONATE_TEXT_EXTS.has(it.ext)) {
+          if (j.content.length > DONATE_TEXT_MAX) return sendJSON(res, { ok: false, error: 'That note is too long.' }, 413);
+          fs.writeFileSync(fileFull, j.content, 'utf8');
+          try { fs.rmSync(srcPath, { force: true }); } catch {}
+        } else {
+          moveFileSync(srcPath, fileFull);
+        }
+        written.push(filename);
+        const used = new Set([filename.toLowerCase()]);
+        for (const exId of extras) {
+          if (exId === it.id) continue;
+          const ex = donationItem(d, exId); if (!ex) continue;
+          let exBase = safeNoteBase(path.basename(ex.name, ex.ext));
+          let exName = exBase + ex.ext, n = 2;
+          while (used.has(exName.toLowerCase())) exName = exBase + '-' + (n++) + ex.ext;
+          let exFull; try { exFull = safePath(folderFull, exName); } catch { continue; }
+          if (fs.existsSync(exFull)) continue;
+          try { moveFileSync(donationItemPath(d.id, ex.id, ex.ext), exFull); used.add(exName.toLowerCase()); written.push(exName); } catch {}
+        }
+      } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+
+      // Metadata. The donor is credited in `authors` unless the reviewer turned that
+      // off; `owners` is left empty on purpose, so the note is managed by admins —
+      // accepting a donation transfers the note, not the account's rights over it.
+      const m = (j.meta && typeof j.meta === 'object') ? j.meta : {};
+      let authors = Array.isArray(m.authors) ? m.authors.map(x => String(x).trim()).filter(Boolean)
+                  : String(m.authors || '').split(',').map(x => x.trim()).filter(Boolean);
+      if (j.credit !== false && !authors.some(a => a.toLowerCase() === String(d.from).toLowerCase())) authors.push(d.from);
+      const secs = parseDataTxtMutable(folderFull);
+      const display = stripDisplayName(filename);
+      for (const k of Object.keys(secs))
+        if (stripDisplayName(k + '.x').replace(/\.x$/, '').toLowerCase() === display.toLowerCase()) delete secs[k];
+      secs[display] = {
+        tags: Array.isArray(m.tags) ? m.tags.join(', ') : String(m.tags || ''),
+        authors: authors.join(', '),
+        date: _str(m.date, 40) || new Date().toISOString().slice(0, 10),
+        description: _multi(m.description, 2000),
+        important: m.important ? 'true' : '',
+        can_see:  (m.canSee === 'members' || m.canSee === 'whitelist') ? m.canSee : 'all',
+        can_read: (m.canRead === 'members' || m.canRead === 'whitelist') ? m.canRead : 'all',
+        read_requests: m.readRequests ? 'true' : '',
+        see_allow:  m.canSee === 'whitelist' ? _str(Array.isArray(m.seeAllow) ? m.seeAllow.join(', ') : m.seeAllow, 512) : '',
+        read_allow: m.canRead === 'whitelist' ? _str(Array.isArray(m.readAllow) ? m.readAllow.join(', ') : m.readAllow, 512) : '',
+        alt_hu: _str(m.altHu, 200), alt_en: _str(m.altEn, 200),
+      };
+      try { writeDataTxt(folderFull, secs); } catch {}
+
+      // Derive the stored path from the *resolved* folder, never from the raw `dir`
+      // the reviewer sent. safePath sanitises rather than rejects (a leading `../`
+      // is stripped, `./` and trailing slashes are normalised away), so echoing the
+      // input back would record a path that does not describe where the file
+      // actually is — and that path is what the donor is shown and what the
+      // "open the note" link resolves.
+      const relPath = path.relative(base, fileFull).split(path.sep).join('/');
+      d.status = 'accepted';
+      d.decided = new Date().toISOString();
+      d.decidedBy = actor;
+      d.reason = _multi(j.reason, 2000);
+      d.result = { path: relPath, lang };
+      d.items = [];
+      try { rmDirSync(donationDir(d.id)); } catch {}
+      try { saveDonations(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      try { settleDonationCards(d, 'accepted', d.reason, actor); } catch {}
+      return sendJSON(res, { ok: true, path: relPath, lang, written });
+    });
+    return;
+  }
+
+  if (pathname === '/api/admin/donation/decline' && req.method === 'POST') {
+    const actor = requireAdminEither(req, res); if (!actor) return;
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const list = loadDonations();
+      const d = findDonation(list, j.id);
+      if (!d) return sendJSON(res, { ok: false, error: 'Donation not found.' }, 404);
+      if (d.status !== 'pending') return sendJSON(res, { ok: false, error: 'That donation has already been reviewed.' }, 400);
+      d.status = 'declined';
+      d.decided = new Date().toISOString();
+      d.decidedBy = actor;
+      d.reason = _multi(j.reason, 2000);
+      d.items = [];
+      // A declined submission is deleted, not kept: we asked for it, it was not
+      // taken, and holding somebody's unpublished work indefinitely is not ours
+      // to do. The record of the decision stays.
+      try { rmDirSync(donationDir(d.id)); } catch {}
+      try { saveDonations(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      try { settleDonationCards(d, 'declined', d.reason, actor); } catch {}
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+
+  // Serve one staged file, to its donor or to an admin. 404 for everyone else —
+  // the same rule the day attachments follow, so the status code alone never
+  // confirms that a given submission exists.
+  if (pathname.toLowerCase().startsWith('/uploads/donations/')) {
+    const parts = decPath(pathname.slice('/uploads/donations/'.length)).split('/').filter(Boolean);
+    if (parts.length !== 2) { res.writeHead(404); return res.end('Not Found'); }
+    const donId = _id(parts[0]);
+    const ext = path.extname(parts[1]).toLowerCase();
+    const itemId = path.basename(parts[1], ext);
+    if (!donId || !/^[0-9a-f]{24}$/.test(itemId) || !DONATE_ALL_EXTS.has(ext)) { res.writeHead(404); return res.end('Not Found'); }
+    const d = findDonation(loadDonations(), donId);
+    if (!d || !canSeeDonation(d, req)) { res.writeHead(404); return res.end('Not Found'); }
+    const it = donationItem(d, itemId);
+    if (!it || it.ext !== ext) { res.writeHead(404); return res.end('Not Found'); }
+    // Unreviewed content from an account nobody has vouched for: everything that is
+    // not an image or a PDF is handed over as a download rather than rendered in the
+    // page, and the name comes from our own record, not from the URL.
+    const forceDl = query.download === '1' || !(ext === '.pdf' || IMAGE_EXTS.has(ext));
+    return serveFile(res, req, donationItemPath(d.id, it.id, it.ext), forceDl ? it.name : false);
+  }
+
   if (pathname === '/api/music/list') return sendJSON(res, listMusic());
   if (pathname.startsWith('/music/')) {
     if (!fs.existsSync(__MUSIC)) { res.writeHead(404); return res.end('Not Found'); }
@@ -3639,6 +4348,10 @@ server.listen(PORT, () => {
   try { fs.mkdirSync(__DAY_FILES, { recursive: true }); } catch {}
   setTimeout(() => { try { sweepOrphanDayFiles(); } catch {} }, 20000).unref?.();
   setInterval(() => { try { sweepOrphanDayFiles(); } catch {} }, 6 * 3600 * 1000).unref?.();
+  // Donation staging needs the same collector: a draft nobody submitted leaves a
+  // folder behind exactly the way an unsaved day does.
+  setTimeout(() => { try { sweepOrphanDonationFiles(); } catch {} }, 25000).unref?.();
+  setInterval(() => { try { sweepOrphanDonationFiles(); } catch {} }, 6 * 3600 * 1000).unref?.();
   // Non-blocking background precompilation
   setTimeout(() => {
     if (pdflatexOk && fs.existsSync(__DATA)) {

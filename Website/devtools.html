@@ -205,6 +205,29 @@
   .btn-danger{padding:11px 18px;border:1px solid var(--red);border-radius:var(--radius);background:var(--red-dim);color:var(--red);font-weight:700;font-size:13px;transition:.2s}
   .btn-danger:hover{background:var(--red);color:#fff}
   .field-note{font-size:11.5px;color:var(--text3);margin-top:5px;font-family:var(--font-mono)}
+  /* ── Donations ─────────────────────────────────────
+     The review queue and its sheet. Everything here leans on the existing
+     .rows/.row/.chip/.seg vocabulary; only what has no equivalent gets a rule. */
+  .tab-badge{display:inline-block;min-width:17px;margin-left:7px;padding:1px 5px;border-radius:9px;
+    background:var(--accent);color:#0b0b0e;font-family:var(--font-mono);font-size:10px;font-weight:800;line-height:15px;text-align:center;vertical-align:1px}
+  .tab-badge[hidden]{display:none}
+  .dn-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .dn-meta .who{font-size:15px;font-weight:700;color:var(--text)}
+  .dn-msg{white-space:pre-wrap;font-size:13px;line-height:1.55;color:var(--text2);
+    border-left:2px solid var(--border-md);padding-left:12px;margin:12px 0 0}
+  .dn-prev{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--bg)}
+  .dn-prev iframe{display:block;width:100%;height:440px;border:0;background:#fff}
+  .dn-prev img{display:block;width:100%;max-height:440px;object-fit:contain;background:var(--bg3)}
+  .dn-prev .dn-prev-msg{padding:16px;font-family:var(--font-mono);font-size:11.5px;color:var(--text3);white-space:pre-wrap;
+    max-height:300px;overflow:auto}
+  .dn-prev .dn-prev-msg.bad{color:var(--red)}
+  .dn-pick{display:flex;align-items:center;gap:10px;flex:none}
+  .dn-pick input{width:15px;height:15px;accent-color:var(--accent)}
+  .dn-pill{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    border:1px solid var(--border-md);border-radius:20px;padding:2px 9px;color:var(--text3)}
+  .dn-pill.pending{color:var(--accent);border-color:var(--accent)}
+  .dn-pill.accepted{color:#4ba36b;border-color:currentColor}
+  .dn-pill.declined,.dn-pill.withdrawn{color:var(--red);border-color:currentColor}
 
   /* picker rows reuse .row styling but compact */
   #pickerList .row{padding:11px 14px;cursor:pointer}
@@ -554,6 +577,7 @@
     <button class="tab" data-tab="articles">Articles</button>
     <button class="tab" data-tab="timetable">Timetable</button>
     <button class="tab" data-tab="days">Days</button>
+    <button class="tab" data-tab="donations">Donations<span class="tab-badge" id="dnBadge" hidden></span></button>
   </div>
 
   <!-- NOTES TAB -->
@@ -723,6 +747,20 @@
     </div>
     <div class="rows" id="dayList"></div>
   </main>
+
+  <!-- DONATIONS TAB -->
+  <main id="tab-donations" class="hidden">
+    <span class="panel-label">/ donations</span>
+    <h1>Donated <em>notes</em></h1>
+    <p class="sub">Material members have offered. Nothing here is in the archive yet &mdash; read it, decide where it belongs, and accept it, or decline it with a reason the donor will see. Declining deletes the files.</p>
+    <div class="seg" id="dnStatusSeg" style="margin-bottom:18px;max-width:420px">
+      <button type="button" data-dnst="pending" class="active">Waiting</button>
+      <button type="button" data-dnst="accepted">Accepted</button>
+      <button type="button" data-dnst="declined">Declined</button>
+      <button type="button" data-dnst="">All</button>
+    </div>
+    <div class="rows" id="dnList"></div>
+  </main>
 </div>
 
 <!-- ══ TIMETABLE SLOT EDITOR ══════════════════════════ -->
@@ -801,6 +839,86 @@
       <div class="seg" id="dnpLangSeg" style="margin-bottom:14px"><button data-dlang="en" class="active">EN notes</button><button data-dlang="hu">HU notes</button></div>
       <div class="crumbs" id="dnpCrumbs" style="margin-bottom:12px"></div>
       <div class="rows" id="dnpList"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ DONATION REVIEW ════════════════════════════════ -->
+<div class="ov" id="dnOv">
+  <div class="sheet" style="max-width:720px">
+    <div class="sheet-hd">
+      <h3 id="dnTitle">Review donation</h3>
+      <button class="icon-btn" id="dnClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="sheet-bd">
+      <div class="dn-meta" id="dnMeta"></div>
+      <div class="field-note" id="dnNote" style="margin:10px 0 16px"></div>
+
+      <div class="panel-label" style="margin-bottom:8px">/ what was sent</div>
+      <div class="rows" id="dnItems" style="margin-bottom:6px"></div>
+      <div class="field-note" style="margin-bottom:18px">Pick the file that becomes the note. Anything else you tick travels with it into the same folder &mdash; that is how a <span class="mono">.tex</span> keeps its figures.</div>
+
+      <div id="dnPreviewWrap" hidden>
+        <div class="panel-label" style="margin-bottom:8px">/ preview</div>
+        <div class="dn-prev" id="dnPreview"></div>
+      </div>
+
+      <div class="panel-label" style="margin:18px 0 8px">/ where it goes</div>
+      <div class="seg" id="dnLangSeg" style="margin-bottom:12px;max-width:260px">
+        <button type="button" data-dnlang="en" class="active">Data (EN)</button>
+        <button type="button" data-dnlang="hu">DataHU</button>
+      </div>
+      <div class="crumbs" id="dnCrumbs" style="margin-bottom:10px"></div>
+      <div class="rows" id="dnFolders" style="margin-bottom:12px"></div>
+      <div class="grid2">
+        <label class="fld" style="margin:0"><span>File name <span style="color:var(--text3)">&mdash; the extension is fixed</span></span>
+          <input type="text" id="dnFilename" spellcheck="false" placeholder="Thermodynamics">
+        </label>
+        <label class="fld" style="margin:0"><span>Date</span>
+          <div class="dtdate" id="dnDateWrap"><input type="text" id="dnDate" class="dtdate-input" readonly placeholder="YYYY-MM-DD" autocomplete="off"><button type="button" class="dtdate-btn" aria-label="Pick date">📅</button><div class="dtdate-pop"></div></div>
+        </label>
+      </div>
+
+      <label class="fld" id="dnContentWrap"><span>Content <span style="color:var(--text3)">&mdash; corrections you make here are what gets saved</span></span>
+        <textarea id="dnContent" rows="10" spellcheck="false"></textarea>
+      </label>
+
+      <label class="fld"><span>Tags</span><input type="text" id="dnTags" placeholder="thermodynamics, physics" spellcheck="false"></label>
+      <label class="fld"><span>Authors</span><input type="text" id="dnAuthors" placeholder="comma, separated" spellcheck="false"></label>
+      <div class="row-toggle on" id="dnCreditToggle" style="margin:-4px 0 14px"><div class="switch"></div><span id="dnCreditLbl">Credit the donor as an author</span></div>
+      <label class="fld"><span>Description</span><textarea id="dnDesc" rows="2" placeholder="A short summary used in search and tooltips."></textarea></label>
+
+      <div style="margin-top:8px">
+        <div class="panel-label" style="margin-bottom:8px">/ access</div>
+        <div class="fld" style="margin-bottom:12px">
+          <span>Visibility <span style="color:var(--text3)">&mdash; who sees it listed</span></span>
+          <div class="seg" id="dnSeeSeg" style="margin-top:6px">
+            <button type="button" data-dnsee="all" class="active">Everyone</button>
+            <button type="button" data-dnsee="members">Members</button>
+          </div>
+        </div>
+        <div class="fld">
+          <span>Readability <span style="color:var(--text3)">&mdash; who can open it</span></span>
+          <div class="seg" id="dnReadSeg" style="margin-top:6px">
+            <button type="button" data-dnread="all" class="active">Everyone</button>
+            <button type="button" data-dnread="members">Members</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-toggle" id="dnImpToggle" style="margin-top:16px"><div class="switch"></div><span>Mark this note as important</span></div>
+
+      <label class="fld" style="margin-top:18px"><span>Reply to the donor <span style="color:var(--text3)">&mdash; they see this either way</span></span>
+        <textarea id="dnReason" rows="2" placeholder="Thanks — filed under Physics."></textarea>
+      </label>
+
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:20px">
+        <button class="btn-primary" id="dnAccept">Accept &amp; add to the archive</button>
+        <button class="btn-danger" id="dnDecline">Decline</button>
+        <span style="flex:1"></span>
+        <span class="field-note" id="dnMsg" style="align-self:center;margin:0"></span>
+      </div>
     </div>
   </div>
 </div>
@@ -1272,6 +1390,9 @@
     } catch {}
     dir = ''; await loadBrowse();
     loadChangelog();
+    // A donation that arrived while nobody was signed in should be visible the
+    // moment DevTools opens, not only once the tab is clicked.
+    dnRefreshBadge();
   }
 
   // ── login ──────────────────────────────────────────
@@ -1306,10 +1427,12 @@
     $('tab-articles').classList.toggle('hidden', tab !== 'articles');
     $('tab-timetable').classList.toggle('hidden', tab !== 'timetable');
     $('tab-days').classList.toggle('hidden', tab !== 'days');
+    $('tab-donations').classList.toggle('hidden', tab !== 'donations');
     if (tab === 'accounts') loadAccounts();
     if (tab === 'articles') loadArticlesAdmin();
     if (tab === 'timetable') loadTimetableAdmin();
     if (tab === 'days') { loadTimetableAdmin(); loadDaysAdmin(); }
+    if (tab === 'donations') loadDonations();
   }));
 
   // ── language toggle ────────────────────────────────
@@ -1320,6 +1443,363 @@
     loadBrowse();
     if (!$('tab-articles').classList.contains('hidden')) loadArticlesAdmin();
   });
+
+
+  /* ── Donations ───────────────────────────────────────
+     The audit queue. A donation is somebody else's unreviewed work: it lives in a
+     staging area, never in Data/, and the only two ways out of here are Accept
+     (one file becomes a note, the rest of the submission is deleted) and Decline
+     (all of it is deleted). Both tell the donor in chat. */
+  const DN = { status: 'pending', rows: [], cur: null, item: null, extras: new Set(),
+    lang: 'en', dir: '', credit: true, important: false, see: 'all', read: 'all', busy: false };
+
+  function dnPill(st) { return '<span class="dn-pill ' + esc(st) + '">' + esc(
+    st === 'pending' ? 'waiting' : st === 'accepted' ? 'accepted' : st === 'declined' ? 'declined' : 'withdrawn') + '</span>'; }
+  function dnFmtSize(b) { b = Number(b) || 0; return b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB'; }
+  // A staged file is authenticated by session, and DevTools signs in with a header
+  // token rather than the site cookie — so a browser-issued <img>/<iframe>/<a>
+  // request for one carries no credential at all and is answered with 404. Every
+  // preview therefore fetches the bytes through the same authenticated fetch the
+  // rest of this file uses and hands the element a blob: URL instead.
+  const DN_URLS = [];
+  function dnDropUrls() { while (DN_URLS.length) { try { URL.revokeObjectURL(DN_URLS.pop()); } catch {} } }
+  async function dnItemBlobUrl(d, it) {
+    const res = await fetch('/uploads/donations/' + d.id + '/' + it.id + it.ext, { headers: { 'X-Admin-Token': token } });
+    if (res.status === 401) { handleExpired(); throw new Error('unauthorized'); }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const url = URL.createObjectURL(await res.blob());
+    DN_URLS.push(url);
+    return url;
+  }
+  const DN_TEXT_EXTS = ['.tex', '.md', '.txt', '.bib'];
+  const DN_IMG_RE = /\.(png|jpe?g|webp|gif|avif|bmp|tiff?|heic|heif)$/i;
+
+  async function loadDonations() {
+    const host = $('dnList');
+    host.innerHTML = '<div class="empty">Loading…</div>';
+    let data;
+    try { data = await api('/api/admin/donations' + (DN.status ? '?status=' + DN.status : '')); }
+    catch (e) { host.innerHTML = '<div class="empty"><b>Couldn’t load the queue</b>' + esc(e.message) + '</div>'; return; }
+    DN.rows = data.donations || [];
+    dnSetBadge(data.pending || 0);
+    if (!DN.rows.length) {
+      host.innerHTML = '<div class="empty"><b>Nothing here</b>' +
+        (DN.status === 'pending' ? 'No donations are waiting for review.' : 'No donations with that status yet.') + '</div>';
+      return;
+    }
+    host.innerHTML = '';
+    DN.rows.forEach(d => {
+      const row = document.createElement('div');
+      row.className = 'row file';
+      const chips = [];
+      chips.push('<span class="chip author">' + esc(d.from) + '</span>');
+      if (d.subjectName) chips.push('<span class="chip tag">' + esc(d.subjectName) + '</span>');
+      if ((d.items || []).length) chips.push('<span class="chip muted">' + d.items.length + ' file' + (d.items.length === 1 ? '' : 's') + '</span>');
+      if (d.suggestPath) chips.push('<span class="chip muted">→ ' + esc(d.suggestPath) + '</span>');
+      if (d.lang) chips.push('<span class="chip muted">' + esc(d.lang.toUpperCase()) + '</span>');
+      if (d.created) chips.push('<span class="chip muted">' + esc(String(d.created).slice(0, 10)) + '</span>');
+      if (d.status === 'accepted' && d.result) chips.push('<span class="chip muted">✓ ' + esc(d.result.path) + '</span>');
+      row.innerHTML =
+        '<div class="ico">' + fileSvg('') + '</div>' +
+        '<div class="body"><div class="nm">' + esc(d.title || 'Untitled') + ' ' + dnPill(d.status) + '</div>' +
+          '<div class="meta">' + chips.join('') + '</div></div>';
+      const acts = document.createElement('div'); acts.className = 'acts';
+      const open = document.createElement('button');
+      open.className = d.status === 'pending' ? 'mini-btn' : 'icon-btn';
+      open.textContent = d.status === 'pending' ? 'Review' : 'Open';
+      open.onclick = () => dnOpen(d);
+      acts.appendChild(open);
+      row.appendChild(acts);
+      host.appendChild(row);
+    });
+  }
+  function dnSetBadge(n) {
+    const b = $('dnBadge'); if (!b) return;
+    b.textContent = n > 99 ? '99+' : String(n);
+    b.hidden = !n;
+  }
+  // Keep the badge honest even when the tab is not open, so a donation that lands
+  // while you are editing a note still announces itself.
+  async function dnRefreshBadge() {
+    if (!token) return;
+    try { const d = await api('/api/admin/donations?status=pending'); dnSetBadge(d.pending || 0); } catch {}
+  }
+
+  async function dnOpen(d) {
+    dnDropUrls();
+    DN.cur = d; DN.extras = new Set(); DN.busy = false;
+    DN.credit = true; DN.important = false; DN.see = 'all'; DN.read = 'all';
+    // Default the destination to what the donor suggested, which for a donation
+    // made from the timetable is the subject's own notes folder.
+    DN.lang = d.lang === 'hu' ? 'hu' : 'en';
+    DN.dir = (d.suggestPath || '').replace(/^\/+|\/+$/g, '');
+    // The note is the first text file if there is one, else the first file at all.
+    const items = d.items || [];
+    DN.item = items.find(i => DN_TEXT_EXTS.includes(i.ext)) || items[0] || null;
+
+    $('dnTitle').textContent = d.status === 'pending' ? 'Review donation' : 'Donation';
+    $('dnMeta').innerHTML =
+      '<span class="who">' + esc(d.title || 'Untitled') + '</span>' + dnPill(d.status) +
+      '<span class="chip author">' + esc(d.from) + '</span>' +
+      (d.subjectName ? '<span class="chip tag">' + esc(d.subjectName) + '</span>' : '') +
+      (d.created ? '<span class="chip muted">' + esc(String(d.created).slice(0, 16).replace('T', ' ')) + '</span>' : '');
+    const hints = [];
+    if (d.suggestPath) hints.push('Suggested folder: ' + d.suggestPath);
+    if (d.lang) hints.push('Suggested language: ' + d.lang.toUpperCase());
+    if (!d.subjectName && !d.suggestPath) hints.push('The donor did not say which subject this is — you are filing it from scratch.');
+    $('dnNote').innerHTML = esc(hints.join(' · ')) + (d.message ? '<div class="dn-msg">' + esc(d.message) + '</div>' : '');
+
+    $('dnFilename').value = '';
+    $('dnTags').value = ''; $('dnDesc').value = ''; $('dnReason').value = '';
+    $('dnAuthors').value = '';
+    $('dnDate').value = new Date().toISOString().slice(0, 10);
+    $('dnCreditLbl').textContent = 'Credit ' + d.from + ' as an author';
+    $('dnCreditToggle').classList.toggle('on', DN.credit);
+    $('dnImpToggle').classList.remove('on');
+    dnSyncSeg('dnSeeSeg', 'dnsee', DN.see);
+    dnSyncSeg('dnReadSeg', 'dnread', DN.read);
+    dnSyncSeg('dnLangSeg', 'dnlang', DN.lang);
+    dnMsg('');
+    const decided = d.status !== 'pending';
+    $('dnAccept').style.display = decided ? 'none' : '';
+    $('dnDecline').style.display = decided ? 'none' : '';
+    $('dnOv').classList.add('open');
+    dnRenderItems();
+    await dnSelectItem(DN.item);
+    dnLoadFolders();
+  }
+  function dnClose() { $('dnOv').classList.remove('open'); DN.cur = null; $('dnPreview').innerHTML = ''; dnDropUrls(); }
+  function dnMsg(text, bad) { const el = $('dnMsg'); el.textContent = text || ''; el.classList.toggle('bad', !!bad); }
+  function dnSyncSeg(segId, attr, val) {
+    document.querySelectorAll('#' + segId + ' button').forEach(b => b.classList.toggle('active', b.dataset[attr] === val));
+  }
+
+  function dnRenderItems() {
+    const d = DN.cur, host = $('dnItems');
+    host.innerHTML = '';
+    const items = (d && d.items) || [];
+    if (!items.length) { host.innerHTML = '<div class="empty">Nothing is staged any more.</div>'; return; }
+    items.forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'row file';
+      const chips = ['<span class="chip muted">' + esc((it.ext || '').replace('.', '').toUpperCase()) + '</span>',
+        '<span class="chip muted">' + esc(dnFmtSize(it.size)) + '</span>'];
+      if (it.kind === 'scan') chips.push('<span class="chip tag">scan</span>');
+      if (it.kind === 'text') chips.push('<span class="chip tag">written here</span>');
+      // Build the markup first, then attach the live controls. Appending the radio
+      // and *then* doing `row.innerHTML += …` would re-parse the row and throw away
+      // the listener we had just bound to it.
+      row.innerHTML = '<div class="body"><div class="nm">' + esc(it.name) + '</div><div class="meta">' + chips.join('') + '</div></div>';
+      const pick = document.createElement('div'); pick.className = 'dn-pick';
+      const radio = document.createElement('input');
+      radio.type = 'radio'; radio.name = 'dnItem'; radio.checked = !!(DN.item && DN.item.id === it.id);
+      radio.title = 'Make this the note';
+      radio.onchange = () => dnSelectItem(it);
+      pick.appendChild(radio);
+      row.insertBefore(pick, row.firstChild);
+      const acts = document.createElement('div'); acts.className = 'acts';
+      // Anything that is not the note can still be carried along — figures, data files.
+      if (!(DN.item && DN.item.id === it.id)) {
+        const lab = document.createElement('label');
+        lab.className = 'dn-pick'; lab.title = 'Copy this into the same folder';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.checked = DN.extras.has(it.id);
+        cb.onchange = () => { if (cb.checked) DN.extras.add(it.id); else DN.extras.delete(it.id); };
+        lab.appendChild(cb);
+        const sp = document.createElement('span'); sp.className = 'field-note'; sp.style.margin = '0'; sp.textContent = 'include';
+        lab.appendChild(sp);
+        acts.appendChild(lab);
+      }
+      const dl = document.createElement('button');
+      dl.className = 'mini-btn'; dl.textContent = 'Open'; dl.title = 'Open this file in a new tab';
+      dl.onclick = async () => {
+        dl.disabled = true;
+        try { window.open(await dnItemBlobUrl(DN.cur, it), '_blank', 'noopener'); }
+        catch (e) { dnMsg('Could not open that file: ' + e.message, true); }
+        finally { dl.disabled = false; }
+      };
+      acts.appendChild(dl);
+      row.appendChild(acts);
+      host.appendChild(row);
+    });
+  }
+
+  async function dnSelectItem(it) {
+    DN.item = it || null;
+    DN.extras.delete(it && it.id);
+    dnRenderItems();
+    const wrap = $('dnContentWrap'), prevWrap = $('dnPreviewWrap'), prev = $('dnPreview');
+    prev.innerHTML = ''; prevWrap.hidden = true;
+    if (!it) { wrap.hidden = true; $('dnFilename').value = ''; return; }
+    $('dnFilename').value = String(it.name).replace(/\.[^.]*$/, '');
+    const isText = DN_TEXT_EXTS.includes(it.ext);
+    wrap.hidden = !isText;
+    if (isText) {
+      $('dnContent').value = 'Loading…';
+      try {
+        const r = await api('/api/admin/donation/text?id=' + encodeURIComponent(DN.cur.id) + '&item=' + encodeURIComponent(it.id));
+        $('dnContent').value = r.text || '';
+      } catch (e) { $('dnContent').value = ''; dnMsg('Could not read that file: ' + e.message, true); }
+      if (it.ext === '.tex') {
+        prevWrap.hidden = false;
+        prev.innerHTML = '';
+        const b = document.createElement('button');
+        b.className = 'mini-btn'; b.style.margin = '14px'; b.textContent = 'Build a PDF preview';
+        b.onclick = () => dnCompile(b);
+        prev.appendChild(b);
+      }
+    } else if (it.ext === '.pdf' || DN_IMG_RE.test(it.name)) {
+      prevWrap.hidden = false;
+      prev.innerHTML = '<div class="dn-prev-msg">Loading the file…</div>';
+      const want = it.id;
+      try {
+        const url = await dnItemBlobUrl(DN.cur, it);
+        if (!DN.item || DN.item.id !== want) return;   // a faster click won
+        prev.innerHTML = it.ext === '.pdf' ? '<iframe title="Donated PDF"></iframe>' : '<img alt="Donated scan">';
+        prev.firstChild.src = url;
+      } catch (e) {
+        prev.innerHTML = '<div class="dn-prev-msg bad"></div>';
+        prev.firstChild.textContent = 'Could not load that file: ' + e.message;
+      }
+    }
+  }
+
+  // Render the submission in the same sandbox an archive note compiles in. The
+  // result is never cached, so a declined donation leaves no PDF behind.
+  async function dnCompile(btn) {
+    const prev = $('dnPreview');
+    btn.disabled = true; btn.textContent = 'Compiling…';
+    try {
+      const res = await fetch('/api/admin/donation/compile', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Token': token },
+        body: JSON.stringify({ id: DN.cur.id, item: DN.item.id }),
+      });
+      if (res.status === 401) { handleExpired(); return; }
+      const ct = res.headers.get('content-type') || '';
+      if (!res.ok || !ct.includes('pdf')) {
+        let log = 'Compile failed.';
+        try { const j = await res.json(); log = (j && j.log) || log; } catch {}
+        prev.innerHTML = '<div class="dn-prev-msg bad"></div>';
+        prev.firstChild.textContent = log;
+        return;
+      }
+      const url = URL.createObjectURL(await res.blob());
+      DN_URLS.push(url);           // released when the sheet closes
+      prev.innerHTML = '<iframe title="Donation preview"></iframe>';
+      prev.firstChild.src = url;
+    } catch (e) {
+      prev.innerHTML = '<div class="dn-prev-msg bad"></div>';
+      prev.firstChild.textContent = 'Compile failed: ' + e.message;
+    } finally { btn.disabled = false; btn.textContent = 'Build a PDF preview'; }
+  }
+
+  // Destination picker: the same /api/admin/browse the Notes tab walks, folders only.
+  async function dnLoadFolders() {
+    const host = $('dnFolders');
+    renderCrumbs($('dnCrumbs'), DN.lang === 'hu' ? 'DataHU' : 'Data', DN.dir ? DN.dir.split('/') : [], d => { DN.dir = d; dnLoadFolders(); });
+    host.innerHTML = '<div class="empty">Loading…</div>';
+    let data;
+    try { data = await api('/api/admin/browse?lang=' + DN.lang + '&dir=' + encodeURIComponent(DN.dir)); }
+    catch (e) { host.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    const folders = (data.items || []).filter(x => x.type === 'folder');
+    host.innerHTML = '';
+    if (!folders.length) {
+      host.innerHTML = '<div class="empty" style="padding:14px">' +
+        (DN.dir ? 'No sub-folders — the note lands here.' : 'No folders yet — the note lands at the top level.') + '</div>';
+      return;
+    }
+    folders.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'row folder'; row.style.cursor = 'pointer';
+      row.innerHTML = '<div class="ico">' + FOLDER_SVG + '</div><div class="body"><div class="nm">' + esc(f.name) + '</div>' +
+        '<div class="meta"><span class="chip muted">' + (f.count || 0) + ' item' + (f.count === 1 ? '' : 's') + '</span></div></div>';
+      row.onclick = () => { DN.dir = DN.dir ? DN.dir + '/' + f.name : f.name; dnLoadFolders(); };
+      host.appendChild(row);
+    });
+  }
+
+  async function dnAccept() {
+    if (DN.busy) return;
+    const d = DN.cur; if (!d || !DN.item) { dnMsg('Choose which file becomes the note.', true); return; }
+    const name = $('dnFilename').value.trim();
+    if (!name) { dnMsg('Give the note a file name.', true); $('dnFilename').focus(); return; }
+    const payload = {
+      id: d.id, item: DN.item.id, lang: DN.lang, dir: DN.dir, filename: name,
+      extras: [...DN.extras], credit: DN.credit,
+      content: DN_TEXT_EXTS.includes(DN.item.ext) ? $('dnContent').value : undefined,
+      reason: $('dnReason').value,
+      meta: {
+        tags: $('dnTags').value, authors: $('dnAuthors').value, date: $('dnDate').value,
+        description: $('dnDesc').value, important: DN.important,
+        canSee: DN.see, canRead: DN.read,
+      },
+    };
+    DN.busy = true; $('dnAccept').disabled = true; dnMsg('Filing…');
+    try {
+      const r = await api('/api/admin/donation/accept', { method: 'POST', body: payload });
+      dnClose(); toast('Added as ' + r.path);
+      loadDonations();
+      // The archive changed under the Notes tab, so redraw it if it is showing.
+      if (!$('tab-notes').classList.contains('hidden')) loadBrowse();
+    } catch (e) {
+      // A name clash is worth a second chance rather than an error the reviewer
+      // has to decode — offer the overwrite instead of making them rename blind.
+      if (/already there/i.test(e.message) && confirm(e.message + '\n\nOverwrite it?')) {
+        try {
+          const r = await api('/api/admin/donation/accept', { method: 'POST', body: { ...payload, overwrite: true } });
+          dnClose(); toast('Added as ' + r.path); loadDonations();
+          if (!$('tab-notes').classList.contains('hidden')) loadBrowse();
+        } catch (e2) { dnMsg(e2.message, true); }
+      } else dnMsg(e.message, true);
+    } finally { DN.busy = false; $('dnAccept').disabled = false; }
+  }
+
+  async function dnDecline() {
+    if (DN.busy) return;
+    const d = DN.cur; if (!d) return;
+    const reason = $('dnReason').value.trim();
+    if (!confirm('Decline this donation?\n\nEvery file ' + d.from + ' sent is deleted from the server. They are told'
+      + (reason ? ', with your reply.' : ' — consider writing them a line first.'))) return;
+    DN.busy = true; $('dnDecline').disabled = true; dnMsg('Declining…');
+    try {
+      await api('/api/admin/donation/decline', { method: 'POST', body: { id: d.id, reason } });
+      dnClose(); toast('Declined'); loadDonations();
+    } catch (e) { dnMsg(e.message, true); }
+    finally { DN.busy = false; $('dnDecline').disabled = false; }
+  }
+
+  (function wireDonations() {
+    $('dnStatusSeg').addEventListener('click', e => {
+      const b = e.target.closest('button[data-dnst]'); if (!b) return;
+      DN.status = b.dataset.dnst;
+      $('dnStatusSeg').querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+      loadDonations();
+    });
+    $('dnClose').addEventListener('click', dnClose);
+    $('dnOv').addEventListener('click', e => { if (e.target.id === 'dnOv') dnClose(); });
+    $('dnAccept').addEventListener('click', dnAccept);
+    $('dnDecline').addEventListener('click', dnDecline);
+    $('dnLangSeg').addEventListener('click', e => {
+      const b = e.target.closest('button[data-dnlang]'); if (!b) return;
+      DN.lang = b.dataset.dnlang; DN.dir = '';
+      dnSyncSeg('dnLangSeg', 'dnlang', DN.lang);
+      dnLoadFolders();
+    });
+    $('dnSeeSeg').addEventListener('click', e => {
+      const b = e.target.closest('button[data-dnsee]'); if (!b) return;
+      DN.see = b.dataset.dnsee; dnSyncSeg('dnSeeSeg', 'dnsee', DN.see);
+    });
+    $('dnReadSeg').addEventListener('click', e => {
+      const b = e.target.closest('button[data-dnread]'); if (!b) return;
+      DN.read = b.dataset.dnread; dnSyncSeg('dnReadSeg', 'dnread', DN.read);
+    });
+    $('dnCreditToggle').addEventListener('click', () => {
+      DN.credit = !DN.credit; $('dnCreditToggle').classList.toggle('on', DN.credit);
+    });
+    $('dnImpToggle').addEventListener('click', () => {
+      DN.important = !DN.important; $('dnImpToggle').classList.toggle('on', DN.important);
+    });
+  })();
 
   // ── browser ────────────────────────────────────────
   function renderCrumbs(el, base, parts, onNav) {

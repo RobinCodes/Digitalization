@@ -53,7 +53,8 @@ The repository does **not** hold your running state. These are all git-ignored:
 | File / directory | What you lose without it |
 |---|---|
 | `days.json` | every logged day |
-| `Uploads/` | every scan and photo attached to a lesson |
+| `Uploads/` | every scan and photo attached to a lesson, and every donation awaiting review |
+| `donations.json` | every donated note and what was decided about it |
 | `timetable.json` | the weekly schedule |
 | `chats.json` | every conversation |
 | `note-discussions.json` | every per-note thread |
@@ -72,7 +73,12 @@ The repository does **not** hold your running state. These are all git-ignored:
 The archive contains a `README-restore.txt` saying where each file goes back.
 **Restoring**: stop the server, copy `state/*.json` next to `server.js`, copy
 `Uploads/` into the `Website` folder, start it again. The directory names matter —
-attachments are looked up as `Uploads/days/<dayId>/<attId><ext>`.
+attachments are looked up as `Uploads/days/<dayId>/<attId><ext>`, and staged
+donations as `Uploads/donations/<donationId>/<itemId><ext>`.
+
+> Donations still waiting for an audit are somebody else's unpublished work and exist
+> nowhere else — losing the disk before you review them loses them for good. They are
+> in the regular **state & uploads** backup. See `donations.md`.
 
 > The zip contains `admins.json` and `users.json`, which hold salted scrypt password
 > hashes. Not plaintext, but keep the file where you would keep a password-manager

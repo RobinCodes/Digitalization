@@ -1477,6 +1477,14 @@
       padding:24px;opacity:0;pointer-events:none;transition:opacity .2s;
     }
     #stgConfirmModal.open{opacity:1;pointer-events:all}
+    /* Same shell, but it has to sit above the donate panel (9201) — that is the
+       one surface it is ever raised from. */
+    #donConfirmModal{
+      position:fixed;inset:0;z-index:9300;display:flex;align-items:center;justify-content:center;
+      padding:24px;opacity:0;pointer-events:none;transition:opacity .2s;
+    }
+    #donConfirmModal.open{opacity:1;pointer-events:all}
+    #donConfirmModal.open .stg-cf-box{transform:scale(1) translateY(0)}
     .stg-cf-bd{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
     .stg-cf-box{
       position:relative;z-index:1;width:min(400px,100%);
@@ -1721,6 +1729,55 @@
     .dy-qadd:hover{background:rgba(0,0,0,.6)}
     @media(max-width:640px){.dy-qadd{opacity:.85}}
     @media(max-width:520px){.qlog{width:100vw;border-left:none}.qlog-row2{grid-template-columns:1fr}}
+    /* ── Donate a note ────────────────────────────────────────────────────
+       The donor panel reuses the quick-log aside wholesale (.qlog*), because it
+       is the same shape of job: a docked panel, a drop zone, a save. Only what is
+       genuinely new to donations gets its own rule. */
+    .don-seg{display:flex;gap:0;border:1px solid var(--border-md);border-radius:var(--radius);overflow:hidden}
+    .don-seg button{flex:1;background:var(--bg);border:none;color:var(--text2);font:inherit;font-size:12px;padding:8px 6px;transition:background .16s,color .16s}
+    .don-seg button+button{border-left:1px solid var(--border-md)}
+    .don-seg button.active{background:var(--accent-dim);color:var(--accent2)}
+    body.light .don-seg button.active{color:var(--accent)}
+    #donText{background:var(--bg);border:1px solid var(--border-md);border-radius:var(--radius);color:var(--text);
+      font-family:var(--font-mono);font-size:12px;line-height:1.55;padding:10px 11px;width:100%;min-height:210px;resize:vertical;tab-size:2}
+    #donText:focus{outline:none;border-color:var(--accent)}
+    .don-subj{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);
+      border-radius:var(--radius);padding:8px 10px;font-size:12.5px;color:var(--text2)}
+    .don-subj .sw{width:9px;height:9px;border-radius:50%;flex:none;background:var(--accent)}
+    .don-subj b{color:var(--text);font-weight:600}
+    .don-subj button{margin-left:auto;background:none;border:none;color:var(--text3);font-size:15px;line-height:1;padding:0 2px;flex:none}
+    .don-subj button:hover{color:var(--red)}
+    /* Status pills, shared by the donor's list and the chat cards. */
+    .don-pill{display:inline-block;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+      border-radius:20px;padding:2px 8px;border:1px solid var(--border-md);color:var(--text3)}
+    .don-pill.pending{color:var(--accent2);border-color:var(--accent);background:var(--accent-dim)}
+    body.light .don-pill.pending{color:var(--accent)}
+    .don-pill.accepted{color:#4ba36b;border-color:currentColor}
+    .don-pill.declined,.don-pill.withdrawn{color:var(--red);border-color:currentColor}
+    .don-row{display:flex;flex-direction:column;gap:5px;background:var(--bg);border:1px solid var(--border);
+      border-radius:var(--radius);padding:11px 13px}
+    .don-row .dr-top{display:flex;align-items:center;gap:9px}
+    .don-row .dr-title{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--text);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .don-row .dr-sub{font-family:var(--font-mono);font-size:10px;color:var(--text3)}
+    .don-row .dr-reason{font-size:12px;color:var(--text2);border-left:2px solid var(--border-md);padding-left:9px}
+    .don-row .dr-acts{display:flex;gap:8px;margin-top:3px}
+    .don-row .dr-acts button{background:none;border:1px solid var(--border-md);border-radius:6px;color:var(--text2);
+      font:inherit;font-size:11.5px;padding:4px 10px}
+    .don-row .dr-acts button:hover{border-color:var(--accent);color:var(--text)}
+    .don-row .dr-acts button.danger:hover{border-color:var(--red);color:var(--red)}
+    /* The donate affordance on a timetable cell. Mirrors the admin's quick-log `+`,
+       but sits on the left so the two never overlap on a cell an admin sees. */
+    .dy-qdonate{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:5px;
+      background:rgba(0,0,0,.34);color:#fff;border:none;font-size:12px;line-height:20px;padding:0;
+      opacity:0;transition:opacity .16s,background .16s;z-index:2}
+    .dy-ttslot:hover .dy-qdonate,.dy-qdonate:focus-visible{opacity:1}
+    .dy-qdonate:hover{background:rgba(0,0,0,.6)}
+    @media(max-width:640px){.dy-qdonate{opacity:.85}}
+    .dy-donate-btn{margin-top:10px;background:none;border:1px dashed var(--border-md);border-radius:var(--radius);
+      color:var(--text3);font:inherit;font-size:11.5px;padding:5px 11px;transition:border-color .16s,color .16s}
+    .dy-donate-btn:hover{border-color:var(--accent);color:var(--accent2)}
+    body.light .dy-donate-btn:hover{color:var(--accent)}
 
     /* ── Search hits from inside note bodies ─────────────────────────────── */
     .cs-panel{margin-top:26px;padding-top:20px;border-top:1px solid var(--border);animation:fadeUp .3s var(--tr) both}
@@ -2219,11 +2276,11 @@
     .chat-noteref:hover{border-color:var(--accent);background:var(--bg3)}
     .chat-noteref svg{flex:none;color:var(--accent)}
     .chat-noteref .cnr-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-    #discussModal,#myNotesModal,#manageModal,#chatManageModal,#chatConfirmModal,#chatTransferModal{position:fixed;inset:0;z-index:8700;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
-    #discussModal.open,#myNotesModal.open,#manageModal.open,#chatManageModal.open,#chatConfirmModal.open,#chatTransferModal.open{opacity:1;pointer-events:all}
+    #discussModal,#myNotesModal,#myDonationsModal,#manageModal,#chatManageModal,#chatConfirmModal,#chatTransferModal{position:fixed;inset:0;z-index:8700;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+    #discussModal.open,#myNotesModal.open,#myDonationsModal.open,#manageModal.open,#chatManageModal.open,#chatConfirmModal.open,#chatTransferModal.open{opacity:1;pointer-events:all}
     #chatConfirmModal,#chatTransferModal{z-index:8900}
-    #discussModal .msg-sheet,#myNotesModal .msg-sheet,#manageModal .msg-sheet,#chatManageModal .msg-sheet,#chatConfirmModal .msg-sheet,#chatTransferModal .msg-sheet{transform:scale(.96) translateY(8px);transition:transform .25s}
-    #discussModal.open .msg-sheet,#myNotesModal.open .msg-sheet,#manageModal.open .msg-sheet,#chatManageModal.open .msg-sheet,#chatConfirmModal.open .msg-sheet,#chatTransferModal.open .msg-sheet{transform:scale(1) translateY(0)}
+    #discussModal .msg-sheet,#myNotesModal .msg-sheet,#myDonationsModal .msg-sheet,#manageModal .msg-sheet,#chatManageModal .msg-sheet,#chatConfirmModal .msg-sheet,#chatTransferModal .msg-sheet{transform:scale(.96) translateY(8px);transition:transform .25s}
+    #discussModal.open .msg-sheet,#myNotesModal.open .msg-sheet,#myDonationsModal.open .msg-sheet,#manageModal.open .msg-sheet,#chatManageModal.open .msg-sheet,#chatConfirmModal.open .msg-sheet,#chatTransferModal.open .msg-sheet{transform:scale(1) translateY(0)}
     .ct-opt{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:13px;color:var(--text);cursor:pointer}
     .ct-opt input{width:auto;accent-color:var(--accent)}
     .mn-list{max-height:min(60vh,520px);overflow:auto;margin:-2px -2px 0;padding:2px}
@@ -2721,6 +2778,7 @@
         <button class="auth-submit ghost" id="authMessagesBtn" style="margin-bottom:10px">Open chat</button>
         <button class="auth-submit ghost" id="authPrefsBtn" style="margin-bottom:10px" data-i18n="authPrefs">Preferences</button>
         <button class="auth-submit ghost" id="authMyNotesBtn" style="margin-bottom:10px" data-i18n="myNotes">My notes</button>
+        <button class="auth-submit ghost" id="authDonateBtn" style="margin-bottom:10px" data-i18n="myDonations">My donations</button>
         <button class="auth-submit ghost" id="authSignOut" data-i18n="authSignOut">Sign out</button>
       </div>
     </div>
@@ -2745,6 +2803,30 @@
         <input type="text" id="chatUserFilter" placeholder="Search people" spellcheck="false" autocapitalize="off">
         <div class="chat-userlist" id="chatUserList"></div>
         <div class="msg-compose-row"><span style="flex:1"></span><button class="msg-ghost" id="chatPickCancel" type="button">Cancel</button><button class="msg-primary" id="chatPickGo" type="button">Start</button></div>
+      </div>
+    </div>
+  </div>
+  <!-- Donations the signed-in member has sent, and what became of them. -->
+  <div id="myDonationsModal">
+    <div class="msg-sheet" style="max-width:560px">
+      <div class="msg-head"><h2 id="mdTitle" data-i18n="myDonations">My donations</h2><button class="msg-x" id="mdClose" type="button" aria-label="Close">&times;</button></div>
+      <div class="access-box" style="max-height:min(74vh,640px);overflow:auto">
+        <div class="mn-list" id="mdList"></div>
+        <div class="msg-compose-row" style="margin-top:14px"><span style="flex:1"></span><button class="msg-primary" id="mdNew" type="button" data-i18n="donTitle">Donate a note</button></div>
+      </div>
+    </div>
+  </div>
+  <!-- Asked before a donation is sent with no subject attached, and before a
+       withdrawal. Both are things the donor cannot take back by themselves. -->
+  <div id="donConfirmModal">
+    <div class="stg-cf-bd" id="donCfBd"></div>
+    <div class="stg-cf-box">
+      <div class="stg-cf-icon">?</div>
+      <div class="stg-cf-title" id="donCfTitle">Send without a subject?</div>
+      <div class="stg-cf-msg" id="donCfMsg">Nothing says which subject this belongs to, so a reviewer will have to work it out and file it by hand. You can add one instead, or send it as it is.</div>
+      <div class="stg-cf-btns">
+        <button class="stg-cf-btn apply" id="donCfGo">Send it anyway</button>
+        <button class="stg-cf-btn back" id="donCfBack">Let me add one</button>
       </div>
     </div>
   </div>
@@ -2995,6 +3077,7 @@
          where the page you just filled is in your hand and the lesson is on screen.
          The digital note is optional — the point is that the resource exists. -->
     <div class="qlog-bd" id="qlogBd" hidden></div>
+    <div class="qlog-bd" id="donBd" hidden></div>
     <aside class="qlog" id="qlog" hidden role="dialog" aria-modal="true" aria-labelledby="qlogTitle">
       <header class="qlog-head">
         <span class="qlog-swatch" id="qlogSwatch"></span>
@@ -3033,6 +3116,82 @@
         <span class="qlog-msg" id="qlogMsg"></span>
         <button class="msg-ghost" id="qlogCancel" type="button">Cancel</button>
         <button class="msg-primary" id="qlogSave" type="button">Save</button>
+      </footer>
+    </aside>
+
+    <!-- ── Donate a note ────────────────────────────────────────────────────
+         Open to any signed-in member. Nothing written here reaches the archive
+         until an admin accepts it; the panel says so in the footer so nobody
+         expects their note to appear immediately. -->
+    <aside class="qlog" id="donate" hidden role="dialog" aria-modal="true" aria-labelledby="donTitle">
+      <header class="qlog-head">
+        <span class="qlog-swatch" id="donSwatch"></span>
+        <div class="qlog-htxt">
+          <h3 id="donTitle" data-i18n="donTitle">Donate a note</h3>
+          <span id="donWhen"></span>
+        </div>
+        <button class="qlog-x" id="donClose" type="button" aria-label="Close">&times;</button>
+      </header>
+      <div class="qlog-body">
+        <div class="don-subj" id="donSubjRow" hidden>
+          <span class="sw" id="donSubjSw"></span>
+          <span><span id="donSubjPre" data-i18n="donForPre">For</span> <b id="donSubjName"></b></span>
+          <button type="button" id="donSubjClear" aria-label="Clear subject" title="Not this subject">&times;</button>
+        </div>
+        <label class="qlog-fld"><span id="donTitleLbl" data-i18n="donTitleLbl">Title</span>
+          <input type="text" id="donNoteTitle" maxlength="160" placeholder="Thermodynamics — the first law" data-i18n-ph="donTitlePh">
+        </label>
+        <div class="don-seg" id="donKindSeg">
+          <button type="button" data-donkind="write" class="active" id="donKindWriteBtn" data-i18n="donWrite">Write it</button>
+          <button type="button" data-donkind="upload" id="donKindUploadBtn" data-i18n="donUpload">Upload files</button>
+        </div>
+
+        <div id="donWritePane">
+          <div class="qlog-row2" style="margin-bottom:10px">
+            <div></div>
+            <label class="qlog-fld"><span id="donFormatLbl" data-i18n="donFormat">Format</span>
+              <select id="donTextExt">
+                <option value=".tex">LaTeX (.tex)</option>
+                <option value=".md">Markdown (.md)</option>
+                <option value=".txt">Plain text (.txt)</option>
+                <option value=".bib">BibTeX (.bib)</option>
+              </select>
+            </label>
+          </div>
+          <textarea id="donText" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="\documentclass{article}&#10;\begin{document}&#10;&#10;\end{document}"></textarea>
+          <div class="qlog-hint" id="donTextHint" style="margin-top:6px"></div>
+        </div>
+
+        <div id="donUploadPane" hidden>
+          <div class="qlog-drop" id="donDrop" tabindex="0" role="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span id="donDropTxt" data-i18n="donDropTxt">Drop a PDF, a photo of the page, or a .tex file</span>
+            <input type="file" id="donFile" multiple hidden>
+          </div>
+          <div class="qlog-files" id="donFiles" style="margin-top:10px"></div>
+        </div>
+
+        <div class="qlog-sec-lbl" id="donOptLbl" data-i18n="donOptLbl">Optional — helps the reviewer</div>
+        <div class="qlog-row2">
+          <label class="qlog-fld"><span id="donPathLbl" data-i18n="donPathLbl">Suggested folder</span>
+            <input type="text" id="donPath" spellcheck="false" autocapitalize="off" placeholder="STEM/Mathematics">
+          </label>
+          <label class="qlog-fld"><span id="donLangLbl" data-i18n="donLangLbl">Language</span>
+            <select id="donLang">
+              <option value="" data-i18n="donLangUnsure">Not sure</option>
+              <option value="en">English</option>
+              <option value="hu">Magyar</option>
+            </select>
+          </label>
+        </div>
+        <label class="qlog-fld"><span id="donMsgLbl" data-i18n="donMsgLbl">Message to the reviewer</span>
+          <textarea id="donMsg" rows="3" maxlength="4000" placeholder="Anything they should know — what it covers, what is unfinished…" data-i18n-ph="donMsgPh"></textarea>
+        </label>
+      </div>
+      <footer class="qlog-foot">
+        <span class="qlog-msg" id="donMsgLine"></span>
+        <button class="msg-ghost" id="donCancel" type="button" data-i18n="stgCancelBtn">Cancel</button>
+        <button class="msg-primary" id="donSubmit" type="button" data-i18n="donSubmitBtn">Submit</button>
       </footer>
     </aside>
 
@@ -4286,6 +4445,73 @@
         dyM7: 'July', dyM8: 'August', dyM9: 'September', dyM10: 'October', dyM11: 'November', dyM12: 'December',
         dyInClass:      'Covered in class',
         dyInClassOne:   (n) => n === 1 ? 'Covered in 1 lesson' : ('Covered in ' + n + ' lessons'),
+        // ── Donate a note ──────────────────────────────────────────────
+        myDonations:    'My donations',
+        donTitle:       'Donate a note',
+        donGeneral:     'Anywhere in the archive',
+        donForSubject:  'For this subject',
+        donForPre:      'For',
+        donTitleLbl:    'Title',
+        donTitlePh:     'Thermodynamics — the first law',
+        donWrite:       'Write it',
+        donUpload:      'Upload files',
+        donFormat:      'Format',
+        donTextHint:    'Nothing is published until an admin has read it.',
+        donDropTxt:     'Drop a PDF, a photo of the page, or a .tex file',
+        donOptLbl:      'Optional — helps the reviewer',
+        donPathLbl:     'Suggested folder',
+        donLangLbl:     'Language',
+        donLangUnsure:  'Not sure',
+        donMsgLbl:      'Message to the reviewer',
+        donMsgPh:       'Anything they should know — what it covers, what is unfinished…',
+        donSubmitBtn:   'Submit',
+        donClearSubj:   'Not this subject',
+        donRemoveFile:  'Remove',
+        donLoading:     'Loading…',
+        donSending:     'Sending…',
+        donUploading:   'Uploading…',
+        donUploadFailed:'That file could not be uploaded.',
+        donWaitUpload:  'Wait for the uploads to finish.',
+        donTooManyFiles:'That is as many files as one donation can carry.',
+        donNeedTitle:   'Give the note a title.',
+        donNeedText:    'Write the note, or switch to Upload files.',
+        donNeedFile:    'Attach at least one file.',
+        donTooLong:     'That note is too long to send.',
+        donFailed:      'That did not work.',
+        donOffline:     'You appear to be offline.',
+        donThanks:      'Sent — an admin will review it.',
+        donCfTitle:     'Send without a subject?',
+        donCfMsg:       'Nothing says which subject this belongs to, so a reviewer will have to work it out and file it by hand. You can add one instead, or send it as it is.',
+        donCfGo:        'Send it anyway',
+        donCfBack:      'Let me add one',
+        donWdTitle:     'Withdraw this donation?',
+        donWdMsg:       'It disappears from the review queue and the files you sent are deleted from the server. This cannot be undone.',
+        donWdGo:        'Withdraw it',
+        donWithdraw:    'Withdraw',
+        donWithdrawn:   'Donation withdrawn.',
+        donOpenNote:    'Open the note',
+        donNone:        'You have not donated anything yet.',
+        donUntitled:    'Untitled',
+        donNFiles:      (n) => n + (n === 1 ? ' file' : ' files'),
+        donStPending:   'In review',
+        donStAccepted:  'Accepted',
+        donStDeclined:  'Declined',
+        donStWithdrawn: 'Withdrawn',
+        donateHere:     'Donate a note for this lesson',
+        donateHereShort:'Donate a note',
+        // chat cards
+        donCardH:       'Donated note',
+        donCardYou:     'You offered',
+        donCardThey:    'offered',
+        donCardWait:    'Waiting for review…',
+        donCardReview:  'Review it in DevTools',
+        donCardAccepted:'Added to the archive',
+        donCardDeclined:'Not accepted',
+        donCardWithdrawn:'Withdrawn',
+        donResYouAcc:   'added your donation to the archive',
+        donResYouDec:   'did not accept your donation',
+        donResIAcc:     'You accepted the donation',
+        donResIDec:     'You declined the donation',
       },
       hu: {
         logoText:     'Tudás\u00a0Archívum',
@@ -4654,6 +4880,73 @@
         dyM7: 'július', dyM8: 'augusztus', dyM9: 'szeptember', dyM10: 'október', dyM11: 'november', dyM12: 'december',
         dyInClass:      'Órán vettük',
         dyInClassOne:   (n) => n + ' órán vettük',
+        // ── Jegyzet felajánlása ────────────────────────────────────────
+        myDonations:    'Felajánlásaim',
+        donTitle:       'Jegyzet felajánlása',
+        donGeneral:     'Bárhová az archívumba',
+        donForSubject:  'Ehhez a tárgyhoz',
+        donForPre:      'Tárgy:',
+        donTitleLbl:    'Cím',
+        donTitlePh:     'Hőtan — az első főtétel',
+        donWrite:       'Megírom',
+        donUpload:      'Fájlt töltök fel',
+        donFormat:      'Formátum',
+        donTextHint:    'Semmi nem kerül ki, amíg egy adminisztrátor el nem olvasta.',
+        donDropTxt:     'Húzz ide PDF-et, fényképet az oldalról, vagy .tex fájlt',
+        donOptLbl:      'Nem kötelező — segíti az ellenőrzést',
+        donPathLbl:     'Javasolt mappa',
+        donLangLbl:     'Nyelv',
+        donLangUnsure:  'Nem tudom',
+        donMsgLbl:      'Üzenet az ellenőrzőnek',
+        donMsgPh:       'Bármi, amit tudnia érdemes — mit fed le, mi hiányzik még…',
+        donSubmitBtn:   'Elküldés',
+        donClearSubj:   'Mégsem ez a tárgy',
+        donRemoveFile:  'Eltávolítás',
+        donLoading:     'Betöltés…',
+        donSending:     'Küldés…',
+        donUploading:   'Feltöltés…',
+        donUploadFailed:'Ezt a fájlt nem sikerült feltölteni.',
+        donWaitUpload:  'Várd meg, míg a feltöltések befejeződnek.',
+        donTooManyFiles:'Ennyi fájlt vihet egyetlen felajánlás.',
+        donNeedTitle:   'Adj címet a jegyzetnek.',
+        donNeedText:    'Írd meg a jegyzetet, vagy válts fájlfeltöltésre.',
+        donNeedFile:    'Csatolj legalább egy fájlt.',
+        donTooLong:     'Ez a jegyzet túl hosszú az elküldéshez.',
+        donFailed:      'Ez nem sikerült.',
+        donOffline:     'Úgy tűnik, nincs kapcsolat.',
+        donThanks:      'Elküldve — egy adminisztrátor át fogja nézni.',
+        donCfTitle:     'Elküldöd tárgy nélkül?',
+        donCfMsg:       'Semmi nem mondja meg, melyik tárgyhoz tartozik, így az ellenőrzőnek kell kitalálnia és kézzel beosztania. Megadhatsz egyet, vagy elküldheted így is.',
+        donCfGo:        'Elküldöm így',
+        donCfBack:      'Megadok egyet',
+        donWdTitle:     'Visszavonod a felajánlást?',
+        donWdMsg:       'Eltűnik az ellenőrzési sorból, és a feltöltött fájlok törlődnek a szerverről. Ezt nem lehet visszacsinálni.',
+        donWdGo:        'Visszavonom',
+        donWithdraw:    'Visszavonás',
+        donWithdrawn:   'Felajánlás visszavonva.',
+        donOpenNote:    'Jegyzet megnyitása',
+        donNone:        'Még nem ajánlottál fel semmit.',
+        donUntitled:    'Névtelen',
+        donNFiles:      (n) => n + ' fájl',
+        donStPending:   'Ellenőrzés alatt',
+        donStAccepted:  'Elfogadva',
+        donStDeclined:  'Elutasítva',
+        donStWithdrawn: 'Visszavonva',
+        donateHere:     'Jegyzet felajánlása ehhez az órához',
+        donateHereShort:'Jegyzet felajánlása',
+        // csevegőkártyák
+        donCardH:       'Felajánlott jegyzet',
+        donCardYou:     'Felajánlottad ezt:',
+        donCardThey:    'felajánlotta ezt:',
+        donCardWait:    'Ellenőrzésre vár…',
+        donCardReview:  'Ellenőrzés a DevToolsban',
+        donCardAccepted:'Bekerült az archívumba',
+        donCardDeclined:'Nem lett elfogadva',
+        donCardWithdrawn:'Visszavonva',
+        donResYouAcc:   'felvette a felajánlásodat az archívumba',
+        donResYouDec:   'nem fogadta el a felajánlásodat',
+        donResIAcc:     'Elfogadtad a felajánlást',
+        donResIDec:     'Elutasítottad a felajánlást',
       },
     };
 
@@ -6300,7 +6593,9 @@
         if (!enabled || fromMe || last.kind === 'system') return;
         if (c.id === CHAT.curId && document.visibilityState === 'visible') return;
         let title, bodyTxt;
-        if (last.kind === 'access-request') { title = MSGT('Access request', 'Hozzáférési kérelem'); bodyTxt = last.from + ' · ' + plainChat(last.body); }
+        if (last.kind === 'donation') { title = t('donCardH'); bodyTxt = last.from + ' · ' + plainChat(last.body); }
+        else if (last.kind === 'donation-result') { title = t('donCardH'); bodyTxt = c.title; }
+        else if (last.kind === 'access-request') { title = MSGT('Access request', 'Hozzáférési kérelem'); bodyTxt = last.from + ' · ' + plainChat(last.body); }
         else if (last.kind === 'access-result') { const okk = /accepted/.test(last.body || ''); title = okk ? MSGT('Access granted', 'Hozzáférés megadva') : MSGT('Access declined', 'Hozzáférés elutasítva'); bodyTxt = c.title; }
         else { title = c.type === 'group' ? c.title : last.from; bodyTxt = plainChat(last.body); }
         try { const nt = new Notification(title, { body: bodyTxt, tag: 'ki-chat-' + c.id }); nt.onclick = () => { window.focus(); navigateTo('chat'); openConversation(c.id); nt.close(); }; } catch {}
@@ -6421,6 +6716,37 @@
           const intro = mine ? MSGT('You requested access to', 'Hozz\u00e1f\u00e9r\u00e9st k\u00e9rt\u00e9l ehhez:') : (esc(m.from) + ' ' + MSGT('requested access to', 'hozz\u00e1f\u00e9r\u00e9st k\u00e9rt ehhez:'));
           const extra = m.body ? '<div>' + renderRefText(m.body) + '</div>' : '';
           return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-h">\uD83D\uDD12 ' + MSGT('Access request', 'Hozz\u00e1f\u00e9r\u00e9si k\u00e9relem') + '</div><div>' + intro + '</div><div class="ar-note">' + noteLink + '</div>' + extra + foot + '</div>';
+        }
+        if (m.kind === 'donation') {
+          const d = m.donation || {};
+          const bits = [];
+          if (d.subject) bits.push(d.subject);
+          if (d.items) bits.push(t('donNFiles')(d.items));
+          let foot = '';
+          if (m.status === 'pending' && AUTH.role === 'admin' && !mine) foot = '<div class="ar-status">' + esc(t('donCardReview')) + '</div>';
+          else if (m.status === 'pending') foot = '<div class="ar-status">' + esc(t('donCardWait')) + '</div>';
+          else if (m.status === 'accepted')  foot = '<div class="ar-status ok">' + esc(t('donCardAccepted')) + '</div>';
+          else if (m.status === 'declined')  foot = '<div class="ar-status no">' + esc(t('donCardDeclined')) + '</div>';
+          else if (m.status === 'withdrawn') foot = '<div class="ar-status no">' + esc(t('donCardWithdrawn')) + '</div>';
+          const intro = mine ? esc(t('donCardYou')) : (esc(m.from) + ' ' + esc(t('donCardThey')));
+          const extra = m.body ? '<div>' + renderRefText(m.body) + '</div>' : '';
+          return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-h">\uD83D\uDCE5 ' + esc(t('donCardH')) + '</div><div>' + intro + '</div>' +
+            '<div class="ar-note">' + esc(d.title || t('donUntitled')) + '</div>' +
+            (bits.length ? '<div class="dr-sub">' + esc(bits.join(' \u00b7 ')) + '</div>' : '') + extra + foot + '</div>';
+        }
+        if (m.kind === 'donation-result') {
+          const acc = m.decision === 'accepted';
+          const title = esc((m.donation && m.donation.title) || t('donUntitled'));
+          const who = mine ? esc(acc ? t('donResIAcc') : t('donResIDec'))
+                           : (esc(m.from) + ' ' + esc(acc ? t('donResYouAcc') : t('donResYouDec')));
+          const reason = m.reason ? '<div style="margin-top:5px;color:var(--text2)">\u201c' + esc(m.reason) + '\u201d</div>' : '';
+          // When it was accepted, the note itself is the useful thing to reach.
+          let link = '<div class="ar-note">' + title + '</div>';
+          if (acc && m.note && m.note.path) {
+            const ref = JSON.stringify({ kind: 'note', target: m.note.path, lang: m.note.lang || 'en', label: m.note.label || '' });
+            link = '<div class="ar-note"><a class="cl-ref" href="#" data-ref="' + esc(ref) + '">' + esc(m.note.label || title) + '</a></div>';
+          }
+          return '<div class="chat-areq' + (mine ? ' me' : '') + '"><div class="ar-status ' + (acc ? 'ok' : 'no') + '">' + who + '</div>' + link + reason + '</div>';
         }
         if (m.kind === 'password-reset') {
           // Only an admin can act on it; the requester just sees that it was sent.
@@ -7042,6 +7368,7 @@
       on('authDevtoolsBtn', () => { window.location.href = '/devtools'; });
       on('authPrefsBtn', () => { closeAuthModal(); const sb = document.getElementById('settingsBtn'); if (sb) sb.click(); });
       on('authMyNotesBtn', () => { closeAuthModal(); openMyNotes(); });
+      on('authDonateBtn', () => { closeAuthModal(); openMyDonations(); });
       on('authNotifToggle', async () => {
         const el = document.getElementById('authNotifToggle'); if (!el) return;
         const turningOn = !el.classList.contains('on');
@@ -10564,6 +10891,16 @@
         l.attachments.forEach(a => g.appendChild(dyFileTile(day, a)));
         el.appendChild(g);
       }
+      // "I have notes from this lesson" — the card knows the subject, so the donor
+      // does not have to say which one it was.
+      if (donIsMember()) {
+        const give = document.createElement('button');
+        give.type = 'button'; give.className = 'dy-donate-btn';
+        give.textContent = '\u21E1 ' + t('donateHereShort');
+        give.title = t('donateHere');
+        give.onclick = e => { e.stopPropagation(); dyCloseDetail(); donOpen(donCtxFromLesson(l)); };
+        el.appendChild(give);
+      }
       return el;
     }
 
@@ -10601,6 +10938,307 @@
     const QL = { open: false, date: '', slot: null, subj: null, dayId: '', lesson: null,
                  files: [], notes: [], uploading: 0, hitsTimer: null, hitsSeq: 0 };
     const QL_KINDS = ['lesson', 'test', 'exam', 'lab', 'presentation', 'trip', 'substitution', 'selfstudy', 'cancelled'];
+
+
+    /* ── Donate a note ────────────────────────────────────────────────────
+       A member offers material; an admin audits it before anything reaches the
+       archive. Opened from three places: a timetable cell or a lesson card (both
+       of which know the subject already), or the account panel (which does not).
+
+       The server holds a single open draft per account — that is what gives an
+       upload somewhere to live before Submit is pressed — so donOpen() asks for
+       the draft rather than inventing an id, and a panel reopened after a reload
+       picks the same one back up along with anything already staged in it. */
+    const DON = { open: false, id: null, kind: 'write', files: [], uploading: 0, subj: null, limits: null, busy: false };
+    function donIsMember() { return !!(AUTH && AUTH.user); }
+    // A timetable subject ({name, nameHu, folder, folderLang}) and a logged lesson
+    // ({subject, subjectHu, subjectId}) carry the same information under different
+    // field names; both entry points funnel through here so donOpen sees one shape.
+    function donCtxFromSubject(subj) {
+      if (!subj) return null;
+      return { subjectId: subj.id || '', subjectName: subj.name || '', subjectHu: subj.nameHu || '',
+        color: subj.color || '', folder: subj.folder || '', folderLang: subj.folderLang || 'en' };
+    }
+    function donCtxFromLesson(l) {
+      if (!l) return null;
+      // A logged lesson keeps only a snapshot of its subject, so look the live
+      // subject up when it still exists — that is where the notes folder lives.
+      const subj = (DY.tt && (DY.tt.subjects || []).find(x => x.id === l.subjectId)) || null;
+      return { subjectId: l.subjectId || '', subjectName: l.subject || '', subjectHu: l.subjectHu || '',
+        color: l.color || (subj && subj.color) || '', folder: (subj && subj.folder) || '',
+        folderLang: (subj && subj.folderLang) || 'en' };
+    }
+
+    function donMsg(text, isErr) {
+      const el = document.getElementById('donMsgLine');
+      el.textContent = text || ''; el.classList.toggle('err', !!isErr);
+    }
+    // ctx: { subjectId, subjectName, subjectHu, color, folder, folderLang }
+    async function donOpen(ctx) {
+      if (!donIsMember()) { openAuthModal(); return; }
+      if (DON.open) return;
+      DON.open = true; DON.subj = ctx || null; DON.files = []; DON.uploading = 0;
+      document.getElementById('donBd').hidden = false;
+      document.getElementById('donate').hidden = false;
+      donMsg(t('donLoading'));
+      document.getElementById('donSubmit').disabled = true;
+      let d = null;
+      try {
+        const r = await fetch('/api/donate/draft', { method: 'POST' });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) { donMsg((j && j.error) || t('donFailed'), true); return; }
+        d = j.donation; DON.limits = j.limits || null;
+      } catch { donMsg(t('donOffline'), true); return; }
+      DON.id = d.id;
+      // Anything left in the draft from a previous visit is still staged server-side.
+      DON.files = (d.items || []).filter(i => i.kind !== 'text');
+      document.getElementById('donSubmit').disabled = false;
+      donMsg('');
+
+      const sName = ctx ? (LANG === 'hu' && ctx.subjectHu ? ctx.subjectHu : (ctx.subjectName || ctx.subjectHu || '')) : '';
+      const row = document.getElementById('donSubjRow');
+      if (sName) {
+        row.hidden = false;
+        document.getElementById('donSubjName').textContent = sName;
+        document.getElementById('donSubjSw').style.background = (ctx && ctx.color) || 'var(--accent)';
+        document.getElementById('donSubjClear').title = t('donClearSubj');
+      } else row.hidden = true;
+      document.getElementById('donSwatch').style.background = (ctx && ctx.color) || 'var(--accent)';
+      document.getElementById('donWhen').textContent = sName ? t('donForSubject') : t('donGeneral');
+      // A subject that names a notes folder pre-fills the suggestion — this is the
+      // "it already knows where it goes" part of donating from the timetable.
+      document.getElementById('donPath').value = (ctx && ctx.folder) || '';
+      document.getElementById('donLang').value = (ctx && ctx.folderLang === 'hu') ? 'hu' : (ctx && ctx.folder ? 'en' : '');
+      document.getElementById('donNoteTitle').value = '';
+      document.getElementById('donText').value = '';
+      document.getElementById('donMsg').value = '';
+      document.getElementById('donTextHint').textContent = t('donTextHint');
+      donSetKind('write');
+      donRenderFiles();
+      setTimeout(() => { const el = document.getElementById('donNoteTitle'); if (el) el.focus(); }, 60);
+    }
+    function donClose() {
+      DON.open = false;
+      document.getElementById('donate').hidden = true;
+      document.getElementById('donBd').hidden = true;
+    }
+    function donSetKind(k) {
+      DON.kind = (k === 'upload') ? 'upload' : 'write';
+      document.querySelectorAll('#donKindSeg button').forEach(b => b.classList.toggle('active', b.dataset.donkind === DON.kind));
+      document.getElementById('donWritePane').hidden = DON.kind !== 'write';
+      document.getElementById('donUploadPane').hidden = DON.kind !== 'upload';
+    }
+    function donRenderFiles() {
+      const host = document.getElementById('donFiles');
+      host.innerHTML = '';
+      DON.files.forEach(a => {
+        const row = document.createElement('div');
+        row.className = 'qlog-file' + (a._pending ? ' pending' : '');
+        const isImg = DY_IMG.test(a.name || '');
+        const url = '/uploads/donations/' + DON.id + '/' + a.id + a.ext;
+        row.innerHTML =
+          '<span class="th">' + (isImg && !a._pending ? '<img alt="" src="' + esc(url) + '">' : esc((a.ext || '').replace('.', '').toUpperCase() || '…')) + '</span>' +
+          '<span class="fmeta"><span class="fname">' + esc(a.name || '') + '</span>' +
+          '<span class="dr-sub">' + esc(a._pending ? t('donUploading') : fmtSize(a.size || 0)) + '</span></span>';
+        if (!a._pending) {
+          const rm = document.createElement('button');
+          rm.type = 'button'; rm.className = 'rm'; rm.textContent = '×';
+          rm.title = t('donRemoveFile');
+          rm.addEventListener('click', () => donRemoveFile(a));
+          row.appendChild(rm);
+        }
+        host.appendChild(row);
+      });
+    }
+    async function donRemoveFile(a) {
+      try {
+        const r = await fetch('/api/donate/item/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: DON.id, item: a.id }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) { donMsg((j && j.error) || t('donFailed'), true); return; }
+        DON.files = DON.files.filter(x => x.id !== a.id);
+        donRenderFiles();
+      } catch { donMsg(t('donOffline'), true); }
+    }
+    async function donUpload(fileList) {
+      if (!DON.id) return;
+      const files = [...(fileList || [])];
+      const max = (DON.limits && DON.limits.maxItems) || 12;
+      for (const f of files) {
+        if (DON.files.length >= max) { donMsg(t('donTooManyFiles'), true); break; }
+        // Photographs are labelled as scans so the reviewer knows what they are
+        // looking at before they open it — the same distinction the day log draws.
+        const kind = /^image\//.test(f.type || '') ? 'scan' : 'file';
+        const stub = { id: 'p' + Math.random().toString(36).slice(2, 9), name: f.name,
+          ext: (f.name.match(/\.[^.]+$/) || [''])[0].toLowerCase(), size: f.size, kind, _pending: true };
+        DON.files.push(stub); donRenderFiles();
+        DON.uploading++; donMsg(t('donUploading'));
+        try {
+          const res = await fetch('/api/donate/upload?id=' + encodeURIComponent(DON.id) +
+            '&name=' + encodeURIComponent(f.name) + '&kind=' + kind, { method: 'POST', body: f });
+          const j = await res.json().catch(() => ({}));
+          const at = DON.files.indexOf(stub);
+          if (!res.ok || !j.ok) { if (at >= 0) DON.files.splice(at, 1); donMsg((j && j.error) || t('donUploadFailed'), true); }
+          else if (at >= 0) DON.files[at] = j.item;
+        } catch {
+          const at = DON.files.indexOf(stub); if (at >= 0) DON.files.splice(at, 1);
+          donMsg(t('donUploadFailed'), true);
+        } finally { DON.uploading--; donRenderFiles(); }
+      }
+      if (!DON.uploading) donMsg('');
+    }
+
+    // The confirm dialogue. Resolves true when the donor goes ahead.
+    let _donCfResolve = null;
+    function donConfirm(title, msg, goLabel) {
+      const m = document.getElementById('donConfirmModal');
+      document.getElementById('donCfTitle').textContent = title;
+      document.getElementById('donCfMsg').textContent = msg;
+      document.getElementById('donCfGo').textContent = goLabel;
+      m.classList.add('open');
+      return new Promise(res => { _donCfResolve = res; });
+    }
+    function donCfEnd(v) {
+      document.getElementById('donConfirmModal').classList.remove('open');
+      const r = _donCfResolve; _donCfResolve = null;
+      if (r) r(v);
+    }
+
+    async function donSubmit() {
+      if (DON.busy) return;
+      if (DON.uploading) { donMsg(t('donWaitUpload'), true); return; }
+      const title = document.getElementById('donNoteTitle').value.trim();
+      if (!title) { donMsg(t('donNeedTitle'), true); document.getElementById('donNoteTitle').focus(); return; }
+      const text = DON.kind === 'write' ? document.getElementById('donText').value : '';
+      if (DON.kind === 'write' && !text.trim()) { donMsg(t('donNeedText'), true); document.getElementById('donText').focus(); return; }
+      if (DON.kind === 'upload' && !DON.files.length) { donMsg(t('donNeedFile'), true); return; }
+      const textMax = (DON.limits && DON.limits.textMax) || 524288;
+      if (text.length > textMax) { donMsg(t('donTooLong'), true); return; }
+
+      // Donating from outside the timetable means nobody has said which subject
+      // this is. That is allowed — but it costs a reviewer real work, so it is a
+      // deliberate choice rather than an accident.
+      const hasSubject = !!(DON.subj && (DON.subj.subjectName || DON.subj.subjectHu));
+      const hasHint = !!document.getElementById('donPath').value.trim();
+      if (!hasSubject && !hasHint) {
+        const go = await donConfirm(t('donCfTitle'), t('donCfMsg'), t('donCfGo'));
+        if (!go) { document.getElementById('donPath').focus(); return; }
+      }
+
+      DON.busy = true;
+      const btn = document.getElementById('donSubmit'); btn.disabled = true;
+      donMsg(t('donSending'));
+      try {
+        const payload = {
+          id: DON.id, title,
+          text: DON.kind === 'write' ? text : '',
+          textExt: document.getElementById('donTextExt').value,
+          message: document.getElementById('donMsg').value,
+          lang: document.getElementById('donLang').value,
+          suggestPath: document.getElementById('donPath').value.trim(),
+          subjectId:   (DON.subj && DON.subj.subjectId) || '',
+          subjectName: (DON.subj && DON.subj.subjectName) || '',
+          subjectHu:   (DON.subj && DON.subj.subjectHu) || '',
+        };
+        const r = await fetch('/api/donate/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) { donMsg((j && j.error) || t('donFailed'), true); return; }
+        donClose();
+        showToast(t('donThanks'));
+        pollUnread();
+      } catch { donMsg(t('donOffline'), true); }
+      finally { DON.busy = false; btn.disabled = false; }
+    }
+
+    /* ── My donations ─────────────────────────────────────────────────── */
+    const DON_PILL = { pending: 'donStPending', accepted: 'donStAccepted', declined: 'donStDeclined', withdrawn: 'donStWithdrawn' };
+    async function openMyDonations() {
+      if (!donIsMember()) { openAuthModal(); return; }
+      const list = document.getElementById('mdList');
+      list.innerHTML = '<div class="mn-sub">' + esc(t('donLoading')) + '</div>';
+      document.getElementById('myDonationsModal').classList.add('open');
+      let rows = [];
+      try {
+        const r = await fetch('/api/donate/mine');
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) { list.innerHTML = '<div class="mn-sub">' + esc((j && j.error) || t('donFailed')) + '</div>'; return; }
+        rows = j.donations || [];
+      } catch { list.innerHTML = '<div class="mn-sub">' + esc(t('donOffline')) + '</div>'; return; }
+      rows = rows.filter(d => d.status !== 'draft');
+      if (!rows.length) { list.innerHTML = '<div class="mn-sub">' + esc(t('donNone')) + '</div>'; return; }
+      list.innerHTML = '';
+      rows.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'don-row';
+        const bits = [];
+        if (d.created) bits.push(dyLongDate(String(d.created).slice(0, 10)));
+        if (d.subjectName || d.subjectHu) bits.push(LANG === 'hu' && d.subjectHu ? d.subjectHu : d.subjectName);
+        if ((d.items || []).length) bits.push(t('donNFiles')(d.items.length));
+        el.innerHTML =
+          '<div class="dr-top"><span class="dr-title">' + esc(d.title || t('donUntitled')) + '</span>' +
+          '<span class="don-pill ' + esc(d.status) + '">' + esc(t(DON_PILL[d.status] || 'donStPending')) + '</span></div>' +
+          (bits.length ? '<div class="dr-sub">' + esc(bits.join(' · ')) + '</div>' : '') +
+          (d.reason ? '<div class="dr-reason">' + esc(d.reason) + '</div>' : '');
+        if (d.status === 'accepted' && d.result) {
+          const acts = document.createElement('div'); acts.className = 'dr-acts';
+          const b = document.createElement('button'); b.type = 'button'; b.textContent = t('donOpenNote');
+          b.addEventListener('click', () => { closeMyDonations(); openNoteByPath(d.result.path, d.result.lang); });
+          acts.appendChild(b); el.appendChild(acts);
+        } else if (d.status === 'pending') {
+          const acts = document.createElement('div'); acts.className = 'dr-acts';
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'danger'; b.textContent = t('donWithdraw');
+          b.addEventListener('click', async () => {
+            const go = await donConfirm(t('donWdTitle'), t('donWdMsg'), t('donWdGo'));
+            if (!go) return;
+            try {
+              const r = await fetch('/api/donate/withdraw', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: d.id }) });
+              const j = await r.json().catch(() => ({}));
+              if (!r.ok || !j.ok) { showToast((j && j.error) || t('donFailed')); return; }
+              showToast(t('donWithdrawn')); openMyDonations();
+            } catch { showToast(t('donOffline')); }
+          });
+          acts.appendChild(b); el.appendChild(acts);
+        }
+        list.appendChild(el);
+      });
+    }
+    function closeMyDonations() { document.getElementById('myDonationsModal').classList.remove('open'); }
+
+    (function wireDonate() {
+      const $d = id => document.getElementById(id);
+      $d('donClose').addEventListener('click', donClose);
+      $d('donCancel').addEventListener('click', donClose);
+      $d('donBd').addEventListener('click', donClose);
+      $d('donSubmit').addEventListener('click', donSubmit);
+      $d('donKindSeg').addEventListener('click', e => { const b = e.target.closest('button[data-donkind]'); if (b) donSetKind(b.dataset.donkind); });
+      $d('donSubjClear').addEventListener('click', () => {
+        DON.subj = null;
+        $d('donSubjRow').hidden = true;
+        $d('donWhen').textContent = t('donGeneral');
+        $d('donSwatch').style.background = 'var(--accent)';
+      });
+      const drop = $d('donDrop'), input = $d('donFile');
+      drop.addEventListener('click', () => input.click());
+      drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+      input.addEventListener('change', () => { donUpload(input.files); input.value = ''; });
+      ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+      ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+      drop.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) donUpload(e.dataTransfer.files); });
+      $d('donCfGo').addEventListener('click', () => donCfEnd(true));
+      $d('donCfBack').addEventListener('click', () => donCfEnd(false));
+      $d('donCfBd').addEventListener('click', () => donCfEnd(false));
+      // Escape settles the confirm first, then the panel — otherwise one key press
+      // would close the panel out from under an open question.
+      document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (_donCfResolve) { donCfEnd(false); return; }
+        if (document.getElementById('myDonationsModal').classList.contains('open')) { closeMyDonations(); return; }
+        if (DON.open) donClose();
+      });
+      $d('mdClose').addEventListener('click', closeMyDonations);
+      $d('mdNew').addEventListener('click', () => { closeMyDonations(); donOpen(null); });
+      $d('myDonationsModal').addEventListener('click', e => { if (e.target.id === 'myDonationsModal') closeMyDonations(); });
+    })();
 
     function qlIsAdmin() { return AUTH && AUTH.role === 'admin'; }
 
@@ -10913,6 +11551,18 @@
               add.textContent = rec ? '✎' : '+';
               add.addEventListener('click', e => { e.stopPropagation(); qlOpen(date, s); });
               box.appendChild(add);
+            }
+            // Donating from the grid is the whole point of putting the button here:
+            // the cell already knows the subject, and the subject already knows its
+            // notes folder, so the donor picks neither.
+            if (donIsMember()) {
+              const give = document.createElement('button');
+              give.type = 'button'; give.className = 'dy-qdonate';
+              give.title = t('donateHere');
+              give.setAttribute('aria-label', give.title);
+              give.textContent = '\u21E1';
+              give.addEventListener('click', ev => { ev.stopPropagation(); donOpen(donCtxFromSubject(subj)); });
+              box.appendChild(give);
             }
             cell.appendChild(box);
           });

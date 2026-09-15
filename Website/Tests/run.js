@@ -1288,6 +1288,119 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     r = await req('GET', '/api/admin/me', { token });
     ok('an established admin session survives the lockout', r.json && r.json.ok === true);
 
+
+    // ── note donations ───────────────────────────────────────────────────────
+    // A member offers material; an admin audits it. The rules worth pinning down
+    // are the containment ones: a submission is not part of the archive, it is
+    // readable by nobody but its donor and the admins, and only an admin can turn
+    // one into a note.
+    r = await req('POST', '/api/donate/draft', {});
+    ok('donations need a session', r.status === 401, 'got ' + r.status);
+    r = await req('POST', '/api/donate/draft', { cookie: ownerCk });
+    const donId = r.json && r.json.donation && r.json.donation.id;
+    ok('a member opens a draft', r.json && r.json.ok === true && !!donId, r.body.slice(0, 160));
+    r = await req('POST', '/api/donate/draft', { cookie: ownerCk });
+    ok('the draft is reused, not multiplied', r.json && r.json.donation && r.json.donation.id === donId);
+
+    r = await reqRaw('POST', '/api/donate/upload?id=' + donId + '&name=x.svg', Buffer.from('<svg/>'), { cookie: ownerCk });
+    ok('a scriptable file type is refused', r.status === 400, 'got ' + r.status);
+    r = await reqRaw('POST', '/api/donate/upload?id=' + donId + '&name=figure.png', Buffer.from('PNGDATA'), { cookie: ownerCk });
+    const donPng = r.json && r.json.item && r.json.item.id;
+    ok('an image is staged', r.json && r.json.ok === true && !!donPng, r.body.slice(0, 160));
+    r = await reqRaw('POST', '/api/donate/upload?id=' + donId + '&name=sneak.png', Buffer.from('X'), { cookie: strangerCk });
+    ok('another member cannot upload into it', r.status === 404, 'got ' + r.status);
+
+    // An empty donation is refused — but "empty" means no text *and* no files, so
+    // this needs a draft with nothing staged in it. A scan on its own is a perfectly
+    // good donation, which is why owner1's draft (which holds the figure) is not it.
+    r = await req('POST', '/api/donate/draft', { cookie: strangerCk });
+    const emptyDraft = r.json && r.json.donation && r.json.donation.id;
+    r = await req('POST', '/api/donate/submit', { cookie: strangerCk, body: { id: emptyDraft, title: 'Nothing here' } });
+    ok('a donation with neither text nor files is refused', r.status === 400, 'got ' + r.status + ' ' + r.body.slice(0, 80));
+    r = await req('POST', '/api/donate/submit', { cookie: strangerCk, body: { id: emptyDraft, title: '', text: 'x' } });
+    ok('a donation with no title is refused', r.status === 400, 'got ' + r.status);
+
+    r = await req('POST', '/api/donate/submit', { cookie: ownerCk, body: {
+      id: donId, title: 'Donated  {Tag} /Thermo', textExt: '.tex',
+      text: '\\documentclass{article}\\begin{document}Donated\\end{document}',
+      message: 'from the test', lang: 'en', suggestPath: '../../etc/passwd' } });
+    ok('the donation is submitted', r.json && r.json.ok === true && r.json.donation.status === 'pending', r.body.slice(0, 200));
+    const donTex = (r.json.donation.items || []).find(i => i.ext === '.tex');
+    ok('the typed body became a staged .tex', !!donTex, JSON.stringify(r.json.donation.items));
+    ok('braces and slashes never reach the filename', donTex && !/[{}/\\]/.test(donTex.name), donTex && donTex.name);
+    ok('a suggested path cannot climb out of the archive', !/\.\.\//.test(r.json.donation.suggestPath), r.json.donation.suggestPath);
+
+    // Staged files are readable by the donor and admins only — 404 to anyone else,
+    // so the status code alone never confirms a submission exists.
+    r = await req('GET', '/uploads/donations/' + donId + '/' + donPng + '.png');
+    ok('a staged file is invisible to an anonymous visitor', r.status === 404, 'got ' + r.status);
+    r = await req('GET', '/uploads/donations/' + donId + '/' + donPng + '.png', { cookie: strangerCk });
+    ok('and to another member', r.status === 404, 'got ' + r.status);
+    r = await req('GET', '/uploads/donations/' + donId + '/' + donPng + '.png', { cookie: ownerCk });
+    ok('but the donor can read their own', r.status === 200, 'got ' + r.status);
+    r = await req('GET', '/donations.json');
+    ok('donations.json is not served statically', r.status === 404, 'got ' + r.status);
+    r = await req('GET', '/DONATIONS.JSON');
+    ok('nor is it served under a different case', r.status === 404, 'got ' + r.status);
+
+    r = await req('GET', '/api/admin/donations', { cookie: ownerCk });
+    ok('a member cannot read the review queue', r.status === 401, 'got ' + r.status);
+    r = await req('GET', '/api/admin/donations', { token });
+    ok('an admin sees the pending donation', r.json && r.json.ok === true && r.json.pending === 1, r.body.slice(0, 200));
+    r = await req('GET', '/api/admin/donation/text?id=' + donId + '&item=' + donTex.id, { token });
+    ok('an admin can read the source before deciding', r.json && r.json.ok === true && /Donated/.test(r.json.text));
+    r = await req('GET', '/api/admin/donation/text?id=' + donId + '&item=' + donTex.id, { cookie: ownerCk });
+    ok('the donor cannot read it through the admin route', r.status === 401, 'got ' + r.status);
+
+    r = await req('POST', '/api/admin/donation/accept', { cookie: ownerCk, body: { id: donId, item: donTex.id, lang: 'en', dir: '' } });
+    ok('a member cannot accept their own donation', r.status === 401, 'got ' + r.status);
+    // safePath sanitises rather than rejects, so a climbing dir is contained; the
+    // path that comes back must describe where the file really went.
+    r = await req('POST', '/api/admin/donation/accept', { token, body: {
+      id: donId, item: donTex.id, lang: 'en', dir: 'STEM/Mathematics/', filename: 'Donated Thermodynamics',
+      extras: [donPng], meta: { tags: ['thermo'], description: 'A donated note' } } });
+    ok('the admin accepts it', r.json && r.json.ok === true, r.body.slice(0, 240));
+    ok('a trailing slash in the folder is tolerated', r.json && r.json.path === 'STEM/Mathematics/Donated Thermodynamics.tex', r.json && r.json.path);
+    ok('the attached figure travels with it', r.json && (r.json.written || []).length === 2, JSON.stringify(r.json && r.json.written));
+    ok('the note is really on disk', fs.existsSync(path.join(DATA, 'STEM', 'Mathematics', 'Donated Thermodynamics.tex')));
+    ok('the donor is credited as an author',
+      /authors:[^\n]*owner1/.test(fs.readFileSync(path.join(DATA, 'STEM', 'Mathematics', 'data.txt'), 'utf8')));
+    ok('the staging folder is cleared on accept', !fs.existsSync(path.join(SITE, 'Uploads', 'donations', donId)));
+    r = await req('GET', '/uploads/donations/' + donId + '/' + donPng + '.png', { cookie: ownerCk });
+    ok('and the staged copy is gone', r.status === 404, 'got ' + r.status);
+    r = await req('POST', '/api/admin/donation/accept', { token, body: { id: donId, item: donTex.id, lang: 'en', dir: '' } });
+    ok('a decided donation cannot be accepted again', r.status === 400, 'got ' + r.status);
+    r = await req('GET', '/api/donate/mine', { cookie: ownerCk });
+    const mine = (r.json.donations || []).find(x => x.id === donId);
+    ok('the donor is shown where it landed', mine && mine.status === 'accepted' && mine.result.path === 'STEM/Mathematics/Donated Thermodynamics.tex', JSON.stringify(mine));
+    r = await req('GET', '/api/tree?lang=en&mat_lang=en');
+    ok('the accepted note appears in the public tree', /Donated Thermodynamics/.test(r.body));
+
+    // Decline deletes the work rather than keeping it indefinitely.
+    r = await req('POST', '/api/donate/draft', { cookie: ownerCk });
+    const donId2 = r.json.donation.id;
+    r = await req('POST', '/api/donate/submit', { cookie: ownerCk, body: { id: donId2, title: 'Second', text: 'plain', textExt: '.md' } });
+    ok('a second donation is submitted', r.json && r.json.ok === true, r.body.slice(0, 160));
+    r = await req('POST', '/api/admin/donation/decline', { cookie: ownerCk, body: { id: donId2, reason: 'no' } });
+    ok('a member cannot decline', r.status === 401, 'got ' + r.status);
+    r = await req('POST', '/api/admin/donation/decline', { token, body: { id: donId2, reason: 'Already covered.' } });
+    ok('the admin declines it', r.json && r.json.ok === true);
+    ok('a declined submission is deleted from disk', !fs.existsSync(path.join(SITE, 'Uploads', 'donations', donId2)));
+    r = await req('GET', '/api/donate/mine', { cookie: ownerCk });
+    const dec = (r.json.donations || []).find(x => x.id === donId2);
+    ok('the donor is told why', dec && dec.status === 'declined' && dec.reason === 'Already covered.', JSON.stringify(dec));
+
+    // Withdrawal is the donor's own escape hatch, and only theirs.
+    r = await req('POST', '/api/donate/draft', { cookie: ownerCk });
+    const donId3 = r.json.donation.id;
+    await req('POST', '/api/donate/submit', { cookie: ownerCk, body: { id: donId3, title: 'Third', text: 'x', textExt: '.txt' } });
+    r = await req('POST', '/api/donate/withdraw', { cookie: strangerCk, body: { id: donId3 } });
+    ok('another member cannot withdraw it', r.status === 404, 'got ' + r.status);
+    r = await req('POST', '/api/donate/withdraw', { cookie: ownerCk, body: { id: donId3 } });
+    ok('the donor withdraws it', r.json && r.json.ok === true);
+    r = await req('GET', '/api/admin/donations', { token });
+    ok('the queue drains back to empty', r.json && r.json.pending === 0, 'pending=' + (r.json && r.json.pending));
+
     // deleting a day removes its files
     r = await req('POST', '/api/admin/day/delete', { token, body: { id: 'secretday01' } });
     ok('day deleted', r.json && r.json.ok === true);
