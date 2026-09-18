@@ -1,0 +1,145 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{wrapfig}
+
+% --- Encoding & Language ---
+\usepackage[utf8]{inputenc}     % pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+% --- Math & Chemistry ---
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage[version=4]{mhchem} % chemical formulas
+\usepackage{siunitx}            % units, temperatures
+\usepackage{tikz}
+\usetikzlibrary{tikzmark, calc}
+\usepackage{mathtools}
+
+% --- Section formatting ---
+\usepackage{titlesec}
+
+% Allow deep section numbering and TOC
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+\makeatletter
+
+% ------------------------
+% LEVEL 4: subsubsubsection
+% ------------------------
+\titleclass{\subsubsubsection}{straight}[\subsubsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+
+\renewcommand\subsubsubsection{%
+  \@startsection{subsubsubsection}{4}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 4
+\newcommand*\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+
+% --------------------------
+% LEVEL 5: subsubsubsubsection
+% --------------------------
+\titleclass{\subsubsubsubsection}{straight}[\subsubsubsection]
+\newcounter{subsubsubsubsection}[subsubsubsection]
+\renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
+
+\renewcommand\subsubsubsubsection{%
+  \@startsection{subsubsubsubsection}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}%
+}
+
+\titleformat{\subsubsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsubsubsection}{1em}{}
+
+\titlespacing*{\subsubsubsubsection}{0pt}{3ex}{1ex}
+
+% TOC entry for level 5
+% Use level 4 internally for safety (LaTeX only knows TOC levels 1-4)
+\newcommand*\l@subsubsubsubsection{\@dottedtocline{4}{10em}{5em}}
+
+\makeatother
+
+\title{A fémek}
+\author{Rovenszky Robin, Haydn Lorenzo}
+\date{2026. Szeptember}
+
+\newtheorem{definition}{Definíció}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\vspace{14pt}
+\hrule
+
+\section{Az ötvözetek}
+
+Például
+\begin{itemize}
+    \item Bronz $->$ réz $+$ ón
+    \item Sárgaréz $->$ réz $+$ cink
+    \item Acél $->$ vas $+$ szén
+    \item \emph{Amalgám} $->$ higany $+$ egyéb fémek
+    \item Alumínium ötvözetek (pl. Dúralumínium) $->$ Al; Mg; Li 
+\end{itemize}
+
+\noindent
+Az ötvözetek előállításának célja: Új, jobb tulajdonságú anyagok létrehozása.
+
+\begin{definition}
+    Fémek, illetve nemfémek összeolvasztásával keletkező anyag.
+\end{definition}
+
+\section{Az alkálifémek}
+I.A. Főcsoport, fémei:
+\begin{itemize}
+    \item Lítium (Li) $<-$ akkumulátorok
+    \item Nátrium (Na) $<-$ fontos élettani hatás
+    \item Kálium (K) $<-$ fontos élettani hatás
+    \item Rubídium (Rb)
+    \item Cézium (Cs)
+    \item Francium (Fr)
+\end{itemize}
+
+\noindent
+1 db vegyérték elektron $=>$ kation-képződés során leadják ($\text{Li}^+; \text{Na}^+; \text{K}^+$.
+Nagyon reakcióképes elemek $->$ nem fordulnak elő elemi formában a természetben.
+
+\subsection{Lítium}
+Akkumulátorok, lítium bányászat, vagy folyókból kinyerik, elektromos autók
+
+\subsection{Nátrium}
+\subsubsection{Fizikai tulajdonságai}
+\begin{itemize}
+    \item Ezüst szürke fém, a felületét oxidréteg ($->$ petróleumban tároljuk) borítja
+    \item Puha, késsel könnyen vágható
+    \item Úszik a vízben (mivel $\rho(Na) < \rho(\text{víz})) $(és reagál is vele)
+\end{itemize}
+
+\subsubsection{Kémiai tulajdonságai}
+\subsubsection{Kitekintő: Kísérlet}
+\subsubsection{Előfordulása}
+\subsubsection{Előállítása}
+\subsubsection{Felhasználása}
+\subsubsection{Élettani hatása}
+\subsubsection{Vegyületei}
+
+% Várjunk csak, most ez a káliumról is beszél (lsd. irl kézi jegyzet) vagy csak a nátriumról, és majd vesszük utánna a káliumot?
+
+\end{document}

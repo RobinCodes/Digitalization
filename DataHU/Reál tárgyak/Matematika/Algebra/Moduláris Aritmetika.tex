@@ -1,0 +1,88 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}     
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+
+\title{Moduláris Aritmetika}
+\author{Simon László}
+\date{Legutolsó frissítés: 2026. Szeptember 15.}
+
+\newtheorem{theorem}{Tétel}
+\newtheorem{definition}{Definíció}[section]
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Relációk}
+Egy reláció lehet szimmetrikus, reflexív, és tranzitív.\footnote{Egy olyan relációt, amelyre mindhárom telyesül, ekvivalenciarelációnak nevezzük}
+\begin{definition}[Szimmetrikus]
+    Egy relációt (legyen $\sim$) szimmetrikusnak nevezzük, ha minden $a,b$-re teljesül, hogy $a \sim b \iff b \sim a$.
+\end{definition}
+\begin{definition}[Reflexív]
+    Egy relációt (legyen $\sim$) reflexívnek nevezzük, ha minden $a$-ra igaz, hogy $a \sim a$.
+\end{definition}
+\begin{definition}[Tranzitív]
+    Egy relációt (legyen $\sim$) tranzitívnek nevezzük, ha minden $a, b, c$-re igaz, hogy $(a \sim b) \vee (b \sim c) \implies (a \sim c)$.
+\end{definition}
+
+\begin{center}
+\begin{tabular}{c|c|c|c|}
+    R. & Sz. & Tr. & Reláció \\
+    \hline
+    + & + & + & = \\
+    \hline
+    + & + & - & $(a \sim a) \vee (a \sim (a-1)) \vee (a \sim (a+1))$ \\
+    \hline
+    + & - & + & Oszthatóság \\
+    \hline
+    + & - & - & $(a \sim a)\vee (a \sim (a+1))$ \\
+    \hline
+    - & + & + & nincs! \\
+    \hline
+    - & + & - & $\perp$ \\
+    \hline 
+    - & - & + & < \\
+    \hline
+    - & - & - & $a \sim (a+1)$ \\
+\end{tabular}
+\end{center}
+
+\section{Kongruenciák}
+\begin{definition}[Kongruencia]
+    $a \equiv b \pmod{m} \iff m \mid b - a, m > 0$
+\end{definition}
+
+\begin{theorem}[A kongruencia ekvivalenciareláció]
+\end{theorem}
+\begin{proof} $ $\\
+\begin{enumerate}
+    \item Reflexivitás \\
+    $\forall a$ $a \equiv a \pmod{m} \iff m \mid a - a = 0$\\
+    $\implies$ reflexív.
+    \item Szimmetria \\
+    $\forall a,b$ $a \equiv b \pmod{m} \implies b \equiv a \mod{m} \iff m \mid b - a \iff m \mid a - b$ \\
+    $\implies$ szimmetrikus.
+    \item Tranzitivitás \\
+    $\forall a,b,c$ $a \equiv b \pmod{m} \vee b \equiv c \pmod{m} \iff m \mid b - a \vee m \mid c - b \implies m \mid c - a$ \\
+    $\implies$ tranzitív.
+\end{enumerate}
+\end{proof}
+
+Mivel a kongruencia egy ekvivalenciareláció, az alaphalmazból ekvivalencia-osztályokat hoz létre. \\
+Egy ekvivalencia-osztályra a következőek teljesülnek: \\
+\begin{enumerate}
+    \item Az alaphalmaz részhalmaza
+    \item Disjunktok
+    \item Uniójuk az alaphalmaz
+\end{enumerate}
+
+
+\end{document}
