@@ -26,7 +26,7 @@ function ok(name, cond, detail) {
 const T = fs.mkdtempSync(path.join(os.tmpdir(), 'dtest_'));
 const SITE = path.join(T, 'site');
 fs.mkdirSync(SITE, { recursive: true });
-for (const f of ['server.js', 'devtools.html', 'template.html', '404.html']) fs.copyFileSync(path.join(ROOT, f), path.join(SITE, f));
+for (const f of ['server.js', 'devtools.html', 'template.html', '404.html', 'sw.js']) fs.copyFileSync(path.join(ROOT, f), path.join(SITE, f));
 fs.writeFileSync(path.join(SITE, 'changelog.json'), '[]');
 
 // seeded admin: admin / testpass
@@ -118,8 +118,27 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ── run ───────────────────────────────────────────────────────────────────────
 (async () => {
+  // A stand-in for the admin's Discord/Slack/Telegram endpoint, so the webhook is
+  // exercised for real rather than mocked. It has to be listening before the server
+  // starts, because the server reads ADMIN_WEBHOOK_URL once at load.
+  const HOOK_PORT = PORT + 1;
+  const hookHits = [];
+  const hookSrv = http.createServer((q, r) => {
+    let b = ''; q.on('data', c => b += c);
+    q.on('end', () => { let j = null; try { j = JSON.parse(b); } catch {} hookHits.push({ path: q.url, json: j, raw: b }); r.writeHead(204); r.end(); });
+  });
+  await new Promise(r => hookSrv.listen(HOOK_PORT, '127.0.0.1', r));
+  const waitForHook = async n => { for (let i = 0; i < 60 && hookHits.length < n; i++) await sleep(50); return hookHits.length >= n; };
+
   const srv = spawn('node', [path.join(SITE, 'server.js')], {
-    env: { ...process.env, PORT: String(PORT) }, stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, PORT: String(PORT),
+           ADMIN_WEBHOOK_URL: 'http://127.0.0.1:' + HOOK_PORT + '/hook',
+           ADMIN_WEBHOOK_FORMAT: 'json',
+           // Short enough that two back-to-back events still collapse, but not so long
+           // that an unrelated earlier test poisons a later assertion.
+           ADMIN_WEBHOOK_DEDUPE_MS: '1200',
+           SITE_ORIGIN: 'https://notes.example' },
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
   let serverLog = '';
   srv.stdout.on('data', d => serverLog += d);
@@ -1411,6 +1430,166 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     r = await req('GET', '/api/days');
     ok('feed is empty again', r.json && r.json.total === 0);
 
+    // ══ Reaching people who are not looking at the site ══════════════════════
+
+    // ── VAPID ────────────────────────────────────────────────────────────────
+    // If the served application server key and the private key on disk ever
+    // disagreed, every push would be rejected and nothing else would tell us.
+    r = await req('GET', '/api/push/key');
+    ok('the VAPID public key is served', r.status === 200 && r.json && r.json.ok === true && typeof r.json.key === 'string', JSON.stringify(r.json));
+    const appKey = (r.json && r.json.key) || '';
+    ok('it is base64url, no padding', /^[A-Za-z0-9_-]+$/.test(appKey), appKey.slice(0, 20));
+    const appKeyBuf = Buffer.from(appKey, 'base64url');
+    ok('it is an uncompressed P-256 point (65 bytes, 0x04)', appKeyBuf.length === 65 && appKeyBuf[0] === 4, appKeyBuf.length + ' bytes, first=' + appKeyBuf[0]);
+    ok('vapid.json was written', fs.existsSync(path.join(SITE, 'vapid.json')));
+    {
+      const v = JSON.parse(fs.readFileSync(path.join(SITE, 'vapid.json'), 'utf8'));
+      ok('it holds a P-256 private JWK', v.privateJwk && v.privateJwk.crv === 'P-256' && !!v.privateJwk.d, JSON.stringify(v.privateJwk && v.privateJwk.crv));
+      const x = Buffer.from(v.privateJwk.x, 'base64url'), y = Buffer.from(v.privateJwk.y, 'base64url');
+      ok('the served key is that private key\'s public half',
+        Buffer.compare(appKeyBuf, Buffer.concat([Buffer.from([4]), x, y])) === 0);
+      // The whole point of storing it: a restart must not invalidate every device.
+      ok('the key is stable across reads', JSON.parse(fs.readFileSync(path.join(SITE, 'vapid.json'), 'utf8')).publicKey === v.publicKey);
+      // And it must be a signing key a push service would actually accept.
+      const priv = crypto.createPrivateKey({ key: v.privateJwk, format: 'jwk' });
+      const sig = crypto.sign('sha256', Buffer.from('probe'), { key: priv, dsaEncoding: 'ieee-p1363' });
+      ok('it produces a 64-byte ES256 signature (JWS form, not DER)', sig.length === 64, String(sig.length));
+      const pub = crypto.createPublicKey({ key: { kty: 'EC', crv: 'P-256', x: v.privateJwk.x, y: v.privateJwk.y }, format: 'jwk' });
+      ok('and the signature verifies against the published key',
+        crypto.verify('sha256', Buffer.from('probe'), { key: pub, dsaEncoding: 'ieee-p1363' }, sig));
+    }
+
+    // ── Subscriptions ────────────────────────────────────────────────────────
+    const SUB_A = 'https://push.example/sub/aaaa';
+    const SUB_B = 'https://push.example/sub/bbbb';
+    r = await req('POST', '/api/push/subscribe', { body: { endpoint: SUB_A, keys: { p256dh: 'x', auth: 'y' } } });
+    ok('subscribing needs a session (401)', r.status === 401, 'got ' + r.status);
+    r = await req('POST', '/api/push/subscribe', { cookie: ownerCk, body: { endpoint: 'http://push.example/insecure', keys: {} } });
+    ok('a plaintext endpoint is refused', r.status === 400, 'got ' + r.status);
+    r = await req('POST', '/api/push/subscribe', { cookie: ownerCk, body: { endpoint: 'not-a-url', keys: {} } });
+    ok('a malformed endpoint is refused', r.status === 400, 'got ' + r.status);
+    r = await req('POST', '/api/push/subscribe', { cookie: ownerCk, body: { endpoint: SUB_A, keys: { p256dh: 'x', auth: 'y' }, ua: 'test' } });
+    ok('a member can subscribe a device', r.json && r.json.ok === true && r.json.devices === 1, JSON.stringify(r.json));
+    r = await req('POST', '/api/push/subscribe', { cookie: ownerCk, body: { endpoint: SUB_A, keys: {} } });
+    ok('re-subscribing the same endpoint does not duplicate it', r.json && r.json.devices === 1, JSON.stringify(r.json));
+    r = await req('POST', '/api/push/subscribe', { cookie: ownerCk, body: { endpoint: SUB_B, keys: {} } });
+    ok('a second device is added', r.json && r.json.devices === 2, JSON.stringify(r.json));
+    {
+      const subs = JSON.parse(fs.readFileSync(path.join(SITE, 'push-subs.json'), 'utf8'));
+      ok('the store is keyed by the lowercased account', Array.isArray(subs.owner1) && subs.owner1.length === 2, JSON.stringify(Object.keys(subs)));
+    }
+    // A browser profile that signs into a different account must stop waking the first.
+    r = await req('POST', '/api/push/subscribe', { cookie: strangerCk, body: { endpoint: SUB_A, keys: {} } });
+    ok('an endpoint moving to another account is taken off the first', r.json && r.json.ok === true && r.json.devices === 1, JSON.stringify(r.json));
+    {
+      const subs = JSON.parse(fs.readFileSync(path.join(SITE, 'push-subs.json'), 'utf8'));
+      ok('the original owner keeps only their other device',
+        subs.owner1.length === 1 && subs.owner1[0].endpoint === SUB_B, JSON.stringify(subs.owner1));
+      ok('and the endpoint now belongs to the new account',
+        subs.stranger.length === 1 && subs.stranger[0].endpoint === SUB_A, JSON.stringify(subs.stranger));
+    }
+    // Unsubscribe only ever touches your own rows.
+    r = await req('POST', '/api/push/unsubscribe', { cookie: ownerCk, body: { endpoint: SUB_A } });
+    ok('unsubscribing someone else\'s endpoint is a no-op', r.json && r.json.ok === true);
+    {
+      const subs = JSON.parse(fs.readFileSync(path.join(SITE, 'push-subs.json'), 'utf8'));
+      ok('their subscription survived', subs.stranger && subs.stranger.length === 1, JSON.stringify(subs.stranger));
+    }
+    r = await req('POST', '/api/push/unsubscribe', { cookie: ownerCk, body: { endpoint: SUB_B } });
+    ok('unsubscribing your own endpoint works', r.json && r.json.ok === true);
+    {
+      const subs = JSON.parse(fs.readFileSync(path.join(SITE, 'push-subs.json'), 'utf8'));
+      ok('an account with no devices left is dropped from the store', !subs.owner1, JSON.stringify(Object.keys(subs)));
+    }
+
+    // ── What the service worker is told ──────────────────────────────────────
+    r = await req('GET', '/api/notify/pending');
+    ok('pending needs a session (401)', r.status === 401, 'got ' + r.status);
+    await req('POST', '/api/chat/send', { cookie: strangerCk, body: { to: 'owner1', body: 'ping for the worker' } });
+    r = await req('GET', '/api/notify/pending', { cookie: ownerCk });
+    ok('pending reports the unread count', r.json && r.json.ok === true && r.json.unread >= 1, JSON.stringify(r.json));
+    ok('and one ready-made notification per conversation',
+      r.json && r.json.items.length >= 1 && r.json.items[0].title === 'stranger', JSON.stringify(r.json.items));
+    ok('carrying a tag the page can dedupe against', /^ki-chat-/.test((r.json.items[0] || {}).tag || ''), JSON.stringify(r.json.items[0]));
+    r = await req('GET', '/api/notify/pending', { cookie: strangerCk });
+    ok('the sender is not told about their own message', r.json && r.json.ok === true && r.json.unread === 0, JSON.stringify(r.json));
+
+    // ── The admin webhook ────────────────────────────────────────────────────
+    // It fires on the things that need somebody to act, and on nothing else.
+    hookHits.length = 0;
+    await req('POST', '/api/chat/send', { cookie: strangerCk, body: { to: 'owner1', body: 'ordinary chatter' } });
+    await sleep(400);
+    ok('ordinary chat does NOT reach the webhook', hookHits.length === 0, JSON.stringify(hookHits.map(h => h.json && h.json.event)));
+
+    // An access request is the everyday case: somebody is blocked until a human
+    // looks. It also carries a label, which is what the detail setting governs.
+    hookHits.length = 0;
+    r = await req('POST', '/api/admin/note', { token, body: { lang: 'en', dir: 'STEM/Mathematics',
+      filename: 'Webhook Probe {W}.tex',
+      content: '\\documentclass{article}\\begin{document}w\\end{document}',
+      meta: { canSee: 'all', canRead: 'whitelist', readRequests: true, owners: 'owner1' } } });
+    ok('a request-tier note for the webhook check exists', r.json && r.json.ok === true);
+    r = await req('POST', '/api/access/request', { cookie: strangerCk, body: { lang: 'en', path: 'STEM/Mathematics/Webhook Probe {W}.tex' } });
+    ok('the access request is posted', r.json && r.json.status === 'requested', JSON.stringify(r.json));
+    ok('and reaches the webhook', await waitForHook(1), JSON.stringify(hookHits));
+    {
+      const h = hookHits[0];
+      ok('it posts to the configured path', h.path === '/hook', h.path);
+      ok('the generic format carries event, actor and time',
+        h.json && /access/.test(h.json.event || '') && h.json.actor === 'stranger' && !!h.json.at, JSON.stringify(h.json));
+      ok('and the site link from SITE_ORIGIN', h.json && h.json.url === 'https://notes.example/', JSON.stringify(h.json && h.json.url));
+      ok('but not the note label, at the default detail level',
+        !/Webhook Probe/.test(h.raw || ''), h.raw);
+    }
+
+    // Repeats inside a minute collapse — one person retrying is not ten pings.
+    hookHits.length = 0;
+    r = await req('POST', '/api/admin/note', { token, body: { lang: 'en', dir: 'STEM/Mathematics',
+      filename: 'Webhook Probe 2 {W}.tex',
+      content: '\\documentclass{article}\\begin{document}w\\end{document}',
+      meta: { canSee: 'all', canRead: 'whitelist', readRequests: true, owners: 'owner1' } } });
+    r = await req('POST', '/api/access/request', { cookie: strangerCk, body: { lang: 'en', path: 'STEM/Mathematics/Webhook Probe 2 {W}.tex' } });
+    ok('a second request of the same kind is accepted by the site', r.json && r.json.status === 'requested', JSON.stringify(r.json));
+    await sleep(500);
+    ok('but is not sent to the webhook twice inside a minute', hookHits.length === 0, JSON.stringify(hookHits.map(h => h.json && h.json.event)));
+
+    // A password reset is the case that most needs a human, so it must fire — and
+    // it is a different event kind, so the collapse above must not swallow it.
+    hookHits.length = 0;
+    await req('POST', '/api/password-reset/request', { body: { username: 'owner1' } });
+    ok('a password reset request reaches the webhook', await waitForHook(1), JSON.stringify(hookHits));
+    ok('described as a reset', hookHits[0] && /password reset/i.test(hookHits[0].json.event || ''), JSON.stringify(hookHits[0] && hookHits[0].json));
+
+    for (const f of ['Webhook Probe {W}.tex', 'Webhook Probe 2 {W}.tex'])
+      await req('POST', '/api/admin/note/delete', { token, body: { lang: 'en', dir: 'STEM/Mathematics', filename: f } });
+
+    // ── The new state files are treated like every other secret ──────────────
+    for (const p of ['/vapid.json', '/VAPID.JSON', '/push-subs.json', '/Push-Subs.json']) {
+      r = await req('GET', p);
+      ok('static server hides ' + p, r.status === 404, 'got ' + r.status);
+    }
+    {
+      const zr = await reqBuf('GET', '/api/admin/export', { token });
+      const names = [];
+      let q = zr.buf.indexOf(Buffer.from([0x50, 0x4b, 0x01, 0x02]));
+      while (q > 0 && zr.buf.readUInt32LE(q) === 0x02014b50) {
+        const nlen = zr.buf.readUInt16LE(q + 28), elen = zr.buf.readUInt16LE(q + 30), clen = zr.buf.readUInt16LE(q + 32);
+        names.push(zr.buf.slice(q + 46, q + 46 + nlen).toString('utf8'));
+        q += 46 + nlen + elen + clen;
+      }
+      ok('a backup carries the VAPID key, so notifications survive a restore',
+        names.includes('state/vapid.json'), JSON.stringify(names.filter(n => /vapid|push/.test(n))));
+      ok('and the subscription store', names.includes('state/push-subs.json'), JSON.stringify(names));
+    }
+
+    // ── The service worker itself ────────────────────────────────────────────
+    r = await req('GET', '/sw.js');
+    ok('sw.js is served from the root scope', r.status === 200, 'got ' + r.status);
+    ok('as JavaScript', /javascript/.test(r.headers['content-type'] || ''), r.headers['content-type']);
+    ok('and it listens for push', /addEventListener\('push'/.test(r.body));
+    ok('it caches nothing — an access-checked archive must not be served stale',
+      !/caches\.(open|match)/.test(r.body));
+
     // logout invalidates
     r = await req('POST', '/api/admin/logout', { token });
     ok('logout succeeds', r.json && r.json.ok === true);
@@ -1421,6 +1600,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     console.error('\n  fatal:', e.message);
   } finally {
     srv.kill('SIGTERM');
+    try { hookSrv.close(); } catch {}
     await sleep(150);
     fs.rmSync(T, { recursive: true, force: true });
     console.log('\n  ' + (fail === 0 ? '\x1b[32m' : '\x1b[31m') + pass + ' passed, ' + fail + ' failed\x1b[0m');

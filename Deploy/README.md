@@ -94,6 +94,30 @@ cd /opt/szignotes/Website
 sudo -u deploy node make-admin.js <you> '<a long password>'
 ```
 
+### 6. Notifications (optional)
+
+Nothing to install. **Web push** needs only that the site is on HTTPS — members
+turn it on themselves under Settings → Notifications, and the server generates its
+push identity (`vapid.json`) on first start.
+
+The **admin webhook** is one environment variable. Keep it out of the unit file,
+which is world-readable:
+
+```bash
+install -m 600 -o root -g root /dev/null /etc/szignotes.env
+printf 'ADMIN_WEBHOOK_URL=%s\n' 'https://discord.com/api/webhooks/…' >> /etc/szignotes.env
+```
+
+then uncomment `EnvironmentFile=-/etc/szignotes.env` in the unit and
+`systemctl daemon-reload && systemctl restart szignotes`.
+
+It announces access requests, password resets, donations and sign-ups — never
+ordinary chat. Details and the other formats: `hosting-and-operations.md` §6b.
+
+> `vapid.json` is a private key. It is git-ignored, unreachable over HTTP, and in
+> the backup. Keep it: losing it means every member has to turn notifications on
+> again.
+
 ---
 
 ## Wiring GitHub to it

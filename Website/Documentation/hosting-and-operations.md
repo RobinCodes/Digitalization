@@ -1,9 +1,10 @@
 # Hosting & operations
 
 What the site needs from a host, what to do before and after a deploy, and how the
-five pre-hosting features work: **backups**, **password reset**, **search inside
-notes**, **quick logging from the timetable**, and the **public-facing pages**
-(metadata, `robots.txt`, 404, no-JavaScript).
+operational features work: **backups**, **password reset**, **search inside notes**,
+**quick logging from the timetable**, the **public-facing pages** (metadata,
+`robots.txt`, 404, no-JavaScript), and **notifications** — web push for members and
+a webhook for you.
 
 ---
 
@@ -61,6 +62,8 @@ The repository does **not** hold your running state. These are all git-ignored:
 | `users.json`, `admins.json` | every account |
 | `grants.json` | who was granted access to which locked note |
 | `blocked.json`, `settings.json` | block lists, per-account preferences |
+| `push-subs.json` | which devices get notifications |
+| `vapid.json` | the push identity — lose it and every member must re-enable notifications |
 | `changelog.json` | the changelog |
 
 **DevTools → Accounts → Back up** downloads the lot as a `.zip`:
@@ -196,6 +199,114 @@ sweep collects it.
 
 ---
 
+## 6b · Notifications — reaching people who are not looking at the site
+
+Two channels, both optional, both off until configured. Neither can delay or break
+a request: every send is fire-and-forget, and a failure is swallowed.
+
+### Web push — for members, per device
+
+The site has always shown notifications while a tab was open. Push is the half that
+works with the site **closed**: a service worker (`sw.js`) holds a subscription, the
+server wakes it, and the worker asks the site what to show.
+
+Nothing to install and nothing to pay for — push goes through the browser vendor's
+own service. Turn it on per person under **Settings → Notifications** (or the
+profile panel); each browser and device subscribes separately.
+
+**The push carries no payload.** That is deliberate twice over: encrypting one would
+need a crypto dependency this server does not have, and it would mean message text
+passing through Mozilla's or Google's push service. Instead the worker is told only
+"something happened" and fetches `/api/notify/pending` with the member's own
+session. So no message text ever leaves the box, and a push that arrives after the
+session expired produces a truthful "You have new activity" rather than a leak.
+
+What to expect per platform:
+
+| | Behaviour |
+|---|---|
+| Desktop Chrome / Edge / Firefox | Works with the tab closed, and with the browser closed |
+| Android Chrome / Firefox | Works with the site closed |
+| **iPhone / iPad** | Only once the site is added to the Home Screen — Safari does not deliver push to a plain tab. The toggle says so when it detects iOS |
+| Anything over plain HTTP | Falls back to in-tab notifications; push needs a secure context |
+
+Housekeeping is automatic. A subscription the push service reports as gone (404 or
+410) is deleted, a browser that rotates its own subscription re-registers itself,
+signing out drops that device, and an endpoint that moves to a different account
+stops waking the first one.
+
+`vapid.json` is this server's push identity, generated on first start. **Keep it.**
+It is in the backup; lose it and every member has to turn notifications on again.
+It holds a private key, so it is git-ignored and unreachable over HTTP, like
+`admins.json`.
+
+| Env var | Default | What |
+|---|---|---|
+| `PUSH_SUBJECT` | `mailto:admin@localhost` | contact the push services see, per RFC 8292. Worth setting to a real address — some services use it to reach you about abuse |
+
+### The admin webhook — for you
+
+One URL, for the things that need somebody to act. Set `ADMIN_WEBHOOK_URL` and it
+posts on:
+
+- an **access request** for a locked note,
+- a **password reset** request,
+- a **note donation** awaiting audit,
+- a new **sign-up**.
+
+It deliberately does **not** fire on ordinary chat. That would be noise, and it
+would hand a third-party service a picture of who talks to whom.
+
+The format is detected from the URL — Discord, Slack/Mattermost and Telegram are
+recognised; anything else gets a plain JSON body. Override with
+`ADMIN_WEBHOOK_FORMAT`.
+
+```bash
+# Discord: Server Settings → Integrations → Webhooks → Copy Webhook URL
+ADMIN_WEBHOOK_URL=https://discord.com/api/webhooks/123.../abc...
+
+# Telegram: create a bot with @BotFather, then get the chat id from
+#   https://api.telegram.org/bot<TOKEN>/getUpdates  after messaging the bot once
+ADMIN_WEBHOOK_URL=https://api.telegram.org/bot<TOKEN>/sendMessage
+ADMIN_WEBHOOK_CHAT_ID=-1001234567890
+```
+
+**What travels.** By default: the kind of event, the username, and a link to the
+site. No note titles, no message text, no donation titles. `ADMIN_WEBHOOK_DETAIL=full`
+adds the label (which note, which donation) — more useful, but it puts a note title
+into a third-party chat log, so it is opt-in.
+
+Free text is flattened to one line, capped, and `@everyone` / `@here` are defused,
+so a member cannot make your Discord ping the whole server by naming a note after
+it. Discord payloads also set `allowed_mentions: {parse: []}` as a second guard.
+
+Repeats of the same event by the same person inside a minute collapse into one
+message (`ADMIN_WEBHOOK_DEDUPE_MS`), and the queue is capped, so a burst cannot
+turn into a flood.
+
+| Env var | Default | What |
+|---|---|---|
+| `ADMIN_WEBHOOK_URL` | *(none)* | where to post. Unset means the whole webhook is off |
+| `ADMIN_WEBHOOK_FORMAT` | auto | `discord`, `slack`, `telegram` or `json` |
+| `ADMIN_WEBHOOK_CHAT_ID` | *(none)* | required for Telegram |
+| `ADMIN_WEBHOOK_DETAIL` | `minimal` | `full` also sends note / donation labels |
+| `ADMIN_WEBHOOK_DEDUPE_MS` | `60000` | window in which a repeat collapses |
+
+`SITE_ORIGIN` is worth setting alongside these: it is the link put in each message,
+and it also gives `robots.txt` its `Sitemap:` line.
+
+### Checking it works
+
+```bash
+node Tests/push-wire.js        # the real VAPID POST, signature verified
+node Tests/webhook-formats.js  # every payload shape, against a live listener
+```
+
+Both run in CI. `push-wire.js` needs `openssl` for a throwaway certificate and
+skips itself without one.
+
+---
+
 ## 7 · Every environment variable
 
 | Variable | Default | What |
@@ -214,6 +325,12 @@ sweep collects it.
 | `SEARCH_MAX_HITS` | `200` | results per content search |
 | `PW_RESET_TTL_MS` | `1800000` | password-reset link lifetime |
 | `PW_RESET_COOLDOWN_MS` | `3600000` | gap between reset requests for one account |
+| `PUSH_SUBJECT` | `mailto:admin@localhost` | contact address the push services see |
+| `ADMIN_WEBHOOK_URL` | *(none)* | admin webhook target; unset disables it |
+| `ADMIN_WEBHOOK_FORMAT` | auto | `discord`, `slack`, `telegram`, `json` |
+| `ADMIN_WEBHOOK_CHAT_ID` | *(none)* | Telegram chat id |
+| `ADMIN_WEBHOOK_DETAIL` | `minimal` | `full` adds note / donation labels |
+| `ADMIN_WEBHOOK_DEDUPE_MS` | `60000` | collapse window for repeated events |
 | `TEXMFHOME`, `openin_any`, `openout_any` | | passed to `pdflatex`; the defaults keep it from reading outside its temp directory |
 
 ---
@@ -226,4 +343,6 @@ sweep collects it.
 4. Confirm `pdflatex` was found in the start-up banner.
 5. Open `/robots.txt`, a missing URL, and the site itself, and check they look right.
 6. **Take a backup**, and put a reminder in the calendar to take another.
-7. `node Tests/run.js` — 370 assertions; all should pass against your own copy.
+7. Optional but recommended: set `SITE_ORIGIN`, `PUSH_SUBJECT`, and an
+   `ADMIN_WEBHOOK_URL` so a request for access does not sit unseen for days.
+8. `node Tests/run.js` — 460 assertions; all should pass against your own copy.

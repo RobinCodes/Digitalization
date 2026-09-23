@@ -27,6 +27,26 @@ Environment=SITE_ORIGIN=https://szignotes.hu
 # Drop to 1 if you ever move to a 2-vCPU plan.
 Environment=COMPILE_CONCURRENCY=2
 
+# Contact address the browser push services see (RFC 8292). Worth making real:
+# some of them use it to reach you before they start refusing your pushes.
+Environment=PUSH_SUBJECT=mailto:admin@szignotes.hu
+
+# ── Admin webhook (optional) ─────────────────────────────────────────────────
+# Where access requests, password resets, donations and sign-ups get announced, so
+# somebody's request does not sit unseen for three days. Ordinary chat is never
+# sent here. Uncomment and fill in — Discord, Slack and Telegram are auto-detected.
+# The URL is a secret: prefer EnvironmentFile with a root-owned 0600 file over
+# putting it in this unit, which is world-readable.
+#
+#   install -m 600 -o root -g root /dev/null /etc/szignotes.env
+#   printf 'ADMIN_WEBHOOK_URL=https://discord.com/api/webhooks/…\n' >> /etc/szignotes.env
+#
+# EnvironmentFile=-/etc/szignotes.env
+#
+# Default detail is minimal: who did what, and a link. Set ADMIN_WEBHOOK_DETAIL=full
+# to include note and donation titles — more useful, but those titles then live in a
+# third party's chat log. See hosting-and-operations.md §6b.
+
 Restart=always
 RestartSec=2
 

@@ -11,6 +11,10 @@ blocked.json
 timetable.json
 days.json
 donations.json
+push-subs.json
+# vapid.json holds this server's push *private key*. Committing it would let anyone
+# who reads the repo send notifications to every member who enabled them.
+vapid.json
 
 # Day-log attachments (photographed / scanned paper notes) and donated notes still
 # awaiting an audit. These are real content, not secrets — but they are personal,

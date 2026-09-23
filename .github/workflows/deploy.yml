@@ -32,6 +32,19 @@ jobs:
         working-directory: Website
         run: node Tests/run.js
 
+      # The push wire protocol: a real TLS POST to a stand-in push service, with
+      # the VAPID signature checked against the key the server publishes. Separate
+      # because it needs openssl for a throwaway cert; it skips itself without one.
+      - name: Push wire protocol
+        working-directory: Website
+        run: node Tests/push-wire.js
+
+      # A wrong field name in a webhook payload fails silently — the POST succeeds
+      # and nothing appears in the channel — so the shapes are pinned per service.
+      - name: Webhook payload formats
+        working-directory: Website
+        run: node Tests/webhook-formats.js
+
   deploy:
     name: Deploy to netcup
     needs: test

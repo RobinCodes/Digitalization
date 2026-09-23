@@ -4289,6 +4289,11 @@
         gridCountFiles:   (n) => `${n} file${n!==1?'s':''}`,
         gridCountResults: (n) => `${n} result${n!==1?'s':''}`,
         noResultsFor:     'No results for',
+        pushOnBg:         'Notifications on — these reach you even with the site closed.',
+        pushOnTabOnly:    'Notifications on, but only while a tab is open.',
+        pushNoSupport:    'Notifications on. This browser cannot deliver them with the site closed.',
+        pushNeedsHttps:   'Notifications on, but only while a tab is open — background ones need HTTPS.',
+        pushIosHint:      'Notifications on. On iPhone, add this site to your Home Screen to get them with the site closed.',
         authForgotLink:    'Forgotten your password?',
         authForgotHeading: 'Forgotten password',
         authForgotSub:     'Tell us your username and every admin gets a note in their messages. One of them will send you a one-time link to set a new password.',
@@ -4724,6 +4729,11 @@
         gridCountFiles:   (n) => `${n} fájl`,
         gridCountResults: (n) => `${n} találat`,
         noResultsFor:     'Nincs találat erre:',
+        pushOnBg:         'Értesítések bekapcsolva — akkor is megérkeznek, ha az oldal be van zárva.',
+        pushOnTabOnly:    'Értesítések bekapcsolva, de csak nyitott lapon.',
+        pushNoSupport:    'Értesítések bekapcsolva. Ez a böngésző zárt oldal mellett nem tudja kézbesíteni őket.',
+        pushNeedsHttps:   'Értesítések bekapcsolva, de csak nyitott lapon — a háttérértesítéshez HTTPS kell.',
+        pushIosHint:      'Értesítések bekapcsolva. iPhone-on add hozzá az oldalt a kezdőképernyőhöz, hogy zárt oldal mellett is megkapd őket.',
         authForgotLink:    'Elfelejtetted a jelszavad?',
         authForgotHeading: 'Elfelejtett jelszó',
         authForgotSub:     'Add meg a felhasználóneved, és minden adminhoz megérkezik egy üzenet. Valamelyikük küld egy egyszer használható linket, amivel új jelszót adhatsz meg.',
@@ -6464,7 +6474,18 @@
         AUTH.role = data ? data.role : null;
       } catch { AUTH.user = null; AUTH.role = null; }
       updateAuthUI();
-      if (AUTH.user) { pullSettings(); pollUnread(); } else updateMsgBell(0);
+      if (AUTH.user) {
+        pullSettings(); pollUnread();
+        // A subscription belongs to one browser profile, and `ki_notify` follows the
+        // account across devices — so a member who enabled notifications on their
+        // laptop needs one created here the first time they sign in on their phone.
+        pushSync();
+      } else {
+        updateMsgBell(0);
+        // Signed out: stop this device being woken for an account that is no longer
+        // the one using it.
+        pushUnsubscribe();
+      }
     }
     function showAuthView(which) {
       const views = { signin: 'authViewOut', register: 'authViewReg', in: 'authViewIn',
@@ -6601,6 +6622,94 @@
         try { const nt = new Notification(title, { body: bodyTxt, tag: 'ki-chat-' + c.id }); nt.onclick = () => { window.focus(); navigateTo('chat'); openConversation(c.id); nt.close(); }; } catch {}
       });
     }
+    /* ── Web push ─────────────────────────────────────────────────────────
+       The Notification calls above only fire while a tab is running. This is the
+       half that works with the site closed: a service worker holds a push
+       subscription, the server wakes it, and the worker asks the site what to show.
+
+       Everything here is best-effort. Push needs a secure context, a service worker
+       and an engine that implements the Push API — miss any of those and the toggle
+       still works, it just falls back to in-tab notifications only. iOS is the one
+       worth calling out: Safari delivers push only once the site has been added to
+       the Home Screen, so we say so rather than failing silently. */
+    const PUSH_OK = ('serviceWorker' in navigator) && ('PushManager' in window) && window.isSecureContext;
+    function pushIosNeedsInstall() {
+      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      return iOS && !window.matchMedia('(display-mode: standalone)').matches && !navigator.standalone;
+    }
+    let _swReg = null;
+    async function pushRegister() {
+      if (!PUSH_OK) return null;
+      if (_swReg) return _swReg;
+      try { _swReg = await navigator.serviceWorker.register('/sw.js', { scope: '/' }); }
+      catch { return null; }
+      try { await navigator.serviceWorker.ready; } catch {}
+      return _swReg;
+    }
+    // base64url → the Uint8Array the Push API wants for applicationServerKey.
+    function urlB64ToBytes(s) {
+      const pad = '='.repeat((4 - (s.length % 4)) % 4);
+      const raw = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+      const out = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+      return out;
+    }
+    async function pushSubscribe() {
+      if (!PUSH_OK) return false;
+      const reg = await pushRegister(); if (!reg) return false;
+      try {
+        const r = await fetch('/api/push/key');
+        const d = await r.json();
+        if (!d || !d.ok || !d.key) return false;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToBytes(d.key) });
+        const j = sub.toJSON();
+        const res = await fetch('/api/push/subscribe', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint, keys: j.keys, ua: navigator.userAgent.slice(0, 120) }),
+        });
+        return res.ok;
+      } catch { return false; }
+    }
+    async function pushUnsubscribe() {
+      if (!PUSH_OK) return;
+      try {
+        const reg = _swReg || await navigator.serviceWorker.getRegistration('/');
+        if (!reg) return;
+        const sub = await reg.pushManager.getSubscription();
+        if (!sub) return;
+        // Tell the server first: if the browser drops it and the POST then fails,
+        // the row lingers and the server keeps pushing into a dead endpoint until
+        // the push service 410s it.
+        try {
+          await fetch('/api/push/unsubscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: sub.endpoint }) });
+        } catch {}
+        try { await sub.unsubscribe(); } catch {}
+      } catch {}
+    }
+    // Run when the toggle is switched on. Says plainly what the visitor is getting,
+    // because "notifications on" means two different things depending on the
+    // browser and it is worse to leave them guessing.
+    async function pushAfterEnable() {
+      if (!PUSH_OK) {
+        showToast(window.isSecureContext ? t('pushNoSupport') : t('pushNeedsHttps'));
+        return;
+      }
+      if (pushIosNeedsInstall()) { showToast(t('pushIosHint')); return; }
+      const ok = await pushSubscribe();
+      showToast(ok ? t('pushOnBg') : t('pushOnTabOnly'));
+    }
+    // Called after the toggle goes on, and once on load for an already-enabled
+    // account, because a subscription is per device and per browser profile.
+    async function pushSync() {
+      if (localStorage.getItem('ki_notify') !== '1') return;
+      if (!AUTH.user) return;
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      await pushSubscribe();
+    }
+
     async function requestNotifyPermission() {
       if (!('Notification' in window)) { showToast(MSGT('Notifications are not supported in this browser.', 'Ez a böngésző nem támogatja az értesítéseket.'), true); return false; }
       let perm = Notification.permission;
@@ -7372,8 +7481,8 @@
       on('authNotifToggle', async () => {
         const el = document.getElementById('authNotifToggle'); if (!el) return;
         const turningOn = !el.classList.contains('on');
-        if (turningOn) { const okp = await requestNotifyPermission(); if (!okp) return; localStorage.setItem('ki_notify', '1'); }
-        else localStorage.setItem('ki_notify', '0');
+        if (turningOn) { const okp = await requestNotifyPermission(); if (!okp) return; localStorage.setItem('ki_notify', '1'); await pushAfterEnable(); }
+        else { localStorage.setItem('ki_notify', '0'); pushUnsubscribe(); }
         el.classList.toggle('on');
         const st = document.getElementById('stgNotifToggle'); if (st) st.classList.toggle('on', localStorage.getItem('ki_notify') === '1');
       });
@@ -10484,8 +10593,8 @@
       const notifToggle = document.getElementById('stgNotifToggle');
       if (notifToggle) notifToggle.addEventListener('click', async () => {
         const turningOn = !notifToggle.classList.contains('on');
-        if (turningOn) { const okp = await requestNotifyPermission(); if (!okp) return; localStorage.setItem('ki_notify', '1'); }
-        else localStorage.setItem('ki_notify', '0');
+        if (turningOn) { const okp = await requestNotifyPermission(); if (!okp) return; localStorage.setItem('ki_notify', '1'); await pushAfterEnable(); }
+        else { localStorage.setItem('ki_notify', '0'); pushUnsubscribe(); }
         notifToggle.classList.toggle('on');
         markDirty();
       });

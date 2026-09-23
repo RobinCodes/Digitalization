@@ -73,7 +73,8 @@ function safePath(base, relPath) {
 // Never expose server source, credential files, dotfiles (.git, .pdf-cache), or tests
 // over HTTP — important once the repo is public on GitHub.
 const PROTECTED_FILES = new Set(['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json', 'blocked.json',
-  'timetable.json', 'days.json', 'note-discussions.json', 'changelog.json', 'donations.json', 'server.js',
+  'timetable.json', 'days.json', 'note-discussions.json', 'changelog.json', 'donations.json',
+  'push-subs.json', 'vapid.json', 'server.js',
   'make-admin.js', 'make-user.js', 'package.json', 'package-lock.json']);
 // Compared case-insensitively: Windows/macOS filesystems are case-insensitive, so a
 // request for /ADMINS.JSON would otherwise walk straight past this guard and serve
@@ -1286,6 +1287,215 @@ function presenceFor(names, now) { const out = {}; for (const p of names || []) 
 // Evict long-stale entries so the Map can't grow without bound over a long uptime
 // (a missing entry already reads as "offline", so old rows carry no information).
 setInterval(() => { const cutoff = Date.now() - 24 * 3600 * 1000; for (const [k, t] of _presence) if (t < cutoff) _presence.delete(k); }, 3600 * 1000).unref?.();
+
+// ══ Reaching people who are not looking at the site ═══════════════════════════
+// Two independent channels, both optional, both fire-and-forget. Nothing in a
+// request handler ever waits on either of them, and neither can throw into one.
+//
+//   Web push  — per member, per device. Works with the tab closed. Sent WITHOUT a
+//               payload: the service worker fetches /api/notify/pending and builds
+//               the text itself. That is not a shortcut — a payload would have to
+//               be AES128GCM-encrypted to the subscription's keys, and skipping it
+//               keeps this server dependency-free while also meaning no message
+//               text ever passes through Mozilla's or Google's push service.
+//
+//   Webhook   — one URL, for the admins, for the things that need somebody to act:
+//               access requests, password resets, donations, new accounts. NOT
+//               ordinary chat, which would be noise and would leak members' traffic
+//               patterns to a third party.
+
+// ── VAPID ─────────────────────────────────────────────────────────────────────
+// The keypair identifies this server to the push services. Generated once and kept
+// in vapid.json (git-ignored); losing it only means every existing subscription
+// stops working and has to be re-made.
+const __VAPID     = path.join(__dirname, 'vapid.json');
+const __PUSH_SUBS = path.join(__dirname, 'push-subs.json');
+const PUSH_SUBJECT   = process.env.PUSH_SUBJECT || 'mailto:admin@localhost';
+const PUSH_MAX_PER_USER = 12;                       // a phone, a laptop, a couple of browsers
+const b64u = buf => Buffer.from(buf).toString('base64url');
+
+let _vapid = null;
+function vapidKeys() {
+  if (_vapid) return _vapid;
+  try {
+    const o = JSON.parse(fs.readFileSync(__VAPID, 'utf8'));
+    if (o && o.publicKey && o.privateJwk) { _vapid = o; return _vapid; }
+  } catch {}
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+  const pub = publicKey.export({ format: 'jwk' });
+  // The application server key is the uncompressed EC point: 0x04 || X || Y.
+  const raw = Buffer.concat([Buffer.from([4]), Buffer.from(pub.x, 'base64url'), Buffer.from(pub.y, 'base64url')]);
+  _vapid = { publicKey: b64u(raw), privateJwk: privateKey.export({ format: 'jwk' }), created: new Date().toISOString() };
+  try { writeFileAtomic(__VAPID, JSON.stringify(_vapid, null, 2) + '\n'); }
+  catch (e) { console.warn('  ⚠  could not persist vapid.json — push subscriptions will not survive a restart:', e.message); }
+  return _vapid;
+}
+// A signed JWT proving this push is from us, per RFC 8292. Cached per audience
+// until it is close to expiring, so a fan-out to twenty devices signs once.
+const _vapidJwt = new Map();                        // audience -> { token, exp }
+function vapidAuth(endpoint) {
+  let aud; try { const u = new URL(endpoint); aud = u.origin; } catch { return null; }
+  const now = Math.floor(Date.now() / 1000);
+  const hit = _vapidJwt.get(aud);
+  if (hit && hit.exp - now > 600) return `vapid t=${hit.token}, k=${vapidKeys().publicKey}`;
+  const exp = now + 12 * 3600;
+  const head = b64u(JSON.stringify({ typ: 'JWT', alg: 'ES256' }));
+  const body = b64u(JSON.stringify({ aud, exp, sub: PUSH_SUBJECT }));
+  const signing = `${head}.${body}`;
+  let sig;
+  try {
+    const key = crypto.createPrivateKey({ key: vapidKeys().privateJwk, format: 'jwk' });
+    // JWS wants the raw r||s pair, not the DER structure createSign would give.
+    sig = crypto.sign('sha256', Buffer.from(signing), { key, dsaEncoding: 'ieee-p1363' });
+  } catch { return null; }
+  const token = `${signing}.${b64u(sig)}`;
+  _vapidJwt.set(aud, { token, exp });
+  return `vapid t=${token}, k=${vapidKeys().publicKey}`;
+}
+
+// ── Subscription store ────────────────────────────────────────────────────────
+let _subsCache = null;
+function loadPushSubs() {
+  let key = 'none';
+  try { const st = fs.statSync(__PUSH_SUBS); key = st.mtimeMs + ':' + st.size; } catch {}
+  if (_subsCache && _subsCache.key === key) return _subsCache.data;
+  let data = {};
+  try { const o = JSON.parse(fs.readFileSync(__PUSH_SUBS, 'utf8')); if (o && typeof o === 'object' && !Array.isArray(o)) data = o; } catch {}
+  _subsCache = { key, data };
+  return data;
+}
+function savePushSubs(o) { writeFileAtomic(__PUSH_SUBS, JSON.stringify(o, null, 2) + '\n'); _subsCache = null; }
+function dropPushEndpoint(endpoint) {
+  const all = loadPushSubs(); let changed = false;
+  for (const u of Object.keys(all)) {
+    const before = all[u].length;
+    all[u] = all[u].filter(s => s.endpoint !== endpoint);
+    if (all[u].length !== before) changed = true;
+    if (!all[u].length) delete all[u];
+  }
+  if (changed) { try { savePushSubs(all); } catch {} }
+}
+
+// One bare POST. Resolves to the status code; never rejects.
+function pushOne(sub) {
+  return new Promise(resolve => {
+    let u; try { u = new URL(sub.endpoint); } catch { return resolve(0); }
+    if (u.protocol !== 'https:') return resolve(0);
+    const auth = vapidAuth(sub.endpoint);
+    if (!auth) return resolve(0);
+    const lib = require('https');
+    const req = lib.request({
+      hostname: u.hostname, port: u.port || 443, path: u.pathname + u.search, method: 'POST',
+      headers: { 'Authorization': auth, 'TTL': '900', 'Urgency': 'normal', 'Content-Length': '0' },
+      timeout: 10000,
+    }, res => { res.resume(); res.on('end', () => resolve(res.statusCode || 0)); });
+    req.on('error', () => resolve(0));
+    req.on('timeout', () => { try { req.destroy(); } catch {} resolve(0); });
+    req.end();
+  });
+}
+// Wake every device belonging to these accounts. `exclude` is the person who
+// caused the event — you do not want a buzz for your own message.
+function pushToUsers(usernames, exclude) {
+  const all = loadPushSubs();
+  const skip = String(exclude || '').toLowerCase();
+  const seen = new Set();
+  const jobs = [];
+  for (const name of usernames || []) {
+    const k = String(name || '').toLowerCase();
+    if (!k || k === skip || seen.has(k)) continue;
+    seen.add(k);
+    for (const sub of (all[k] || [])) jobs.push({ k, sub });
+  }
+  if (!jobs.length) return;
+  (async () => {
+    for (const { sub } of jobs) {
+      const code = await pushOne(sub);
+      // 404/410 mean the browser threw the subscription away; stop trying forever.
+      if (code === 404 || code === 410) dropPushEndpoint(sub.endpoint);
+    }
+  })().catch(() => {});
+}
+
+// ── Admin webhook ─────────────────────────────────────────────────────────────
+// Deliberately narrow. It exists so an access request does not sit unanswered for
+// three days, not so a third-party chat service learns who talks to whom.
+const WEBHOOK_URL    = process.env.ADMIN_WEBHOOK_URL || '';
+const WEBHOOK_CHATID = process.env.ADMIN_WEBHOOK_CHAT_ID || '';
+const WEBHOOK_DETAIL = (process.env.ADMIN_WEBHOOK_DETAIL === 'full') ? 'full' : 'minimal';
+const WEBHOOK_FORMAT = (() => {
+  const f = (process.env.ADMIN_WEBHOOK_FORMAT || '').toLowerCase();
+  if (['discord', 'slack', 'telegram', 'json'].includes(f)) return f;
+  if (/discord(app)?\.com\/api\/webhooks/i.test(WEBHOOK_URL)) return 'discord';
+  if (/hooks\.slack\.com/i.test(WEBHOOK_URL)) return 'slack';
+  if (/api\.telegram\.org/i.test(WEBHOOK_URL)) return 'telegram';
+  return 'json';
+})();
+const SITE_ORIGIN = (process.env.SITE_ORIGIN || '').replace(/\/+$/, '');
+// Usernames are already [A-Za-z0-9_.-], but labels and titles are free text that a
+// member wrote. Flatten them, cap them, and defuse the mass-mention tokens so a
+// note title can never make a Discord webhook ping a whole server.
+function webhookSafe(s, max) {
+  return String(s == null ? '' : s)
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/@(everyone|here)\b/gi, '@​$1')
+    .slice(0, max || 120)
+    .trim();
+}
+const _hookQueue = [];
+let _hookBusy = false;
+const _hookRecent = new Map();                      // "kind:actor" -> last sent (ms)
+// How long the same person doing the same thing stays collapsed into one ping.
+const WEBHOOK_DEDUPE_MS = Math.max(0, Number(process.env.ADMIN_WEBHOOK_DEDUPE_MS) || 60000);
+function adminAlert(kind, opts = {}) {
+  if (!WEBHOOK_URL) return;
+  const actor = webhookSafe(opts.actor, 40);
+  // Collapse repeats: one person retrying does not become ten pings.
+  const dedupe = kind + ':' + actor.toLowerCase();
+  const now = Date.now();
+  if (now - (_hookRecent.get(dedupe) || 0) < WEBHOOK_DEDUPE_MS) return;
+  _hookRecent.set(dedupe, now);
+  if (_hookRecent.size > 500) for (const [k, t] of _hookRecent) if (now - t > 600000) _hookRecent.delete(k);
+  if (_hookQueue.length >= 50) return;              // a backlog this deep means the endpoint is down
+  const detail = (WEBHOOK_DETAIL === 'full' && opts.label) ? ' — ' + webhookSafe(opts.label, 120) : '';
+  const line = (opts.text || `${actor || 'somebody'} ${kind}`) + detail;
+  _hookQueue.push({ kind, actor, line, url: opts.url || (SITE_ORIGIN ? SITE_ORIGIN + '/' : ''), at: new Date().toISOString() });
+  drainHooks();
+}
+function drainHooks() {
+  if (_hookBusy || !_hookQueue.length) return;
+  _hookBusy = true;
+  const item = _hookQueue.shift();
+  let payload;
+  const text = 'Knowledge Index · ' + item.line + (item.url ? '\n' + item.url : '');
+  if (WEBHOOK_FORMAT === 'discord') payload = { content: text, allowed_mentions: { parse: [] } };
+  else if (WEBHOOK_FORMAT === 'slack') payload = { text };
+  else if (WEBHOOK_FORMAT === 'telegram') payload = { chat_id: WEBHOOK_CHATID, text, disable_web_page_preview: true };
+  else payload = { event: item.kind, actor: item.actor, text: item.line, url: item.url, at: item.at };
+  const body = Buffer.from(JSON.stringify(payload), 'utf8');
+  let u; try { u = new URL(WEBHOOK_URL); } catch { _hookBusy = false; return; }
+  const lib = u.protocol === 'http:' ? require('http') : require('https');
+  const done = () => { _hookBusy = false; if (_hookQueue.length) setTimeout(drainHooks, 1200); };
+  const req = lib.request({
+    hostname: u.hostname, port: u.port || (u.protocol === 'http:' ? 80 : 443),
+    path: u.pathname + u.search, method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Content-Length': String(body.length) },
+    timeout: 10000,
+  }, res => { res.resume(); res.on('end', done); });
+  req.on('error', done);
+  req.on('timeout', () => { try { req.destroy(); } catch {} done(); });
+  req.write(body); req.end();
+}
+
+// ── One funnel ────────────────────────────────────────────────────────────────
+// Everything that should reach somebody goes through here, so there is one place
+// to read to know what the site can send and to whom.
+function notify(kind, { to = [], actor = '', label = '', text = '', admin = false } = {}) {
+  try { pushToUsers(to, actor); } catch {}
+  if (admin) { try { adminAlert(kind, { actor, label, text, url: SITE_ORIGIN ? SITE_ORIGIN + '/' : '' }); } catch {} }
+}
+function adminUsernames() { try { return loadAdmins().map(a => a.username); } catch { return []; } }
+
 // ══ Timetable & day log ═══════════════════════════════════════════════════════
 // Two stores, both git-ignored runtime state:
 //   timetable.json — the recurring weekly schedule (periods, subjects, slots) that
@@ -1843,6 +2053,10 @@ function postDonationCard(donation) {
     c.reads[String(donation.from).toLowerCase()] = now;
   }
   try { saveChats(chats); } catch {}
+  // An unreviewed donation is somebody's unpublished work sitting in staging, so
+  // it is worth a nudge. The title is a donor-written label and only travels to the
+  // webhook when ADMIN_WEBHOOK_DETAIL=full.
+  notify('donated a note', { to: admins, actor: donation.from, label: donation.title, admin: true });
 }
 // Close out every pending card for a donation and tell the donor what happened.
 // Each admin holds their own copy of the card, so all of them are settled at once —
@@ -1872,6 +2086,8 @@ function settleDonationCards(donation, decision, reason, actor) {
     }
   }
   if (touched) { try { saveChats(chats); } catch {} }
+  // The donor has been waiting on this answer; a withdrawal is their own doing.
+  if (told && decision !== 'withdrawn') notify('donation reviewed', { to: [donation.from], actor });
 }
 
 // Account-name and password rules, shared by public sign-up and admin user
@@ -2713,6 +2929,100 @@ const server = http.createServer((req, res) => {
   // Presence heartbeat + lookup. Touches the caller's last-seen and returns how
   // long ago each requested user was last seen (ms), or null if never. Doubles as
   // a lightweight reachability ping for the client's connection indicator.
+  // ── Web push: subscribe, unsubscribe, and what to show ─────────────────────
+  // The VAPID public key is exactly that — public. The browser needs it to create
+  // a subscription at all, so this is unauthenticated on purpose.
+  if (pathname === '/api/push/key' && req.method === 'GET') {
+    let key = '';
+    try { key = vapidKeys().publicKey; } catch {}
+    return sendJSON(res, { ok: !!key, key });
+  }
+  if (pathname === '/api/push/subscribe' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    if (!rateOk(req, 'pushsub', 30, 10 * 60 * 1000)) return sendJSON(res, { ok: false, error: 'Too many requests.' }, 429);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const endpoint = String((j && j.endpoint) || '');
+      // Only ever store an https endpoint: this is a URL the server will POST to
+      // later, so it must not be able to name a plaintext or internal address.
+      let u; try { u = new URL(endpoint); } catch { return sendJSON(res, { ok: false, error: 'Bad endpoint.' }, 400); }
+      if (u.protocol !== 'https:' || endpoint.length > 1024) return sendJSON(res, { ok: false, error: 'Bad endpoint.' }, 400);
+      const keys = (j && j.keys && typeof j.keys === 'object') ? j.keys : {};
+      const rec = {
+        endpoint,
+        // Kept for a future encrypted-payload upgrade; unused by the bare push today.
+        p256dh: _str(keys.p256dh, 200), auth: _str(keys.auth, 100),
+        ua: _str(j && j.ua, 120), added: new Date().toISOString(),
+      };
+      const all = loadPushSubs();
+      const me = String(s.username).toLowerCase();
+      // An endpoint identifies one browser profile. If it moves between accounts on
+      // a shared machine it must not keep waking the previous one.
+      for (const k of Object.keys(all)) {
+        all[k] = (all[k] || []).filter(x => x.endpoint !== endpoint);
+        if (!all[k].length) delete all[k];
+      }
+      const list = all[me] || [];
+      list.push(rec);
+      all[me] = list.slice(-PUSH_MAX_PER_USER);
+      try { savePushSubs(all); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      return sendJSON(res, { ok: true, devices: all[me].length });
+    });
+    return;
+  }
+  if (pathname === '/api/push/unsubscribe' && req.method === 'POST') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    let body = ''; req.on('data', c => { body += c; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      let j; try { j = JSON.parse(body); } catch { res.writeHead(400); return res.end('Bad JSON'); }
+      const endpoint = String((j && j.endpoint) || '');
+      const all = loadPushSubs();
+      const me = String(s.username).toLowerCase();
+      // Only ever unsubscribe your own rows — an endpoint is guessable in principle.
+      if (all[me]) {
+        all[me] = all[me].filter(x => x.endpoint !== endpoint);
+        if (!all[me].length) delete all[me];
+        try { savePushSubs(all); } catch {}
+      }
+      return sendJSON(res, { ok: true });
+    });
+    return;
+  }
+  // What the service worker should put on screen. The push itself carries no
+  // payload, so this is where the text comes from — which means it is subject to
+  // the session like everything else, and a push that arrives after a sign-out
+  // tells the worker nothing beyond "something happened".
+  if (pathname === '/api/notify/pending' && req.method === 'GET') {
+    const s = siteSession(req);
+    if (!s) return sendJSON(res, { ok: false, error: 'unauthorized' }, 401);
+    const me = s.username, meLc = String(me).toLowerCase();
+    const items = [];
+    let unread = 0;
+    for (const c of loadChats().conversations) {
+      if (!chatParticipant(c, me) || chatHiddenFor(c, me)) continue;
+      const n = chatUnread(c, me);
+      if (!n) continue;
+      unread += n;
+      const last = (c.messages || [])[c.messages.length - 1] || null;
+      if (!last || String(last.from).toLowerCase() === meLc) continue;
+      const who = chatTitleFor(c, me);
+      let title = who, body = '';
+      if (last.kind === 'access-request')  { title = 'Access request'; body = last.from + ' asked to read a note'; }
+      else if (last.kind === 'access-result') { title = 'Access request'; body = 'Your request was ' + (last.decision || 'answered'); }
+      else if (last.kind === 'password-reset') { title = 'Password reset'; body = last.from + ' asked for a reset link'; }
+      else if (last.kind === 'donation')   { title = 'Note donation'; body = last.from + ' donated a note'; }
+      else if (last.kind === 'donation-result') { title = 'Note donation'; body = 'Your donation was ' + (last.decision || 'reviewed'); }
+      else if (last.kind === 'system')     { continue; }
+      else { body = chatPreview(last).slice(0, 120); }
+      items.push({ title, body, tag: 'ki-chat-' + c.id, convo: c.id, date: last.date || '' });
+    }
+    items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    return sendJSON(res, { ok: true, unread, items: items.slice(0, 6) });
+  }
+
   if (pathname === '/api/presence' && req.method === 'GET') {
     const s = siteSession(req);
     if (s) touchPresence(s.username);
@@ -2910,6 +3220,10 @@ const server = http.createServer((req, res) => {
       if (c.type !== 'group' && Array.isArray(c.deletedBy) && c.deletedBy.length) c.deletedBy = []; // new activity un-hides a deleted-for-me DM
       c.reads = c.reads || {}; c.reads[meLc] = msg.date;
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      // Wake the other participants' devices. No webhook: ordinary chat is not
+      // admin business, and routing it through a third party would leak who talks
+      // to whom. The sender is excluded, so you never buzz for your own message.
+      notify('message', { to: c.participants || [], actor: me });
       return sendJSON(res, { ok: true, id: c.id });
     });
     return;
@@ -3202,6 +3516,8 @@ const server = http.createServer((req, res) => {
       }
       if (!posted) return sendJSON(res, { ok: true, status: already ? 'pending' : 'requested', recipients });
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      // Somebody is waiting on a human here, so this one reaches the webhook too.
+      notify('requested access to a note', { to: recipients, actor: me, label: note.label, admin: true });
       return sendJSON(res, { ok: true, status: 'requested', recipients });
     });
     return;
@@ -3232,6 +3548,8 @@ const server = http.createServer((req, res) => {
       if (accept) addGrant(target.from, target.note.lang, target.note.path);
       convo.messages.push({ id: crypto.randomUUID(), from: me, kind: 'access-result', decision: accept ? 'accepted' : 'declined', reason, note: target.note, body: reason, date: new Date().toISOString() });
       try { saveChats(chats); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
+      // Tell the person who asked. Their whole reason for waiting was this answer.
+      notify('access request answered', { to: [target.from], actor: me });
       return sendJSON(res, { ok: true });
     });
     return;
@@ -3280,7 +3598,12 @@ const server = http.createServer((req, res) => {
         posted++;
       }
       PW_RESET_ASKED.set(nameLc, now);
-      if (posted) { try { saveChats(chats); } catch {} }
+      if (posted) {
+        try { saveChats(chats); } catch {}
+        // The one thing nobody else can unblock: the member stays locked out until
+        // an admin looks. No label — the username is the whole content of the event.
+        notify('asked for a password reset', { to: admins, actor: real.username, admin: true });
+      }
       return done();
     });
     return;
@@ -3363,6 +3686,9 @@ const server = http.createServer((req, res) => {
       list.push({ username, ...(await hashPassword(password)) });
       try { saveUsers(list); } catch (e) { return sendJSON(res, { ok: false, error: e.message }, 500); }
       const token = createSession(username, 'user');
+      // Webhook only. Sign-up is open, so knowing who just joined is worth a line —
+      // but there is nothing here for an admin's phone to buzz about.
+      adminAlert('signed up', { actor: username, text: username + ' created an account' });
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Set-Cookie': setCookie(req, token) });
       return res.end(JSON.stringify({ ok: true, username, role: 'user' }));
     });
@@ -3436,7 +3762,7 @@ const server = http.createServer((req, res) => {
     try {
       for (const f of ['admins.json', 'users.json', 'settings.json', 'grants.json', 'chats.json',
                        'blocked.json', 'note-discussions.json', 'changelog.json', 'timetable.json', 'days.json',
-                       'donations.json'])
+                       'donations.json', 'push-subs.json', 'vapid.json'])
         addFile(path.join(__WEBSITE, f), 'state/' + f);
       addDir(__DAY_FILES, 'Uploads/days');
       // Submissions still awaiting review are somebody else's unpublished work and
