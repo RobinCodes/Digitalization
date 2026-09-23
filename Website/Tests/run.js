@@ -62,7 +62,7 @@ fs.writeFileSync(path.join(DATA, 'STEM', 'Physics', 'Mechanics {P}.tex'),
   '\\documentclass{article}\\begin{document}mech\\end{document}');
 
 // ── tiny HTTP client ──────────────────────────────────────────────────────────
-function req(method, p, { token, body, authToken, cookie } = {}) {
+function req(method, p, { token, body, authToken, cookie, headers: extra } = {}) {
   return new Promise((resolve, reject) => {
     const data = body !== undefined ? JSON.stringify(body) : null;
     const headers = {};
@@ -70,6 +70,8 @@ function req(method, p, { token, body, authToken, cookie } = {}) {
     if (token) headers['X-Admin-Token'] = token;
     if (authToken) headers['X-Auth-Token'] = authToken;
     if (cookie) headers['Cookie'] = cookie;
+    // Anything a proxy would add in front of the app, X-Forwarded-* above all.
+    Object.assign(headers, extra || {});
     const r = http.request({ host: '127.0.0.1', port: PORT, path: p, method, headers }, res => {
       let buf = ''; res.on('data', c => buf += c);
       res.on('end', () => {
@@ -137,6 +139,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
            // Short enough that two back-to-back events still collapse, but not so long
            // that an unrelated earlier test poisons a later assertion.
            ADMIN_WEBHOOK_DEDUPE_MS: '1200',
+           // Production runs behind Caddy on loopback, so the suite does too —
+           // otherwise nothing here ever exercises the X-Forwarded-* path.
+           TRUSTED_PROXIES: '127.0.0.1',
            SITE_ORIGIN: 'https://notes.example' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -1275,6 +1280,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     // ── HSTS is emitted on HTTPS only ────────────────────────────────────────
     r = await req('GET', '/api/me');
     ok('no HSTS over plain HTTP', !r.headers['strict-transport-security'], r.headers['strict-transport-security']);
+    // The other half: a trusted proxy reporting HTTPS must switch it on. This
+    // client connects over IPv4 to a dual-stack listener, so the server sees
+    // ::ffff:127.0.0.1 — the exact shape that silently disabled HSTS, the cookie's
+    // Secure flag and per-IP rate limiting on the real server.
+    r = await req('GET', '/api/me', { headers: { 'X-Forwarded-Proto': 'https' } });
+    ok('HSTS once a trusted proxy reports HTTPS',
+      /max-age=\d+/.test(r.headers['strict-transport-security'] || ''), r.headers['strict-transport-security']);
     ok('the other security headers are always present',
       r.headers['x-content-type-options'] === 'nosniff' && !!r.headers['content-security-policy'] && !!r.headers['x-frame-options']);
     const shellRes = await req('GET', '/devtools');

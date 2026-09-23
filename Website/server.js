@@ -2218,7 +2218,13 @@ function isLoggedIn(req) { return !!siteSession(req); }
 // comma-separated). Otherwise a client could spoof them to bypass rate limits.
 const TRUSTED_PROXIES = new Set((process.env.TRUSTED_PROXIES || '').split(',').map(x => x.trim()).filter(Boolean));
 function directIp(req) {
-  return (req.socket && req.socket.remoteAddress) || (req.connection && req.connection.remoteAddress) || '';
+  const ip = (req.socket && req.socket.remoteAddress) || (req.connection && req.connection.remoteAddress) || '';
+  // server.listen(PORT) binds dual-stack, so a proxy reaching us over IPv4 arrives
+  // as the IPv4-mapped form "::ffff:127.0.0.1". Without stripping that, a plain
+  // TRUSTED_PROXIES=127.0.0.1 never matches: X-Forwarded-* is ignored, HSTS is
+  // never sent, session cookies lose Secure, and every visitor shares one
+  // rate-limit bucket keyed on the proxy.
+  return ip.startsWith('::ffff:') ? ip.slice(7) : ip;
 }
 function reqIsHttps(req) {
   if (TRUSTED_PROXIES.has(directIp(req)) && req.headers && req.headers['x-forwarded-proto'] === 'https') return true;
