@@ -50,7 +50,7 @@ szignotes.hu, www.szignotes.hu {
 	}
 }
 
-# Once you own digitalization.hu, redirect it here rather than serving twice:
-# digitalization.hu, www.digitalization.hu {
-# 	redir https://szignotes.hu{uri} permanent
-# }
+# digitalization.hu is redirected here rather than serving the site twice.
+digitalization.hu, www.digitalization.hu {
+	redir https://szignotes.hu{uri} permanent
+}
