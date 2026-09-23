@@ -68,6 +68,11 @@ journalctl -u szignotes -n 30      # confirm the pdflatex banner says it was fou
 ```bash
 install -m 755 /opt/szignotes/Deploy/szignotes-deploy.sh /usr/local/bin/szignotes-deploy
 
+# The script snapshots the JSON stores and Uploads/ here before every deploy. It
+# runs as deploy, which cannot create a directory under /var/backups itself — so
+# the very first deploy dies with "mkdir: cannot create directory" without this.
+install -d -o deploy -g deploy -m 750 /var/backups/szignotes
+
 cat > /etc/sudoers.d/szignotes <<'EOF'
 deploy ALL=(root) NOPASSWD: /bin/systemctl restart szignotes, /bin/systemctl is-active szignotes
 EOF
