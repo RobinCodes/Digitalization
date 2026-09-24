@@ -73,8 +73,11 @@ install -m 755 /opt/szignotes/Deploy/szignotes-deploy.sh /usr/local/bin/szignote
 # the very first deploy dies with "mkdir: cannot create directory" without this.
 install -d -o deploy -g deploy -m 750 /var/backups/szignotes
 
+# Restart only — reading the unit's state afterwards needs no privileges. Both
+# paths because Debian merges /bin into /usr/bin, and sudoers matches the command
+# line exactly: any flag the script adds that is not written here is refused.
 cat > /etc/sudoers.d/szignotes <<'EOF'
-deploy ALL=(root) NOPASSWD: /bin/systemctl restart szignotes, /bin/systemctl is-active szignotes
+deploy ALL=(root) NOPASSWD: /bin/systemctl restart szignotes, /usr/bin/systemctl restart szignotes
 EOF
 chmod 440 /etc/sudoers.d/szignotes
 visudo -c

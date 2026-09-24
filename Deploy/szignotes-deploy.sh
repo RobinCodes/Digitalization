@@ -75,6 +75,10 @@ fi
 # Sessions live in memory, so this signs everyone out. That is expected.
 sudo -n /bin/systemctl restart "$SERVICE"
 sleep 2
-sudo -n /bin/systemctl is-active --quiet "$SERVICE" \
+# No sudo on this one: reading a unit's state needs no privileges, and sudoers
+# matches arguments exactly — "is-active --quiet" is not the "is-active" in the
+# rule, so routing it through sudo made every deploy fail its own health check
+# seconds after a restart that had actually succeeded.
+systemctl is-active --quiet "$SERVICE" \
   && log "$SERVICE is up" \
   || { log "$SERVICE FAILED to come up — journalctl -u $SERVICE -n 50"; exit 1; }
