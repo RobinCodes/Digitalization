@@ -17,6 +17,11 @@ ExecStart=/usr/bin/node server.js
 Environment=NODE_ENV=production
 Environment=PORT=3000
 
+# Loopback only: Caddy is the single way in. Stated explicitly even though it is
+# the default, because the day this says 0.0.0.0 the unencrypted site is on the
+# public interface next to the proxy.
+Environment=HOST=127.0.0.1
+
 # Without this every visitor shares one rate-limit budget, HSTS is never sent
 # and the session cookie never gets its Secure flag. See hosting-and-operations.md §1.
 Environment=TRUSTED_PROXIES=127.0.0.1

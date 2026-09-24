@@ -24,6 +24,11 @@ It speaks **plain HTTP**. Put a reverse proxy in front for TLS, and then set
 PORT=3000 TRUSTED_PROXIES=127.0.0.1 node server.js
 ```
 
+It binds loopback unless told otherwise, so the proxy is the only way in and the
+plain-HTTP port is not sitting on the public interface beside it. To reach it
+from another machine — a phone on the same Wi-Fi, say — set `HOST=0.0.0.0`, and
+mean it.
+
 That one variable matters more than it looks. Without it the server sees only the
 proxy's IP, so:
 
@@ -312,6 +317,7 @@ skips itself without one.
 | Variable | Default | What |
 |---|---|---|
 | `PORT` | `3000` | listen port |
+| `HOST` | `127.0.0.1` | interface to bind. Loopback by default, so the plain-HTTP app cannot be reached beside the proxy; `0.0.0.0` publishes it deliberately |
 | `TRUSTED_PROXIES` | *(none)* | comma-separated proxy IPs whose `X-Forwarded-*` headers are believed |
 | `SITE_ORIGIN` | *(none)* | absolute origin, used for the `Sitemap:` line in `robots.txt` |
 | `CORS_ORIGIN` | *(none)* | one origin to expose the API to; unset means same-origin only |

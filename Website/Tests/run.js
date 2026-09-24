@@ -9,6 +9,7 @@ const fs      = require('fs');
 const os      = require('os');
 const path    = require('path');
 const http    = require('http');
+const net     = require('net');
 const crypto  = require('crypto');
 const { spawn } = require('child_process');
 
@@ -1287,6 +1288,24 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     r = await req('GET', '/api/me', { headers: { 'X-Forwarded-Proto': 'https' } });
     ok('HSTS once a trusted proxy reports HTTPS',
       /max-age=\d+/.test(r.headers['strict-transport-security'] || ''), r.headers['strict-transport-security']);
+
+    // The site is served over plain HTTP and relies on a proxy for TLS, so the
+    // listener itself must stay on loopback — otherwise the unencrypted app sits
+    // on the public interface next to the proxy. Try this machine's own LAN
+    // address: anything but a refused connection means HOST went public.
+    const lanIp = Object.values(os.networkInterfaces()).flat()
+      .find(i => i && i.family === 'IPv4' && !i.internal);
+    if (lanIp) {
+      const reachable = await new Promise(resolve => {
+        const s = net.connect({ host: lanIp.address, port: PORT });
+        const settle = v => { s.destroy(); resolve(v); };
+        s.setTimeout(1500);
+        s.on('connect', () => settle(true));
+        s.on('timeout', () => settle(false));
+        s.on('error', () => settle(false));
+      });
+      ok('listens on loopback only, not the public interface', !reachable, lanIp.address + ':' + PORT);
+    }
     ok('the other security headers are always present',
       r.headers['x-content-type-options'] === 'nosniff' && !!r.headers['content-security-policy'] && !!r.headers['x-frame-options']);
     const shellRes = await req('GET', '/devtools');

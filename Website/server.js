@@ -11,6 +11,12 @@ const zlib   = require('zlib');
 const { spawnSync, spawn } = require('child_process');
 
 const PORT          = process.env.PORT || 3000;
+// Loopback by default. This server speaks plain HTTP and expects a TLS reverse
+// proxy in front of it on the same machine, so binding every interface publishes
+// the unencrypted site — logins included — straight to the internet on :PORT,
+// beside the proxy that was supposed to be the only way in. Set HOST=0.0.0.0
+// only when something really has to reach it directly.
+const HOST          = process.env.HOST || '127.0.0.1';
 const __WEBSITE     = __dirname;
 const __DATA        = path.resolve(__dirname, '..', 'Data');
 const __DATA_HU     = path.resolve(__dirname, '..', 'DataHU');
@@ -4660,12 +4666,13 @@ const server = http.createServer((req, res) => {
 });
 
 // ── Startup ───────────────────────────────────────────────────────────────────
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   const pdflatexOk = PDFLATEX_OK;
   console.log(`\n  ╔════════════════════════════════════════╗`);
   console.log(`  ║  ✦  Knowledge Index Server              ║`);
   console.log(`  ║  ➜  http://localhost:${PORT}             ║`);
   console.log(`  ╚════════════════════════════════════════╝\n`);
+  console.log(`  Listening  : ${HOST}:${PORT}${HOST === '127.0.0.1' ? ' (loopback only — reachable through the proxy)' : ' ⚠ reachable directly, without TLS'}`);
   console.log(`  Data (EN)  : ${__DATA}${fs.existsSync(__DATA) ? ' ✓' : ' ✗ MISSING'}`);
   console.log(`  Data (HU)  : ${__DATA_HU}${fs.existsSync(__DATA_HU) ? ' ✓' : ' (not present — single-language mode)'}`);
   console.log(`  Dual-lang  : ${HAS_DUAL_LANG}`);
